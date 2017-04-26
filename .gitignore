@@ -250,3 +250,6 @@ paket-files/
 # JetBrains Rider
 .idea/
 *.sln.iml
+
+Tests/CK.ActivityMonitor.Tests/TestFolder/CriticalErrors/
+CodeCakeBuilder/Tools/
