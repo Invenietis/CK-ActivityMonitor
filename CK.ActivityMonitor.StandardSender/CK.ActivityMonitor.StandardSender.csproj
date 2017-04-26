@@ -24,4 +24,41 @@
     <Folder Include="Properties\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="ActivityMonitorGroupSender-Gen.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ActivityMonitorGroupSender-Gen.cs</LastGenOutput>
+    </None>
+    <None Update="ActivityMonitorLineSender-Gen.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ActivityMonitorLineSender-Gen.cs</LastGenOutput>
+    </None>
+    <None Update="ActivityMonitorSenderExtension-Gen.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ActivityMonitorSenderExtension-Gen.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="ActivityMonitorGroupSender-Gen.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ActivityMonitorGroupSender-Gen.tt</DependentUpon>
+    </Compile>
+    <Compile Update="ActivityMonitorLineSender-Gen.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ActivityMonitorLineSender-Gen.tt</DependentUpon>
+    </Compile>
+    <Compile Update="ActivityMonitorSenderExtension-Gen.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ActivityMonitorSenderExtension-Gen.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>

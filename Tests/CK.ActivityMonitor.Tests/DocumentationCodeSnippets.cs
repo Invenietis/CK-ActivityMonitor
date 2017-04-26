@@ -16,7 +16,7 @@ namespace CK.Core.Tests.Monitoring
         {
             using (LockFact())
             {
-                var f = new FileInfo(Path.Combine(TestHelper.SolutionFolder, @"Tests\CK.Core.Tests\Animals.cs"));
+                var f = new FileInfo(Path.Combine(TestHelper.SolutionFolder, "Tests", "CK.ActivityMonitor.Tests", "DocumentationCodeSnippets.cs"));
                 DemoLogs(TestHelper.ConsoleMonitor, f, new Exception());
                 DemoOpenGroupFarFromPerfect(TestHelper.ConsoleMonitor);
                 DemoOpenGroupBetter(TestHelper.ConsoleMonitor);
@@ -63,13 +63,14 @@ namespace CK.Core.Tests.Monitoring
             }
         }
 
-        void DemoLogs( IActivityMonitor m, FileInfo f, Exception ex )
+        void DemoLogs(IActivityMonitor m, FileInfo f, Exception ex)
         {
-            m.Trace().Send( "Data from '{0}' processed.", f.Name );
-            m.Info().Send( ex, "An error occurred while processing '{0}'. Process will be retried later.", f.Name );
-            m.Warn().Send( "File '{0}' is too big ({1} Kb). It must be less than 50Kb.", f.Name, f.Length / 1024 );
-            m.Error().Send( ex, "File '{0}' can not be processed.", f.Name );
-            m.Fatal().Send( ex, "This will cancel the whole operation." );
+            m.Debug().Send( info => $"Content is: {File.ReadAllText( info.FullName )}'.", f );
+            m.Trace().Send("Data from '{0}' processed.", f.Name);
+            m.Info().Send(ex, "An error occurred while processing '{0}'. Process will be retried later.", f.Name);
+            m.Warn().Send("File '{0}' is too big ({1} Kb). It must be less than 50Kb.", f.Name, f.Length / 1024);
+            m.Error().Send(ex, "File '{0}' can not be processed.", f.Name);
+            m.Fatal().Send(ex, "This will cancel the whole operation.");
         }
 
         void Create()

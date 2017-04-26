@@ -1,20 +1,22 @@
 ﻿#region LGPL License
 /*----------------------------------------------------------------------------
-* This file (CK.Core\ActivityMonitor\Impl\ActivityMonitorSenderExtension.Gen.cs and CK.Core\ActivityMonitor\Impl\ActivityMonitorSenderExtension.Gen.tt ) is part of CiviKey. 
+* This file (CK.ActivityMonitor.StandardSender\ActivityMonitorSenderExtension.Gen.cs 
+* (and CK.ActivityMonitor.StandardSender\ActivityMonitorSenderExtension.Gen.tt) 
+* is part of CK-Framework. 
 *  
-* CiviKey is free software: you can redistribute it and/or modify 
+* CK-Framework is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
 * by the Free Software Foundation, either version 3 of the License, or 
 * (at your option) any later version. 
 *  
-* CiviKey is distributed in the hope that it will be useful, 
+* CK-Framework is distributed in the hope that it will be useful, 
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
 * GNU Lesser General Public License for more details. 
 * You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
+* along with CK-Framework.  If not, see <http://www.gnu.org/licenses/>. 
 *  
-* Copyright © 2007-2015, 
+* Copyright © 2007-2017, 
 *     Invenietis <http://www.invenietis.com>,
 *     In’Tech INFO <http://www.intechinfo.fr>,
 * All rights reserved. 
@@ -29,12 +31,12 @@ using System.Runtime.CompilerServices;
 namespace CK.Core
 {
     /// <summary>
-    /// Provides OpenXXX and XXX (Debug, Trace, Info,...Fatal) extension methods for <see cref="IActivityMonitor"/>.
+    /// Provides OpenXXX and XXX (Trace, Info,...Fatal) extension methods for <see cref="IActivityMonitor"/>.
     /// </summary>
     public static partial class ActivityMonitorSenderExtension
     {
-
-        /// <summary>
+		 
+		/// <summary>
         /// Filters <see cref="LogLevel.Debug"/> logs. FileName end LineNumber may be also used to determine whether
         /// the log should eventually be emitted.
         /// </summary>
@@ -42,12 +44,12 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A <see cref="ActivityMonitorLineSender"/> or null if the log must not be emitted.</returns>
-        static public IActivityMonitorLineSender Debug(this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null)
+        static public IActivityMonitorLineSender Debug( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
         {
-            return FilterLogLine(@this, LogLevel.Debug, fileName, lineNumber);
+            return FilterLogLine( @this, LogLevel.Debug, fileName, lineNumber );
         }
 
-        /// <summary>
+		/// <summary>
         /// Filtered <see cref="LogLevel.Debug"/> group opening. FileName end LineNumber may be also used to determine whether
         /// the log should eventually be emitted.
         /// </summary>
@@ -55,13 +57,13 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A <see cref="ActivityMonitorGroupSender"/> or null if the group must not be emitted.</returns>
-        static public IActivityMonitorGroupSender OpenDebug(this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null)
+		static public IActivityMonitorGroupSender OpenDebug( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
         {
-            return FilteredGroup(@this, LogLevel.Debug, fileName, lineNumber);
+            return FilteredGroup( @this, LogLevel.Debug, fileName, lineNumber );
         }
 
-
-        /// <summary>
+		 
+		/// <summary>
         /// Filters <see cref="LogLevel.Trace"/> logs. FileName end LineNumber may be also used to determine whether
         /// the log should eventually be emitted.
         /// </summary>
@@ -69,12 +71,12 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A <see cref="ActivityMonitorLineSender"/> or null if the log must not be emitted.</returns>
-        static public IActivityMonitorLineSender Trace(this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null)
+        static public IActivityMonitorLineSender Trace( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
         {
-            return FilterLogLine(@this, LogLevel.Trace, fileName, lineNumber);
+            return FilterLogLine( @this, LogLevel.Trace, fileName, lineNumber );
         }
 
-        /// <summary>
+		/// <summary>
         /// Filtered <see cref="LogLevel.Trace"/> group opening. FileName end LineNumber may be also used to determine whether
         /// the log should eventually be emitted.
         /// </summary>
@@ -82,13 +84,13 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A <see cref="ActivityMonitorGroupSender"/> or null if the group must not be emitted.</returns>
-        static public IActivityMonitorGroupSender OpenTrace(this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null)
+		static public IActivityMonitorGroupSender OpenTrace( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
         {
-            return FilteredGroup(@this, LogLevel.Trace, fileName, lineNumber);
+            return FilteredGroup( @this, LogLevel.Trace, fileName, lineNumber );
         }
 
-
-        /// <summary>
+		 
+		/// <summary>
         /// Filters <see cref="LogLevel.Info"/> logs. FileName end LineNumber may be also used to determine whether
         /// the log should eventually be emitted.
         /// </summary>
