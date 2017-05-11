@@ -71,8 +71,10 @@ namespace CK.Core.Tests
 
         public static void CleanupTestFolder()
         {
-            CleanupFolder( TestFolder );
+            CleanupFolder(TestFolder);
         }
+
+        public static string CriticalErrorPath => Path.Combine(SolutionFolder, "Tests", "CK.ActivityMonitor.Tests", "CriticalErrors");
 
         public static void CleanupFolder( string folder )
         {
@@ -96,11 +98,16 @@ namespace CK.Core.Tests
             }
         }
 
-        static void InitializePaths()
+        static public void InitializePaths()
         {
             if( _solutionFolder != null ) return;
             _solutionFolder = Path.GetDirectoryName(Path.GetDirectoryName(GetTestProjectPath()));
             _testFolder = Path.Combine( _solutionFolder, "Tests", "CK.ActivityMonitor.Tests", "TestFolder" );
+
+            SystemActivityMonitor.RootLogPath = Path.Combine(_solutionFolder, "Tests", "CK.ActivityMonitor.Tests" );
+            Directory.Exists(SystemActivityMonitor.RootLogPath).Should().BeTrue();
+            Directory.Exists(SystemActivityMonitor.RootLogPath+"CriticalErrors").Should().BeTrue();
+
             Console.WriteLine($"SolutionFolder is: {_solutionFolder}.");
             Console.WriteLine($"TestFolder is: {_testFolder}.");
             Console.WriteLine($"Core path: {typeof(string).GetTypeInfo().Assembly.CodeBase}.");

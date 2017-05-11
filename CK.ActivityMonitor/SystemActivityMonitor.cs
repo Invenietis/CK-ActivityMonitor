@@ -11,25 +11,11 @@ using CK.Core.Impl;
 namespace CK.Core
 {
     /// <summary>
-    /// This <see cref="ActivityMonitor"/> logs errors in a directory (if the static <see cref="RootLogPath"/> property is not null) and 
-    /// raises <see cref="OnError"/> events.
+    /// This <see cref="ActivityMonitor"/> logs errors in a directory (if the static <see cref="RootLogPath"/> property 
+    /// is not null) and raises <see cref="OnError"/> events.
     /// Its main goal is to be internally used by the Monitor framework but can be used as a "normal" monitor (if you believe it is a good idea).
-    /// The easiest way to configure it is to set an application settings with the key "CK.Core.SystemActivityMonitor.RootLogPath" and the root path 
-    /// for logs as the value.
+    /// If <see cref="RootLogPath"/> is not set, Critical errors will NOT be logged.
     /// </summary>
-    /// <remarks>
-    /// The RootLogPath uses the Application configuration (if it exists):
-    /// <code>
-    ///     &lt;appSettings&gt;
-    ///          &lt;add key="CK.Core.SystemActivityMonitor.RootLogPath" value="..." /&gt;
-    ///      &lt;/appSettings&gt;
-    /// </code>
-    /// If the setting is not there, the Critical errors will NOT be logged
-    /// except if it is explicitly set:
-    /// <code>
-    ///     SystemActivityMonitor.RootLogPath = "...";
-    /// </code>
-    /// </remarks>
     public sealed class SystemActivityMonitor : ActivityMonitor
     {
         /// <summary>
@@ -38,17 +24,14 @@ namespace CK.Core
         /// </summary>
         class SysClient : IActivityMonitorClient
         {
-            public LogFilter MinimalFilter
-            {
-                get { return LogFilter.Release; }
-            }
+            public LogFilter MinimalFilter => LogFilter.Release; 
 
             public void OnUnfilteredLog( ActivityMonitorLogData data )
             {
                 var level = data.Level & LogLevel.Mask;
                 if( level >= LogLevel.Error )
                 {
-                    string s = DumpErrorText( data.LogTime, data.Text, data.Level, null, data.Tags );
+                    string s = DumpErrorText( data.LogTime, data.Text, level, data.Tags, data.EnsureExceptionData() );
                     SystemActivityMonitor.HandleError( s );
                 }
             }
@@ -123,11 +106,12 @@ namespace CK.Core
         static readonly IActivityMonitorClient _client;
         static readonly IActivityMonitorClient _lockedClient;
         static string _logPath;
+        static string _criticalErrorsPath;
         static int _activityMonitorErrorTracked;
+        const string CriticalErrorsSubPath = "CriticalErrors/";
 
         static SystemActivityMonitor()
         {
-            SubDirectoryName = "CriticalErrors/";
             _client = new SysClient();
             _lockedClient = new SysLockedClient();
             _activityMonitorErrorTracked = 1;
@@ -154,9 +138,17 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// The directory in <see cref="RootLogPath"/> into which errors file will be created is "CriticalErrors/".
+        /// Gets the <see cref="RootLogPath"/>CriticalErrors/" path.
+        /// RootLogPath must be set otherwise a exception is thrown.
         /// </summary>
-        static public readonly string SubDirectoryName;
+        static public string CriticalErrorsPath
+        {
+            get
+            {
+                AssertRootLogPathIsSet();
+                return _criticalErrorsPath;
+            }
+        }
 
         /// <summary>
         /// Event that enables subsequent handling of errors.
@@ -228,12 +220,13 @@ namespace CK.Core
                 }
                 try
                 {
-                    string dirName = value + SubDirectoryName;
+                    string dirName = value + CriticalErrorsSubPath;
                     if( !Directory.Exists( dirName ) ) Directory.CreateDirectory( dirName );
                     string testWriteFile = Path.Combine( dirName, Guid.NewGuid().ToString() );
                     File.AppendAllText( testWriteFile, testWriteFile );
                     File.Delete( testWriteFile );
                     _logPath = value;
+                    _criticalErrorsPath = dirName;
                 }
                 catch( Exception ex )
                 {
@@ -257,7 +250,7 @@ namespace CK.Core
         /// <returns>A disposable object that will unregister the system client (if it has been actually added).</returns>
         public static IDisposable EnsureSystemClient( IActivityMonitor monitor )
         {
-            if( monitor == null ) throw new ArgumentNullException( "monitor" );
+            if( monitor == null ) throw new ArgumentNullException( nameof(monitor) );
             bool added;
             monitor.Output.RegisterClient( _client, out added );
             return added ? Util.CreateDisposableAction( () => monitor.Output.UnregisterClient( _client ) ) : Util.EmptyDisposable;
@@ -279,13 +272,12 @@ namespace CK.Core
         {
             string fullLogFilePath = null;
             Exception errorWhileWritingFile = null;
-            // Atomically captures the LogPath to use.
             string logPath = _logPath;
             if( logPath != null )
             {
                 try
                 {
-                    fullLogFilePath = FileUtil.WriteUniqueTimedFile( logPath + SubDirectoryName, ".txt", DateTime.UtcNow, Encoding.UTF8.GetBytes( s ), true );
+                    fullLogFilePath = FileUtil.WriteUniqueTimedFile( _criticalErrorsPath, ".txt", DateTime.UtcNow, Encoding.UTF8.GetBytes( s ), true );
                 }
                 catch( Exception ex )
                 {

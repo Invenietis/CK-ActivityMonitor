@@ -14,9 +14,7 @@ namespace CK.Core.Tests.Monitoring
     {
         public SystemActivityMonitorTests()
         {
-            var logs = Path.Combine( TestHelper.TestFolder, SystemActivityMonitor.SubDirectoryName );
-            TestHelper.CleanupFolder(logs);
-            SystemActivityMonitor.RootLogPath = TestHelper.TestFolder;
+            TestHelper.InitializePaths();
         }
 
         [Fact]
@@ -52,12 +50,12 @@ namespace CK.Core.Tests.Monitoring
                 int buggyEventHandlerCount = 0;
 
                 var goodCollector = new List<string>();
-                Action<string> addMsg = s => 
+                Action<string> addMsg = s =>
                 {
-                    lock(goodCollector) { goodCollector.Add(s); }
+                    lock (goodCollector) { goodCollector.Add(s); }
                 };
 
-                var hGood = new EventHandler<SystemActivityMonitor.LowLevelErrorEventArgs>((sender, e) => addMsg( e.ErrorMessage ) );
+                var hGood = new EventHandler<SystemActivityMonitor.LowLevelErrorEventArgs>((sender, e) => addMsg(e.ErrorMessage));
                 var hBad = new EventHandler<SystemActivityMonitor.LowLevelErrorEventArgs>((sender, e) => { ++buggyEventHandlerCount; throw new Exception("From buggy handler."); });
                 SystemActivityMonitor.OnError += hGood;
                 SystemActivityMonitor.OnError += hBad;
@@ -66,10 +64,10 @@ namespace CK.Core.Tests.Monitoring
                     ActivityMonitor.CriticalErrorCollector.Add(new CKException("The-Test-Exception-Message"), "First call to SystemActivityMonitorTests.OnErrorEventIsSecured");
                     ActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
                     buggyEventHandlerCount.Should().Be(1);
-                    if( goodCollector.Count != 2 )
+                    if (goodCollector.Count != 2)
                     {
-                        string.Join(Environment.NewLine+"-"+ Environment.NewLine, goodCollector)
-                            .Should().Be( "Only 2 messages should have been received." );
+                        string.Join(Environment.NewLine + "-" + Environment.NewLine, goodCollector)
+                            .Should().Be("Only 2 messages should have been received.");
                     }
                     goodCollector.Count.Should().Be(2, "We also received the error of the buggy handler :-).");
 
@@ -86,5 +84,28 @@ namespace CK.Core.Tests.Monitoring
             }
         }
 
+        [Fact]
+        public void SystemActivityMonitor_logs_all_errors_and_fatals_in_CriticalErrors()
+        {
+            using (LockFact())
+            {
+                TestHelper.CleanupFolder(TestHelper.CriticalErrorPath);
+                var s = new SystemActivityMonitor(applyAutoConfigurations: false, topic: "Just a test");
+                s.Error().Send("An !!Error!!...");
+                try
+                {
+                    throw new Exception("Exception Message Must be dumped.");
+                }
+                catch( Exception ex )
+                {
+                    s.Fatal().Send(ex, "A !!Fatal!!...");
+                }
+                ActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
+                var files = Directory.EnumerateFiles(TestHelper.CriticalErrorPath).ToList();
+                files.Should().HaveCount(2);
+                string content = File.ReadAllText(files[0]) + File.ReadAllText(files[1]);
+                content.Should().Contain("An !!Error!!...").And.Contain("A !!Fatal!!...").And.Contain("Exception Message Must be dumped.");
+            }
+        }
     }
 }
