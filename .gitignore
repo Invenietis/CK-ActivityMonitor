@@ -253,3 +253,4 @@ paket-files/
 
 Tests/CK.ActivityMonitor.Tests/TestFolder/CriticalErrors/
 CodeCakeBuilder/Tools/
+Tests/CK.ActivityMonitor.Tests/CriticalErrors/
