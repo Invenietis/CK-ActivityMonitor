@@ -1,4 +1,4 @@
-#region LGPL License
+﻿#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\Impl\IActivityMonitorImpl.cs) is part of CiviKey. 
 *  
@@ -59,12 +59,13 @@ namespace CK.Core.Impl
         void OnClientMinimalFilterChanged( LogFilter oldLevel, LogFilter newLevel );
 
         /// <summary>
-        /// Signals the monitor that one of the <see cref="IActivityMonitorBoundClient.MinimalFilter"/> has changed:
-        /// the <see cref="IActivityMonitor.ActualFilter"/> is marked as needing a re computation in a thread-safe manner.
+        /// Signals the monitor that one <see cref="IActivityMonitorBoundClient.IsDead"/> is true or 
+        /// the <see cref="IActivityMonitorBoundClient.MinimalFilter"/> has changed: the <see cref="IActivityMonitor.ActualFilter"/> is 
+        /// marked as needing a re computation in a thread-safe manner.
         /// This can be called by bound clients on any thread at any time as opposed to <see cref="OnClientMinimalFilterChanged"/>
         /// that can only be called non-concurrently (typically from inside client methods).
         /// </summary>
-        void SetClientMinimalFilterDirty();
+        void SignalChange();
 
         /// <summary>
         /// Enables <see cref="IActivityMonitorBoundClient"/> clients to initialize Topic and AutoTag typically from 

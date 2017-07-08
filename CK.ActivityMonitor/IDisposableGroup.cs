@@ -1,4 +1,4 @@
-#region LGPL License
+﻿#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\IDisposableGroup.cs) is part of CiviKey. 
 *  
@@ -35,15 +35,14 @@ namespace CK.Core
     public interface IDisposableGroup : IDisposable
     {
         /// <summary>
-        /// Sets a temporary topic associated to this group.
-        /// The current monitor's topic will be automatically restored when group will be closed.
+        /// Gets whether the groups has been filtered. 
+        /// It must be closed as usual but it's opening and closing will not be recorded.
         /// </summary>
-        /// <param name="topicOtherThanGroupText">Explicit topic it it must differ from the group's text.</param>
-        /// <returns>This object in order to call <see cref="ConcludeWith"/> or to dispose it to close the group.</returns>
-        IDisposableGroup SetTopic( string topicOtherThanGroupText = null );
+        bool IsRejectedGroup { get; }
 
         /// <summary>
         /// Sets a function that will be called on group closing to generate a conclusion.
+        /// When <see cref="IsRejectedGroup"/> is true, this function does nothing.
         /// </summary>
         /// <param name="getConclusionText">Function that generates a group conclusion.</param>
         /// <returns>A disposable object that can be used to close the group.</returns>

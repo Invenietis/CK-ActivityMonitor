@@ -88,7 +88,7 @@ namespace CK.Core
         /// <summary>
         /// This is called when HonorMonitorFilter changes or by ActivityMonitor.UpdateActualFilter 
         /// whenever the monitors's ActualFilter changed (in such cases, we are bound to the activity: the Reentrancy and concurrency 
-        /// lock has been obtained), or by our monitor's SetClientMinimalFilterDirty() method (in this case, we are called on 
+        /// lock has been obtained), or by our monitor's SignalChange() method (in this case, we are called on 
         /// any thread).
         /// </summary>
         internal void TargetActualFilterChanged()

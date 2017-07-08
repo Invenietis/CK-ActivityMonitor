@@ -1,27 +1,4 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Core\ActivityMonitor\Impl\ActivityMonitor.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -191,6 +168,7 @@ namespace CK.Core
         LogFilter _actualFilter;
         LogFilter _configuredFilter;
         LogFilter _clientFilter;
+        int _signalFlag;
         Group[] _groups;
         Group _current;
         Group _currentUnfiltered;
@@ -200,7 +178,6 @@ namespace CK.Core
         Guid _uniqueId;
         string _topic;
         DateTimeStamp _lastLogTime;
-        bool _actualFilterIsDirty;
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitor"/> that applies all <see cref="AutoConfiguration"/> and has no <see cref="Topic"/> initially set.
@@ -335,7 +312,7 @@ namespace CK.Core
             _topic = newTopic;
             _output.BridgeTarget.TargetTopicChanged( newTopic, fileName, lineNumber );
             MonoParameterSafeCall( ( client, topic ) => client.OnTopicChanged( topic, fileName, lineNumber ), newTopic );
-            if( _actualFilterIsDirty ) DoResyncActualFilter();
+            if( Interlocked.Exchange( ref _signalFlag, 0 ) == 1 ) DoResyncActualFilter();
             DoUnfilteredLog( new ActivityMonitorLogData( LogLevel.Info, null, Tags.MonitorTopicChanged, SetTopicPrefix + newTopic, new DateTimeStamp( _lastLogTime, DateTime.UtcNow ), fileName, lineNumber ) );
         }
 
@@ -419,14 +396,14 @@ namespace CK.Core
         /// </summary>
         /// <remarks>
         /// This does NOT take into account the static (application-domain) <see cref="ActivityMonitor.DefaultFilter"/>.
-        /// This global default must be used if this ActualFilter is <see cref="LogLevelFilter.None"/> for <see cref="LogFilter.Line"/> or <see cref="LogFilter.Group"/>: 
+        /// This global default must be used if this ActualFilter is <see cref="LogFilter.Undefined"/> for <see cref="LogFilter.Line"/> or <see cref="LogFilter.Group"/>: 
         /// the <see cref="ActivityMonitorExtension.ShouldLogLine">ShouldLog</see> extension method takes it into account.
         /// </remarks>
         public LogFilter ActualFilter 
         {
             get 
             {
-                if( _actualFilterIsDirty ) ResyncActualFilter();
+                if( Interlocked.Exchange( ref _signalFlag, 0 ) == 1 ) ResyncActualFilter();
                 return _actualFilter; 
             } 
         }
@@ -448,12 +425,9 @@ namespace CK.Core
         {
             do
             {
-                Interlocked.MemoryBarrier();
-                _actualFilterIsDirty = false;
-                _clientFilter = DoGetBoundClientMinimalFilter();
-                Interlocked.MemoryBarrier();
+                _clientFilter = HandleBoundClientsSignal();
             }
-            while( _actualFilterIsDirty );
+            while( Interlocked.Exchange( ref _signalFlag, 0 ) == 1 );
             UpdateActualFilter();
         }
 
@@ -476,40 +450,44 @@ namespace CK.Core
             }
         }
 
-        LogFilter DoGetBoundClientMinimalFilter()
+        LogFilter HandleBoundClientsSignal()
         {
             Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
             
             LogFilter minimal = LogFilter.Undefined;
-            List<IActivityMonitorClient> buggyClients = null;
-            foreach( var l in _output.Clients )
+            List<IActivityMonitorClient> clientsToRemove = null;
+            foreach( var l in _output.ClientArray )
             {
                 IActivityMonitorBoundClient bound = l as IActivityMonitorBoundClient;
                 if( bound != null )
                 {
                     try
                     {
-                        minimal = minimal.Combine( bound.MinimalFilter );
-                        if( minimal == LogFilter.Debug ) break;
+                        if( bound.IsDead )
+                        {
+                            if( clientsToRemove == null ) clientsToRemove = new List<IActivityMonitorClient>();
+                            clientsToRemove.Add( l );
+                        }
+                        else minimal = minimal.Combine( bound.MinimalFilter );
                     }
                     catch( Exception exCall )
                     {
                         CriticalErrorCollector.Add( exCall, l.GetType().FullName );
-                        if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
-                        buggyClients.Add( l );
+                        if( clientsToRemove == null ) clientsToRemove = new List<IActivityMonitorClient>();
+                        clientsToRemove.Add( l );
                     }
                 }
             }
-            if( buggyClients != null )
+            if( clientsToRemove != null )
             {
-                foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
+                foreach( var l in clientsToRemove ) _output.ForceRemoveCondemnedClient( l );
             }
             return minimal;
         }
 
-        void IActivityMonitorImpl.SetClientMinimalFilterDirty()
+        void IActivityMonitorImpl.SignalChange()
         {
-            _actualFilterIsDirty = true;
+            _signalFlag = 1;
             Interlocked.MemoryBarrier();
             // By signaling here the change to the bridge, we handle the case where the current
             // active thread works on a bridged monitor: the bridged monitor's _actualFilterIsDirty
@@ -525,17 +503,17 @@ namespace CK.Core
             bool isNotReentrant = ConcurrentOnlyCheck();
             try
             {
-                Interlocked.MemoryBarrier();
-                bool dirty = _actualFilterIsDirty;
+                bool dirty = Interlocked.Exchange( ref _signalFlag, 0 ) == 1;
                 do
                 {
-                    _actualFilterIsDirty = false;
                     // Optimization for some cases: if we can be sure that the oldLevel has no impact on the current 
-                    // client filter, we can conclude without getting all the minimal filters.
-                    if( !dirty && ((oldLevel.Line == LogLevelFilter.None || oldLevel.Line > _clientFilter.Line) && (oldLevel.Group == LogLevelFilter.None || oldLevel.Group > _clientFilter.Group)) )
+                    // client filter, we can conclude without processing all the minimal filters.
+                    if( !dirty 
+                        && ((oldLevel.Line == LogLevelFilter.None || oldLevel.Line > _clientFilter.Line) 
+                        && (oldLevel.Group == LogLevelFilter.None || oldLevel.Group > _clientFilter.Group)) )
                     {
-                        // This Client had no impact on the current final client filter: if its new level has 
-                        // no impact on the current client filter, there is nothing to do.
+                        // This Client had no impact on the current final client filter (and no signal has been received): 
+                        // if its new level has no impact on the current client filter, there is nothing to do.
                         var f = _clientFilter.Combine( newLevel );
                         if( f == _clientFilter ) return;
                         _clientFilter = f;
@@ -543,11 +521,12 @@ namespace CK.Core
                     else
                     {
                         // Whatever the new level is we have to update our client final filter.
-                        _clientFilter = DoGetBoundClientMinimalFilter();
+                        // We handle it as if SignalChange has been called by one of our bound
+                        // clients.
+                        _clientFilter = HandleBoundClientsSignal();
                     }
-                    Interlocked.MemoryBarrier();
                 }
-                while( (dirty = _actualFilterIsDirty) );
+                while( (dirty = Interlocked.Exchange( ref _signalFlag, 0 ) == 1) );
                 UpdateActualFilter();
             }
             finally
@@ -564,16 +543,18 @@ namespace CK.Core
         /// the level is the same as the previous one.
         /// See remarks.
         /// </summary>
-        /// <param name="data">Data that describes the log. Can not be null.</param>
+        /// <param name="data">
+        /// Data that describes the log. When null or when <see cref="ActivityMonitorLogData.MaskedLevel"/> 
+        /// is <see cref="LogLevel.None"/>, nothing happens (whereas for group, a rejected group is recorded and returned).
+        /// </param>
         /// <remarks>
-        /// A null or empty <see cref="ActivityMonitorLogData.Text"/> is not logged.
+        /// A null or empty <see cref="ActivityMonitorLogData.Text"/> is logged as <see cref="ActivityMonitor.NoLogText"/>.
         /// If needed, the special text <see cref="ActivityMonitor.ParkLevel"/> ("PARK-LEVEL") breaks the current <see cref="LogLevel"/>
-        /// and resets it: the next log, even with the same LogLevel, will be treated as if
-        /// a different LogLevel is used.
+        /// and resets it: the next log, even with the same LogLevel, will be treated as if a different LogLevel is used.
         /// </remarks>
         public void UnfilteredLog( ActivityMonitorLogData data )
         {
-            if( data == null ) throw new ArgumentNullException( "data" );
+            if( data == null || data.MaskedLevel == LogLevel.None ) return;
             ReentrantAndConcurrentCheck();
             try
             {
@@ -591,15 +572,23 @@ namespace CK.Core
             Debug.Assert( data.Level != LogLevel.None );
             Debug.Assert( !String.IsNullOrEmpty( data.Text ) );
 
+            // We consider that as long has the log IsFiltered, the decision has already
+            // being taken and UnfilteredLog must do its job: handling the dispatch of the log.
+            // But for logs that do not claim to have been filtered, we ensure here that the ultimate
+            // level Off is not the current one.
             if( !data.IsFilteredLog )
             {
-                if( _actualFilterIsDirty ) DoResyncActualFilter();
-                if( _actualFilter.Line == LogLevelFilter.Off ) return;
+                if( Interlocked.Exchange( ref _signalFlag, 0 ) == 1 ) DoResyncActualFilter();
+                if( _actualFilter.Line == LogLevelFilter.Off
+                    || (_actualFilter.Line == LogLevelFilter.None && DefaultFilter.Line == LogLevelFilter.Off) )
+                {
+                    return;
+                }
             }
 
             _lastLogTime = data.CombineTagsAndAdjustLogTime( _currentTag, _lastLogTime );
             List<IActivityMonitorClient> buggyClients = null;
-            foreach( var l in _output.Clients )
+            foreach( var l in _output.ClientArray )
             {
                 try
                 {
@@ -614,8 +603,8 @@ namespace CK.Core
             }
             if( buggyClients != null )
             {
-                foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
-                _clientFilter = DoGetBoundClientMinimalFilter();
+                foreach( var l in buggyClients ) _output.ForceRemoveCondemnedClient( l );
+                _clientFilter = HandleBoundClientsSignal();
                 UpdateActualFilter();
             }
         }
@@ -623,15 +612,18 @@ namespace CK.Core
 
         /// <summary>
         /// Opens a group regardless of <see cref="ActualFilter"/> level (except for <see cref="LogLevelFilter.Off"/>). 
-        /// <see cref="CloseGroup"/> must be called in order to close the group, and/or the returned object must be disposed (both safely can be called: 
-        /// the group is closed on the first action, the second one is ignored).
+        /// <see cref="CloseGroup"/> must be called in order to close the group, and/or the returned object must be disposed (both can be called safely: 
+        /// the group is closed on the first action, any other attempt to close it again is ignored).
         /// </summary>
-        /// <param name="data">Data that describes the log. Can not be null.</param>
+        /// <param name="data">
+        /// Data that describes the log. When null or when <see cref="ActivityMonitorLogData.MaskedLevel"/> 
+        /// is <see cref="LogLevel.None"/> a rejected group is recorded and returned and must be closed.
+        /// </param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
         /// <remarks>
         /// <para>
         /// Opening a group does not change the current <see cref="MinimalFilter"/>, except when opening a <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/> group:
-        /// in such case, the MinimalFilter is automatically sets to <see cref="LogFilter.Trace"/> to capture all potential information inside the error group.
+        /// in such case, the MinimalFilter is automatically sets to <see cref="LogFilter.Debug"/> to capture all potential information inside the error group.
         /// </para>
         /// <para>
         /// Changes to the monitor's current Filter or AutoTags that occur inside a group are automatically restored to their original values when the group is closed.
@@ -639,12 +631,11 @@ namespace CK.Core
         /// configuration changes.
         /// </para>
         /// <para>
-        /// Note that this automatic configuration restoration works even if the group has been filtered.
+        /// Note that this automatic configuration restoration works even if the group has been filtered and rejected.
         /// </para>
         /// </remarks>
         public virtual IDisposableGroup UnfilteredOpenGroup( ActivityMonitorGroupData data )
         {
-            if( data == null ) throw new ArgumentNullException( "data" );
             ReentrantAndConcurrentCheck();
             try
             {
@@ -667,12 +658,22 @@ namespace CK.Core
                 for( int i = idxNext; i < _groups.Length; ++i ) _groups[i] = new Group( this, i );
             }
             _current = _groups[idxNext];
+            if( data == null || data.MaskedLevel == LogLevel.None )
+            {
+                _current.InitializeRejectedGroup();
+                return _current;
+            }
+            // We consider that as long has the log IsFiltered, the decision has already
+            // being taken and UnfilteredLog must do its job: handling the dispatch of the log.
+            // But for logs that do not claim to have been filtered, we ensure here that the ultimate
+            // level Off is not the current one.
             if( !data.IsFilteredLog )
             {
-                if( _actualFilterIsDirty ) DoResyncActualFilter();
-                if( _actualFilter.Group == LogLevelFilter.Off || data.Level == LogLevel.None )
+                if( Interlocked.Exchange( ref _signalFlag, 0 ) == 1 ) DoResyncActualFilter();
+                if( _actualFilter.Group == LogLevelFilter.Off
+                    || (_actualFilter.Group == LogLevelFilter.None && DefaultFilter.Group == LogLevelFilter.Off) )
                 {
-                    _current.InitializeRejectedGroup( data );
+                    _current.InitializeRejectedGroup();
                     return _current;
                 }
             }
@@ -748,7 +749,7 @@ namespace CK.Core
 
                     bool hasBuggyClients = false;
                     List<IActivityMonitorClient> buggyClients = null;
-                    foreach( var l in _output.Clients )
+                    foreach( var l in _output.ClientArray )
                     {
                         try
                         {
@@ -763,7 +764,7 @@ namespace CK.Core
                     }
                     if( buggyClients != null )
                     {
-                        foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
+                        foreach( var l in buggyClients ) _output.ForceRemoveCondemnedClient( l );
                         buggyClients.Clear();
                         hasBuggyClients = true;
                     }
@@ -773,7 +774,7 @@ namespace CK.Core
                     _currentUnfiltered = (Group)g.Parent;
 
                     var sentConclusions = conclusions != null ? conclusions.ToArray() : Util.Array.Empty<ActivityLogGroupConclusion>();
-                    foreach( var l in _output.Clients )
+                    foreach( var l in _output.ClientArray )
                     {
                         try
                         {
@@ -788,18 +789,16 @@ namespace CK.Core
                     }
                     if( buggyClients != null )
                     {
-                        foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
+                        foreach( var l in buggyClients ) _output.ForceRemoveCondemnedClient( l );
                         hasBuggyClients = true;
                     }
                     if( hasBuggyClients )
                     {
-                        _clientFilter = DoGetBoundClientMinimalFilter();
+                        _clientFilter = HandleBoundClientsSignal();
                         UpdateActualFilter();
                     }
                     #endregion
                 }
-                string prevTopic = g.PreviousTopic;
-                if( prevTopic != null ) DoSetTopic( prevTopic, g.FileName, g.LineNumber );
                 g.GroupClosed();
                 return true;
             }
@@ -813,7 +812,7 @@ namespace CK.Core
         {
             Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
             List<IActivityMonitorClient> buggyClients = null;
-            foreach( var l in _output.Clients )
+            foreach( var l in _output.ClientArray )
             {
                 try
                 {
@@ -828,8 +827,8 @@ namespace CK.Core
             }
             if( buggyClients != null )
             {
-                foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
-                _clientFilter = DoGetBoundClientMinimalFilter();
+                foreach( var l in buggyClients ) _output.ForceRemoveCondemnedClient( l );
+                _clientFilter = HandleBoundClientsSignal();
                 UpdateActualFilter();
             }
         }

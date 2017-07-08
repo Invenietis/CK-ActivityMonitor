@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -96,6 +96,13 @@ namespace CK.Core.Tests.Monitoring
             IActivityMonitor monitor = new ActivityMonitor();
             Should.Throw<ArgumentNullException>( () => monitor.Output.RegisterClient( null ) );
             Should.Throw<ArgumentNullException>( () => monitor.Output.UnregisterClient( null ) );
+        }
+
+        [Fact]
+        public void RegisterUniqueClient_skips_null_client_from_factory_and_returns_null()
+        {
+            var monitor = new ActivityMonitor( applyAutoConfigurations: false );
+            monitor.Output.RegisterUniqueClient<ActivityMonitorConsoleClient>( c => false, () => null ).Should().BeNull();
         }
 
         [Fact]
@@ -1050,14 +1057,54 @@ namespace CK.Core.Tests.Monitoring
         [Fact]
         public void setting_the_MininimalFilter_of_a_bound_Client_is_thread_safe()
         {
-            using (LockFact())
+            using( LockFact() )
             {
-                ActivityMonitor m = new ActivityMonitor(false);
-                var tester = m.Output.RegisterClient(new ActivityMonitorClientTester());
+                ActivityMonitor m = new ActivityMonitor( false );
+                var tester = m.Output.RegisterClient( new ActivityMonitorClientTester() );
 
-                m.ActualFilter.Should().Be(LogFilter.Undefined);
-                tester.AsyncSetMinimalFilterBlock(LogFilter.Monitor);
-                m.ActualFilter.Should().Be(LogFilter.Monitor);
+                m.ActualFilter.Should().Be( LogFilter.Undefined );
+                tester.AsyncSetMinimalFilterAndWait( LogFilter.Monitor );
+                m.ActualFilter.Should().Be( LogFilter.Monitor );
+            }
+        }
+
+        [Fact]
+        public void BoundClient_IsDead_flag_is_handled()
+        {
+            using( LockFact() )
+            {
+                ActivityMonitor m = new ActivityMonitor( false );
+                var tester = m.Output.RegisterClient( new ActivityMonitorClientTester() );
+
+                m.Error().Send( "Hello World!" );
+                tester.ReceivedTexts.Should().Contain( s => s.Contains( "Hello World!" ) );
+                // This is totally artificial since IsDead is normally hidden 
+                // by IActivityMonitorBoundClients.
+                tester.IsDead = true;
+                tester.MinimalFilter = LogFilter.Debug;
+                // This triggers the processing of the clients (since the level is lowered).
+                m.Error().Send( "NEVER RECEIVED" );
+
+                m.Output.Clients.Should().BeEmpty();
+                tester.ReceivedTexts.Should().NotContain( s => s.Contains( "NEVER RECEIVED" ) );
+            }
+        }
+
+        [Fact]
+        public void BoundClient_IsDead_flag_must_use_SignalChange_to_signal_its_change()
+        {
+            using( LockFact() )
+            {
+                ActivityMonitor m = new ActivityMonitor( false );
+                var tester = m.Output.RegisterClient( new ActivityMonitorClientTester() );
+
+                m.Error().Send( "Hello World!" );
+                tester.ReceivedTexts.Should().Contain( s => s.Contains( "Hello World!" ) );
+                tester.AsyncDieAndWait( 20 );
+                m.Error().Send( "NEVER RECEIVED" );
+
+                m.Output.Clients.Should().BeEmpty();
+                tester.ReceivedTexts.Should().NotContain( s => s.Contains( "NEVER RECEIVED" ) );
             }
         }
 

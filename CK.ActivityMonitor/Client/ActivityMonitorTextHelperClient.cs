@@ -1,4 +1,4 @@
-#region LGPL License
+﻿#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\Client\ActivityMonitorTextHelperClient.cs) is part of CiviKey. 
 *  
@@ -192,10 +192,7 @@ namespace CK.Core
 
         #region IActivityMonitorBoundClient Members
 
-        LogFilter IActivityMonitorBoundClient.MinimalFilter
-        {
-            get { return _filter; }
-        }
+        LogFilter IActivityMonitorBoundClient.MinimalFilter => _filter; 
 
         void IActivityMonitorBoundClient.SetMonitor( Impl.IActivityMonitorImpl source, bool forceBuggyRemove )
         {
@@ -206,6 +203,8 @@ namespace CK.Core
             _openGroups.Clear();
             _source = source;
         }
+
+        bool IActivityMonitorBoundClient.IsDead => false;
 
         #endregion
     }

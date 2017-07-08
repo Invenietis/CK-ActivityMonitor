@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,39 +26,46 @@ namespace CK.Core.Tests.Monitoring
                 if( prev != value )
                 {
                     _minimalFilter = value;
-                    if( _source != null ) _source.SetClientMinimalFilterDirty();
+                    if( _source != null ) _source.SignalChange();
                 }
             }
         }
 
-        public void AsyncSetMinimalFilter( LogLevelFilter filter, int delayMilliSeconds = 0 )
-        {
-            ThreadPool.QueueUserWorkItem( DoAsyncSetMinimalFilter, Tuple.Create( TimeSpan.FromMilliseconds( delayMilliSeconds ), filter ) );
-        }
+        public bool IsDead { get; set; }
+
+        public string[] ReceivedTexts => _text;
+
 
         class Flag { public bool Set; }
 
-        public void AsyncSetMinimalFilterBlock( LogFilter filter, int delayMilliSeconds = 0 )
+        public void AsyncSetMinimalFilterAndWait( LogFilter filter, int delayMilliSeconds = 0 )
         {
-            var state = Tuple.Create( TimeSpan.FromMilliseconds( delayMilliSeconds ), filter, new Flag() );
-            ThreadPool.QueueUserWorkItem( DoAsyncSetMinimalFilterBlock, state );
-            lock( state ) 
+            var state = Tuple.Create( TimeSpan.FromMilliseconds( delayMilliSeconds ), (LogFilter?)filter, new Flag() );
+            ThreadPool.QueueUserWorkItem( DoAsyncDieOrSetMinimalFilterAndBlock, state );
+            lock( state )
                 while( !state.Item3.Set )
                     Monitor.Wait( state );
         }
 
-        void DoAsyncSetMinimalFilter( object state )
+        public void AsyncDieAndWait( int delayMilliSeconds = 0 )
         {
-            var o = (Tuple<TimeSpan, LogFilter>)state;
-            if( o.Item1 != TimeSpan.Zero ) Thread.Sleep( o.Item1 );
-            MinimalFilter = o.Item2;
+            var state = Tuple.Create( TimeSpan.FromMilliseconds( delayMilliSeconds ), (LogFilter?)null, new Flag() );
+            ThreadPool.QueueUserWorkItem( DoAsyncDieOrSetMinimalFilterAndBlock, state );
+            lock( state )
+                while( !state.Item3.Set )
+                    Monitor.Wait( state );
         }
 
-        void DoAsyncSetMinimalFilterBlock( object state )
+        void DoAsyncDieOrSetMinimalFilterAndBlock( object state )
         {
-            var o = (Tuple<TimeSpan, LogFilter,Flag>)state;
+            var o = (Tuple<TimeSpan, LogFilter?,Flag>)state;
             if( o.Item1 != TimeSpan.Zero ) Thread.Sleep( o.Item1 );
-            MinimalFilter = o.Item2;
+            if( o.Item2.HasValue ) MinimalFilter = o.Item2.Value;
+            else
+            {
+                IsDead = true;
+                _source.SignalChange();
+            }
             lock( o )
             {
                 o.Item3.Set = true;

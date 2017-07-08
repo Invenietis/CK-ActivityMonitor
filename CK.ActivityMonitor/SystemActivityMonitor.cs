@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -25,14 +25,14 @@ namespace CK.Core
         class SysClient : IActivityMonitorClient
         {
             public LogFilter MinimalFilter => LogFilter.Release; 
-
+            
             public void OnUnfilteredLog( ActivityMonitorLogData data )
             {
                 var level = data.Level & LogLevel.Mask;
                 if( level >= LogLevel.Error )
                 {
-                    string s = DumpErrorText( data.LogTime, data.Text, level, data.Tags, data.EnsureExceptionData() );
-                    SystemActivityMonitor.HandleError( s );
+                    string textDetailed = DumpErrorText( data.LogTime, data.Text, level, data.Tags, data.EnsureExceptionData() );
+                    SystemActivityMonitor.HandleError( textDetailed );
                 }
             }
 
@@ -71,6 +71,8 @@ namespace CK.Core
             {
                 if( !forceBuggyRemove && source == null ) throw new InvalidOperationException();
             }
+
+            public bool IsDead => false;
         }
 
         /// <summary>
@@ -268,7 +270,7 @@ namespace CK.Core
             Output.RegisterClient( _lockedClient );
         }
 
-        static void HandleError( string s )
+        static void HandleError( string textDetailed )
         {
             string fullLogFilePath = null;
             Exception errorWhileWritingFile = null;
@@ -277,7 +279,7 @@ namespace CK.Core
             {
                 try
                 {
-                    fullLogFilePath = FileUtil.WriteUniqueTimedFile( _criticalErrorsPath, ".txt", DateTime.UtcNow, Encoding.UTF8.GetBytes( s ), true );
+                    fullLogFilePath = FileUtil.WriteUniqueTimedFile( _criticalErrorsPath, ".txt", DateTime.UtcNow, Encoding.UTF8.GetBytes( textDetailed ), true );
                 }
                 catch( Exception ex )
                 {
@@ -287,7 +289,7 @@ namespace CK.Core
             var h = OnError;
             if( h != null )
             {
-                LowLevelErrorEventArgs e = new LowLevelErrorEventArgs( s, fullLogFilePath, errorWhileWritingFile );
+                LowLevelErrorEventArgs e = new LowLevelErrorEventArgs( textDetailed, fullLogFilePath, errorWhileWritingFile );
                 // h.GetInvocationList() creates an independent copy of Delegate[].
                 foreach( EventHandler<LowLevelErrorEventArgs> d in h.GetInvocationList() )
                 {
@@ -313,7 +315,6 @@ namespace CK.Core
             {
                 ActivityMonitorTextWriterClient.DumpException( buffer, String.Empty, !ReferenceEquals( text, ex.Message ), ex );
             }
-            WriteFooter( level, buffer );
             return buffer.ToString();
         }
 
@@ -321,7 +322,6 @@ namespace CK.Core
         {
             StringBuilder buffer = CreateHeader( logTime, text, level, tags );
             if( exData != null ) exData.ToStringBuilder( buffer, String.Empty );
-            WriteFooter( level, buffer );
             return buffer.ToString();
         }
 
@@ -335,10 +335,6 @@ namespace CK.Core
             return buffer;
         }
 
-        static void WriteFooter( LogLevel level, StringBuilder buffer )
-        {
-            buffer.Append( "</" ).Append( level.ToString() ).Append( '>' ).AppendLine();
-        }
         #endregion
 
     }

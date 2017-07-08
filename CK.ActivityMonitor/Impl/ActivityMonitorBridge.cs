@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,7 +9,6 @@ namespace CK.Core
 {
     /// <summary>
     /// A <see cref="IActivityMonitorClient"/> that relays what happens in a monitor to another monitor.
-    /// In Net55, automatically supports logs crossing Application Domains. See <see cref="ActivityMonitorBridgeTarget"/>.
     /// </summary>
     public sealed class ActivityMonitorBridge : IActivityMonitorBoundClient, IActivityMonitorBridgeCallback
     {
@@ -77,7 +76,7 @@ namespace CK.Core
             var s = _source;
             _targetActualFilter = LogFilter.Invalid;
             Interlocked.MemoryBarrier();
-            if( s != null ) s.SetClientMinimalFilterDirty();
+            if( s != null ) s.SignalChange();
         }
 
         void IActivityMonitorBridgeCallback.OnTargetTopicChanged( string newTopic, string fileName, int lineNumber )
@@ -122,6 +121,8 @@ namespace CK.Core
             _source = source;
             Interlocked.MemoryBarrier();
         }
+
+        bool IActivityMonitorBoundClient.IsDead => false;
 
         LogFilter IActivityMonitorBoundClient.MinimalFilter => GetActualTargetFilter();
 

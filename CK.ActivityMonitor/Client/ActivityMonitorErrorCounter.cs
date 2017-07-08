@@ -1,4 +1,4 @@
-#region LGPL License
+﻿#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\Client\ActivityMonitorErrorCounter.cs) is part of CiviKey. 
 *  
@@ -225,6 +225,8 @@ namespace CK.Core
             }
             _source = source;
         }
+
+        bool IActivityMonitorBoundClient.IsDead => false;
 
         /// <summary>
         /// Gets the root <see cref="State"/>.

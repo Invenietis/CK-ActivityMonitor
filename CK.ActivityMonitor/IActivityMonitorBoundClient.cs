@@ -1,4 +1,4 @@
-#region LGPL License
+﻿#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\IActivityMonitorBoundClient.cs) is part of CiviKey. 
 *  
@@ -33,9 +33,18 @@ namespace CK.Core
     {
         /// <summary>
         /// Gets the minimal log level that this Client expects. 
-        /// Should default to <see cref="LogLevelFilter.None"/>.
+        /// Should default to <see cref="LogFilter.Undefined"/> if this client has no
+        /// filtering requirements.
         /// </summary>
         LogFilter MinimalFilter { get; }
+
+        /// <summary>
+        /// Gets whether this client is dead: it should be removed from the source activity monitor's clients.
+        /// It should obviously defaults to false (and once true should remain true).
+        /// Implementations should call <see cref="IActivityMonitorImpl.SignalChange"/> to 
+        /// on its current source to trigger the removal.
+        /// </summary>
+        bool IsDead { get; }
 
         /// <summary>
         /// Called by <see cref="IActivityMonitorOutput"/> when registering or unregistering

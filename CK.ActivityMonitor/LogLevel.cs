@@ -1,4 +1,4 @@
-#region LGPL License
+﻿#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\LogLevel.cs) is part of CiviKey. 
 *  
@@ -35,27 +35,33 @@ namespace CK.Core
         /// No logging level.
         /// </summary>
         None = 0,
+
         /// <summary>
         /// Debug logging level (the most verbose level).
         /// </summary>
         Debug = 1,
+
         /// <summary>
         /// A trace logging level (quite verbose level).
         /// </summary>
         Trace = 2,
+
         /// <summary>
         /// An info logging level.
         /// </summary>
         Info = 4,
+
         /// <summary>
         /// A warn logging level.
         /// </summary>
         Warn = 8,
+
         /// <summary>
         /// An error logging level: denotes an error for the current activity. 
         /// This error does not necessarily abort the activity.
         /// </summary>
         Error = 16,
+
         /// <summary>
         /// A fatal error logging level: denotes an error that breaks (aborts)
         /// the current activity. This kind of error may have important side effects

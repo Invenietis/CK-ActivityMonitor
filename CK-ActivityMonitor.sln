@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26403.7
+VisualStudioVersion = 15.0.26430.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{A87208F3-D73C-4AD4-9FF5-0314968EDD74}"
 EndProject
@@ -22,6 +22,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CK.ActivityMonitor.Tests", "Tests\CK.ActivityMonitor.Tests\CK.ActivityMonitor.Tests.csproj", "{3D7C6FB7-B726-43E7-BC1C-74DC421CBA93}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CK.ActivityMonitor.StandardSender", "CK.ActivityMonitor.StandardSender\CK.ActivityMonitor.StandardSender.csproj", "{0EEB4D1B-0BE1-47CD-AD96-810354A73100}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.ActivityMonitor.SimpleSender", "CK.ActivityMonitor.SimpleSender\CK.ActivityMonitor.SimpleSender.csproj", "{D938232C-9B33-45FB-9266-038E06D7BC36}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{0EEB4D1B-0BE1-47CD-AD96-810354A73100}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0EEB4D1B-0BE1-47CD-AD96-810354A73100}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0EEB4D1B-0BE1-47CD-AD96-810354A73100}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D938232C-9B33-45FB-9266-038E06D7BC36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D938232C-9B33-45FB-9266-038E06D7BC36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D938232C-9B33-45FB-9266-038E06D7BC36}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D938232C-9B33-45FB-9266-038E06D7BC36}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
