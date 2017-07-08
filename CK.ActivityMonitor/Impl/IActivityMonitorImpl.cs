@@ -51,7 +51,7 @@ namespace CK.Core.Impl
         /// Enables a <see cref="IActivityMonitorBoundClient"/> to warn its Monitor
         /// whenever its <see cref="IActivityMonitorBoundClient.MinimalFilter"/> changed.
         /// This can be called from any <see cref="IActivityMonitorBoundClient"/> methods (when a <see cref="ReentrancyAndConcurrencyLock"/> has 
-        /// been acquired) or not, but NOT concurrently: <see cref="SetClientMinimalFilterDirty"/> must be used to signal
+        /// been acquired) or not, but NOT concurrently: <see cref="SignalChange"/> must be used to signal
         /// a change on any thread at any time.
         /// </summary>
         /// <param name="oldLevel">The previous minimal level that the client expected.</param>

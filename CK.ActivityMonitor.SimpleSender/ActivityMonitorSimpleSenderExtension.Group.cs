@@ -14,6 +14,7 @@ namespace CK.Core
         /// and <paramref name="lineNumber"/>), it must always be closed.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="level">The log level.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
@@ -32,6 +33,7 @@ namespace CK.Core
         /// and <paramref name="lineNumber"/>), it must always be closed.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="level">The log level.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
@@ -50,6 +52,7 @@ namespace CK.Core
         /// and <paramref name="lineNumber"/>), it must always be closed.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="level">The log level.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
@@ -69,6 +72,7 @@ namespace CK.Core
         /// and <paramref name="lineNumber"/>), it must always be closed.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="level">The log level.</param>
         /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
@@ -87,6 +91,7 @@ namespace CK.Core
         /// and <paramref name="lineNumber"/>), it must always be closed.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="level">The log level.</param>
         /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
@@ -108,6 +113,7 @@ namespace CK.Core
         /// and <paramref name="lineNumber"/>), it must always be closed.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="level">The log level.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="tags">The tags for this log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
@@ -127,6 +133,7 @@ namespace CK.Core
         /// and <paramref name="lineNumber"/>), it must always be closed.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="level">The log level.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="tags">The tags for this log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
@@ -146,6 +153,7 @@ namespace CK.Core
         /// and <paramref name="lineNumber"/>), it must always be closed.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="level">The log level.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="tags">The tags for this log.</param>
@@ -166,6 +174,7 @@ namespace CK.Core
         /// and <paramref name="lineNumber"/>), it must always be closed.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="level">The log level.</param>
         /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
         /// <param name="tags">The tags for this group.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
@@ -185,6 +194,7 @@ namespace CK.Core
         /// and <paramref name="lineNumber"/>), it must always be closed.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="level">The log level.</param>
         /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="tags">The tags for this group.</param>
