@@ -161,7 +161,7 @@ namespace CK.Core
 
         void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group )
         {
-            Debug.Assert( group.GroupLevel != LogLevel.None, "A client never sees a filtered group." );
+            Debug.Assert( group.GroupLevel != LogLevel.None, "A client never sees a rejected group." );
             Debug.Assert( group.Depth > 0, "Depth is 1-based." );
             // Make sure the index is available.
             // This handles the case where this ClientBridge has been added to the Monitor.Output

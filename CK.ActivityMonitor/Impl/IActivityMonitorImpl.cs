@@ -60,7 +60,7 @@ namespace CK.Core.Impl
 
         /// <summary>
         /// Signals the monitor that one <see cref="IActivityMonitorBoundClient.IsDead"/> is true or 
-        /// the <see cref="IActivityMonitorBoundClient.MinimalFilter"/> has changed: the <see cref="IActivityMonitor.ActualFilter"/> is 
+        /// a <see cref="IActivityMonitorBoundClient.MinimalFilter"/> has changed: the <see cref="IActivityMonitor.ActualFilter"/> is 
         /// marked as needing a re computation in a thread-safe manner.
         /// This can be called by bound clients on any thread at any time as opposed to <see cref="OnClientMinimalFilterChanged"/>
         /// that can only be called non-concurrently (typically from inside client methods).

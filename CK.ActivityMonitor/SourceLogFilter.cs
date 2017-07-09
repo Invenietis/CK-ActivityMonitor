@@ -1,4 +1,4 @@
-#region LGPL License
+﻿#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\SourceLogFilter.cs) is part of CiviKey. 
 *  
@@ -65,10 +65,7 @@ namespace CK.Core
         /// <summary>
         /// Gets whether this is equal to <see cref="SourceLogFilter.Undefined"/>.
         /// </summary>
-        public bool IsUndefined
-        {
-            get { return Override == LogFilter.Undefined && Minimal == LogFilter.Undefined; }
-        }
+        public bool IsUndefined => Override == LogFilter.Undefined && Minimal == LogFilter.Undefined; 
 
         /// <summary>
         /// Combines this filter with another one. <see cref="Override"/> and <see cref="Minimal"/> level filters
@@ -84,17 +81,12 @@ namespace CK.Core
         /// <summary>
         /// Gets a combined integer: high word contains Override and low word contains Minimal filter for lines.
         /// </summary>
-        internal int LineFilter
-        {
-            get { return (((UInt16)Override.Line) << 16) | (UInt16)Minimal.Line; }
-        }
+        internal int LineFilter => (((UInt16)Override.Line) << 16) | (UInt16)Minimal.Line; 
 
         /// <summary>
         /// Gets a combined integer: high word contains Override and low word contains Minimal filter for groups.
         /// </summary>
-        internal int GroupFilter
-        {
-            get { return (((UInt16)Override.Group) << 16) | (UInt16)Minimal.Group; }
-        }
+        internal int GroupFilter => (((UInt16)Override.Group) << 16) | (UInt16)Minimal.Group; 
+
     }
 }
