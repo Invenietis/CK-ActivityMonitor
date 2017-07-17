@@ -1,4 +1,4 @@
-#region LGPL License
+﻿#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\Impl\ActivityMonitor.Group.cs) is part of CiviKey. 
 *  
@@ -41,6 +41,8 @@ namespace CK.Core
         /// </summary>
         protected sealed class Group : IActivityLogGroup, IDisposableGroup
         {
+            static readonly ActivityMonitorGroupData _rejectedGroupDataInstance = new ActivityMonitorGroupData();
+
             /// <summary>
             /// The monitor that owns this group.
             /// </summary>
@@ -53,7 +55,6 @@ namespace CK.Core
 
             ActivityMonitorGroupData _data;
             DateTimeStamp _closeLogTime;
-            string _previousTopic;
             Group _unfilteredParent;
             int _depth;
 
@@ -85,25 +86,21 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Initializes or reinitializes this group (if it has been disposed) as a filtered group. 
+            /// Initializes (or reinitializes this group if it has been disposed) as a rejected group. 
             /// </summary>
-            internal void InitializeRejectedGroup( ActivityMonitorGroupData data )
+            internal void InitializeRejectedGroup()
             {
                 SavedMonitorFilter = Monitor._configuredFilter;
                 SavedMonitorTags = Monitor._currentTag;
                 _unfilteredParent = Monitor._currentUnfiltered;
                 _depth = 0;
-                _data = data;
+                _data = _rejectedGroupDataInstance;
             }
 
             /// <summary>
-            /// Gets whether the group is rejected: Depth is 0 when ActualFilter is Off or the GroupLevel 
-            /// is None (the OpenGroup has been filtered).
+            /// Gets whether the group is rejected.
             /// </summary>
-            internal bool IsRejectedGroup
-            {
-                get { return _depth == 0 || _data.Level == LogLevel.None; }
-            }
+            public bool IsRejectedGroup => _data == _rejectedGroupDataInstance;
 
             /// <summary>
             /// Gets the tags for the log group.
@@ -189,11 +186,6 @@ namespace CK.Core
             public bool IsGroupTextTheExceptionMessage => _data.IsTextTheExceptionMessage; 
 
             /// <summary>
-            /// Gets the previous topic it it must be restored. Null otherwise.
-            /// </summary>
-            public string PreviousTopic => _previousTopic; 
-
-            /// <summary>
             /// Gets the file name of the source code that issued the log.
             /// </summary>
             public string FileName => _data.FileName;
@@ -205,14 +197,7 @@ namespace CK.Core
 
             IDisposable IDisposableGroup.ConcludeWith( Func<string> getConclusionText )
             {
-                _data.GetConclusionText = getConclusionText;
-                return this;
-            }
-
-            IDisposableGroup IDisposableGroup.SetTopic( string topicOtherThanGroupText )
-            {
-                _previousTopic = Monitor.Topic;
-                Monitor.SetTopic( topicOtherThanGroupText ?? _data.Text, _data.FileName, _data.LineNumber );
+                if( !IsRejectedGroup ) _data.GetConclusionText = getConclusionText;
                 return this;
             }
 
@@ -238,11 +223,7 @@ namespace CK.Core
                 }
             }
 
-            internal void GroupClosed()
-            {
-                _data = null;
-                _previousTopic = null;
-            }
+            internal void GroupClosed() =>  _data = null;
         }
 
         IActivityLogGroup IActivityMonitorImpl.CurrentGroup => _current; 

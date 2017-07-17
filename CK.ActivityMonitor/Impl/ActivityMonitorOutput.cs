@@ -1,4 +1,4 @@
-#region LGPL License
+﻿#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\Impl\ActivityMonitorOutput.cs) is part of CiviKey. 
 *  
@@ -46,7 +46,7 @@ namespace CK.Core.Impl
         {
             if( monitor == null ) throw new ArgumentNullException();
             _monitor = monitor;
-            _clients = Util.Array.Empty<IActivityMonitorClient>(); 
+            _clients = Util.Array.Empty<IActivityMonitorClient>();
             _externalInput = new ActivityMonitorBridgeTarget( monitor, true );
         }
 
@@ -120,9 +120,10 @@ namespace CK.Core.Impl
         /// </summary>
         /// <param name="tester">Predicate that must be satisfied for at least one registered client.</param>
         /// <param name="factory">Factory that will be called if no existing client satisfies <paramref name="tester"/>.</param>
-        /// <returns>The existing or newly created client.</returns>
+        /// <returns>The existing or newly created client or null if the factory returned null.</returns>
         /// <remarks>
-        /// The factory function MUST return a client that satisfies the tester function otherwise a <see cref="InvalidOperationException"/> is thrown.
+        /// The factory function MUST return null OR a client that satisfies the tester function otherwise a <see cref="InvalidOperationException"/> is thrown.
+        /// When null is returned by the factory function, nothing is added and null is returned. 
         /// The factory is called only when the no client satisfies the tester function: this makes the 'added' out parameter useless.
         /// </remarks>
         public T RegisterUniqueClient<T>( Func<T, bool> tester, Func<T> factory ) where T : IActivityMonitorClient
@@ -135,8 +136,11 @@ namespace CK.Core.Impl
                 if( e == null )
                 {
                     bool forceAdded = true;
-                    e = (T)DoRegisterClient( factory(), ref forceAdded );
-                    if( !tester( e ) ) throw new InvalidOperationException( Impl.CoreResources.FactoryTesterMismatch );
+                    if( (e = factory()) != null )
+                    {
+                        e = (T)DoRegisterClient( e, ref forceAdded );
+                        if( !tester( e ) ) throw new InvalidOperationException( Impl.CoreResources.FactoryTesterMismatch );
+                    }
                 }
                 return e;
             }
@@ -177,12 +181,11 @@ namespace CK.Core.Impl
         /// <summary>
         /// Gets the list of registered <see cref="IActivityMonitorClient"/>.
         /// </summary>
-        public IReadOnlyList<IActivityMonitorClient> Clients
-        {
-            get { return _clients; }
-        }
+        public IReadOnlyList<IActivityMonitorClient> Clients => _clients;
 
-        internal void ForceRemoveBuggyClient( IActivityMonitorClient client )
+        internal IActivityMonitorClient[] ClientArray => _clients;
+
+        internal void ForceRemoveCondemnedClient( IActivityMonitorClient client )
         {
             Debug.Assert( client != null && _clients.Contains( client ) );
             IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
@@ -194,7 +197,7 @@ namespace CK.Core.Impl
                 }
                 catch( Exception ex )
                 {
-                    ActivityMonitor.CriticalErrorCollector.Add( ex, "While removing the buggy client." );
+                    ActivityMonitor.CriticalErrorCollector.Add( ex, $"While removing condemned client." );
                 }
             }
             if( _clients.Length == 1 ) _clients = Util.Array.Empty<IActivityMonitorClient>();

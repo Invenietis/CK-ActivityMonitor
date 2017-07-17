@@ -1,4 +1,4 @@
-#region LGPL License
+﻿#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\Impl\ActivityMonitor.DependentToken.cs) is part of CiviKey. 
 *  
@@ -83,8 +83,7 @@ namespace CK.Core
             /// <returns>A readable string.</returns>
             public override string ToString()
             {
-                string s = string.Format( "{0:B} at {1} with", _originatorId, _creationDate );
-                return AppendTopic( s, _topic );
+                return AppendTopic( $"{_originatorId:B} at {_creationDate} with", _topic );
             }
 
             /// <summary>

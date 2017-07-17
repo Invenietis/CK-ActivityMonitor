@@ -1,0 +1,59 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\Common\Shared.props" />
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard1.3;net451</TargetFrameworks>
+    <Description>Provides extension methods to send log entries. The OpenDebug/Trace/Info/Warn/Error/Fatal and Debug, Trace, Info, Warn, Error, Fatal extension methods support file name and line number capture.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CK.ActivityMonitor\CK.ActivityMonitor.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
+    <Reference Include="System" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="ActivityMonitorLineSender-Gen.cs">
+      <DependentUpon>ActivityMonitorLineSender-Gen.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="ActivityMonitorSimpleSenderExtension.Log-Gen.cs">
+      <DependentUpon>ActivityMonitorSimpleSenderExtension.Log-Gen.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="ActivityMonitorSimpleSenderExtension.Group-Gen.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ActivityMonitorSimpleSenderExtension.Group-Gen.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="ActivityMonitorLineSender-Gen.tt">
+      <LastGenOutput>ActivityMonitorLineSender-Gen.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="ActivityMonitorSimpleSenderExtension.Log-Gen.tt">
+      <LastGenOutput>ActivityMonitorSimpleSenderExtension.Log-Gen.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="ActivityMonitorSimpleSenderExtension.Group-Gen.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ActivityMonitorSimpleSenderExtension.Group-Gen.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+</Project>

@@ -1,4 +1,4 @@
-#region LGPL License
+﻿#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (Tests\CK.Core.Tests\Monitoring\StupidStringClient.cs) is part of CiviKey. 
 *  
@@ -40,6 +40,8 @@ namespace CK.Core.Tests.Monitoring
             public readonly string Text;
             public readonly Exception Exception;
             public readonly DateTimeStamp LogTime;
+            public readonly IActivityLogGroup GroupForConclusions;
+            public IReadOnlyList<ActivityLogGroupConclusion> Conclusions;
 
             public Entry( ActivityMonitorLogData d )
             {
@@ -52,6 +54,7 @@ namespace CK.Core.Tests.Monitoring
             
             public Entry( IActivityLogGroup d )
             {
+                GroupForConclusions = d;
                 Level = d.GroupLevel;
                 Tags = d.GroupTags;
                 Text = d.GroupText;
@@ -178,6 +181,7 @@ namespace CK.Core.Tests.Monitoring
 
         void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
+            Entries.Last( e => e.GroupForConclusions == g ).Conclusions = conclusions;
             Writer.WriteLine();
             Writer.Write( new String( '-', g.Depth ) );
             if( WriteConclusionTraits )

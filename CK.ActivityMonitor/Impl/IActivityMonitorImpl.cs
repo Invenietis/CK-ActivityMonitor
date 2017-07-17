@@ -1,4 +1,4 @@
-#region LGPL License
+﻿#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\Impl\IActivityMonitorImpl.cs) is part of CiviKey. 
 *  
@@ -51,7 +51,7 @@ namespace CK.Core.Impl
         /// Enables a <see cref="IActivityMonitorBoundClient"/> to warn its Monitor
         /// whenever its <see cref="IActivityMonitorBoundClient.MinimalFilter"/> changed.
         /// This can be called from any <see cref="IActivityMonitorBoundClient"/> methods (when a <see cref="ReentrancyAndConcurrencyLock"/> has 
-        /// been acquired) or not, but NOT concurrently: <see cref="SetClientMinimalFilterDirty"/> must be used to signal
+        /// been acquired) or not, but NOT concurrently: <see cref="SignalChange"/> must be used to signal
         /// a change on any thread at any time.
         /// </summary>
         /// <param name="oldLevel">The previous minimal level that the client expected.</param>
@@ -59,12 +59,13 @@ namespace CK.Core.Impl
         void OnClientMinimalFilterChanged( LogFilter oldLevel, LogFilter newLevel );
 
         /// <summary>
-        /// Signals the monitor that one of the <see cref="IActivityMonitorBoundClient.MinimalFilter"/> has changed:
-        /// the <see cref="IActivityMonitor.ActualFilter"/> is marked as needing a re computation in a thread-safe manner.
+        /// Signals the monitor that one <see cref="IActivityMonitorBoundClient.IsDead"/> is true or 
+        /// a <see cref="IActivityMonitorBoundClient.MinimalFilter"/> has changed: the <see cref="IActivityMonitor.ActualFilter"/> is 
+        /// marked as needing a re computation in a thread-safe manner.
         /// This can be called by bound clients on any thread at any time as opposed to <see cref="OnClientMinimalFilterChanged"/>
         /// that can only be called non-concurrently (typically from inside client methods).
         /// </summary>
-        void SetClientMinimalFilterDirty();
+        void SignalChange();
 
         /// <summary>
         /// Enables <see cref="IActivityMonitorBoundClient"/> clients to initialize Topic and AutoTag typically from 

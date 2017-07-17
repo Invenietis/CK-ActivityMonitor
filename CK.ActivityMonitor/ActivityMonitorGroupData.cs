@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -32,7 +32,7 @@ namespace CK.Core
         /// <param name="exception">Exception of the log. Can be null.</param>
         /// <param name="getConclusionText">Optional function that provides delayed obtention of the group conclusion: will be called on group closing.</param>
         /// <param name="fileName">Name of the source file that emitted the log. Can be null.</param>
-        /// <param name="lineNumber">Line number in the source file that emitted the log. Can be null.</param>
+        /// <param name="lineNumber">Line number in the source file that emitted the log.</param>
         public ActivityMonitorGroupData( LogLevel level, CKTrait tags, string text, DateTimeStamp logTime, Exception exception, Func<string> getConclusionText, string fileName, int lineNumber )
             : base( level, exception, tags, text, logTime, fileName, lineNumber )
         {
@@ -44,7 +44,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="level">Log level. Can not be <see cref="LogLevel.None"/>.</param>
         /// <param name="fileName">Name of the source file that emitted the log. Can be null.</param>
-        /// <param name="lineNumber">Line number in the source file that emitted the log. Can be null.</param>
+        /// <param name="lineNumber">Line number in the source file that emitted the log.</param>
         public ActivityMonitorGroupData( LogLevel level, string fileName, int lineNumber )
             : base( level, fileName, lineNumber )
         {
@@ -52,7 +52,7 @@ namespace CK.Core
 
         /// <summary>
         /// Initializes a mere new <see cref="ActivityMonitorGroupData"/> without any actual data.
-        /// Should be unsed only for rejected opened group.
+        /// Should be used only for rejected opened group.
         /// </summary>
         public ActivityMonitorGroupData()
         {

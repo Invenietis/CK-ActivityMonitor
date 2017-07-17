@@ -1,4 +1,4 @@
-#region LGPL License
+﻿#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\Client\ActivityMonitorPathCatcher.cs) is part of CiviKey. 
 *  
@@ -97,6 +97,8 @@ namespace CK.Core
             }
             _source = source;
         }
+
+        bool IActivityMonitorBoundClient.IsDead => false;
 
         /// <summary>
         /// Gets or sets whether this <see cref="ActivityMonitorPathCatcher"/> can be removed from its monitor.

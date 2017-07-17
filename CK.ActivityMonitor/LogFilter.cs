@@ -1,4 +1,4 @@
-#region LGPL License
+﻿#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\LogFilter.cs) is part of CiviKey. 
 *  
@@ -61,7 +61,7 @@ namespace CK.Core
         static public readonly LogFilter Verbose = new LogFilter( LogLevelFilter.Trace, LogLevelFilter.Info );
 
         /// <summary>
-        /// While monitoring, only errors and warnings are captured, whereas all <see cref="Group"/>s appear to get the detailed structure of the activity.
+        /// While monitoring, only errors and warnings are captured (Warn), whereas all <see cref="Group"/>s appear (Trace) to get the detailed structure of the activity.
         /// </summary>
         static public readonly LogFilter Monitor = new LogFilter( LogLevelFilter.Trace, LogLevelFilter.Warn );
 
@@ -91,7 +91,7 @@ namespace CK.Core
         public readonly LogLevelFilter Group;
 
         /// <summary>
-        /// The filter that applies to log lines (Trace, Info, Warn, Error and Fatal). 
+        /// The filter that applies to log lines (Debug, Trace, Info, Warn, Error and Fatal). 
         /// </summary>
         public readonly LogLevelFilter Line;
 
@@ -161,7 +161,8 @@ namespace CK.Core
 
         /// <summary>
         /// Combines two enums <see cref="LogLevelFilter"/> into one.
-        /// The resulting filter is the more verbose one (the smallest level). <see cref="LogLevelFilter.Invalid"/> is considered as <see cref="LogLevelFilter.None"/> (it has no impact).
+        /// The resulting filter is the more verbose one (the smallest level). 
+        /// <see cref="LogLevelFilter.Invalid"/> is considered as <see cref="LogLevelFilter.None"/> (it has no impact).
         /// This operation is commutative and associative: different order of combination always give the same result.
         /// </summary>
         /// <param name="x">First filter level.</param>

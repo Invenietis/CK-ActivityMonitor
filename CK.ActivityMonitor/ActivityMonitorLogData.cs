@@ -1,4 +1,4 @@
-#region LGPL License
+﻿#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\ActivityMonitorLogData.cs) is part of CiviKey. 
 *  
@@ -136,7 +136,7 @@ namespace CK.Core
         /// You can use <see cref="DateTimeStamp.UtcNow"/> or <see cref="ActivityMonitorExtension.NextLogTime">IActivityMonitor.NextLogTime()</see> extension method.
         /// </param>
         /// <param name="fileName">Name of the source file that emitted the log. Can be null.</param>
-        /// <param name="lineNumber">Line number in the source file that emitted the log. Can be null.</param>
+        /// <param name="lineNumber">Line number in the source file that emitted the log.</param>
         public ActivityMonitorLogData( LogLevel level, Exception exception, CKTrait tags, string text, DateTimeStamp logTime, string fileName, int lineNumber )
             : this( level, fileName, lineNumber )
         {
@@ -147,12 +147,11 @@ namespace CK.Core
         /// <summary>
         /// Preinitializes a new <see cref="ActivityMonitorLogData"/>: <see cref="Initialize"/> has yet to be called.
         /// </summary>
-        /// <param name="level">Log level. Can not be <see cref="LogLevel.None"/>.</param>
+        /// <param name="level">Log level. Can be <see cref="LogLevel.None"/> (the log will be ignored).</param>
         /// <param name="fileName">Name of the source file that emitted the log. Can be null.</param>
-        /// <param name="lineNumber">Line number in the source file that emitted the log. Can be null.</param>
+        /// <param name="lineNumber">Line number in the source file that emitted the log.</param>
         public ActivityMonitorLogData( LogLevel level, string fileName, int lineNumber )
         {
-            // level == LogLevel.None is for fake senders (when log filtering is rejected).
             Level = level;
             MaskedLevel = level & LogLevel.Mask;
             FileName = fileName;
