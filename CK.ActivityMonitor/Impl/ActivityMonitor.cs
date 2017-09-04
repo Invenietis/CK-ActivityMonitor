@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -914,7 +914,7 @@ namespace CK.Core
             int currentThreadId = Thread.CurrentThread.ManagedThreadId;
             if( Interlocked.CompareExchange( ref _enteredThreadId, 0, currentThreadId ) != currentThreadId )
             {
-                throw new CKException( ActivityMonitorResources.ActivityMonitorReentrancyReleaseError, _enteredThreadId, Thread.CurrentThread.Name, currentThreadId );
+                throw new Exception( String.Format( ActivityMonitorResources.ActivityMonitorReentrancyReleaseError, _enteredThreadId, Thread.CurrentThread.Name, currentThreadId ) );
             }
         }
 

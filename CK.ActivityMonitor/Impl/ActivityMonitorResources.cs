@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,7 +23,7 @@ namespace CK.Core.Impl
         public static readonly string ClosedByBridgeRemoved = "Prematurely closed by Bridge removed.";
         public static readonly string PossibleWrongOverloadUseWithException = "Possible use of the wrong overload: Use the form that takes a first parameter of type Exception and then the string text instead of this ( string format, object arg0, ... ) method to log the exception, or calls this overload explicitely with the Exception.Message string.";
         public static readonly string InvalidRootLogPath = "Invalid Root log path. The path must be rooted (it must not be a relative path)";
-        public static readonly string SystemActivityMonitorRootLogPathSetOnlyOnce = "Root log path must be set once and only once.";
-        public static readonly string RootLogPathMustBeSet = @"A Root log path must be set: SystemActivityMonitor.RootLogPath = ""<absolute path>""; It is currently null.";
+        public static readonly string LogFileRootLogPathSetOnlyOnce = "Root log path must be set once and only once.";
+        public static readonly string RootLogPathMustBeSet = @"A Root log path must be set: LogFile.RootLogPath = ""<absolute path>""; It is currently null.";
     }
 }

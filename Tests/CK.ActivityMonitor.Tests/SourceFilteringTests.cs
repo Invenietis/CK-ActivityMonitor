@@ -28,13 +28,13 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using Xunit;
+using NUnit.Framework;
 
 namespace CK.Core.Tests.Monitoring
 {
     public class SourceFilteringTests
     {
-        [Fact]
+        [Test]
         public void we_use_the_fact_that_FileNames_are_interned_strings()
         {
             ThisFile();
@@ -42,14 +42,12 @@ namespace CK.Core.Tests.Monitoring
 
         string ThisFile( [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
-            #if NET452 || NET46
              String.IsInterned( fileName ).Should().NotBeNull();
-            #endif
              lineNumber.Should().BeGreaterThan( 0 );
             return fileName;
         }
 
-        [Fact]
+        [Test]
         public void ActivityMonitor_SourceFilter_handles_overrides_of_filter_per_source_file()
         {
             {
@@ -86,7 +84,7 @@ namespace CK.Core.Tests.Monitoring
             }
         }
 
-        [Fact]
+        [Test]
         public void ActivityMonitor_SourceFilter_handles_minimal_filter_setting_per_source_file()
         {
             {

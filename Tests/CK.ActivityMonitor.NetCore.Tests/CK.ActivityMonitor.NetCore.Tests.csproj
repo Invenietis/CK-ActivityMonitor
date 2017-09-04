@@ -3,7 +3,9 @@
   <Import Project="..\..\Common\Shared.props" />
 
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFrameworks>netcoreapp2.0</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <OriginProjectName>CK.ActivityMonitor.Tests</OriginProjectName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,9 +16,21 @@
 
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="4.19.4" />
-    <PackageReference Include="NUnit" Version="[2.6.4]" />
+    <PackageReference Include="NUnitLite" Version="3.8.1" />
+    <PackageReference Include="NUnit" Version="3.8.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\$(OriginProjectName)\**\*.cs" Exclude="..\$(OriginProjectName)\obj\**">
+      <Link>Include\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <Visible>true</Visible>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="..\CK.ActivityMonitor.Tests\SystemActivityMonitorTests.cs" />
+  </ItemGroup>
+  
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>

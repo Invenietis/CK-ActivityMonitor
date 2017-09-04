@@ -4,26 +4,23 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using CK.Core;
-using Xunit;
+using NUnit.Framework;
 using FluentAssertions;
 
 namespace CK.Core.Tests.Monitoring
 {
-    public class DocumentationCodeSnippets : MutexTest<ActivityMonitor>
+    public class DocumentationCodeSnippets
     {
-        [Fact]
+        [Test]
         public void SimpleUsage()
         {
-            using (LockFact())
-            {
-                var f = new FileInfo(Path.Combine(TestHelper.SolutionFolder, "Tests", "CK.ActivityMonitor.Tests", "DocumentationCodeSnippets.cs"));
+                 var f = new FileInfo(Path.Combine(TestHelper.SolutionFolder, "Tests", "CK.ActivityMonitor.Tests", "DocumentationCodeSnippets.cs"));
                 DemoLogs(TestHelper.ConsoleMonitor, f, new Exception());
                 DemoOpenGroupFarFromPerfect(TestHelper.ConsoleMonitor);
                 DemoOpenGroupBetter(TestHelper.ConsoleMonitor);
                 DemoOpenGroupThisWorksFine(TestHelper.ConsoleMonitor);
                 DemoOpenGroupWithDynamicConclusion(TestHelper.ConsoleMonitor);
                 DoSomething(TestHelper.ConsoleMonitor, f);
-            }
         }
 
         void DemoOpenGroupFarFromPerfect( IActivityMonitor m )

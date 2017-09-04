@@ -1,4 +1,4 @@
-﻿#region LGPL License
+#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\ActivityMonitorLogData.cs) is part of CiviKey. 
 *  
@@ -99,11 +99,7 @@ namespace CK.Core
             {
                 if( _exceptionData == null && _exception != null )
                 {
-                    CKException ckEx = _exception as CKException;
-                    if( ckEx != null )
-                    {
-                        _exceptionData = ckEx.ExceptionData;
-                    }
+                    _exceptionData = CKExceptionData.CreateFrom( _exception );
                 }
                 return _exceptionData;
             }

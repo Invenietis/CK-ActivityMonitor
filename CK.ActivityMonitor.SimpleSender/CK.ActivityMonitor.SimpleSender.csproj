@@ -3,16 +3,12 @@
   <Import Project="..\Common\Shared.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.3;net451</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
     <Description>Provides extension methods to send log entries. The OpenDebug/Trace/Info/Warn/Error/Fatal and Debug, Trace, Info, Warn, Error, Fatal extension methods support file name and line number capture.</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CK.ActivityMonitor\CK.ActivityMonitor.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
-    <Reference Include="System" />
   </ItemGroup>
 
   <ItemGroup>
@@ -50,10 +46,6 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ActivityMonitorSimpleSenderExtension.Group-Gen.cs</LastGenOutput>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
 
 </Project>
