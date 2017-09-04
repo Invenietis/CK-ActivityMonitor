@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CK.Core" Version="8.0.1-Cdevelop-0003" />
+    <PackageReference Include="CK.Core" Version="8.0.1-Cdevelop-0004" />
   </ItemGroup>
 
   <ItemGroup>

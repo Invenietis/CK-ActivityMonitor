@@ -87,11 +87,13 @@ namespace CK.Core
         /// <summary>
         /// Exception of the log. Can be null.
         /// </summary>
-        public Exception Exception => _exception; 
+        public Exception Exception => _exception;
 
         /// <summary>
         /// Gets the <see cref="CKExceptionData"/> that captures exception information 
-        /// if it exists. Returns null if no <see cref="P:Exception"/> exists.
+        /// if it exists.
+        /// If this log data has not been built on CKExceptionData and if <see cref="P:Exception"/>
+        /// is not null, <see cref="CKExceptionData.CreateFrom(Exception)"/> is automatically called.
         /// </summary>
         public CKExceptionData ExceptionData
         {
@@ -103,16 +105,6 @@ namespace CK.Core
                 }
                 return _exceptionData;
             }
-        }
-
-        /// <summary>
-        /// Gets or creates the <see cref="CKExceptionData"/> that captures exception information.
-        /// If <see cref="P:Exception"/> is null, this returns null.
-        /// </summary>
-        /// <returns>A data representation of the exception or null.</returns>
-        public CKExceptionData EnsureExceptionData()
-        {
-            return _exceptionData ?? (_exceptionData = CKExceptionData.CreateFrom( _exception ));
         }
 
         /// <summary>
