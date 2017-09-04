@@ -1,4 +1,4 @@
-﻿#region LGPL License
+#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\Impl\ActivityMonitor.Group.cs) is part of CiviKey. 
 *  
@@ -127,13 +127,6 @@ namespace CK.Core
             /// if it exists. Returns null if no <see cref="P:Exception"/> exists.
             /// </summary>
             public CKExceptionData ExceptionData => _data.ExceptionData; 
-
-            /// <summary>
-            /// Gets or creates the <see cref="CKExceptionData"/> that captures exception information.
-            /// If <see cref="P:Exception"/> is null, this returns null.
-            /// </summary>
-            /// <returns></returns>
-            public CKExceptionData EnsureExceptionData() => _data.EnsureExceptionData();
 
             /// <summary>
             /// Get the previous group in its origin monitor. Null if this group is a top level group.
