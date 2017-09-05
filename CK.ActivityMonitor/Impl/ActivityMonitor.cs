@@ -178,6 +178,8 @@ namespace CK.Core
         Guid _uniqueId;
         string _topic;
         DateTimeStamp _lastLogTime;
+        List<ActivityMonitorLogData> _reentrantLog;
+        bool _reentrantLogDisabled;
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitor"/> that applies all <see cref="AutoConfiguration"/> and has no <see cref="Topic"/> initially set.
@@ -231,8 +233,7 @@ namespace CK.Core
             _lastLogTime = DateTimeStamp.MinValue;
             if( applyAutoConfigurations )
             {
-                var autoConf = AutoConfiguration;
-                if( autoConf != null ) autoConf( this );
+                AutoConfiguration?.Invoke( this );
             }
         }
 
@@ -555,14 +556,23 @@ namespace CK.Core
         public void UnfilteredLog( ActivityMonitorLogData data )
         {
             if( data == null || data.MaskedLevel == LogLevel.None ) return;
-            ReentrantAndConcurrentCheck();
-            try
+            if( ConcurrentOnlyCheck() )
             {
-                DoUnfilteredLog( data );
+                try
+                {
+                    _reentrantLogDisabled = true;
+                    DoUnfilteredLog( data );
+                }
+                finally
+                {
+                    ReentrantAndConcurrentRelease();
+                    _reentrantLogDisabled = false;
+                }
             }
-            finally
+            else
             {
-                ReentrantAndConcurrentRelease();
+                if( _reentrantLogDisabled ) throw new InvalidOperationException( ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess );
+                PushReentrantLog( data );
             }
         }
 
@@ -608,7 +618,6 @@ namespace CK.Core
                 UpdateActualFilter();
             }
         }
-
 
         /// <summary>
         /// Opens a group regardless of <see cref="ActualFilter"/> level (except for <see cref="LogLevelFilter.Off"/>). 
@@ -886,6 +895,7 @@ namespace CK.Core
             }
         }
 
+
         /// <summary>
         /// Checks only for concurrency issues. 
         /// False if a call already exists (reentrant call): when true is returned, ReentrantAndConcurrentRelease must be called.
@@ -909,12 +919,30 @@ namespace CK.Core
             return true;
         }
 
+        void PushReentrantLog( ActivityMonitorLogData data )
+        {
+            Debug.Assert( data != null );
+            Debug.Assert( Thread.CurrentThread.ManagedThreadId == _enteredThreadId );
+            if( _reentrantLog == null ) _reentrantLog = new List<ActivityMonitorLogData>();
+            _reentrantLog.Add( data );
+        }
+
         void ReentrantAndConcurrentRelease()
         {
+            Debug.Assert( Thread.CurrentThread.ManagedThreadId == _enteredThreadId );
+            if( _reentrantLog != null && _reentrantLog.Count > 0 )
+            {
+                for( int i = 0; i < _reentrantLog.Count; ++i )
+                {
+                    DoUnfilteredLog( _reentrantLog[i] );
+                }
+                _reentrantLog.Clear();
+            }
+            // Reset and check even in Release.
             int currentThreadId = Thread.CurrentThread.ManagedThreadId;
             if( Interlocked.CompareExchange( ref _enteredThreadId, 0, currentThreadId ) != currentThreadId )
             {
-                throw new Exception( String.Format( ActivityMonitorResources.ActivityMonitorReentrancyReleaseError, _enteredThreadId, Thread.CurrentThread.Name, currentThreadId ) );
+                throw new CKException( ActivityMonitorResources.ActivityMonitorReentrancyReleaseError, _enteredThreadId, Thread.CurrentThread.Name, currentThreadId );
             }
         }
 
