@@ -4,11 +4,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
-     <Description>
-      Hierarchical logger API.
-      Main types are:
-      IActivityMonitor, ActivityMonitor, SystemActivityMonitor, ActivityMonitorClient and standard
-      clients like ActivityMonitorTextWriterClient.
+     <Description>Hierarchical logger API. Main types are: IActivityMonitor, ActivityMonitor, SystemActivityMonitor, ActivityMonitorClient and standard clients like ActivityMonitorTextWriterClient.
     </Description>
   </PropertyGroup>
 

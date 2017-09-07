@@ -207,6 +207,7 @@ namespace CK.Core
         public ActivityMonitor( bool applyAutoConfigurations, string topic = null )
         {
             Build( new ActivityMonitorOutput( this ), Tags.Empty, applyAutoConfigurations );
+            if( topic != null ) SetTopic( topic );
         }
 
         /// <summary>

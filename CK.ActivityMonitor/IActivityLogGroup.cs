@@ -114,5 +114,12 @@ namespace CK.Core
         /// Gets the line number of the <see cref="FileName"/> that issued the log.
         /// </summary>
         int LineNumber { get; }
+
+        /// <summary>
+        /// Gets the group data itself. Its properties are exposed
+        /// on this <see cref="IActivityLogGroup"/> interface but this can be used
+        /// to capture the Group information (<see cref="ActivityMonitorRecorder"/> uses this).
+        /// </summary>
+        ActivityMonitorGroupData InnerData { get; }
     }
 }

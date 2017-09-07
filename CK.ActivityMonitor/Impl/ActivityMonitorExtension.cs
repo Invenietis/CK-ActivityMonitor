@@ -238,11 +238,12 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="errorHandler">An action that accepts a list of fatal or error <see cref="ActivityMonitorSimpleCollector.Entry">entries</see>.</param>
         /// <param name="level">Defines the level of the collected entries (by default fatal or error entries).</param>
+        /// <param name="capacity">Capacity of the collector defaults to 50.</param>
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
-        public static IDisposable CollectEntries( this IActivityMonitor @this, Action<IReadOnlyList<ActivityMonitorSimpleCollector.Entry>> errorHandler, LogLevelFilter level = LogLevelFilter.Error )
+        public static IDisposable CollectEntries( this IActivityMonitor @this, Action<IReadOnlyList<ActivityMonitorSimpleCollector.Entry>> errorHandler, LogLevelFilter level = LogLevelFilter.Error, int capacity = 50 )
         {
             if( errorHandler == null ) throw new ArgumentNullException( "errorHandler" );
-            ActivityMonitorSimpleCollector errorTracker = new ActivityMonitorSimpleCollector() { MinimalFilter = level };
+            ActivityMonitorSimpleCollector errorTracker = new ActivityMonitorSimpleCollector() { MinimalFilter = level, Capacity = capacity };
             @this.Output.RegisterClient( errorTracker );
             return Util.CreateDisposableAction( () =>
             {

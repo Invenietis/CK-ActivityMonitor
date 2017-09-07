@@ -162,6 +162,13 @@ namespace CK.Core
             public Exception Exception => _data.Exception;
 
             /// <summary>
+            /// Gets the group data itself. Its properties are exposed
+            /// on this <see cref="IActivityLogGroup"/> interface but this can be used
+            /// to capture the Group information (<see cref="ActivityMonitorRecorder"/> uses this).
+            /// </summary>
+            public ActivityMonitorGroupData InnerData => _data;
+
+            /// <summary>
             /// Gets or sets the <see cref="IActivityMonitor.MinimalFilter"/> that will be restored when group will be closed.
             /// Initialized with the current value of IActivityMonitor.Filter when the group has been opened.
             /// </summary>

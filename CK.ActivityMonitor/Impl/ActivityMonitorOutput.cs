@@ -1,4 +1,4 @@
-﻿#region LGPL License
+#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\Impl\ActivityMonitorOutput.cs) is part of CiviKey. 
 *  
@@ -124,7 +124,7 @@ namespace CK.Core.Impl
         /// <remarks>
         /// The factory function MUST return null OR a client that satisfies the tester function otherwise a <see cref="InvalidOperationException"/> is thrown.
         /// When null is returned by the factory function, nothing is added and null is returned. 
-        /// The factory is called only when the no client satisfies the tester function: this makes the 'added' out parameter useless.
+        /// The factory is called only when no client satisfy the tester function: this makes the 'added' out parameter useless.
         /// </remarks>
         public T RegisterUniqueClient<T>( Func<T, bool> tester, Func<T> factory ) where T : IActivityMonitorClient
         {
