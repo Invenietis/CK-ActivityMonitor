@@ -1,4 +1,4 @@
-﻿#region LGPL License
+#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.ActivityMonitor.StandardSender\ActivityMonitorSend-Gen.cs 
 * (and CK.ActivityMonitor.StandardSender\ActivityMonitorSend-Gen.tt ) 
@@ -59,7 +59,7 @@ namespace CK.Core
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
-			if( arg0 is Exception ) throw new ArgumentException( Impl.ActivityMonitorResources.PossibleWrongOverloadUseWithException, "arg0" );
+			if( arg0 is Exception ) throw new ArgumentException( ActivityMonitorSenderExtension.PossibleWrongOverloadUseWithException, "arg0" );
 			s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, format == null ? null : String.Format( format, arg0 ) );
         }
 		 
@@ -197,7 +197,7 @@ namespace CK.Core
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
-			if( arg0 is Exception ) throw new ArgumentException( Impl.ActivityMonitorResources.PossibleWrongOverloadUseWithException, "arg0" );
+			if( arg0 is Exception ) throw new ArgumentException( ActivityMonitorSenderExtension.PossibleWrongOverloadUseWithException, "arg0" );
 			s.InitializeAndSend( null, tags, format == null ? null : String.Format( format, arg0 ) );
         }
 		 

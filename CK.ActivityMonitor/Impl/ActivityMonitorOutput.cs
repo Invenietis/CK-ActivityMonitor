@@ -32,11 +32,11 @@ namespace CK.Core.Impl
     /// <summary>
     /// Implementation of <see cref="IActivityMonitorOutput"/> for <see cref="IActivityMonitor.Output"/>.
     /// </summary>
-    public class ActivityMonitorOutput : IActivityMonitorOutput
+    public sealed class ActivityMonitorOutput : IActivityMonitorOutput
     {
         readonly IActivityMonitorImpl _monitor;
         readonly ActivityMonitorBridgeTarget _externalInput;
-        IActivityMonitorClient[] _clients;
+        readonly List<IActivityMonitorClient> _clients;
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitorOutput"/> bound to a <see cref="IActivityMonitor"/>.
@@ -46,7 +46,7 @@ namespace CK.Core.Impl
         {
             if( monitor == null ) throw new ArgumentNullException();
             _monitor = monitor;
-            _clients = Util.Array.Empty<IActivityMonitorClient>();
+            _clients = new List<IActivityMonitorClient>();
             _externalInput = new ActivityMonitorBridgeTarget( monitor, true );
         }
 
@@ -54,15 +54,7 @@ namespace CK.Core.Impl
         /// Gets an entry point for other monitors: by registering <see cref="ActivityMonitorBridge"/> in other <see cref="IActivityMonitor.Output"/>
         /// bound to this <see cref="ActivityMonitorBridgeTarget"/>, log streams can easily be merged.
         /// </summary>
-        public ActivityMonitorBridgeTarget BridgeTarget
-        {
-            get { return _externalInput; }
-        }
-
-        /// <summary>
-        /// Gets the associated <see cref="IActivityMonitor"/>.
-        /// </summary>
-        protected IActivityMonitorImpl Monitor { get { return _monitor; } }
+        public ActivityMonitorBridgeTarget BridgeTarget => _externalInput; 
 
         /// <summary>
         /// Registers an <see cref="IActivityMonitorClient"/> to the <see cref="Clients"/> list.
@@ -81,23 +73,22 @@ namespace CK.Core.Impl
             }
         }
 
-        private IActivityMonitorClient DoRegisterClient( IActivityMonitorClient client, ref bool forceAdded )
+        IActivityMonitorClient DoRegisterClient( IActivityMonitorClient client, ref bool forceAdded )
         {
-            if( (forceAdded |= (Array.IndexOf( _clients, client ) < 0)) )
+            if( (forceAdded |= (_clients.IndexOf( client ) < 0)) )
             {
                 IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
                 if( bound != null )
                 {
-                    // Calling SetMonitor before adding it to the client first
-                    // enables the monitor to initialize itself before being solicited.
-                    // And if SetMonitor method calls InitializeTopicAndAutoTags, it does not
-                    // receive a "stupid" OnTopic/AutoTagsChanged.
+                    // Calling SetMonitor before adding it to the client first:
+                    // - Enables the monitor to initialize itself before being solicited.
+                    // - If SetMonitor method calls InitializeTopicAndAutoTags, it does not
+                    //   receive a "stupid" OnTopic/AutoTagsChanged.
+                    // - Any exceptions like the ones created by CreateMultipleRegisterOnBoundClientException or
+                    //   CreateBoundClientIsLockedException flow to the caller and have no impacts.
                     bound.SetMonitor( _monitor, false );
                 }
-                var newArray = new IActivityMonitorClient[_clients.Length + 1];
-                Array.Copy( _clients, 0, newArray, 1, _clients.Length );
-                newArray[0] = client;
-                _clients = newArray;
+                _clients.Add( client );
                 if( bound != null ) _monitor.OnClientMinimalFilterChanged( LogFilter.Undefined, bound.MinimalFilter );
             }
             return client;
@@ -158,7 +149,7 @@ namespace CK.Core.Impl
             using( _monitor.ReentrancyAndConcurrencyLock() )
             {
                 int idx;
-                if( (idx = Array.IndexOf( _clients, client )) >= 0 )
+                if( (idx = _clients.IndexOf( client )) >= 0 )
                 {
                     LogFilter filter = LogFilter.Undefined;
                     IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
@@ -167,10 +158,7 @@ namespace CK.Core.Impl
                         filter = bound.MinimalFilter;
                         bound.SetMonitor( null, false );
                     }
-                    var newArray = new IActivityMonitorClient[_clients.Length - 1];
-                    Array.Copy( _clients, 0, newArray, 0, idx );
-                    Array.Copy( _clients, idx + 1, newArray, idx, newArray.Length - idx );
-                    _clients = newArray;
+                    _clients.RemoveAt( idx );
                     if( filter != LogFilter.Undefined ) _monitor.OnClientMinimalFilterChanged( filter, LogFilter.Undefined );
                     return client;
                 }
@@ -182,8 +170,6 @@ namespace CK.Core.Impl
         /// Gets the list of registered <see cref="IActivityMonitorClient"/>.
         /// </summary>
         public IReadOnlyList<IActivityMonitorClient> Clients => _clients;
-
-        internal IActivityMonitorClient[] ClientArray => _clients;
 
         internal void ForceRemoveCondemnedClient( IActivityMonitorClient client )
         {
@@ -200,15 +186,7 @@ namespace CK.Core.Impl
                     ActivityMonitor.CriticalErrorCollector.Add( ex, $"While removing condemned client." );
                 }
             }
-            if( _clients.Length == 1 ) _clients = Util.Array.Empty<IActivityMonitorClient>();
-            else
-            {
-                int idx = Array.IndexOf( _clients, client );
-                var newArray = new IActivityMonitorClient[_clients.Length - 1];
-                Array.Copy( _clients, 0, newArray, 0, idx );
-                Array.Copy( _clients, idx + 1, newArray, idx, newArray.Length - idx );
-                _clients = newArray;
-            }
+            _clients.Remove( client );
         }
 
     }

@@ -157,6 +157,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="userConclusion">Optional string, ActivityLogGroupConclusion object, enumerable of ActivityLogGroupConclusion or object to conclude the group. See remarks.</param>
+        /// <returns>True if a group has actually been closed, false if there is no more opened group.</returns>
         /// <remarks>
         /// An untyped object is used here to easily and efficiently accommodate both string and already existing ActivityLogGroupConclusion.
         /// When a List&lt;ActivityLogGroupConclusion&gt; is used, it will be directly used to collect conclusion objects (new conclusions will be added to it). This is an optimization.

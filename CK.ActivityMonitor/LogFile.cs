@@ -21,7 +21,7 @@ namespace CK.Core
         static string _logPath;
         static string _criticalErrorsPath;
         static int _activityMonitorErrorTracked;
-        const string CriticalErrorsSubPath = "CriticalErrors/";
+        const string CriticalErrorsSubPath = "CriticalErrors";
 
         static LogFile()
         {
@@ -123,7 +123,7 @@ namespace CK.Core
                 }
                 try
                 {
-                    string dirName = value + CriticalErrorsSubPath;
+                    string dirName = value + CriticalErrorsSubPath + Path.DirectorySeparatorChar;
                     if( !Directory.Exists( dirName ) ) Directory.CreateDirectory( dirName );
                     string testWriteFile = Path.Combine( dirName, Guid.NewGuid().ToString() );
                     File.AppendAllText( testWriteFile, testWriteFile );

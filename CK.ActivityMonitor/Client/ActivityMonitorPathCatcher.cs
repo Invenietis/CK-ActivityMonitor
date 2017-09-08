@@ -1,4 +1,4 @@
-﻿#region LGPL License
+#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\Client\ActivityMonitorPathCatcher.cs) is part of CiviKey. 
 *  
@@ -94,6 +94,7 @@ namespace CK.Core
             if( !forceBuggyRemove )
             {
                 if( source != null && _source != null ) throw CreateMultipleRegisterOnBoundClientException( this );
+                if( _locked && _source != null ) throw CreateBoundClientIsLockedException( this );
             }
             _source = source;
         }
@@ -101,52 +102,36 @@ namespace CK.Core
         bool IActivityMonitorBoundClient.IsDead => false;
 
         /// <summary>
-        /// Gets or sets whether this <see cref="ActivityMonitorPathCatcher"/> can be removed from its monitor.
+        /// Gets or sets whether this <see cref="ActivityMonitorPathCatcher"/> is locked to its monitor.
         /// Defaults to false. When setting this to true, <see cref="IActivityMonitorOutput.UnregisterClient"/>
-        /// does not remove it.
+        /// fails to remove it with an <see cref="InvalidOperationException"/>.
         /// </summary>
-        public bool IsLocked
-        {
-            get { return _locked; }
-            set { _locked = value; }
-        }
-
+        public bool IsLocked { get => _locked; set => _locked = value; }
+        
         /// <summary>
         /// Gets the current (mutable) path. You may use ToArray or ToList methods to take a snapshot of this list.
         /// Use the extension method <see cref="ActivityMonitorExtension.ToStringPath"/> to easily format this path.
         /// </summary>
-        public IReadOnlyList<PathElement> DynamicPath
-        {
-            get { return _path; }
-        }
+        public IReadOnlyList<PathElement> DynamicPath => _path; 
 
         /// <summary>
         /// Gets the last <see cref="DynamicPath"/> where an <see cref="LogLevel.Error"/> or a <see cref="LogLevel.Fatal"/> occurred.
         /// Null if no error nor fatal occurred.
         /// Use the extension method <see cref="ActivityMonitorExtension.ToStringPath"/> to easily format this path.
         /// </summary>
-        public IReadOnlyList<PathElement> LastErrorPath
-        {
-            get { return _errorSnaphot; }
-        }
+        public IReadOnlyList<PathElement> LastErrorPath => _errorSnaphot;
 
         /// <summary>
         /// Clears current <see cref="LastErrorPath"/> (sets it to null).
         /// </summary>
-        public void ClearLastErrorPath()
-        {
-            _errorSnaphot = null;
-        }
+        public void ClearLastErrorPath() => _errorSnaphot = null;
 
         /// <summary>
         /// Gets the last path with a <see cref="LogLevel.Fatal"/>, <see cref="LogLevel.Error"/> or a <see cref="LogLevel.Warn"/>.
         /// Null if no error, fatal nor warn occurred.
         /// Use the extension method <see cref="ActivityMonitorExtension.ToStringPath"/> to easily format this path.
         /// </summary>
-        public IReadOnlyList<PathElement> LastWarnOrErrorPath
-        {
-            get { return _warnSnaphot; }
-        }
+        public IReadOnlyList<PathElement> LastWarnOrErrorPath => _warnSnaphot; 
 
         /// <summary>
         /// Clears current <see cref="LastWarnOrErrorPath"/> (sets it to null), and
