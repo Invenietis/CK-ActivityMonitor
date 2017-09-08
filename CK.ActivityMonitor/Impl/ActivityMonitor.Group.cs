@@ -164,7 +164,8 @@ namespace CK.Core
             /// <summary>
             /// Gets the group data itself. Its properties are exposed
             /// on this <see cref="IActivityLogGroup"/> interface but this can be used
-            /// to capture the Group information (<see cref="ActivityMonitorRecorder"/> uses this).
+            /// to capture the Group information (the <see cref="Impl.IActivityMonitorImpl.InternalMonitor"/>
+            /// uses this).
             /// </summary>
             public ActivityMonitorGroupData InnerData => _data;
 
