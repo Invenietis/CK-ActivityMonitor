@@ -3,7 +3,7 @@
   <Import Project="..\Common\Shared.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <Description>Provides extension methods to send log entries. The OpenDebug/Trace/Info/Warn/Error/Fatal and Debug, Trace, Info, Warn, Error, Fatal extension methods support file name and line number capture.</Description>
   </PropertyGroup>
 

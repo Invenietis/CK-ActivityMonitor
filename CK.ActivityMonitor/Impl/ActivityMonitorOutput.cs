@@ -34,9 +34,9 @@ namespace CK.Core.Impl
     /// </summary>
     public sealed class ActivityMonitorOutput : IActivityMonitorOutput
     {
+        readonly List<IActivityMonitorClient> _clients;
         readonly IActivityMonitorImpl _monitor;
         readonly ActivityMonitorBridgeTarget _externalInput;
-        readonly List<IActivityMonitorClient> _clients;
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitorOutput"/> bound to a <see cref="IActivityMonitor"/>.
