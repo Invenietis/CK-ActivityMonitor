@@ -1,4 +1,4 @@
-ï»¿#region LGPL License
+#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.ActivityMonitor.StandardSender\ActivityMonitorSend-Gen.cs 
 * (and CK.ActivityMonitor.StandardSender\ActivityMonitorSend-Gen.tt) 
@@ -16,9 +16,9 @@
 * You should have received a copy of the GNU Lesser General Public License 
 * along with CK-Framework.  If not, see <http://www.gnu.org/licenses/>. 
 *  
-* Copyright Â© 2007-2017, 
+* Copyright © 2007-2017, 
 *     Invenietis <http://www.invenietis.com>,
-*     Inâ€™Tech INFO <http://www.intechinfo.fr>,
+*     In’Tech INFO <http://www.intechinfo.fr>,
 * All rights reserved. 
 *-----------------------------------------------------------------------------*/
 #endregion
@@ -59,7 +59,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			if( arg0 is Exception ) throw new ArgumentException( Impl.ActivityMonitorResources.PossibleWrongOverloadUseWithException, "arg0" );
+			if( arg0 is Exception ) throw new ArgumentException( ActivityMonitorSenderExtension.PossibleWrongOverloadUseWithException, "arg0" );
 			return s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, format == null ? null : String.Format( format, arg0 ) );
         }
 		 
@@ -209,7 +209,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			if( arg0 is Exception ) throw new ArgumentException( Impl.ActivityMonitorResources.PossibleWrongOverloadUseWithException, "arg0" );
+			if( arg0 is Exception ) throw new ArgumentException( ActivityMonitorSenderExtension.PossibleWrongOverloadUseWithException, "arg0" );
 			return s.InitializeAndSend( null, tags, format == null ? null : String.Format( format, arg0 ) );
         }
 		 

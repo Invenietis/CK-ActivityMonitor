@@ -188,7 +188,13 @@ namespace CK.Core
         /// <summary>
         /// Simple box around <see cref="DateTimeStamp"/> to be able to share it as needed.
         /// </summary>
-        protected sealed class DateTimeStampProvider { public DateTimeStamp Value = DateTimeStamp.MinValue; }
+        protected sealed class DateTimeStampProvider
+        {
+            /// <summary>
+            /// Exposes the actual value.
+            /// </summary>
+            public DateTimeStamp Value = DateTimeStamp.MinValue;
+        }
         DateTimeStampProvider _lastLogTime;
         readonly Guid _uniqueId;
         InternalMonitor _internalMonitor;
