@@ -3,17 +3,13 @@
   <Import Project="..\Common\Shared.props" />
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
     <Description>Hierarchical logger API and LogFile path centralization. Main types are: LogFile, IActivityMonitor, ActivityMonitor, ActivityMonitorClient and standard clients like ActivityMonitorTextWriterClient.
     </Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CK.Core" Version="8.0.1-Cdevelop-0005" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Properties\" />
+    <PackageReference Include="CK.Core" Version="9.0.0-p" />
   </ItemGroup>
 
 </Project>
