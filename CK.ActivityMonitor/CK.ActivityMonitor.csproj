@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CK.Core" Version="9.0.0-p" />
+    <PackageReference Include="CK.Core" Version="9.0.0" />
   </ItemGroup>
 
 </Project>
