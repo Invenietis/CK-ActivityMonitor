@@ -4,13 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Xunit;
+using NUnit.Framework;
 
 namespace CK.Core.Tests.Monitoring
 {
     public class LogFilterTests
     {
-        [Fact]
+        [Test]
         public void CombineLevelTests()
         {
              LogFilter.Combine( LogLevelFilter.Error, LogLevelFilter.Fatal ).Should().Be( LogLevelFilter.Error );
@@ -20,7 +20,7 @@ namespace CK.Core.Tests.Monitoring
              LogFilter.Combine( LogLevelFilter.Info, LogLevelFilter.Error ).Should().Be( LogLevelFilter.Info  );
         }
 
-        [Fact]
+        [Test]
         public void CombineLogTests()
         {
             LogFilter f = new LogFilter( LogLevelFilter.None, LogLevelFilter.Error );
@@ -33,7 +33,7 @@ namespace CK.Core.Tests.Monitoring
              (f4 == f3).Should().BeTrue( );
         }
 
-        [Fact]
+        [Test]
         public void ToStringTests()
         {
             LogFilter.Undefined.ToString().Should().Be("Undefined");
@@ -45,7 +45,7 @@ namespace CK.Core.Tests.Monitoring
             new LogFilter(LogLevelFilter.Warn, LogLevelFilter.Error).ToString().Should().Be("{Warn,Error}");
         }
 
-        [Fact]
+        [Test]
         public void ParseTests()
         {
              LogFilter.Parse( "Undefined" ).Should().Be( LogFilter.Undefined  );
@@ -68,13 +68,13 @@ namespace CK.Core.Tests.Monitoring
              LogFilter.Parse( "{ Error , Error }" ).Should().Be( LogFilter.Release  );
              LogFilter.Parse( "{   Trace    ,    Info   }" ).Should().Be( LogFilter.Verbose  );
 
-            Should.Throw<CKException>( () => LogFilter.Parse( " {Error,Error}" ) );
-            Should.Throw<CKException>( () => LogFilter.Parse( "{Error,Error} " ) );
-            Should.Throw<CKException>( () => LogFilter.Parse( "Error,Error}" ) );
-            Should.Throw<CKException>( () => LogFilter.Parse( "{Error,Error" ) );
-            Should.Throw<CKException>( () => LogFilter.Parse( "{Error,,Error}" ) );
-            Should.Throw<CKException>( () => LogFilter.Parse( "{Error,Warn,Trace}" ) );
-            Should.Throw<CKException>( () => LogFilter.Parse( "{}" ) );
+            Should.Throw<Exception>( () => LogFilter.Parse( " {Error,Error}" ) );
+            Should.Throw<Exception>( () => LogFilter.Parse( "{Error,Error} " ) );
+            Should.Throw<Exception>( () => LogFilter.Parse( "Error,Error}" ) );
+            Should.Throw<Exception>( () => LogFilter.Parse( "{Error,Error" ) );
+            Should.Throw<Exception>( () => LogFilter.Parse( "{Error,,Error}" ) );
+            Should.Throw<Exception>( () => LogFilter.Parse( "{Error,Warn,Trace}" ) );
+            Should.Throw<Exception>( () => LogFilter.Parse( "{}" ) );
         }
 
     }

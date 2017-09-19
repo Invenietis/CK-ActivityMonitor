@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using CK.Core;
-using Xunit;
+using NUnit.Framework;
 using FluentAssertions;
 using CK.Text;
 
@@ -18,7 +18,7 @@ namespace CK.Core.Tests.Monitoring
 {
     public class SimpleSenderTests
     {
-        [Fact]
+        [Test]
         public void simple_sender_Log_tests()
         {
             var m = new ActivityMonitor( false );
@@ -54,7 +54,7 @@ namespace CK.Core.Tests.Monitoring
             m.Log( LogLevel.Debug, () => throw new Exception("Never called") );
         }
 
-        [Fact]
+        [Test]
         public void simple_sender_Info_tests_works_like_the_other_ones_since_they_are_T4_generated()
         {
             var m = new ActivityMonitor( false );
@@ -80,7 +80,7 @@ namespace CK.Core.Tests.Monitoring
             m.Info( () => throw new Exception( "Never called" ) );
         }
 
-        [Fact]
+        [Test]
         public void simple_sender_OpenInfo_tests_works_like_the_other_ones_since_they_are_T4_generated()
         {
             var m = new ActivityMonitor( false );
@@ -112,7 +112,7 @@ namespace CK.Core.Tests.Monitoring
             d.Dispose();
         }
 
-        [Fact]
+        [Test]
         public void simple_sender_OpenGroup_tests()
         {
             var m = new ActivityMonitor( false );

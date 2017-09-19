@@ -1,4 +1,4 @@
-﻿#region LGPL License
+#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\Impl\ActivityMonitor.Group.cs) is part of CiviKey. 
 *  
@@ -129,13 +129,6 @@ namespace CK.Core
             public CKExceptionData ExceptionData => _data.ExceptionData; 
 
             /// <summary>
-            /// Gets or creates the <see cref="CKExceptionData"/> that captures exception information.
-            /// If <see cref="P:Exception"/> is null, this returns null.
-            /// </summary>
-            /// <returns></returns>
-            public CKExceptionData EnsureExceptionData() => _data.EnsureExceptionData();
-
-            /// <summary>
             /// Get the previous group in its origin monitor. Null if this group is a top level group.
             /// </summary>
             public IActivityLogGroup Parent => _unfilteredParent;
@@ -167,6 +160,14 @@ namespace CK.Core
             /// Gets the associated <see cref="Exception"/> if it exists.
             /// </summary>
             public Exception Exception => _data.Exception;
+
+            /// <summary>
+            /// Gets the group data itself. Its properties are exposed
+            /// on this <see cref="IActivityLogGroup"/> interface but this can be used
+            /// to capture the Group information (the <see cref="Impl.IActivityMonitorImpl.InternalMonitor"/>
+            /// uses this).
+            /// </summary>
+            public ActivityMonitorGroupData InnerData => _data;
 
             /// <summary>
             /// Gets or sets the <see cref="IActivityMonitor.MinimalFilter"/> that will be restored when group will be closed.

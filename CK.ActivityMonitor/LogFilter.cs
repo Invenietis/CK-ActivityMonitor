@@ -1,4 +1,4 @@
-﻿#region LGPL License
+#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\LogFilter.cs) is part of CiviKey. 
 *  
@@ -250,7 +250,7 @@ namespace CK.Core
         {
             if( filter == null ) throw new ArgumentNullException( filter );
             LogFilter f;
-            if( !TryParse( filter, out f ) ) throw new CKException( "Invalid filter: '{0}'.", filter );
+            if( !TryParse( filter, out f ) ) throw new ArgumentException( $"Invalid LogFilter: '{filter}'.", nameof(filter) );
             return f;
         }
 

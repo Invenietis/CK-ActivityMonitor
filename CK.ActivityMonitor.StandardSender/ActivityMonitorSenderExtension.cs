@@ -12,6 +12,7 @@ namespace CK.Core
     /// </summary>
     public static partial class ActivityMonitorSenderExtension
     {
+        internal static readonly string PossibleWrongOverloadUseWithException = "Possible use of the wrong overload: Use the form that takes a first parameter of type Exception and then the string text instead of this ( string format, object arg0, ... ) method to log the exception, or calls this overload explicitely with the Exception.Message string.";
 
         /// <summary>
         /// Private method used by XXX (Trace, Info,..., Fatal) extension methods.

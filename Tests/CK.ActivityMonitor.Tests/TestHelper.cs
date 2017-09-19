@@ -18,12 +18,6 @@ namespace CK.Core.Tests
         public static void Throw<T>(Action a, string because) where T : Exception => a.ShouldThrow<T>(because);
     }
 
-#if !NET452
-    class ExcludeFromCodeCoverageAttribute : Attribute
-    {
-    }
-#endif
-
     static class TestHelper
     {
         static string _testFolder;
@@ -74,8 +68,6 @@ namespace CK.Core.Tests
             CleanupFolder(TestFolder);
         }
 
-        public static string CriticalErrorPath => Path.Combine(SolutionFolder, "Tests", "CK.ActivityMonitor.Tests", "CriticalErrors");
-
         public static void CleanupFolder( string folder )
         {
             int tryCount = 0;
@@ -103,15 +95,11 @@ namespace CK.Core.Tests
             if( _solutionFolder != null ) return;
             _solutionFolder = Path.GetDirectoryName(Path.GetDirectoryName(GetTestProjectPath()));
             _testFolder = Path.Combine( _solutionFolder, "Tests", "CK.ActivityMonitor.Tests", "TestFolder" );
-
-            SystemActivityMonitor.RootLogPath = Path.Combine(_solutionFolder, "Tests", "CK.ActivityMonitor.Tests" );
-            Directory.Exists(SystemActivityMonitor.RootLogPath).Should().BeTrue();
-            Directory.Exists(SystemActivityMonitor.RootLogPath+"CriticalErrors").Should().BeTrue();
-
+            CleanupTestFolder();
+            LogFile.RootLogPath = Path.Combine( _testFolder, "Logs" );
             Console.WriteLine($"SolutionFolder is: {_solutionFolder}.");
             Console.WriteLine($"TestFolder is: {_testFolder}.");
             Console.WriteLine($"Core path: {typeof(string).GetTypeInfo().Assembly.CodeBase}.");
-            CleanupTestFolder();
         }
 
         static string GetTestProjectPath([CallerFilePath]string path = null) => Path.GetDirectoryName(path);

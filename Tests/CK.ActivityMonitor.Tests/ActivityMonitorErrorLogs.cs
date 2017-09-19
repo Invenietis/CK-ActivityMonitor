@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using CK.Core;
-using Xunit;
+using NUnit.Framework;
 using FluentAssertions;
 
 namespace CK.Core.Tests.Monitoring
@@ -91,7 +91,7 @@ namespace CK.Core.Tests.Monitoring
             if( _c.Rand.NextDouble() < _probFailPerCall )
             {
                 Failed = true;
-                throw new CKException( "BuggyClient{0} failed.", NumClient );
+                throw new Exception( $"BuggyClient{NumClient} failed." );
             }
         }
 
@@ -157,9 +157,9 @@ namespace CK.Core.Tests.Monitoring
             {
                 double op = Rand.NextDouble();
                 if( op < 1.0 / 60 ) _monitor.MinimalFilter = _monitor.MinimalFilter == LogFilter.Trace ? LogFilter.Verbose : LogFilter.Trace;
-                
-                if( op < 1.0/3 ) _monitor.Info().Send( "OP-{0}-{1}", NumMonitor, i );
-                else if( op < 2.0/3 ) _monitor.OpenInfo().Send( "G-OP-{0}-{1}", NumMonitor, i );
+
+                if( op < 1.0 / 3 ) _monitor.Info().Send( "OP-{0}-{1}", NumMonitor, i );
+                else if( op < 2.0 / 3 ) _monitor.OpenInfo().Send( "G-OP-{0}-{1}", NumMonitor, i );
                 else _monitor.CloseGroup();
             }
             _monitor.Info().Send( "ThreadContext{0}End", NumMonitor );
@@ -175,12 +175,12 @@ namespace CK.Core.Tests.Monitoring
 
         internal void CheckResult( string clientText )
         {
-             clientText.Should().Contain( $"ThreadContext{NumMonitor}Begin" );
-             clientText.Should().Contain( $"ThreadContext{NumMonitor}End" );
+            clientText.Should().Contain( $"ThreadContext{NumMonitor}Begin" );
+            clientText.Should().Contain( $"ThreadContext{NumMonitor}End" );
         }
     }
 
-    public class ActivityMonitorErrorLogs : MutexTest<ActivityMonitor>
+    public class ActivityMonitorErrorLogs
     {
         internal SafeClient SafeClient;
         Random _random;
@@ -189,31 +189,28 @@ namespace CK.Core.Tests.Monitoring
         double _probFailurePerOperation;
 
 
-        [Fact]
+        [Test]
         public void MonitorErrorTrap()
         {
-            using (LockFact())
+            // Run this test for at least X second.
+            int nbSecond = 2;
+            Stopwatch w = new Stopwatch();
+            w.Start();
+            do
             {
-                // Run this test for at least X second.
-                int nbSecond = 2;
-                Stopwatch w = new Stopwatch();
-                w.Start();
-                do
-                {
-                    OneRun(threadCount: 30, operationCount: 225);
-                }
-                while (w.ElapsedMilliseconds < nbSecond * 1000);
+                OneRun( threadCount: 30, operationCount: 225 );
             }
+            while( w.ElapsedMilliseconds < nbSecond * 1000 );
         }
 
-        void InitializeEnv(int threadCount, int operationCount, int buggyClientCount, double probFailurePerOperation, double probBuggyOnErrorHandlerFailure)
+        void InitializeEnv( int threadCount, int operationCount, int buggyClientCount, double probFailurePerOperation, double probBuggyOnErrorHandlerFailure )
         {
             SafeClient = new SafeClient();
             _random = new Random();
             _buggyClients = new List<BuggyClient>();
             _contexts = new List<ThreadContext>();
             _probFailurePerOperation = probFailurePerOperation;
-            for (int i = 0; i < threadCount; ++i) _contexts.Add(new ThreadContext(this, _contexts.Count, buggyClientCount, operationCount));
+            for( int i = 0; i < threadCount; ++i ) _contexts.Add( new ThreadContext( this, _contexts.Count, buggyClientCount, operationCount ) );
             _inSafeErrorHandler = false;
             _maxNumberOfErrorReceivedAtOnce = 0;
             _lastSequenceNumberReceived = ActivityMonitor.CriticalErrorCollector.NextSequenceNumber - 1;
@@ -225,14 +222,14 @@ namespace CK.Core.Tests.Monitoring
             _nbNotClearedWhileRaised = 0;
         }
 
-        internal BuggyClient NewBuggyClient(ThreadContext c)
+        internal BuggyClient NewBuggyClient( ThreadContext c )
         {
-            var r = new BuggyClient(c, _buggyClients.Count, _random.NextDouble() / 5);
-            _buggyClients.Add(r);
+            var r = new BuggyClient( c, _buggyClients.Count, _random.NextDouble() / 5 );
+            _buggyClients.Add( r );
             return r;
         }
 
-        void OneRun(int threadCount, int operationCount)
+        void OneRun( int threadCount, int operationCount )
         {
             ActivityMonitor.CriticalErrorCollector.Clear();
             ActivityMonitor.CriticalErrorCollector.Capacity = 300;
@@ -242,7 +239,7 @@ namespace CK.Core.Tests.Monitoring
                 buggyClientCount: 10,
                 operationCount: 250,
                 probFailurePerOperation: 0.9 / operationCount,
-                probBuggyOnErrorHandlerFailure: 0.1);
+                probBuggyOnErrorHandlerFailure: 0.1 );
 
             ActivityMonitor.CriticalErrorCollector.OnErrorFromBackgroundThreads += SafeOnErrorHandler;
             ActivityMonitor.CriticalErrorCollector.OnErrorFromBackgroundThreads += BuggyOnErrorHandler;
@@ -253,9 +250,9 @@ namespace CK.Core.Tests.Monitoring
             ActivityMonitor.CriticalErrorCollector.OnErrorFromBackgroundThreads -= SafeOnErrorHandler;
             ActivityMonitor.CriticalErrorCollector.OnErrorFromBackgroundThreads -= BuggyOnErrorHandler;
 
-            if (TestHelper.LogsToConsole)
+            if( TestHelper.LogsToConsole )
             {
-                Console.WriteLine(@"ActivityMonitor.LoggingError Test:
+                Console.WriteLine( @"ActivityMonitor.LoggingError Test:
                 ThreadCount: {0}
                 DispatchQueuedWorkItemCount: {1}
                 OptimizedDispatchQueuedWorkItemCount: {2}
@@ -269,20 +266,20 @@ namespace CK.Core.Tests.Monitoring
                     ActivityMonitor.CriticalErrorCollector.NextSequenceNumber - nextSeq,
                     _buggyOnErrorHandlerReceivedCount,
                     _nbClearedWhileRaised,
-                    _nbNotClearedWhileRaised);
+                    _nbNotClearedWhileRaised );
             }
             _errorsFromBackground.Should().BeEmpty();
-            var buggyClientMismatch = _buggyClients.Where(c => c.Failed != c.FailureHasBeenReceivedThroughEvent).ToArray();
+            var buggyClientMismatch = _buggyClients.Where( c => c.Failed != c.FailureHasBeenReceivedThroughEvent ).ToArray();
             buggyClientMismatch.Should().BeEmpty();
             string clientText = SafeClient.ToString();
-            for (int i = 0; i < _contexts.Count; ++i) _contexts[i].CheckResult(clientText);
-            _buggyOnErrorHandlerReceivedCount.Should().BeGreaterThan(0, "There must be at least one error from the buggy handler.");
-            _buggyOnErrorHandlerReceivedCount.Should().Be(_buggyOnErrorHandlerFailCount);
+            for( int i = 0; i < _contexts.Count; ++i ) _contexts[i].CheckResult( clientText );
+            _buggyOnErrorHandlerReceivedCount.Should().BeGreaterThan( 0, "There must be at least one error from the buggy handler." );
+            _buggyOnErrorHandlerReceivedCount.Should().Be( _buggyOnErrorHandlerFailCount );
 
-            ActivityMonitor.CriticalErrorCollector.DispatchQueuedWorkItemCount.Should().BeGreaterThan(0, "Of course, events have been raised...");
-            ActivityMonitor.CriticalErrorCollector.OptimizedDispatchQueuedWorkItemCount.Should().BeGreaterThan(0, "Optimizations must have saved us some works.");
-            ActivityMonitor.CriticalErrorCollector.Capacity.Should().Be(500, "Changed in SafeOnErrorHandler.");
-            _nbClearedWhileRaised.Should().BeGreaterThan(0, "Clear is called from SafeOnErrorHandler each 20 errors.");
+            ActivityMonitor.CriticalErrorCollector.DispatchQueuedWorkItemCount.Should().BeGreaterThan( 0, "Of course, events have been raised..." );
+            ActivityMonitor.CriticalErrorCollector.OptimizedDispatchQueuedWorkItemCount.Should().BeGreaterThan( 0, "Optimizations must have saved us some works." );
+            ActivityMonitor.CriticalErrorCollector.Capacity.Should().Be( 500, "Changed in SafeOnErrorHandler." );
+            _nbClearedWhileRaised.Should().BeGreaterThan( 0, "Clear is called from SafeOnErrorHandler each 20 errors." );
 
             ActivityMonitor.CriticalErrorCollector.Clear();
         }
@@ -297,11 +294,11 @@ namespace CK.Core.Tests.Monitoring
         // Instead we collect strings.
         ConcurrentBag<string> _errorsFromBackground;
 
-        void SafeOnErrorHandler(object source, CriticalErrorCollector.ErrorEventArgs e)
+        void SafeOnErrorHandler( object source, CriticalErrorCollector.ErrorEventArgs e )
         {
-            if (_inSafeErrorHandler)
+            if( _inSafeErrorHandler )
             {
-                _errorsFromBackground.Add("Error events are not raised simultaneously.");
+                _errorsFromBackground.Add( "Error events are not raised simultaneously." );
                 return;
             }
 
@@ -311,44 +308,44 @@ namespace CK.Core.Tests.Monitoring
             ActivityMonitor.CriticalErrorCollector.Capacity = 500;
 
             _inSafeErrorHandler = true;
-            _maxNumberOfErrorReceivedAtOnce = Math.Max(_maxNumberOfErrorReceivedAtOnce, e.LoggingErrors.Count);
-            foreach (var error in e.LoggingErrors)
+            _maxNumberOfErrorReceivedAtOnce = Math.Max( _maxNumberOfErrorReceivedAtOnce, e.Errors.Count );
+            foreach( var error in e.Errors )
             {
-                if (error.SequenceNumber % 10 == 0)
+                if( error.SequenceNumber % 10 == 0 )
                 {
                     int clearedErrors;
                     int notYetRaisedErrors;
-                    ActivityMonitor.CriticalErrorCollector.Clear(out clearedErrors, out notYetRaisedErrors);
+                    ActivityMonitor.CriticalErrorCollector.Clear( out clearedErrors, out notYetRaisedErrors );
                     _nbClearedWhileRaised += clearedErrors;
                     _nbNotClearedWhileRaised += notYetRaisedErrors;
                 }
-                if (_lastSequenceNumberReceived != error.SequenceNumber - 1)
+                if( _lastSequenceNumberReceived != error.SequenceNumber - 1 )
                 {
-                    _errorsFromBackground.Add(String.Format("Received {0}, expected {1}.", error.SequenceNumber - 1, _lastSequenceNumberReceived));
+                    _errorsFromBackground.Add( String.Format( "Received {0}, expected {1}.", error.SequenceNumber - 1, _lastSequenceNumberReceived ) );
                     _inSafeErrorHandler = false;
                     return;
                 }
                 _lastSequenceNumberReceived = error.SequenceNumber;
                 string msg = error.Exception.Message;
 
-                if (msg.StartsWith("BuggyClient"))
+                if( msg.StartsWith( "BuggyClient" ) )
                 {
-                    int idx = Int32.Parse(Regex.Match(msg, "\\d+").Value);
+                    int idx = Int32.Parse( Regex.Match( msg, "\\d+" ).Value );
                     _buggyClients[idx].FailureHasBeenReceivedThroughEvent = true;
                 }
-                else if (msg.StartsWith("BuggyErrorHandler"))
+                else if( msg.StartsWith( "BuggyErrorHandler" ) )
                 {
                     ++_buggyOnErrorHandlerReceivedCount;
-                    if (!error.ToString().StartsWith(Impl.CoreResources.ErrorWhileCollectorRaiseError))
+                    if( !error.ToString().StartsWith( Impl.CoreResources.ErrorWhileCollectorRaiseError ) )
                     {
-                        _errorsFromBackground.Add("Bad comment for error handling.");
+                        _errorsFromBackground.Add( "Bad comment for error handling." );
                         _inSafeErrorHandler = false;
                         return;
                     }
                 }
                 else
                 {
-                    _errorsFromBackground.Add("Unexpected error: " + error.Exception.Message);
+                    _errorsFromBackground.Add( "Unexpected error: " + error.Exception.Message );
                     _inSafeErrorHandler = false;
                     return;
                 }
@@ -360,33 +357,33 @@ namespace CK.Core.Tests.Monitoring
         int _buggyOnErrorHandlerFailCount;
         int _buggyOnErrorHandlerReceivedCount;
 
-        void BuggyOnErrorHandler(object source, CriticalErrorCollector.ErrorEventArgs e)
+        void BuggyOnErrorHandler( object source, CriticalErrorCollector.ErrorEventArgs e )
         {
             // Force at least one error regardless of the probability.
-            if (_buggyOnErrorHandlerFailCount == 0 || _random.NextDouble() < _probBuggyOnErrorHandlerFailure)
+            if( _buggyOnErrorHandlerFailCount == 0 || _random.NextDouble() < _probBuggyOnErrorHandlerFailure )
             {
                 // Subscribe again to this buggy event.
                 ActivityMonitor.CriticalErrorCollector.OnErrorFromBackgroundThreads += BuggyOnErrorHandler;
-                throw new CKException("BuggyErrorHandler{0}", _buggyOnErrorHandlerFailCount++);
+                throw new Exception( $"BuggyErrorHandler{_buggyOnErrorHandlerFailCount++}" );
             }
         }
 
         void RunAllAndWaitForTermination()
         {
             int monitorCount = _contexts.Count;
-            (monitorCount % 2).Should().Be(0);
+            (monitorCount % 2).Should().Be( 0 );
             Task[] tasks = new Task[monitorCount / 2];
             Thread[] threads = new Thread[monitorCount / 2];
 
-            for (int i = 0; i < tasks.Length; i++) tasks[i] = new Task(_contexts[i].Run);
-            for (int i = 0; i < threads.Length; i++) threads[i] = new Thread(_contexts[tasks.Length + i].Run);
+            for( int i = 0; i < tasks.Length; i++ ) tasks[i] = new Task( _contexts[i].Run );
+            for( int i = 0; i < threads.Length; i++ ) threads[i] = new Thread( _contexts[tasks.Length + i].Run );
 
-            for (int i = 0; i < monitorCount; i++)
-                if (i % 2 == 0) threads[i / 2].Start();
+            for( int i = 0; i < monitorCount; i++ )
+                if( i % 2 == 0 ) threads[i / 2].Start();
                 else tasks[i / 2].Start();
 
-            Task.WaitAll(tasks);
-            for (int i = 0; i < threads.Length; i++) threads[i].Join();
+            Task.WaitAll( tasks );
+            for( int i = 0; i < threads.Length; i++ ) threads[i].Join();
 
             // Instead of:
             //
@@ -396,7 +393,7 @@ namespace CK.Core.Tests.Monitoring
             // This is what the following function is doing.
             ActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
             ActivityMonitor.CriticalErrorCollector.OnErrorFromBackgroundThreadsPending
-               .Should().BeFalse("Since nobody calls ActivityMonitor.Add. In real situations, this would not necessarily be true.");
+               .Should().BeFalse( "Since nobody calls ActivityMonitor.Add. In real situations, this would not necessarily be true." );
         }
 
     }

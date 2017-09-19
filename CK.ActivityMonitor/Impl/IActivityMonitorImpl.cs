@@ -1,4 +1,4 @@
-﻿#region LGPL License
+#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\Impl\IActivityMonitorImpl.cs) is part of CiviKey. 
 *  
@@ -32,6 +32,7 @@ namespace CK.Core.Impl
 {
     /// <summary>
     /// Defines required aspects that an actual monitor implementation must support.
+    /// This interface is available to any <see cref="IActivityMonitorBoundClient"/>.
     /// </summary>
     public interface IActivityMonitorImpl : IActivityMonitor, IUniqueId
     {
@@ -43,9 +44,22 @@ namespace CK.Core.Impl
 
         /// <summary>
         /// Gets a disposable object that checks for reentrant and concurrent calls.
+        /// This can be called at any moment.
+        /// Note that when client methods (like <see cref="IActivityMonitorClient.OnUnfilteredLog"/>)
+        /// are called, this lock is already taken: calling this from inside these methods
+        /// will throw an <see cref="InvalidOperationException"/>.
         /// </summary>
         /// <returns>A disposable object (that must be disposed).</returns>
         IDisposable ReentrancyAndConcurrencyLock();
+
+        /// <summary>
+        /// Gets a monitor that can be used
+        /// from inside clients methods (like <see cref="IActivityMonitorClient.OnUnfilteredLog"/>)
+        /// or when a <see cref="ReentrancyAndConcurrencyLock"/> has been obtained to log information
+        /// related to the client implementation itself: logs will be replayed automatically into
+        /// the monitor once the lock will be released.
+        /// </summary>
+        IActivityMonitor InternalMonitor { get; }
 
         /// <summary>
         /// Enables a <see cref="IActivityMonitorBoundClient"/> to warn its Monitor

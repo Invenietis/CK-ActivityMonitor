@@ -3,8 +3,7 @@
   <Import Project="..\Common\Shared.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.3;net451</TargetFrameworks>
-    <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.3' ">1.6.1</NetStandardImplicitPackageVersion>
+    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
     <Description>Provides extension methods to send log entries. The OpenTrace/Info/Warn/Error/Fatal and Trace/Info/Warn/Error/Fatal extension methods support file name and line number capture but requires a Send method to emit the log itself.
     This package is somehow deprecated: thanks to the C# 6 string interpolation the new CK.ActivityMonitor.SimpleSender package should be used instead. 
     </Description>
@@ -12,14 +11,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CK.ActivityMonitor\CK.ActivityMonitor.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
-    <Reference Include="System" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Properties\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,11 +27,7 @@
       <LastGenOutput>ActivityMonitorSenderExtension-Gen.cs</LastGenOutput>
     </None>
   </ItemGroup>
-
-  <ItemGroup>
-    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
-  </ItemGroup>
-
+  
   <ItemGroup>
     <Compile Update="ActivityMonitorGroupSender-Gen.cs">
       <DesignTime>True</DesignTime>

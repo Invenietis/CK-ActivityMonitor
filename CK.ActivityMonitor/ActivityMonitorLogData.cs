@@ -1,4 +1,4 @@
-﻿#region LGPL License
+#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\ActivityMonitorLogData.cs) is part of CiviKey. 
 *  
@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace CK.Core
@@ -66,32 +67,34 @@ namespace CK.Core
         /// <summary>
         /// Gets whether this log data has been successfully filtered (otherwise it is an unfiltered log).
         /// </summary>
-        public bool IsFilteredLog => (Level & LogLevel.IsFiltered) != 0; 
+        public bool IsFilteredLog => (Level & LogLevel.IsFiltered) != 0;
 
         /// <summary>
         /// Tags (from <see cref="ActivityMonitor.Tags"/>) associated to the log. 
         /// It will be union-ed with the current <see cref="IActivityMonitor.AutoTags"/>.
         /// </summary>
-        public CKTrait Tags => _tags; 
+        public CKTrait Tags => _tags;
 
         /// <summary>
         /// Text of the log. Can not be null.
         /// </summary>
-        public string Text => _text; 
+        public string Text => _text;
 
         /// <summary>
         /// Gets the time of the log.
         /// </summary>
-        public DateTimeStamp LogTime => _logTime; 
+        public DateTimeStamp LogTime => _logTime;
 
         /// <summary>
         /// Exception of the log. Can be null.
         /// </summary>
-        public Exception Exception => _exception; 
+        public Exception Exception => _exception;
 
         /// <summary>
         /// Gets the <see cref="CKExceptionData"/> that captures exception information 
-        /// if it exists. Returns null if no <see cref="P:Exception"/> exists.
+        /// if it exists.
+        /// If this log data has not been built on CKExceptionData and if <see cref="P:Exception"/>
+        /// is not null, <see cref="CKExceptionData.CreateFrom(Exception)"/> is automatically called.
         /// </summary>
         public CKExceptionData ExceptionData
         {
@@ -99,24 +102,10 @@ namespace CK.Core
             {
                 if( _exceptionData == null && _exception != null )
                 {
-                    CKException ckEx = _exception as CKException;
-                    if( ckEx != null )
-                    {
-                        _exceptionData = ckEx.ExceptionData;
-                    }
+                    _exceptionData = CKExceptionData.CreateFrom( _exception );
                 }
                 return _exceptionData;
             }
-        }
-
-        /// <summary>
-        /// Gets or creates the <see cref="CKExceptionData"/> that captures exception information.
-        /// If <see cref="P:Exception"/> is null, this returns null.
-        /// </summary>
-        /// <returns>A data representation of the exception or null.</returns>
-        public CKExceptionData EnsureExceptionData()
-        {
-            return _exceptionData ?? (_exceptionData = CKExceptionData.CreateFrom( _exception ));
         }
 
         /// <summary>
@@ -137,7 +126,7 @@ namespace CK.Core
         /// </param>
         /// <param name="fileName">Name of the source file that emitted the log. Can be null.</param>
         /// <param name="lineNumber">Line number in the source file that emitted the log.</param>
-        public ActivityMonitorLogData( LogLevel level, Exception exception, CKTrait tags, string text, DateTimeStamp logTime, string fileName, int lineNumber )
+        public ActivityMonitorLogData( LogLevel level, Exception exception, CKTrait tags, string text, DateTimeStamp logTime, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
             : this( level, fileName, lineNumber )
         {
             if( MaskedLevel == LogLevel.None || MaskedLevel == LogLevel.Mask ) throw new ArgumentException( Impl.ActivityMonitorResources.ActivityMonitorInvalidLogLevel, "level" );
@@ -190,6 +179,12 @@ namespace CK.Core
             _exception = exception;
             _tags = tags ?? ActivityMonitor.Tags.Empty;
             _logTime = logTime;
+        }
+
+        internal void CombineTags( CKTrait tags )
+        {
+            if( _tags.IsEmpty ) _tags = tags;
+            else _tags = _tags.Union( tags );
         }
 
         internal DateTimeStamp CombineTagsAndAdjustLogTime( CKTrait tags, DateTimeStamp lastLogTime )

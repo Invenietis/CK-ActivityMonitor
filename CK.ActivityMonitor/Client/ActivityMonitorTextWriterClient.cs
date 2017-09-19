@@ -184,13 +184,6 @@ namespace CK.Core
         /// <param name="ex">The exception to display.</param>
         static public void DumpException( StringBuilder w, string prefix, bool displayMessage, Exception ex )
         {
-            CKException ckEx = ex as CKException;
-            if( ckEx != null && ckEx.ExceptionData != null )
-            {
-                ckEx.ExceptionData.ToStringBuilder( w, prefix );
-                return;
-            }
-
             string header = String.Format( " ┌──────────────────────────■ Exception : {0} ■──────────────────────────", ex.GetType().Name );
 
             string p;
@@ -212,14 +205,12 @@ namespace CK.Core
             if( fileNFEx != null )
             {
                 if( !String.IsNullOrEmpty( fileNFEx.FileName ) ) w.AppendLine( localPrefix + "FileName: " + fileNFEx.FileName );
-                #if NET451 || NET46
                 if( fileNFEx.FusionLog != null )
                 {
                     w.Append( localPrefix + "FusionLog: " );
                     w.AppendMultiLine( localPrefix + "         ", fileNFEx.FusionLog, false );
                     w.AppendLine();
                 }
-                #endif
             }
             else
             {
@@ -249,7 +240,7 @@ namespace CK.Core
                         }
                         w.AppendLine( localPrefix + " └─────────────────────────────────────────────────────────────────────────" );
                     }
-                    #if NET451 || NET46
+                    #if NET461
                     else
                     {
                         var configEx = ex as System.Configuration.ConfigurationException;

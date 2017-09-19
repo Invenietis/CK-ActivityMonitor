@@ -1,4 +1,4 @@
-﻿#region LGPL License
+#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\IActivityMonitorBoundClient.cs) is part of CiviKey. 
 *  
@@ -41,8 +41,8 @@ namespace CK.Core
         /// <summary>
         /// Gets whether this client is dead: it should be removed from the source activity monitor's clients.
         /// It should obviously defaults to false (and once true should remain true).
-        /// Implementations should call <see cref="IActivityMonitorImpl.SignalChange"/> to 
-        /// on its current source to trigger the removal.
+        /// Implementations should call <see cref="IActivityMonitorImpl.SignalChange"/> on its current source
+        /// to trigger the removal.
         /// </summary>
         bool IsDead { get; }
 
@@ -52,7 +52,9 @@ namespace CK.Core
         /// </summary>
         /// <param name="source">The monitor that will send log.</param>
         /// <param name="forceBuggyRemove">
-        /// True if this client must be removed because one of its method thrown an exception. The <paramref name="source"/> is null.
+        /// True if this client must be removed because one of its method thrown an exception.
+        /// The <paramref name="source"/> is necessarily null and a client has no way to
+        /// prevent the removal.
         /// </param>
         void SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove );
     }

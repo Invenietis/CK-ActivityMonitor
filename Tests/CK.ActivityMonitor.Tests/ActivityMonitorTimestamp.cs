@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Xunit;
+using NUnit.Framework;
 
 namespace CK.Core.Tests.Monitoring
 {
@@ -47,7 +47,7 @@ namespace CK.Core.Tests.Monitoring
             }
         }
 
-        [Fact]
+        [Test]
         public void DateTimeStamp_collision_can_not_happen()
         {
             ActivityMonitor m = new ActivityMonitor( applyAutoConfigurations: false );
@@ -70,7 +70,7 @@ namespace CK.Core.Tests.Monitoring
              detect.NbClash.Should().Be( 0 );
         }
 
-        [Fact]
+        [Test]
         public void DateTimeStamp_collision_can_not_happen_even_when_artificially_forcing_them()
         {
             ActivityMonitor m = new ActivityMonitor( applyAutoConfigurations: false );
