@@ -94,10 +94,15 @@ namespace CK.Core
 
         /// <summary>
         /// Opens a group regardless of <see cref="ActualFilter"/> level (except for <see cref="LogLevelFilter.Off"/>). 
-        /// <see cref="CloseGroup"/> must be called in order to close the group, and/or the returned object must be disposed (both safely can be called: 
-        /// the group is closed on the first action, the second one is ignored).
+        /// The group is open even if <paramref name="data"/> is null or its <see cref="ActivityMonitorLogData.MaskedLevel"/>
+        /// is <see cref="LogLevel.None"/>: either <see cref="CloseGroup"/> must be called and/or the returned object must
+        /// be disposed (both can be called on the same group: when the group is closed with CloseGroup, the dispose action is
+        /// ignored).
         /// </summary>
-        /// <param name="data">Data that describes the log. Can not be null.</param>
+        /// <param name="data">
+        /// Data that describes the log. When null or when <see cref="ActivityMonitorLogData.MaskedLevel"/> 
+        /// is <see cref="LogLevel.None"/> a rejected group is recorded and returned and must be closed.
+        /// </param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
         /// <remarks>
         /// <para>
