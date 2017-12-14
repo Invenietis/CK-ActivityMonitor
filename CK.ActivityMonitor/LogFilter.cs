@@ -46,7 +46,7 @@ namespace CK.Core
         static public readonly LogFilter Undefined = new LogFilter( LogLevelFilter.None, LogLevelFilter.None );
 
         /// <summary>
-        /// Debug filter enables full <see cref="LogLevelFilter.Trace"/> for both <see cref="Line"/> and <see cref="Group"/>.
+        /// Debug filter enables full <see cref="LogLevelFilter.Debug"/> for both <see cref="Line"/> and <see cref="Group"/>.
         /// </summary>
         static public readonly LogFilter Debug = new LogFilter(LogLevelFilter.Debug, LogLevelFilter.Debug);
 
