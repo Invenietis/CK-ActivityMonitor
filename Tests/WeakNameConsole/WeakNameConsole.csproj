@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CK.WeakAssemblyNameResolver" Version="0.1.0" />
+    <PackageReference Include="CK.WeakAssemblyNameResolver" Version="0.2.0" />
     <ProjectReference Include="..\..\CK.ActivityMonitor.SimpleSender\CK.ActivityMonitor.SimpleSender.csproj" />
   </ItemGroup>
 
