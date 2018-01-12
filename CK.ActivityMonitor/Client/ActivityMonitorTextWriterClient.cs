@@ -184,6 +184,11 @@ namespace CK.Core
         /// <param name="ex">The exception to display.</param>
         static public void DumpException( StringBuilder w, string prefix, bool displayMessage, Exception ex )
         {
+            if( ex is CKException ckEx && ckEx.ExceptionData != null )
+            {
+                ckEx.ExceptionData.ToStringBuilder( w, prefix );
+                return;
+            }
             string header = String.Format( " ┌──────────────────────────■ Exception : {0} ■──────────────────────────", ex.GetType().Name );
 
             string p;
