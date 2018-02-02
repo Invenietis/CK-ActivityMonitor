@@ -248,7 +248,7 @@ namespace CodeCake
                         {
                             PushNuGetPackages( "MYGET_RELEASE_API_KEY",
                                                 "https://www.myget.org/F/invenietis-release/api/v2/package",
-                                                "https://www.myget.org/F/invenietis-release/api/symbols/v2/package",
+                                                "https://www.myget.org/F/invenietis-release/symbols/api/v2/package",
                                                 nugetPackages );
                         }
                         else
