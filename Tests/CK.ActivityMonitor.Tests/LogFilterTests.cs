@@ -68,13 +68,20 @@ namespace CK.Core.Tests.Monitoring
              LogFilter.Parse( "{ Error , Error }" ).Should().Be( LogFilter.Release  );
              LogFilter.Parse( "{   Trace    ,    Info   }" ).Should().Be( LogFilter.Verbose  );
 
-            Should.Throw<Exception>( () => LogFilter.Parse( " {Error,Error}" ) );
-            Should.Throw<Exception>( () => LogFilter.Parse( "{Error,Error} " ) );
-            Should.Throw<Exception>( () => LogFilter.Parse( "Error,Error}" ) );
-            Should.Throw<Exception>( () => LogFilter.Parse( "{Error,Error" ) );
-            Should.Throw<Exception>( () => LogFilter.Parse( "{Error,,Error}" ) );
-            Should.Throw<Exception>( () => LogFilter.Parse( "{Error,Warn,Trace}" ) );
-            Should.Throw<Exception>( () => LogFilter.Parse( "{}" ) );
+            Action fail = () => LogFilter.Parse( " {Error,Error}" );
+            fail.Should().Throw<Exception>();
+            fail = () => LogFilter.Parse( "{Error,Error} " );
+            fail.Should().Throw<Exception>();
+            fail = () => LogFilter.Parse( "Error,Error}" );
+            fail.Should().Throw<Exception>();
+            fail = () => LogFilter.Parse( "{Error,Error" );
+            fail.Should().Throw<Exception>();
+            fail = () => LogFilter.Parse( "{Error,,Error}" );
+            fail.Should().Throw<Exception>();
+            fail = () => LogFilter.Parse( "{Error,Warn,Trace}" );
+            fail.Should().Throw<Exception>();
+            fail = () => LogFilter.Parse( "{}" );
+            fail.Should().Throw<Exception>();
         }
 
     }

@@ -64,7 +64,7 @@ namespace CK.Core.Tests.Monitoring
                 m.Trace().Send( "Trace2" );
                 m.OpenTrace().Send( "OTrace2" );
 
-                c.Entries.Select(e => e.Text).ToArray().ShouldBeEquivalentTo(new[] { "Trace1", "OTrace1", "Trace2", "OTrace2" }, o => o.WithStrictOrdering() );
+                c.Entries.Select(e => e.Text).ToArray().Should().BeEquivalentTo(new[] { "Trace1", "OTrace1", "Trace2", "OTrace2" }, o => o.WithStrictOrdering() );
             }
             {
                 var m = new ActivityMonitor( applyAutoConfigurations: false );
@@ -80,7 +80,7 @@ namespace CK.Core.Tests.Monitoring
                 m.Trace().Send( "NOSHOW" );
                 m.OpenTrace().Send( "NOSHOW" );
 
-                c.Entries.Select(e => e.Text).ToArray().ShouldBeEquivalentTo(new[] { "Trace1", "OTrace1" }, o => o.WithStrictOrdering());
+                c.Entries.Select(e => e.Text).ToArray().Should().BeEquivalentTo(new[] { "Trace1", "OTrace1" }, o => o.WithStrictOrdering());
             }
         }
 
@@ -101,7 +101,7 @@ namespace CK.Core.Tests.Monitoring
                 m.Trace().Send( "Trace2" );
                 m.OpenTrace().Send( "OTrace2" );
 
-                c.Entries.Select(e => e.Text).ToArray().ShouldBeEquivalentTo(new[] { "Trace1", "OTrace1", "Trace2", "OTrace2" }, o => o.WithStrictOrdering());
+                c.Entries.Select(e => e.Text).ToArray().Should().BeEquivalentTo(new[] { "Trace1", "OTrace1", "Trace2", "OTrace2" }, o => o.WithStrictOrdering());
             }
             {
                 var m = new ActivityMonitor( applyAutoConfigurations: false );
@@ -117,7 +117,7 @@ namespace CK.Core.Tests.Monitoring
                 m.Trace().Send( "NOSHOW" );
                 m.OpenTrace().Send( "NOSHOW" );
 
-                c.Entries.Select(e => e.Text).ToArray().ShouldBeEquivalentTo(new[] { "Trace1", "OTrace1" }, o => o.WithStrictOrdering());;
+                c.Entries.Select(e => e.Text).ToArray().Should().BeEquivalentTo(new[] { "Trace1", "OTrace1" }, o => o.WithStrictOrdering());;
             }
         }
 

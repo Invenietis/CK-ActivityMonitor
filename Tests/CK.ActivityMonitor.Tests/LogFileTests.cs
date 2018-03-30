@@ -36,7 +36,8 @@ namespace CK.Core.Tests.Monitoring
         {
             string current = LogFile.RootLogPath;
             LogFile.RootLogPath = current;
-            Should.Throw<InvalidOperationException>( () => LogFile.RootLogPath = current + "sub" );
+            Action fail = () => LogFile.RootLogPath = current + "sub";
+            fail.Should().Throw<InvalidOperationException>();
         }
 
     }
