@@ -223,14 +223,12 @@ namespace CK.Core
                 if( loadFileEx != null )
                 {
                     if( !String.IsNullOrEmpty( loadFileEx.FileName ) ) w.AppendLine( localPrefix + "FileName: " + loadFileEx.FileName );
-                    #if NET451 || NET46
                     if( loadFileEx.FusionLog != null )
                     {
                         w.Append( localPrefix + "FusionLog: " );
                         w.AppendMultiLine( localPrefix + "         ", loadFileEx.FusionLog, false );
                         w.AppendLine();
                     }
-                    #endif
                 }
                 else
                 {
