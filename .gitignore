@@ -255,3 +255,4 @@ Tests/CK.ActivityMonitor.Tests/TestFolder/CriticalErrors/
 CodeCakeBuilder/Tools/
 Tests/CK.ActivityMonitor.Tests/CriticalErrors/
 Tests/CK.ActivityMonitor.Tests/TestFolder/
+TestResult.*.xml

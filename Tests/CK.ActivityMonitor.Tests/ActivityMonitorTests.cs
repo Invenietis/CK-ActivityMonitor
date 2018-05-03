@@ -59,12 +59,14 @@ namespace CK.Core.Tests.Monitoring
             var counter = new ActivityMonitorErrorCounter();
             monitor.Output.RegisterClient( counter );
             monitor.Output.Clients.Should().HaveCount( 1 );
-            Should.Throw<InvalidOperationException>( () => TestHelper.ConsoleMonitor.Output.RegisterClient( counter ), "Counter can be registered in one source at a time." );
+            Action fail = () => TestHelper.ConsoleMonitor.Output.RegisterClient( counter );
+            fail.Should().Throw<InvalidOperationException>( "Counter can be registered in one source at a time." );
 
             var pathCatcher = new ActivityMonitorPathCatcher();
             monitor.Output.RegisterClient( pathCatcher );
             monitor.Output.Clients.Should().HaveCount( 2 );
-            Should.Throw<InvalidOperationException>( () => TestHelper.ConsoleMonitor.Output.RegisterClient( pathCatcher ), "PathCatcher can be registered in one source at a time." );
+            fail = () => TestHelper.ConsoleMonitor.Output.RegisterClient( pathCatcher );
+            fail.Should().Throw<InvalidOperationException>( "PathCatcher can be registered in one source at a time." );
 
             IActivityMonitor other = new ActivityMonitor( applyAutoConfigurations: false );
             ActivityMonitorBridge bridgeToConsole;
@@ -74,7 +76,8 @@ namespace CK.Core.Tests.Monitoring
                 monitor.Output.Clients.Should().HaveCount( 3 );
                 bridgeToConsole.TargetMonitor.Should().BeSameAs( TestHelper.ConsoleMonitor );
 
-                Should.Throw<InvalidOperationException>( () => other.Output.RegisterClient( bridgeToConsole ), "Bridge can be associated to only one source monitor." );
+                fail = () => other.Output.RegisterClient( bridgeToConsole );
+                fail.Should().Throw<InvalidOperationException>( "Bridge can be associated to only one source monitor." );
             }
             monitor.Output.Clients.Should().HaveCount( 2 );
 
@@ -90,8 +93,10 @@ namespace CK.Core.Tests.Monitoring
         public void registering_a_null_client_is_an_error()
         {
             IActivityMonitor monitor = new ActivityMonitor();
-            Should.Throw<ArgumentNullException>( () => monitor.Output.RegisterClient( null ) );
-            Should.Throw<ArgumentNullException>( () => monitor.Output.UnregisterClient( null ) );
+            Action fail = () => monitor.Output.RegisterClient( null );
+            fail.Should().Throw<ArgumentNullException>();
+            fail = () => monitor.Output.UnregisterClient( null );
+            fail.Should().Throw<ArgumentNullException>();
         }
 
         [Test]
@@ -105,18 +110,24 @@ namespace CK.Core.Tests.Monitoring
         public void registering_a_null_bridge_or_a_bridge_to_an_already_briged_target_is_an_error()
         {
             IActivityMonitor monitor = new ActivityMonitor();
-            Should.Throw<ArgumentNullException>( () => monitor.Output.CreateBridgeTo( null ) );
-            Should.Throw<ArgumentNullException>( () => monitor.Output.UnbridgeTo( null ) );
+            monitor.Invoking( sut => sut.Output.CreateBridgeTo( null ) )
+                   .Should().Throw<ArgumentNullException>();
+            monitor.Invoking( sut => sut.Output.UnbridgeTo( null ) )
+                   .Should().Throw<ArgumentNullException>();
 
             monitor.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget );
-            Should.Throw<InvalidOperationException>( () => monitor.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) );
+            monitor.Invoking( sut => sut.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
+                   .Should().Throw<InvalidOperationException>();
             monitor.Output.UnbridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget );
 
             IActivityMonitorOutput output = null;
-            Should.Throw<NullReferenceException>( () => output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) );
-            Should.Throw<NullReferenceException>( () => output.UnbridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) );
-            Should.Throw<ArgumentNullException>( () => new ActivityMonitorBridge( null, false, false ), "Null guards." );
+            output.Invoking( sut => sut.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
+                  .Should().Throw<NullReferenceException>();
+            output.Invoking( sut => sut.UnbridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
+                  .Should().Throw<NullReferenceException>();
 
+            Action fail = () => new ActivityMonitorBridge( null, false, false );
+            fail.Should().Throw<ArgumentNullException>( "Null guards." );
         }
 
         [Test]
@@ -1068,7 +1079,8 @@ namespace CK.Core.Tests.Monitoring
 
             d.Trace().Send( fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" );
             d.Trace().Send( fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" );
-            Should.Throw<ArgumentException>( () => d.Trace().Send( fmt1, ex ) );
+            d.Invoking( sut => sut.Trace().Send( fmt1, ex ) )
+             .Should().Throw<ArgumentException>();
             d.Trace().Send( onDemandText ); collector.Entries.Last().Text.Should().Be( "onDemand" );
             d.Trace().Send( onDemandTextP1, 1 ); collector.Entries.Last().Text.Should().Be( "onDemand1" );
             d.Trace().Send( onDemandTextP2, 1, 2 ); collector.Entries.Last().Text.Should().Be( "onDemand12" );
@@ -1080,7 +1092,8 @@ namespace CK.Core.Tests.Monitoring
 
             d.Info().Send( fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" );
             d.Info().Send( fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" );
-            Should.Throw<ArgumentException>( () => d.Info().Send( fmt1, ex ) );
+            d.Invoking( sut => sut.Info().Send( fmt1, ex ) )
+             .Should().Throw<ArgumentException>();
             d.Info().Send( onDemandText ); collector.Entries.Last().Text.Should().Be( "onDemand" );
             d.Info().Send( onDemandTextP1, 1 ); collector.Entries.Last().Text.Should().Be( "onDemand1" );
             d.Info().Send( onDemandTextP2, 1, 2 ); collector.Entries.Last().Text.Should().Be( "onDemand12" );
@@ -1092,7 +1105,8 @@ namespace CK.Core.Tests.Monitoring
 
             d.Warn().Send( fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" );
             d.Warn().Send( fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" );
-            Should.Throw<ArgumentException>( () => d.Warn().Send( fmt1, ex ) );
+            d.Invoking( sut => sut.Warn().Send( fmt1, ex ) )
+             .Should().Throw<ArgumentException>();
             d.Warn().Send( onDemandText ); collector.Entries.Last().Text.Should().Be( "onDemand" );
             d.Warn().Send( onDemandTextP1, 1 ); collector.Entries.Last().Text.Should().Be( "onDemand1" );
             d.Warn().Send( onDemandTextP2, 1, 2 ); collector.Entries.Last().Text.Should().Be( "onDemand12" );
@@ -1104,7 +1118,8 @@ namespace CK.Core.Tests.Monitoring
 
             d.Error().Send( fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" );
             d.Error().Send( fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" );
-            Should.Throw<ArgumentException>( () => d.Error().Send( fmt1, ex ) );
+            d.Invoking( sut => sut.Error().Send( fmt1, ex ) )
+             .Should().Throw<ArgumentException>();
             d.Error().Send( onDemandText ); collector.Entries.Last().Text.Should().Be( "onDemand" );
             d.Error().Send( onDemandTextP1, 1 ); collector.Entries.Last().Text.Should().Be( "onDemand1" );
             d.Error().Send( onDemandTextP2, 1, 2 ); collector.Entries.Last().Text.Should().Be( "onDemand12" );
@@ -1116,7 +1131,8 @@ namespace CK.Core.Tests.Monitoring
 
             d.Fatal().Send( fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" );
             d.Fatal().Send( fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" );
-            Should.Throw<ArgumentException>( () => d.Fatal().Send( fmt1, ex ) );
+            d.Invoking( sut => sut.Fatal().Send( fmt1, ex ) )
+             .Should().Throw<ArgumentException>();
             d.Fatal().Send( onDemandText ); collector.Entries.Last().Text.Should().Be( "onDemand" );
             d.Fatal().Send( onDemandTextP1, 1 ); collector.Entries.Last().Text.Should().Be( "onDemand1" );
             d.Fatal().Send( onDemandTextP2, 1, 2 ); collector.Entries.Last().Text.Should().Be( "onDemand12" );
@@ -1210,7 +1226,8 @@ namespace CK.Core.Tests.Monitoring
 
             d.Trace().Send( tag, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
             d.Trace().Send( tag, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            Should.Throw<ArgumentException>( () => d.Trace().Send( tag, fmt1, ex ) );
+            d.Invoking( sut => sut.Trace().Send( tag, fmt1, ex ) )
+             .Should().Throw<ArgumentException>();
             d.Trace().Send( tag, onDemandText ); collector.Entries.Last().Text.Should().Be( "onDemand" );
             d.Trace().Send( tag, onDemandTextP1, 1 ); collector.Entries.Last().Text.Should().Be( "onDemand1" );
             d.Trace().Send( tag, onDemandTextP2, 1, 2 ); collector.Entries.Last().Text.Should().Be( "onDemand12" );
@@ -1222,7 +1239,8 @@ namespace CK.Core.Tests.Monitoring
 
             d.Info().Send( tag, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
             d.Info().Send( tag, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            Should.Throw<ArgumentException>( () => d.Info().Send( tag, fmt1, ex ) );
+            d.Invoking( sut => sut.Info().Send( tag, fmt1, ex ) )
+             .Should().Throw<ArgumentException>();
             d.Info().Send( tag, onDemandText ); collector.Entries.Last().Text.Should().Be( "onDemand" );
             d.Info().Send( tag, onDemandTextP1, 1 ); collector.Entries.Last().Text.Should().Be( "onDemand1" );
             d.Info().Send( tag, onDemandTextP2, 1, 2 ); collector.Entries.Last().Text.Should().Be( "onDemand12" );
@@ -1234,7 +1252,8 @@ namespace CK.Core.Tests.Monitoring
 
             d.Warn().Send( tag, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
             d.Warn().Send( tag, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            Should.Throw<ArgumentException>( () => d.Warn().Send( tag, fmt1, ex ) );
+            d.Invoking( sut => sut.Warn().Send( tag, fmt1, ex ) )
+             .Should().Throw<ArgumentException>();
             d.Warn().Send( tag, onDemandText ); collector.Entries.Last().Text.Should().Be( "onDemand" );
             d.Warn().Send( tag, onDemandTextP1, 1 ); collector.Entries.Last().Text.Should().Be( "onDemand1" );
             d.Warn().Send( tag, onDemandTextP2, 1, 2 ); collector.Entries.Last().Text.Should().Be( "onDemand12" );
@@ -1246,7 +1265,8 @@ namespace CK.Core.Tests.Monitoring
 
             d.Error().Send( tag, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
             d.Error().Send( tag, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            Should.Throw<ArgumentException>( () => d.Error().Send( tag, fmt1, ex ) );
+            d.Invoking( sut => sut.Error().Send( tag, fmt1, ex ) )
+             .Should().Throw<ArgumentException>();
             d.Error().Send( tag, onDemandText ); collector.Entries.Last().Text.Should().Be( "onDemand" );
             d.Error().Send( tag, onDemandTextP1, 1 ); collector.Entries.Last().Text.Should().Be( "onDemand1" );
             d.Error().Send( tag, onDemandTextP2, 1, 2 ); collector.Entries.Last().Text.Should().Be( "onDemand12" );
@@ -1258,7 +1278,8 @@ namespace CK.Core.Tests.Monitoring
 
             d.Fatal().Send( tag, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
             d.Fatal().Send( tag, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            Should.Throw<ArgumentException>( () => d.Fatal().Send( tag, fmt1, ex ) );
+            d.Invoking( sut => sut.Fatal().Send( tag, fmt1, ex ) )
+             .Should().Throw<ArgumentException>();
             d.Fatal().Send( tag, onDemandText ); collector.Entries.Last().Text.Should().Be( "onDemand" );
             d.Fatal().Send( tag, onDemandTextP1, 1 ); collector.Entries.Last().Text.Should().Be( "onDemand1" );
             d.Fatal().Send( tag, onDemandTextP2, 1, 2 ); collector.Entries.Last().Text.Should().Be( "onDemand12" );

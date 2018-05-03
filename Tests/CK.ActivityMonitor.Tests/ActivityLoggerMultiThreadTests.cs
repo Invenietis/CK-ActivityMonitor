@@ -121,8 +121,9 @@ namespace CK.Core.Tests.Monitoring
 
                 client.WaitForOnUnfilteredLog();
 
-                Action send = () => monitor.Info().Send( "Test must fail" );
-                send.Invoking( a => a.ShouldThrow<InvalidOperationException>().WithMessage( Impl.ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess ) );
+                monitor.Invoking( sut => sut.Info().Send( "Test must fail" ) )
+                       .Should().Throw<InvalidOperationException>()
+                       .WithMessage( Impl.ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess );
 
                 monitor.Output.Clients.Should().HaveCount( clientCount, $"Still {clientCount}: Concurrent call: not the fault of the Client." );
             }
@@ -137,9 +138,9 @@ namespace CK.Core.Tests.Monitoring
             ++clientCount;
             monitor.Output.RegisterClient( new ActionActivityMonitorClient( () =>
               {
-                  Action send = () => monitor.Info().Send( "Test must fail reentrant client" );
-                  send.Invoking( a => a.ShouldThrow<InvalidOperationException>()
-                                           .WithMessage( Impl.ActivityMonitorResources.ActivityMonitorReentrancyError ) );
+                  monitor.Invoking( sut => sut.Info().Send( "Test must fail reentrant client" ) )
+                         .Should().Throw<InvalidOperationException>()
+                         .WithMessage( Impl.ActivityMonitorResources.ActivityMonitorReentrancyError );
               } ) );
 
             monitor.Info().Send( "Test must work after reentrant client" );
@@ -194,12 +195,12 @@ namespace CK.Core.Tests.Monitoring
             lock( lockTasks )
                 Monitor.PulseAll( lockTasks );
 
-            Should.Throw<AggregateException>( () => Task.WaitAll( tasks ) );
+            Action fail = () => Task.WaitAll( tasks );
+            fail.Should().Throw<AggregateException>();
 
             tasks.Where( x => x.IsFaulted )
                  .SelectMany( x => x.Exception.Flatten().InnerExceptions )
                  .Should().AllBeOfType<InvalidOperationException>();
-
 
             monitor.Info().Send( "Test" );
         }
