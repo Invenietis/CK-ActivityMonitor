@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CK.WeakAssemblyNameResolver" Version="0.5.1-C0030-develop" />
+    <PackageReference Include="CK.WeakAssemblyNameResolver" Version="0.5.1-C0033-local" />
     <ProjectReference Include="..\..\CK.ActivityMonitor.SimpleSender\CK.ActivityMonitor.SimpleSender.csproj" />
   </ItemGroup>
 </Project>
