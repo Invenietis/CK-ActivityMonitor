@@ -86,7 +86,7 @@ namespace CodeCake
                                      || Cake.ReadInteractiveOption( "RunUnitTests", "Run Unit Tests?", 'Y', 'N' ) == 'Y' )
                 .Does( () =>
                 {
-                    StandardUnitTests( globalInfo.BuildConfiguration, projects.Where( p => p.Name.EndsWith( ".Tests" ) ) );
+                    StandardUnitTests( globalInfo, projects.Where( p => p.Name.EndsWith( ".Tests" ) ) );
                 } );
 
             Task( "WeakAssemblyBinding-Test-Net461" )
@@ -125,11 +125,11 @@ namespace CodeCake
                    var config = new DotNetCorePublishSettings().AddVersionArguments( gitInfo, c =>
                    {
                        c.Configuration = globalInfo.BuildConfiguration;
-                       c.Framework = "netcoreapp2.0";
+                       c.Framework = "netcoreapp2.1";
                    } );
                    Cake.DotNetCorePublish( "Tests/WeakNameConsole/WeakNameConsole.csproj", config );
 
-                   string binPath = $"Tests/WeakNameConsole/bin/{globalInfo.BuildConfiguration}/netcoreapp2.0/publish/";
+                   string binPath = $"Tests/WeakNameConsole/bin/{globalInfo.BuildConfiguration}/netcoreapp2.1/publish/";
                    // Replaces CK.Text with its old version v6.0.0 in Net451.
                    System.IO.File.Copy( binPath + "CK.Text.dll", binPath + "CK.Text.dll.backup", true );
                    System.IO.File.Copy( "CodeCakeBuilder/WeakBindingTestSupport/CK.Text.dll.v6.0.0.netstandard1.3.bin", binPath + "CK.Text.dll", true );
