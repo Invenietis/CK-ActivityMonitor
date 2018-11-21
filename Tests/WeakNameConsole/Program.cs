@@ -13,7 +13,7 @@ namespace WeakNameConsole
         /// and CK.ActivityMonitor.SimpleSender.
         /// CodeCakeBuilder sets an old CK.Core (v9.0.0) and an old CK.Text (v6.0.0) in the bin folder
         /// and runs this program.
-        /// This works and the 2 conflicts are reported in netcoreapp2.0 (after a publish of course)
+        /// This works and the 2 conflicts are reported in netcoreapp2.1 (after a publish of course)
         /// and in Net461.
         /// </summary>
         /// <param name="args">Unused.</param>
