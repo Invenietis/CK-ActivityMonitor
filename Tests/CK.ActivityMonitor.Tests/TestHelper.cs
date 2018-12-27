@@ -9,6 +9,7 @@ using CK.Core;
 using FluentAssertions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using CK.Text;
 
 namespace CK.Core.Tests
 {
@@ -87,7 +88,10 @@ namespace CK.Core.Tests
         static public void InitializePaths()
         {
             if( _solutionFolder != null ) return;
-            _solutionFolder = Path.GetDirectoryName(Path.GetDirectoryName(GetTestProjectPath()));
+            NormalizedPath path = AppContext.BaseDirectory;
+            var s = path.PathsToFirstPart( null, new[] { "CK-ActivityMonitor.sln" } ).FirstOrDefault( p => File.Exists( p ) );
+            if( s.IsEmpty ) throw new InvalidOperationException( $"Unable to find CK-ActivityMonitor.sln above '{AppContext.BaseDirectory}'." );
+            _solutionFolder = s.RemoveLastPart();
             _testFolder = Path.Combine( _solutionFolder, "Tests", "CK.ActivityMonitor.Tests", "TestFolder" );
             CleanupTestFolder();
             LogFile.RootLogPath = Path.Combine( _testFolder, "Logs" );
@@ -95,8 +99,6 @@ namespace CK.Core.Tests
             Console.WriteLine($"TestFolder is: {_testFolder}.");
             Console.WriteLine($"Core path: {typeof(string).GetTypeInfo().Assembly.CodeBase}.");
         }
-
-        static string GetTestProjectPath([CallerFilePath]string path = null) => Path.GetDirectoryName(path);
 
     }
 }
