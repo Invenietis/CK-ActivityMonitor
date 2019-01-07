@@ -90,7 +90,7 @@ namespace CK.Core.Tests
             if( _solutionFolder != null ) return;
             NormalizedPath path = AppContext.BaseDirectory;
             var s = path.PathsToFirstPart( null, new[] { "CK-ActivityMonitor.sln" } ).FirstOrDefault( p => File.Exists( p ) );
-            if( s.IsEmpty ) throw new InvalidOperationException( $"Unable to find CK-ActivityMonitor.sln above '{AppContext.BaseDirectory}'." );
+            if( s.IsEmptyPath ) throw new InvalidOperationException( $"Unable to find CK-ActivityMonitor.sln above '{AppContext.BaseDirectory}'." );
             _solutionFolder = s.RemoveLastPart();
             _testFolder = Path.Combine( _solutionFolder, "Tests", "CK.ActivityMonitor.Tests", "TestFolder" );
             CleanupTestFolder();
