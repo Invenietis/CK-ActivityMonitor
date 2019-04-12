@@ -122,14 +122,15 @@ namespace CodeCake
                .IsDependentOn( "Build" )
                .Does( () =>
                {
+                   var configuration = globalInfo.IsRelease ? "Release" : "Debug";
                    var config = new DotNetCorePublishSettings().AddVersionArguments( gitInfo, c =>
                    {
-                       c.Configuration = globalInfo.BuildConfiguration;
+                       c.Configuration = configuration;
                        c.Framework = "netcoreapp2.1";
                    } );
                    Cake.DotNetCorePublish( "Tests/WeakNameConsole/WeakNameConsole.csproj", config );
 
-                   string binPath = $"Tests/WeakNameConsole/bin/{globalInfo.BuildConfiguration}/netcoreapp2.1/publish/";
+                   string binPath = $"Tests/WeakNameConsole/bin/{configuration}/netcoreapp2.1/publish/";
                    // Replaces CK.Text with its old version v6.0.0 in Net451.
                    System.IO.File.Copy( binPath + "CK.Text.dll", binPath + "CK.Text.dll.backup", true );
                    System.IO.File.Copy( "CodeCakeBuilder/WeakBindingTestSupport/CK.Text.dll.v6.0.0.netstandard1.3.bin", binPath + "CK.Text.dll", true );
