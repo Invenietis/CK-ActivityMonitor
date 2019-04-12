@@ -93,7 +93,7 @@ namespace CodeCake
                .IsDependentOn( "Build" )
                .Does( () =>
                {
-                   string binPath = $"Tests/WeakNameConsole/bin/{globalInfo.BuildConfiguration}/net461/";
+                   string binPath = $"Tests/WeakNameConsole/bin/{(globalInfo.IsRelease ? "Release" : "Debug")}/net461/";
                    // Replaces CK.Text with its old version v6.0.0 in Net451.
                    System.IO.File.Copy( binPath + "CK.Text.dll", binPath + "CK.Text.dll.backup", true );
                    System.IO.File.Copy( "CodeCakeBuilder/WeakBindingTestSupport/CK.Text.dll.v6.0.0.Net451.bin", binPath + "CK.Text.dll", true );
