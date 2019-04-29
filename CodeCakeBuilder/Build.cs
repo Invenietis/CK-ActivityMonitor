@@ -34,41 +34,34 @@ namespace CodeCake
         {
             Cake.Log.Verbosity = Verbosity.Diagnostic;
 
-            const string solutionName = "CK-ActivityMonitor";
-            const string solutionFileName = solutionName + ".sln";
-
-            var releasesDir = Cake.Directory( "CodeCakeBuilder/Releases" );
+            var solutionFileName = Cake.Environment.WorkingDirectory.GetDirectoryName() + ".sln";
 
             var projects = Cake.ParseSolution( solutionFileName )
-                           .Projects
-                           .Where( p => !(p is SolutionFolder)
-                                        && p.Name != "CodeCakeBuilder" );
+                                       .Projects
+                                       .Where( p => !(p is SolutionFolder) && p.Name != "CodeCakeBuilder" );
 
-            // We do not publish .Tests projects for this solution.
+            // We do not generate NuGet packages for /Tests projects for this solution.
             var projectsToPublish = projects
                                         .Where( p => !p.Path.Segments.Contains( "Tests" ) );
 
-            // The SimpleRepositoryInfo should be computed once and only once.
             SimpleRepositoryInfo gitInfo = Cake.GetSimpleRepositoryInfo();
-            // This default global info will be replaced by Check-Repository task.
-            // It is allocated here to ease debugging and/or manual work on complex build script.
-            CheckRepositoryInfo globalInfo = new CheckRepositoryInfo( gitInfo, projectsToPublish );
+            StandardGlobalInfo globalInfo = null;
 
             Task( "Check-Repository" )
                 .Does( () =>
                 {
-                    globalInfo = StandardCheckRepository( projectsToPublish, gitInfo );
-                    if( globalInfo.ShouldStop )
-                    {
-                        Cake.TerminateWithSuccess( "All packages from this commit are already available. Build skipped." );
-                    }
+                    globalInfo = CreateStandardGlobalInfo( gitInfo )
+                                    .AddNuGet( projectsToPublish )
+                                    .SetCIBuildTag()
+                                    .TerminateIfShouldStop();
                 } );
 
             Task( "Clean" )
                 .Does( () =>
                 {
                     Cake.CleanDirectories( projects.Select( p => p.Path.GetDirectory().Combine( "bin" ) ) );
-                    Cake.CleanDirectories( releasesDir );
+                    Cake.CleanDirectories( projects.Select( p => p.Path.GetDirectory().Combine( "obj" ) ) );
+                    Cake.CleanDirectories( globalInfo.ReleasesFolder );
                     Cake.DeleteFiles( "Tests/**/TestResult*.xml" );
                 } );
 
@@ -77,7 +70,7 @@ namespace CodeCake
                 .IsDependentOn( "Clean" )
                 .Does( () =>
                 {
-                    StandardSolutionBuild( solutionFileName, gitInfo, globalInfo.BuildConfiguration );
+                     StandardSolutionBuild( globalInfo, solutionFileName );
                 } );
 
             Task( "Unit-Testing" )
@@ -86,7 +79,8 @@ namespace CodeCake
                                      || Cake.ReadInteractiveOption( "RunUnitTests", "Run Unit Tests?", 'Y', 'N' ) == 'Y' )
                 .Does( () =>
                 {
-                    StandardUnitTests( globalInfo, projects.Where( p => p.Name.EndsWith( ".Tests" ) ) );
+                     var testProjects = projects.Where( p => p.Name.EndsWith( ".Tests" ) );
+                    StandardUnitTests( globalInfo, testProjects );
                 } );
 
             Task( "WeakAssemblyBinding-Test-Net461" )
@@ -166,20 +160,20 @@ namespace CodeCake
                 .IsDependentOn( "Unit-Testing" )
                 .Does( () =>
                 {
-                    StandardCreateNuGetPackages( releasesDir, projectsToPublish, gitInfo, globalInfo.BuildConfiguration );
+                    StandardCreateNuGetPackages( globalInfo );
                 } );
 
-            Task( "Push-NuGet-Packages" )
-                .WithCriteria( () => gitInfo.IsValid )
+            Task( "Push-Artifacts" )
                 .IsDependentOn( "Create-NuGet-Packages" )
+                .WithCriteria( () => gitInfo.IsValid )
                 .Does( () =>
                 {
-                    StandardPushNuGetPackages( globalInfo, releasesDir );
+                    globalInfo.PushArtifacts();
                 } );
 
             // The Default task for this script can be set here.
             Task( "Default" )
-                .IsDependentOn( "Push-NuGet-Packages" );
+                .IsDependentOn( "Push-Artifacts" );
 
         }
     }
