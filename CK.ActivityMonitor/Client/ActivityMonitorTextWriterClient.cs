@@ -13,26 +13,27 @@ namespace CK.Core
     /// </summary>
     public class ActivityMonitorTextWriterClient : ActivityMonitorTextHelperClient
     {
-        readonly Action<string> _writer;
         readonly StringBuilder _buffer;
+        Action<string> _writer;
         string _prefix;
         string _prefixLevel;
         CKTrait _currentTags;
+
+        static readonly Action<string> _none = _ => { };
+
+
+
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitorTextWriterClient"/> bound to a 
         /// function that must write a string, with a filter.
         /// </summary>
         /// <param name="writer">Function that writes the content.</param>
-        /// <param name="filter">Filter to apply</param>
+        /// <param name="filter">Filter to apply.</param>
         public ActivityMonitorTextWriterClient( Action<string> writer, LogFilter filter )
-            : base( filter )
+            : this( filter )
         {
-            if( writer == null ) throw new ArgumentNullException( "writer" );
-            _writer = writer;
-            _buffer = new StringBuilder();
-            _prefixLevel = _prefix = String.Empty;
-            _currentTags = ActivityMonitor.Tags.Empty;
+            Writer = writer ?? throw new ArgumentNullException( "writer" );
         }
 
         /// <summary>
@@ -44,6 +45,35 @@ namespace CK.Core
             : this( writer, LogFilter.Undefined )
         {
         }
+        /// <summary>
+        /// Initialize a new <see cref="ActivityMonitorTextWriterClient"/> that is not bound to any <see cref="Writer"/>.
+        /// Unless explictly initialized, this will not write anything anywhere.
+        /// </summary>
+        /// <param name="filter">Filter to apply.</param>
+        public ActivityMonitorTextWriterClient( LogFilter filter )
+            : base( filter )
+        {
+            _buffer = new StringBuilder();
+            _prefixLevel = _prefix = String.Empty;
+            _currentTags = ActivityMonitor.Tags.Empty;
+            Writer = _none;
+        }
+
+        /// <summary>
+        /// Initialize a new <see cref="ActivityMonitorTextWriterClient"/> that is not bound to any <see cref="Writer"/>.
+        /// Unless explictly initialized, this will not write anything anywhere.
+        /// </summary>
+        public ActivityMonitorTextWriterClient()
+            : this( LogFilter.Undefined )
+        {
+        }
+
+        /// <summary>
+        /// Gets or sets the actual writer function.
+        /// </summary>
+        protected Action<string> Writer { get => _writer; set => _writer = value ?? _none; }
+
+
 
         /// <summary>
         /// Writes all the information.
@@ -70,7 +100,7 @@ namespace CK.Core
             {
                 DumpException( w, _prefix, !data.IsTextTheExceptionMessage, data.Exception );
             }
-            _writer( w.ToString() );
+            Writer( w.ToString() );
         }
 
         /// <summary>
@@ -92,7 +122,7 @@ namespace CK.Core
                 DumpException( w, _prefix, !data.IsTextTheExceptionMessage, data.Exception );
             }
 
-            _writer( _buffer.ToString() );
+            Writer( _buffer.ToString() );
         }
 
         /// <summary>
@@ -129,7 +159,7 @@ namespace CK.Core
             {
                 DumpException( w, _prefix, !g.IsGroupTextTheExceptionMessage, g.Exception );
             }
-            _writer( _buffer.ToString() );
+            Writer( _buffer.ToString() );
         }
 
         /// <summary>
@@ -172,7 +202,7 @@ namespace CK.Core
                     w.AppendLine();
                 }
             }
-            _writer( _buffer.ToString() );
+            Writer( _buffer.ToString() );
         }
 
         /// <summary>
@@ -243,7 +273,7 @@ namespace CK.Core
                         }
                         w.AppendLine( localPrefix + " └─────────────────────────────────────────────────────────────────────────" );
                     }
-                    #if NET461
+#if NET461
                     else
                     {
                         var configEx = ex as System.Configuration.ConfigurationException;
@@ -252,7 +282,7 @@ namespace CK.Core
                             if( !String.IsNullOrEmpty( configEx.Filename ) ) w.AppendLine( localPrefix + "FileName: " + configEx.Filename );
                         }
                     }
-                    #endif
+#endif
                 }
             }
             // The InnerException of an aggregated exception is the same as the first of it InnerExceptionS.
