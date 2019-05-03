@@ -109,5 +109,16 @@ namespace CK.Core
             _currentLogLevel = data.MaskedLevel;
             base.OnEnterLevel( data );
         }
+
+        /// <summary>
+        /// Writes a group opening.
+        /// </summary>
+        /// <param name="g">Group information.</param>
+        protected override void OnGroupOpen( IActivityLogGroup g )
+        {
+            _currentLogLevel = g.MaskedGroupLevel;
+            base.OnGroupOpen( g );
+        }
+
     }
 }
