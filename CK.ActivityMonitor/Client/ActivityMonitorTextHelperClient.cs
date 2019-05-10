@@ -1,4 +1,4 @@
-﻿#region LGPL License
+#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\Client\ActivityMonitorTextHelperClient.cs) is part of CiviKey. 
 *  
@@ -39,6 +39,33 @@ namespace CK.Core
         LogFilter _filter;
         Stack<bool> _openGroups;
         IActivityMonitorImpl _source;
+        static string[] _prefixGroupDepthCache;
+        const string _emptyLinePrefix = "| ";
+        static ActivityMonitorTextHelperClient()
+        {
+            //preload cache with 20 depth
+            _prefixGroupDepthCache = new string[20];
+            _prefixGroupDepthCache[0] = "";
+            for( int i = 1; i < _prefixGroupDepthCache.Length; i++ )
+            {
+                _prefixGroupDepthCache[i] = _prefixGroupDepthCache[i - 1] + _emptyLinePrefix;
+            }
+        }
+        /// <summary>
+        /// Get the group prefix(in a cache) for a certain depth.
+        /// </summary>
+        /// <param name="depth">Depth of the group</param>
+        /// <returns>The string to display the indented group</returns>
+        public static string GetMultilinePrefixWithDepth( int depth )
+        {
+            if( depth >= 1024 ) throw new ArgumentException();
+            if( _prefixGroupDepthCache.Length < depth + 1 )
+            {
+                string previousPrefix = GetMultilinePrefixWithDepth( depth - 1 );
+                Util.InterlockedAdd( ref _prefixGroupDepthCache, previousPrefix + _emptyLinePrefix );
+            }
+            return _prefixGroupDepthCache[depth];
+        }
 
         /// <summary>
         /// Initialize a new <see cref="ActivityMonitorTextHelperClient"/> with a filter.
@@ -167,8 +194,8 @@ namespace CK.Core
         /// <summary>
         /// Gets or sets the filter for this client.
         /// </summary>
-        public LogFilter Filter 
-        { 
+        public LogFilter Filter
+        {
             get { return _filter; }
             set
             {
@@ -192,7 +219,7 @@ namespace CK.Core
 
         #region IActivityMonitorBoundClient Members
 
-        LogFilter IActivityMonitorBoundClient.MinimalFilter => _filter; 
+        LogFilter IActivityMonitorBoundClient.MinimalFilter => _filter;
 
         void IActivityMonitorBoundClient.SetMonitor( Impl.IActivityMonitorImpl source, bool forceBuggyRemove )
         {

@@ -55,11 +55,22 @@ namespace CK.Core
         /// </summary>
         public ConsoleColor BackgroundColor { get => _backgroundColor; set => _backgroundColor = value; }
 
+
         /// <summary>
         /// Sets the color of the logged text. 
         /// </summary>
         /// <param name="logLevel">Current log level.</param>
         protected virtual void SetColor( LogLevel logLevel )
+        {
+            DefaultSetColor( _backgroundColor, logLevel );
+        }
+
+        /// <summary>
+        /// Sets the color of the logged text. 
+        /// </summary>
+        /// <param name="backgroundColor">Background color to set.</param>
+        /// <param name="logLevel">Current log level.</param>
+        public static void DefaultSetColor(ConsoleColor backgroundColor, LogLevel logLevel )
         {
             switch( logLevel )
             {
@@ -68,23 +79,23 @@ namespace CK.Core
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     break;
                 case LogLevel.Error:
-                    Console.BackgroundColor = _backgroundColor;
+                    Console.BackgroundColor = backgroundColor;
                     Console.ForegroundColor = ConsoleColor.Red;
                     break;
                 case LogLevel.Warn:
-                    Console.BackgroundColor = _backgroundColor;
+                    Console.BackgroundColor = backgroundColor;
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     break;
                 case LogLevel.Info:
-                    Console.BackgroundColor = _backgroundColor;
+                    Console.BackgroundColor = backgroundColor;
                     Console.ForegroundColor = ConsoleColor.Cyan;
                     break;
                 case LogLevel.Trace:
-                    Console.BackgroundColor = _backgroundColor;
+                    Console.BackgroundColor = backgroundColor;
                     Console.ForegroundColor = ConsoleColor.Gray;
                     break;
                 case LogLevel.Debug:
-                    Console.BackgroundColor = _backgroundColor;
+                    Console.BackgroundColor = backgroundColor;
                     Console.ForegroundColor = ConsoleColor.DarkGray;
                     break;
             }
