@@ -188,7 +188,11 @@ namespace CK.Core
                         w.Append( _prefixLevel ).Append( "< " );
                         one = true;
                     }
-                    else w.Append( " - " );
+                    else
+                    {
+                        w.Append( " - " );
+                    }
+
                     w.Append( c.Text );
                 }
             }
