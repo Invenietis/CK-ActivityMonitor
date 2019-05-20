@@ -35,8 +35,11 @@ namespace CK.Core.Tests
             get { return _monitor.Output.Clients.Contains( _console ); }
             set
             {
-                if( value ) _monitor.Output.RegisterUniqueClient( c => c == _console, () => _console );
-                else _monitor.Output.UnregisterClient( _console );
+                if( value != LogsToConsole )
+                {
+                    if( value ) _monitor.Output.RegisterClient( _console );
+                    else _monitor.Output.UnregisterClient( _console );
+                }
             }
         }
 

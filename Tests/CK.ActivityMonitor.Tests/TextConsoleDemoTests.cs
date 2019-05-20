@@ -16,7 +16,7 @@ namespace CK.Core.Tests.Monitoring
     {
         static readonly Exception _exceptionWithInner;
         static readonly Exception _exceptionWithInnerLoader;
-        int _toggleConsoleCount = 0;
+        static int _toggleConsoleCount = 0;
 
         #region static initialization of exceptions
         static TextConsoleDemoTests()
