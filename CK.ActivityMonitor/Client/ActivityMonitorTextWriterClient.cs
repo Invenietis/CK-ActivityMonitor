@@ -21,9 +21,6 @@ namespace CK.Core
 
         static readonly Action<string> _none = _ => { };
 
-
-
-
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitorTextWriterClient"/> bound to a 
         /// function that must write a string, with a filter.
@@ -45,6 +42,7 @@ namespace CK.Core
             : this( writer, LogFilter.Undefined )
         {
         }
+
         /// <summary>
         /// Initialize a new <see cref="ActivityMonitorTextWriterClient"/> that is not bound to any <see cref="Writer"/>.
         /// Unless explictly initialized, this will not write anything anywhere.
@@ -72,8 +70,6 @@ namespace CK.Core
         /// Gets or sets the actual writer function.
         /// </summary>
         protected Action<string> Writer { get => _writer; set => _writer = value ?? _none; }
-
-
 
         /// <summary>
         /// Writes all the information.

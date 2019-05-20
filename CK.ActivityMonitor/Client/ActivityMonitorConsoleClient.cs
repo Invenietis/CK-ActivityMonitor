@@ -15,7 +15,7 @@ namespace CK.Core
         /// Initializes a new <see cref="ActivityMonitorConsoleClient"/>.
         /// </summary>
         public ActivityMonitorConsoleClient()
-            : base( Console.Out.Write )
+            : base( ConsoleWrite )
         {
         }
 
@@ -25,9 +25,21 @@ namespace CK.Core
         /// </summary>
         /// <param name="useErrorStream">True to output logs to standard error stream, false for standard output.</param>
         public ActivityMonitorConsoleClient( bool useErrorStream )
-            : base( useErrorStream ? (Action<string>)Console.Error.Write : Console.Out.Write )
+            : base( useErrorStream ? (Action<string>)ErrorWrite : ConsoleWrite )
         {
         }
+
+        /// <summary>
+        /// Static relay required to be resilient to calls to <see cref="Console.SetOut(System.IO.TextWriter)"/>.
+        /// </summary>
+        /// <param name="text">The text to write.</param>
+        static public void ConsoleWrite( string text ) => Console.Out.Write( text );
+
+        /// <summary>
+        /// Same as <see cref="ConsoleWrite(string)"/> for the error stream.
+        /// </summary>
+        /// <param name="text">The text to write.</param>
+        static public void ErrorWrite( string text ) => Console.Error.Write( text );
 
     }
 
