@@ -22,8 +22,8 @@ namespace CK.Core.Tests.Monitoring
             StringBuilder b = new StringBuilder();
             var client = new ActivityMonitorTextWriterClient( s => b.Append( s ) );
             m.Output.RegisterClient( client );
-            using( TestHelper.ConsoleMonitor.TemporarilySetMinimalFilter( LogFilter.Trace ) )
-            using( m.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
+            using( TestHelper.Monitor.TemporarilySetMinimalFilter( LogFilter.Trace ) )
+            using( m.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
             {
                 using( m.OpenInfo().Send( "IL1" + Environment.NewLine + "IL2" + Environment.NewLine + "IL3" ) )
                 {

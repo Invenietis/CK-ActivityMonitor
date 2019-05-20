@@ -17,7 +17,7 @@ namespace CK.Core.Tests.Monitoring
         [SetUp]
         public void ResetGlobalState()
         {
-            TestHelper.ConsoleMonitor.MinimalFilter = LogFilter.Undefined;
+            TestHelper.Monitor.MinimalFilter = LogFilter.Undefined;
             ActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
             ActivityMonitor.CriticalErrorCollector.Clear();
         }
@@ -59,22 +59,22 @@ namespace CK.Core.Tests.Monitoring
             var counter = new ActivityMonitorErrorCounter();
             monitor.Output.RegisterClient( counter );
             monitor.Output.Clients.Should().HaveCount( 1 );
-            Action fail = () => TestHelper.ConsoleMonitor.Output.RegisterClient( counter );
+            Action fail = () => TestHelper.Monitor.Output.RegisterClient( counter );
             fail.Should().Throw<InvalidOperationException>( "Counter can be registered in one source at a time." );
 
             var pathCatcher = new ActivityMonitorPathCatcher();
             monitor.Output.RegisterClient( pathCatcher );
             monitor.Output.Clients.Should().HaveCount( 2 );
-            fail = () => TestHelper.ConsoleMonitor.Output.RegisterClient( pathCatcher );
+            fail = () => TestHelper.Monitor.Output.RegisterClient( pathCatcher );
             fail.Should().Throw<InvalidOperationException>( "PathCatcher can be registered in one source at a time." );
 
             IActivityMonitor other = new ActivityMonitor( applyAutoConfigurations: false );
             ActivityMonitorBridge bridgeToConsole;
-            using( monitor.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
+            using( monitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
             {
-                bridgeToConsole = monitor.Output.FindBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget );
+                bridgeToConsole = monitor.Output.FindBridgeTo( TestHelper.Monitor.Output.BridgeTarget );
                 monitor.Output.Clients.Should().HaveCount( 3 );
-                bridgeToConsole.TargetMonitor.Should().BeSameAs( TestHelper.ConsoleMonitor );
+                bridgeToConsole.TargetMonitor.Should().BeSameAs( TestHelper.Monitor );
 
                 fail = () => other.Output.RegisterClient( bridgeToConsole );
                 fail.Should().Throw<InvalidOperationException>( "Bridge can be associated to only one source monitor." );
@@ -115,15 +115,15 @@ namespace CK.Core.Tests.Monitoring
             monitor.Invoking( sut => sut.Output.UnbridgeTo( null ) )
                    .Should().Throw<ArgumentNullException>();
 
-            monitor.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget );
-            monitor.Invoking( sut => sut.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
+            monitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget );
+            monitor.Invoking( sut => sut.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
                    .Should().Throw<InvalidOperationException>();
-            monitor.Output.UnbridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget );
+            monitor.Output.UnbridgeTo( TestHelper.Monitor.Output.BridgeTarget );
 
             IActivityMonitorOutput output = null;
-            output.Invoking( sut => sut.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
+            output.Invoking( sut => sut.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
                   .Should().Throw<NullReferenceException>();
-            output.Invoking( sut => sut.UnbridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
+            output.Invoking( sut => sut.UnbridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
                   .Should().Throw<NullReferenceException>();
 
             Action fail = () => new ActivityMonitorBridge( null, false, false );
@@ -136,7 +136,7 @@ namespace CK.Core.Tests.Monitoring
             //Main app monitor
             IActivityMonitor mainMonitor = new ActivityMonitor();
             var mainDump = mainMonitor.Output.RegisterClient( new StupidStringClient() );
-            using( mainMonitor.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
+            using( mainMonitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
             {
                 //Domain monitor
                 IActivityMonitor domainMonitor = new ActivityMonitor();
@@ -185,14 +185,14 @@ namespace CK.Core.Tests.Monitoring
             IActivityMonitor pseudoConsole = new ActivityMonitor();
             var consoleDump = pseudoConsole.Output.RegisterClient( new StupidStringClient() );
             pseudoConsole.MinimalFilter = InfoInfo;
-            TestHelper.ConsoleMonitor.MinimalFilter = InfoInfo;
+            TestHelper.Monitor.MinimalFilter = InfoInfo;
             // The monitor that is bridged to the Console accepts everything.
             monitor.MinimalFilter = LogFilter.Trace;
 
             int i = 0;
             for( ; i < 60; i++ ) monitor.OpenInfo().Send( "Not Bridged n°{0}", i );
             int j = 0;
-            using( monitor.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
+            using( monitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
             using( monitor.Output.CreateBridgeTo( pseudoConsole.Output.BridgeTarget ) )
             {
                 for( ; i < 62; i++ ) monitor.OpenInfo().Send( "Bridged n°{0} (appear in Console)", i );
@@ -280,7 +280,7 @@ namespace CK.Core.Tests.Monitoring
         public void display_conclusions()
         {
             IActivityMonitor monitor = new ActivityMonitor( false );
-            using( monitor.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
+            using( monitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
             {
                 monitor.Output.RegisterClients( new StupidStringClient(), new StupidXmlClient( new StringWriter() ) );
                 monitor.Output.Clients.Should().HaveCount( 3 );
@@ -343,7 +343,7 @@ namespace CK.Core.Tests.Monitoring
             var wLogLovely = new StringBuilder();
             var rawLog = new StupidStringClient();
             l.Output.RegisterClient( rawLog );
-            using( l.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
+            using( l.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
             {
                 var logLovely = new ActivityMonitorTextWriterClient( ( s ) => wLogLovely.Append( s ) );
                 l.Output.RegisterClient( logLovely );
@@ -396,7 +396,7 @@ namespace CK.Core.Tests.Monitoring
         {
             IActivityMonitor l = new ActivityMonitor( applyAutoConfigurations: false );
             var wLogLovely = new StringBuilder();
-            using( l.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
+            using( l.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
             {
 
                 var logLovely = new ActivityMonitorTextWriterClient( ( s ) => wLogLovely.Append( s ) );
@@ -433,7 +433,7 @@ namespace CK.Core.Tests.Monitoring
         public void closing_a_group_when_no_group_is_opened_is_ignored()
         {
             IActivityMonitor monitor = new ActivityMonitor( applyAutoConfigurations: false );
-            using( monitor.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
+            using( monitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
             {
                 var log1 = monitor.Output.RegisterClient( new StupidStringClient() );
                 monitor.Output.Clients.Should().HaveCount( 2 );
@@ -460,7 +460,7 @@ namespace CK.Core.Tests.Monitoring
             LogFilter WarnWarn = new LogFilter( LogLevelFilter.Warn, LogLevelFilter.Warn );
 
             IActivityMonitor l = new ActivityMonitor( false );
-            using( l.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
+            using( l.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
             {
                 var log = l.Output.RegisterClient( new StupidStringClient() );
                 using( l.TemporarilySetMinimalFilter( LogLevelFilter.Error, LogLevelFilter.Error ) )
@@ -586,7 +586,7 @@ namespace CK.Core.Tests.Monitoring
         public void appending_multiple_conclusions_to_a_group_is_possible()
         {
             IActivityMonitor l = new ActivityMonitor();
-            using( l.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
+            using( l.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
             {
                 l.Output.RegisterClient( new ActivityMonitorErrorCounter( true ) );
                 var log = l.Output.RegisterClient( new StupidStringClient() );
@@ -628,7 +628,7 @@ namespace CK.Core.Tests.Monitoring
         {
 
             var monitor = new ActivityMonitor( applyAutoConfigurations: false );
-            using( monitor.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
+            using( monitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
             {
                 ActivityMonitorPathCatcher p = new ActivityMonitorPathCatcher();
                 monitor.Output.RegisterClient( p );
@@ -773,7 +773,7 @@ namespace CK.Core.Tests.Monitoring
         public void ActivityMonitorErrorCounter_and_ActivityMonitorPathCatcher_Clients_work_together()
         {
             var monitor = new ActivityMonitor( applyAutoConfigurations: false );
-            using( monitor.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
+            using( monitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
             {
 
                 // Registers the ErrorCounter first: it will be the last one to be called, but

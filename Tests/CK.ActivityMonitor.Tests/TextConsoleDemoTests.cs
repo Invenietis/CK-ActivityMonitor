@@ -16,6 +16,7 @@ namespace CK.Core.Tests.Monitoring
     {
         static readonly Exception _exceptionWithInner;
         static readonly Exception _exceptionWithInnerLoader;
+        int _toggleConsoleCount = 0;
 
         #region static initialization of exceptions
         static TextConsoleDemoTests()
@@ -48,6 +49,15 @@ namespace CK.Core.Tests.Monitoring
             return e;
         }
         #endregion
+
+        [Test]
+        [Explicit]
+        public void Console_toggle()
+        {
+            TestHelper.Monitor.Info( $"Before toggle console: {++_toggleConsoleCount}" );
+            TestHelper.LogsToConsole = !TestHelper.LogsToConsole;
+            TestHelper.Monitor.Info( $"After toggle console: {_toggleConsoleCount}" );
+        }
 
         [Test]
         [Explicit]

@@ -28,7 +28,7 @@ namespace CK.Core.Tests
             _console = new ActivityMonitorConsoleClient();
         }
 
-        public static IActivityMonitor ConsoleMonitor => _monitor; 
+        public static IActivityMonitor Monitor => _monitor; 
 
         public static bool LogsToConsole
         {
@@ -79,7 +79,7 @@ namespace CK.Core.Tests
                 catch( Exception ex )
                 {
                     if( ++tryCount == 20 ) throw;
-                    ConsoleMonitor.Info().Send( ex, "While cleaning up test directory. Retrying." );
+                    Monitor.Info().Send( ex, "While cleaning up test directory. Retrying." );
                     System.Threading.Thread.Sleep( 100 );
                 }
             }

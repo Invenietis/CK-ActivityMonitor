@@ -209,7 +209,7 @@ namespace CK.Core.Tests.Monitoring
         public void simple_reentrancy_detection()
         {
             IActivityMonitor monitor = new ActivityMonitor();
-            using( monitor.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
+            using( monitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
             {
                 int clientCount = monitor.Output.Clients.Count;
                 monitor.Output.Clients.Should().HaveCount( clientCount );
