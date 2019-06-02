@@ -49,7 +49,7 @@ namespace CK.Core
         public readonly LogLevel Level;
 
         /// <summary>
-        /// The actual level (<see cref="LogLevel.Trace"/> to <see cref="LogLevel.Fatal"/>) associated to this group
+        /// The actual level (<see cref="LogLevel.Debug"/> to <see cref="LogLevel.Fatal"/>) associated to this group
         /// without <see cref="LogLevel.IsFiltered"/> bit flag.
         /// </summary>
         public readonly LogLevel MaskedLevel;

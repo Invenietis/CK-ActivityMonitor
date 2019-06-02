@@ -22,12 +22,13 @@
 #endregion
 
 using CK.Core.Impl;
+
 namespace CK.Core
 {
     /// <summary>
     /// Specialized <see cref="IActivityMonitorClient"/> that is bound to one <see cref="IActivityMonitor"/>.
-    /// Clients that can not be registered into multiple outputs (and receive logs from multiple monitors at the same time) should implement this 
-    /// interface in order to control their registration/un-registration.
+    /// Clients that can not be registered into multiple outputs (and receive logs from multiple monitors at
+    /// the same time) should implement this interface in order to control their registration/un-registration.
     /// </summary>
     public interface IActivityMonitorBoundClient : IActivityMonitorClient
     {

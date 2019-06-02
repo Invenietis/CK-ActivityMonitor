@@ -28,15 +28,18 @@ namespace CK.Core.Tests
             _console = new ActivityMonitorConsoleClient();
         }
 
-        public static IActivityMonitor ConsoleMonitor => _monitor; 
+        public static IActivityMonitor Monitor => _monitor; 
 
         public static bool LogsToConsole
         {
             get { return _monitor.Output.Clients.Contains( _console ); }
             set
             {
-                if( value ) _monitor.Output.RegisterUniqueClient( c => c == _console, () => _console );
-                else _monitor.Output.UnregisterClient( _console );
+                if( value != LogsToConsole )
+                {
+                    if( value ) _monitor.Output.RegisterClient( _console );
+                    else _monitor.Output.UnregisterClient( _console );
+                }
             }
         }
 
@@ -79,7 +82,7 @@ namespace CK.Core.Tests
                 catch( Exception ex )
                 {
                     if( ++tryCount == 20 ) throw;
-                    ConsoleMonitor.Info().Send( ex, "While cleaning up test directory. Retrying." );
+                    Monitor.Info().Send( ex, "While cleaning up test directory. Retrying." );
                     System.Threading.Thread.Sleep( 100 );
                 }
             }

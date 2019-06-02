@@ -15,12 +15,12 @@ namespace CK.Core.Tests.Monitoring
         public void SimpleUsage()
         {
                  var f = new FileInfo(Path.Combine(TestHelper.SolutionFolder, "Tests", "CK.ActivityMonitor.Tests", "DocumentationCodeSnippets.cs"));
-                DemoLogs(TestHelper.ConsoleMonitor, f, new Exception());
-                DemoOpenGroupFarFromPerfect(TestHelper.ConsoleMonitor);
-                DemoOpenGroupBetter(TestHelper.ConsoleMonitor);
-                DemoOpenGroupThisWorksFine(TestHelper.ConsoleMonitor);
-                DemoOpenGroupWithDynamicConclusion(TestHelper.ConsoleMonitor);
-                DoSomething(TestHelper.ConsoleMonitor, f);
+                DemoLogs(TestHelper.Monitor, f, new Exception());
+                DemoOpenGroupFarFromPerfect(TestHelper.Monitor);
+                DemoOpenGroupBetter(TestHelper.Monitor);
+                DemoOpenGroupThisWorksFine(TestHelper.Monitor);
+                DemoOpenGroupWithDynamicConclusion(TestHelper.Monitor);
+                DoSomething(TestHelper.Monitor, f);
         }
 
         void DemoOpenGroupFarFromPerfect( IActivityMonitor m )

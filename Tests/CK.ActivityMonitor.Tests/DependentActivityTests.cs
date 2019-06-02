@@ -15,7 +15,7 @@ namespace CK.Core.Tests.Monitoring
         public void DependentToken_API_use()
         {
             var monitor = new ActivityMonitor();
-            monitor.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget );
+            monitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget );
 
             using( monitor.OpenTrace().Send( "Create token and dependent monitor." ) )
             {
@@ -23,7 +23,7 @@ namespace CK.Core.Tests.Monitoring
                 var token = monitor.DependentActivity().CreateToken();
                 // Creates a dependent monitor.
                 var dep = new ActivityMonitor();
-                dep.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget );
+                dep.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget );
                 using( dep.StartDependentActivity( token ) )
                 {
                     monitor.Trace().Send( "Doing something..." );
@@ -39,7 +39,7 @@ namespace CK.Core.Tests.Monitoring
                 monitor.DependentActivity().Launch( token );
                 // Creates a dependent monitor.
                 var dep = new ActivityMonitor();
-                dep.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget );
+                dep.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget );
                 using( dep.StartDependentActivity( token ) )
                 {
                     monitor.Trace().Send( "Doing something..." );
@@ -88,7 +88,7 @@ namespace CK.Core.Tests.Monitoring
         public void parsing_dependent_token_and_start_and_create_messages_with_time_collision()
         {
             ActivityMonitor m = new ActivityMonitor( applyAutoConfigurations: false );
-            m.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget );
+            m.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget );
             StupidStringClient cLaunch = m.Output.RegisterClient( new StupidStringClient() );
 
             // Generates a token with time collision.

@@ -470,7 +470,10 @@ namespace CK.Core
                             if( clientsToRemove == null ) clientsToRemove = new List<IActivityMonitorClient>();
                             clientsToRemove.Add( l );
                         }
-                        else minimal = minimal.Combine( bound.MinimalFilter );
+                        else
+                        {
+                            minimal = minimal.Combine( bound.MinimalFilter );
+                        }
                     }
                     catch( Exception exCall )
                     {
@@ -728,7 +731,10 @@ namespace CK.Core
             else
             {
                 #region Closing the group
-                if( trustDataTime ) g.CloseLogTime = logTime;
+                if( trustDataTime )
+                {
+                    g.CloseLogTime = logTime;
+                }
                 else
                 {
                     g.CloseLogTime = _lastLogTime.Value = new DateTimeStamp( _lastLogTime.Value, logTime.IsKnown ? logTime : DateTimeStamp.UtcNow );
@@ -737,8 +743,10 @@ namespace CK.Core
                 if( conclusions == null && userConclusion != null )
                 {
                     conclusions = new List<ActivityLogGroupConclusion>();
-                    string s = userConclusion as string;
-                    if( s != null ) conclusions.Add( new ActivityLogGroupConclusion( Tags.UserConclusion, s ) );
+                    if( userConclusion is string s )
+                    {
+                        conclusions.Add( new ActivityLogGroupConclusion( Tags.UserConclusion, s ) );
+                    }
                     else
                     {
                         if( userConclusion is ActivityLogGroupConclusion )
