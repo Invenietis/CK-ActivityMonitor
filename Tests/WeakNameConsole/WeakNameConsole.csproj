@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
     <OutputType>Exe</OutputType>
+    <IsPackable>False</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CK.WeakAssemblyNameResolver" Version="0.5.1" />
