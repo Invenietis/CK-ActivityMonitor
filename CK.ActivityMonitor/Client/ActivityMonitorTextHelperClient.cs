@@ -40,7 +40,7 @@ namespace CK.Core
         Stack<bool> _openGroups;
         IActivityMonitorImpl _source;
         static string[] _prefixGroupDepthCache;
-        const string _emptyLinePrefix = "| ";
+        const string _emptyLinePrefix = "\u2502 ";
 
         static ActivityMonitorTextHelperClient()
         {
