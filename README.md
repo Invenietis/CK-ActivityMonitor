@@ -1,11 +1,16 @@
 ﻿# CK-ActivityMonitor
 
-![AppVeyor](https://img.shields.io/appveyor/ci/olivier-spinelli/ck-activitymonitor.svg)
+[![AppVeyor](https://img.shields.io/appveyor/ci/olivier-spinelli/ck-activitymonitor.svg)](https://ci.appveyor.com/project/olivier-spinelli/ck-activitymonitor)
 [![Nuget](https://img.shields.io/nuget/vpre/CK.ActivityMonitor.svg)](https://www.nuget.org/packages/CK.ActivityMonitor/)
+[![Licence](https://img.shields.io/github/license/Invenietis/CK-ActivityMonitor.svg)](https://github.com/Invenietis/CK-ActivityMonitor/blob/develop/LICENSE)
 
 ActivityMonitor abstractions, default implementations, clients, and `Sender` packages (extension methods to `IActivityMonitor`).
 
 See also [CK-Monitoring](https://github.com/Invenietis/CK-Monitoring) for integration and use as a logging solution in .NET projects.
+
+## Documentation
+
+The [CK-ActivityMonitor GitHub wiki](https://github.com/Invenietis/CK-ActivityMonitor/wiki) contains documentation on how to [get started](https://github.com/Invenietis/CK-ActivityMonitor/wiki/Getting-started) with CK-ActivityMonitor.
 
 ## Content projects
 
