@@ -140,7 +140,7 @@ namespace CK.Core
             var w = _buffer.Clear();
             string levelLabel = g.MaskedGroupLevel.ToString();
             string start = string.Format( "{0}> {1}: ", _prefix, levelLabel );
-            _prefix += "|  ";
+            _prefix += "\u2502  ";
             _prefixLevel = _prefix;
             string prefixLabel = _prefixLevel + new string( ' ', levelLabel.Length + 1 );
 
@@ -223,7 +223,7 @@ namespace CK.Core
 
             string p;
             w.AppendLine( prefix + header );
-            string localPrefix = prefix + " | ";
+            string localPrefix = prefix + " \u2502 ";
             if( displayMessage && ex.Message != null )
             {
                 w.Append( localPrefix + "Message: " );
@@ -266,7 +266,7 @@ namespace CK.Core
                     if( typeLoadEx != null )
                     {
                         w.AppendLine( localPrefix + " ┌──────────────────────────■ [Loader Exceptions] ■──────────────────────────" );
-                        p = localPrefix + " | ";
+                        p = localPrefix + " \u2502 ";
                         foreach( var item in typeLoadEx.LoaderExceptions )
                         {
                             DumpException( w, p, true, item );
@@ -292,7 +292,7 @@ namespace CK.Core
             if( aggrex != null && aggrex.InnerExceptions.Count > 0 )
             {
                 w.AppendLine( localPrefix + " ┌──────────────────────────■ [Aggregated Exceptions] ■──────────────────────────" );
-                p = localPrefix + " | ";
+                p = localPrefix + " \u2502 ";
                 foreach( var item in aggrex.InnerExceptions )
                 {
                     DumpException( w, p, true, item );
@@ -302,7 +302,7 @@ namespace CK.Core
             else if( ex.InnerException != null )
             {
                 w.AppendLine( localPrefix + " ┌──────────────────────────■ [Inner Exception] ■──────────────────────────" );
-                p = localPrefix + " | ";
+                p = localPrefix + " \u2502 ";
                 DumpException( w, p, true, ex.InnerException );
                 w.AppendLine( localPrefix + " └─────────────────────────────────────────────────────────────────────────" );
             }
