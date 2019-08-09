@@ -1,18 +1,14 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\Common\Shared.props" />
-
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
     <Description>Provides extension methods to send log entries. The OpenTrace/Info/Warn/Error/Fatal and Trace/Info/Warn/Error/Fatal extension methods support file name and line number capture but requires a Send method to emit the log itself.
     This package is somehow deprecated: thanks to the C# 6 string interpolation the new CK.ActivityMonitor.SimpleSender package should be used instead. 
     </Description>
   </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\CK.ActivityMonitor\CK.ActivityMonitor.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <None Update="ActivityMonitorGroupSender-Gen.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -27,7 +23,6 @@
       <LastGenOutput>ActivityMonitorSenderExtension-Gen.cs</LastGenOutput>
     </None>
   </ItemGroup>
-  
   <ItemGroup>
     <Compile Update="ActivityMonitorGroupSender-Gen.cs">
       <DesignTime>True</DesignTime>
@@ -45,5 +40,4 @@
       <DependentUpon>ActivityMonitorSenderExtension-Gen.tt</DependentUpon>
     </Compile>
   </ItemGroup>
-
 </Project>
