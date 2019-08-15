@@ -27,9 +27,9 @@ namespace CK.Core.Tests.Monitoring
 
             monitor.MinimalFilter.Should().Be( LogFilter.Undefined );
 
-            client.Filter = LogFilter.Release;
+            client.MinimalFilter = LogFilter.Release;
 
-            client.Filter.Should().Be( LogFilter.Release );
+            client.MinimalFilter.Should().Be( LogFilter.Release );
             monitor.ActualFilter.Should().Be( LogFilter.Release );
         }
 
