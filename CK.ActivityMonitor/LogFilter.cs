@@ -244,7 +244,10 @@ namespace CK.Core
         /// Parses the filter: it can be a predefined filter as ("Undefined", "Debug", "Trace", "Verbose", etc.) 
         /// or as {GroupLogLevelFilter,LineLogLevelFilter} pairs like "{None,None}", "{Error,Debug}".
         /// </summary>
-        /// <param name="filter">Predefined filter as (Undefined, Debug, Verbose, etc.) or as {LineLogLevelFilter,GroupLogLevelFilter} like {None,None}, {Error,Trace}.</param>
+        /// <param name="filter">
+        /// Predefined filter as (Undefined, Debug, Verbose, etc.) or as {LineLogLevelFilter,GroupLogLevelFilter} like {None,None}, {Error,Trace}.
+        /// Must not be null.
+        /// </param>
         /// <returns>The filter.</returns>
         public static LogFilter Parse( string filter )
         {
@@ -258,11 +261,13 @@ namespace CK.Core
         /// Tries to parse a <see cref="LogFilter"/>: it can be a predefined filter as ("Undefined", "Debug", "Verbose", etc.)  
         /// or as {GroupLogLevelFilter,LineLogLevelFilter} pairs like "{None,None}", "{Error,Trace}".
         /// </summary>
-        /// <param name="s">Filter to parse.</param>
+        /// <param name="s">Filter to parse. Can be null.</param>
         /// <param name="f">Resulting filter.</param>
         /// <returns>True on success, false on error.</returns>
         public static bool TryParse( string s, out LogFilter f )
         {
+            f = Undefined;
+            if( s == null ) return false;
             var m = new StringMatcher( s );
             return m.MatchLogFilter( out f ) && m.IsEnd;
         }
