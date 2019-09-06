@@ -43,20 +43,20 @@ namespace CK.Core.Tests.Monitoring
             string result = b.ToString();
             result.Should().Be(
 @"> Info: IL1
-│       IL2
-│       IL3
-│  > Trace: TL1
-│  │        TL2
-│  │        TL3
-│  │  - Warn: WL1
-│  │          WL2
-│  │          WL3
-│  < c1 - c2
-│  < Multi
-│    Line
-│  < Another
-│    Multi
-│    Line
+|       IL2
+|       IL3
+|  > Trace: TL1
+|  |        TL2
+|  |        TL3
+|  |  - Warn: WL1
+|  |          WL2
+|  |          WL3
+|  < c1 - c2
+|  < Multi
+|    Line
+|  < Another
+|    Multi
+|    Line
 ".NormalizeEOL() );
         }
     }
