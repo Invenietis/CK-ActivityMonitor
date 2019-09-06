@@ -20,7 +20,7 @@ namespace CK.Core.Impl
         public static readonly string ActivityMonitorReentrancyCallOnly = "Only reentrant calls to this method are supported.";
         public static readonly string ActivityMonitorReentrancyError = "A reentrant call in an ActivityMonitor has been detected. A monitor usage must not trigger another operation on the same monitor.";
         public static readonly string ActivityMonitorReentrancyReleaseError = "Internal error: Error during release reentrancy operation. Thread id={0} entered whereas release is called from thread '{1}', id={2}.";
-        public static readonly string ActivityMonitorTagMustBeRegistered = "The Tag (CKTag) must be registered in ActivityMonitor.Tags.";
+        public static readonly string ActivityMonitorTagMustBeRegistered = "The Tag (CKTrait) must be registered in ActivityMonitor.Tags.";
         public static readonly string ClosedByBridgeRemoved = "Prematurely closed by Bridge removed.";
         public static readonly string InvalidRootLogPath = "Invalid Root log path. The path must be rooted (it must not be a relative path)";
         public static readonly string LogFileRootLogPathSetOnlyOnce = "Root log path must be set once and only once.";

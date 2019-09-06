@@ -112,7 +112,7 @@ namespace CK.Core
         /// Does nothing by default.
         /// </summary>
         /// <param name="newTags">The new auto tags.</param>
-        protected virtual void OnAutoTagsChanged( CKTag newTags )
+        protected virtual void OnAutoTagsChanged( CKTrait newTags )
         {
         }
 
@@ -163,7 +163,7 @@ namespace CK.Core
             OnTopicChanged( newTopic, fileName, lineNumber );
         }
 
-        void IActivityMonitorClient.OnAutoTagsChanged( CKTag newTags )
+        void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTags )
         {
             OnAutoTagsChanged( newTags );
         }

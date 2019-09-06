@@ -105,7 +105,7 @@ namespace CK.Core
             /// <summary>
             /// Gets the tags for the log group.
             /// </summary>
-            public CKTag GroupTags => _data.Tags;
+            public CKTrait GroupTags => _data.Tags;
 
             /// <summary>
             /// Gets the log time for the log.
@@ -179,7 +179,7 @@ namespace CK.Core
             /// Gets or sets the <see cref="IActivityMonitor.AutoTags"/> that will be restored when group will be closed.
             /// Initialized with the current value of IActivityMonitor.Tags when the group has been opened.
             /// </summary>
-            public CKTag SavedMonitorTags { get; private set; }
+            public CKTrait SavedMonitorTags { get; private set; }
 
             /// <summary>
             /// Gets whether the <see cref="GroupText"/> is actually the <see cref="Exception"/> message.

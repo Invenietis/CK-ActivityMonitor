@@ -58,7 +58,7 @@ namespace CK.Core.Tests.Monitoring
         {
         }
 
-        void IActivityMonitorClient.OnAutoTagsChanged( CKTag newTag )
+        void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )
         {
         }
     }
@@ -121,7 +121,7 @@ namespace CK.Core.Tests.Monitoring
         {
         }
 
-        void IActivityMonitorClient.OnAutoTagsChanged( CKTag newTag )
+        void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )
         {
         }
 

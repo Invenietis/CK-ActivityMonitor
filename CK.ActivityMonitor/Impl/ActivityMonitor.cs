@@ -36,65 +36,62 @@ namespace CK.Core
             /// <summary>
             /// The central, unique, context of all monitoring related tags used in the application domain.
             /// </summary>
-            public static readonly CKTagContext Context;
+            public static readonly CKTraitContext Context;
 
             /// <summary>
-            /// Shortcut to <see cref="CKTagContext.EmptyTag">Context.EmptyTag</see>.
+            /// Shortcut to <see cref="CKTraitContext.EmptyTrait">Context.EmptyTrait</see>.
             /// </summary>
-            static public readonly CKTag Empty;
+            static public readonly CKTrait Empty;
 
             /// <summary>
             /// Creation of dependent activities are marked with "dep:CreateActivity".
             /// </summary>
-            static public readonly CKTag CreateDependentActivity;
+            static public readonly CKTrait CreateDependentActivity;
 
             /// <summary>
             /// Start of dependent activities are marked with "dep:StartActivity".
             /// </summary>
-            static public readonly CKTag StartDependentActivity;
+            static public readonly CKTrait StartDependentActivity;
 
             /// <summary>
             /// Conclusions provided to IActivityMonitor.Close(string) are marked with "c:User".
             /// </summary>
-            static public readonly CKTag UserConclusion;
+            static public readonly CKTrait UserConclusion;
 
             /// <summary>
             /// Conclusions returned by the optional function when a group is opened (see <see cref="IActivityMonitor.UnfilteredOpenGroup"/>) are marked with "c:GetText".
             /// </summary>
-            static public readonly CKTag GetTextConclusion;
+            static public readonly CKTrait GetTextConclusion;
 
             /// <summary>
             /// Whenever <see cref="Topic"/> changed, a <see cref="LogLevel.Info"/> is emitted marked with "MonitorTopicChanged".
             /// </summary>
-            static public readonly CKTag MonitorTopicChanged;
+            static public readonly CKTrait MonitorTopicChanged;
 
             /// <summary>
             /// A "MonitorEnd" tag is emitted by <see cref="ActivityMonitorExtension.MonitorEnd"/>.
             /// This indicates the logical end of life of the monitor. It should not be used anymore (but technically can
             /// be used).
             /// </summary>
-            static public readonly CKTag MonitorEnd;
+            static public readonly CKTrait MonitorEnd;
 
             /// <summary>
             /// A "m:Internal" tag is used while replaying <see cref="IActivityMonitorImpl.InternalMonitor"/>
             /// logs.
             /// </summary>
-            static public readonly CKTag InternalMonitor;
+            static public readonly CKTrait InternalMonitor;
 
             /// <summary>
-            /// Simple shortcut to <see cref="CKTagContext.FindOrCreate(string)"/>.
+            /// Simple shortcut to <see cref="CKTraitContext.FindOrCreate(string)"/>.
             /// </summary>
             /// <param name="tags">Atomic tag or multiple tags separated by pipes (|).</param>
             /// <returns>Registered tags.</returns>
-            static public CKTag Register( string tags )
-            {
-                return Context.FindOrCreate( tags );
-            }
+            static public CKTrait Register( string tags ) => Context.FindOrCreate( tags );
 
             static Tags()
             {
-                Context = new CKTagContext( "ActivityMonitor" );
-                Empty = Context.EmptyTag;
+                Context = CKTraitContext.Create( "ActivityMonitor" );
+                Empty = Context.EmptyTrait;
                 UserConclusion = Context.FindOrCreate( "c:User" );
                 GetTextConclusion = Context.FindOrCreate( "c:GetText" );
                 MonitorTopicChanged = Context.FindOrCreate( "MonitorTopicChanged" );
@@ -181,7 +178,7 @@ namespace CK.Core
         Group _current;
         Group _currentUnfiltered;
         readonly ActivityMonitorOutput _output;
-        CKTag _currentTag;
+        CKTrait _currentTag;
         int _enteredThreadId;
         string _topic;
 
@@ -240,7 +237,7 @@ namespace CK.Core
         protected ActivityMonitor(
             DateTimeStampProvider stampProvider,
             Guid uniqueId,
-            CKTag tags,
+            CKTrait tags,
             bool applyAutoConfigurations )
         {
             _uniqueId = uniqueId;
@@ -320,11 +317,11 @@ namespace CK.Core
 
         /// <summary>
         /// Gets or sets the tags of this monitor: any subsequent logs will be tagged by these tags.
-        /// The <see cref="CKTag"/> must be registered in <see cref="ActivityMonitor.Tags"/>.
+        /// The <see cref="CKTrait"/> must be registered in <see cref="ActivityMonitor.Tags"/>.
         /// Modifications to this property are scoped to the current Group since when a Group is closed, this
         /// property (like <see cref="MinimalFilter"/>) is automatically restored to its original value (captured when the Group was opened).
         /// </summary>
-        public CKTag AutoTags 
+        public CKTrait AutoTags 
         {
             get { return _currentTag; }
             set
@@ -346,7 +343,7 @@ namespace CK.Core
             }
         }
 
-        void DoSetAutoTags( CKTag newTags )
+        void DoSetAutoTags( CKTrait newTags )
         {
             Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
             Debug.Assert( newTags != null && _currentTag != newTags && newTags.Context == Tags.Context );
@@ -360,7 +357,7 @@ namespace CK.Core
         /// inside their SetMonitor or any other methods provided that a reentrant and concurrent lock 
         /// has been obtained (otherwise an InvalidOperationException is thrown).
         /// </summary>
-        void IActivityMonitorImpl.InitializeTopicAndAutoTags( string newTopic, CKTag newTags, string fileName, int lineNumber )
+        void IActivityMonitorImpl.InitializeTopicAndAutoTags( string newTopic, CKTrait newTags, string fileName, int lineNumber )
         {
             RentrantOnlyCheck();
             if( newTopic != null && _topic != newTopic ) DoSetTopic( newTopic, fileName, lineNumber );

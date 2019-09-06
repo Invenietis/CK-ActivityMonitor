@@ -37,7 +37,7 @@ namespace CK.Core
     public class ActivityMonitorLogData
     {
         string _text;
-        CKTag _tags;
+        CKTrait _tags;
         DateTimeStamp _logTime;
         Exception _exception;
         CKExceptionData _exceptionData;
@@ -73,7 +73,7 @@ namespace CK.Core
         /// Tags (from <see cref="ActivityMonitor.Tags"/>) associated to the log. 
         /// It will be union-ed with the current <see cref="IActivityMonitor.AutoTags"/>.
         /// </summary>
-        public CKTag Tags => _tags;
+        public CKTrait Tags => _tags;
 
         /// <summary>
         /// Text of the log. Can not be null.
@@ -126,7 +126,7 @@ namespace CK.Core
         /// </param>
         /// <param name="fileName">Name of the source file that emitted the log. Can be null.</param>
         /// <param name="lineNumber">Line number in the source file that emitted the log.</param>
-        public ActivityMonitorLogData( LogLevel level, Exception exception, CKTag tags, string text, DateTimeStamp logTime, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        public ActivityMonitorLogData( LogLevel level, Exception exception, CKTrait tags, string text, DateTimeStamp logTime, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
             : this( level, fileName, lineNumber )
         {
             if( MaskedLevel == LogLevel.None || MaskedLevel == LogLevel.Mask ) throw new ArgumentException( Impl.ActivityMonitorResources.ActivityMonitorInvalidLogLevel, "level" );
@@ -170,7 +170,7 @@ namespace CK.Core
         /// Time of the log. 
         /// You can use <see cref="DateTimeStamp.UtcNow"/> or <see cref="ActivityMonitorExtension.NextLogTime">IActivityMonitor.NextLogTime()</see> extension method.
         /// </param>
-        public void Initialize( string text, Exception exception, CKTag tags, DateTimeStamp logTime )
+        public void Initialize( string text, Exception exception, CKTrait tags, DateTimeStamp logTime )
         {
             if( string.IsNullOrEmpty( (_text = text) ) )
             {
@@ -181,13 +181,13 @@ namespace CK.Core
             _logTime = logTime;
         }
 
-        internal void CombineTags( CKTag tags )
+        internal void CombineTags( CKTrait tags )
         {
             if( _tags.IsEmpty ) _tags = tags;
             else _tags = _tags.Union( tags );
         }
 
-        internal DateTimeStamp CombineTagsAndAdjustLogTime( CKTag tags, DateTimeStamp lastLogTime )
+        internal DateTimeStamp CombineTagsAndAdjustLogTime( CKTrait tags, DateTimeStamp lastLogTime )
         {
             if( _tags.IsEmpty ) _tags = tags;
             else _tags = _tags.Union( tags );

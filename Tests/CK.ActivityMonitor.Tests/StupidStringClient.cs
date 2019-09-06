@@ -1,4 +1,4 @@
-#region LGPL License
+﻿#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (Tests\CK.Core.Tests\Monitoring\StupidStringClient.cs) is part of CiviKey. 
 *  
@@ -36,7 +36,7 @@ namespace CK.Core.Tests.Monitoring
         public class Entry
         {
             public readonly LogLevel Level;
-            public readonly CKTag Tags;
+            public readonly CKTrait Tags;
             public readonly string Text;
             public readonly Exception Exception;
             public readonly DateTimeStamp LogTime;
@@ -65,17 +65,17 @@ namespace CK.Core.Tests.Monitoring
         public readonly List<Entry> Entries;
         public StringWriter Writer { get; private set; }
         public bool WriteTags { get; private set; }
-        public bool WriteConclusionTags { get; private set; }
+        public bool WriteConclusionTraits { get; private set; }
 
         int _curLevel;
 
-        public StupidStringClient( bool writeTags = false, bool writeConclusionTags = false )
+        public StupidStringClient( bool writeTags = false, bool writeConclusionTraits = false )
         {
             _curLevel = -1;
             Entries = new List<Entry>();
             Writer = new StringWriter();
             WriteTags = writeTags;
-            WriteConclusionTags = writeConclusionTags;
+            WriteConclusionTraits = writeConclusionTraits;
         }
 
 
@@ -85,7 +85,7 @@ namespace CK.Core.Tests.Monitoring
         {
         }
 
-        void IActivityMonitorClient.OnAutoTagsChanged( CKTag newTag )
+        void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )
         {
         }
 
@@ -184,7 +184,7 @@ namespace CK.Core.Tests.Monitoring
             Entries.Last( e => e.GroupForConclusions == g ).Conclusions = conclusions;
             Writer.WriteLine();
             Writer.Write( new String( '-', g.Depth ) );
-            if( WriteConclusionTags )
+            if( WriteConclusionTraits )
             {
                 Writer.Write( String.Join( ", ", conclusions.Select( c => c.Text + "-/[/"+ c.Tag.ToString() +"/]/" ) ) );
             }

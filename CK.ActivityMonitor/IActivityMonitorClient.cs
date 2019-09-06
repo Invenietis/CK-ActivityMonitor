@@ -55,8 +55,8 @@ namespace CK.Core
         /// <summary>
         /// Called when <see cref="IActivityMonitor.AutoTags"/> changed.
         /// </summary>
-        /// <param name="newTag">The new tags (never null but can be empty).</param>
-        void OnAutoTagsChanged( CKTag newTag );
+        /// <param name="newTrait">The new tags (never null but can be empty).</param>
+        void OnAutoTagsChanged( CKTrait newTrait );
     }
 
 }

@@ -202,7 +202,7 @@ namespace CK.Core
 	void StateArgumentSignature()
 	{
 		if( WithException ) Write( ", Exception ex" );
-		if( WithTags ) Write( ", CKTag tags" );
+		if( WithTags ) Write( ", CKTrait tags" );
 	}
 
 	void StateCall()

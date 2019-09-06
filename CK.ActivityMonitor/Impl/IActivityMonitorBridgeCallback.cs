@@ -21,7 +21,7 @@ namespace CK.Core
         /// <summary>
         /// Called when the target AutoTags changed.
         /// </summary>
-        void OnTargetAutoTagsChanged( CKTag newTags );
+        void OnTargetAutoTagsChanged( CKTrait newTags );
 
         /// <summary>
         /// Called when the target Topic changed.

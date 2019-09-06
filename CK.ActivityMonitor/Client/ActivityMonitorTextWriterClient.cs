@@ -17,7 +17,7 @@ namespace CK.Core
         Action<string> _writer;
         string _prefix;
         string _prefixLevel;
-        CKTag _currentTags;
+        CKTrait _currentTags;
 
         static readonly Action<string> _none = _ => { };
 
