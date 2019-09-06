@@ -189,11 +189,11 @@ namespace CK.Core
         {
         }
 
-        void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )
+        void IActivityMonitorClient.OnAutoTagsChanged( CKTag newTag )
         {
         }
 
-        [Obsolete("Use MinimalFilter property instead.")]
+        [Obsolete("Use MinimalFilter property instead.", true)]
         public LogFilter Filter { get => _filter; set => MinimalFilter = value; }
 
         /// <summary>

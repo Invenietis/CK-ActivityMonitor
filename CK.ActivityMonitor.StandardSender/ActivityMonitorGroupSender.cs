@@ -60,7 +60,7 @@ namespace CK.Core
             Monitor = monitor;
         }
 
-        internal IDisposableGroup InitializeAndSend( Exception exception, CKTrait tags, string text )
+        internal IDisposableGroup InitializeAndSend( Exception exception, CKTag tags, string text )
         {
             Debug.Assert( !IsRejected );
             Initialize( text, exception, tags, Monitor.NextLogTime() );

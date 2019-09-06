@@ -74,7 +74,7 @@ namespace CK.Core
             {
             }
 
-            void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )
+            void IActivityMonitorClient.OnAutoTagsChanged( CKTag newTag )
             {
             }
             LogFilter IActivityMonitorBoundClient.MinimalFilter => LogFilter.Undefined;
@@ -102,7 +102,7 @@ namespace CK.Core
         {
             Debug.Assert( _internalMonitor != null && _internalMonitor.Recorder.History.Count > 0 );
             Debug.Assert( Thread.CurrentThread.ManagedThreadId == _enteredThreadId );
-            CKTrait savedTags = _currentTag;
+            CKTag savedTags = _currentTag;
             string changedTopic = _topic;
             // Secure any unclosed groups.
             while( _internalMonitor.CloseGroup() ) ;
@@ -119,7 +119,7 @@ namespace CK.Core
                             DoOpenGroup( group, true );
                             break;
                         case ActivityMonitorLogData line:
-                            if( line.Tags.AtomicTraits.Contains( Tags.MonitorTopicChanged ) )
+                            if( line.Tags.AtomicTags.Contains( Tags.MonitorTopicChanged ) )
                             {
                                 changedTopic = line.Text.Substring( SetTopicPrefix.Length );
                             }

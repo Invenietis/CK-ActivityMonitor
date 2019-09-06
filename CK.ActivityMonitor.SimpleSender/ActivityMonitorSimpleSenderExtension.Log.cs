@@ -107,7 +107,7 @@ namespace CK.Core
         /// <param name="tags">The tags for this log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        public static void Log( this IActivityMonitor @this, LogLevel level, Exception ex, CKTrait tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
+        public static void Log( this IActivityMonitor @this, LogLevel level, Exception ex, CKTag tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
         {
             if( @this.ShouldLogLine( level, fileName, lineNumber ) )
             {
@@ -125,7 +125,7 @@ namespace CK.Core
         /// <param name="tags">The tags for this log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        public static void Log( this IActivityMonitor @this, LogLevel level, string text, CKTrait tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
+        public static void Log( this IActivityMonitor @this, LogLevel level, string text, CKTag tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
         {
             if( @this.ShouldLogLine( level, fileName, lineNumber ) )
             {
@@ -145,7 +145,7 @@ namespace CK.Core
         /// <param name="tags">The tags for this log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        public static void Log( this IActivityMonitor @this, LogLevel level, string text, Exception ex, CKTrait tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
+        public static void Log( this IActivityMonitor @this, LogLevel level, string text, Exception ex, CKTag tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
         {
             if(@this.ShouldLogLine( level, fileName, lineNumber ) )
             {
@@ -163,7 +163,7 @@ namespace CK.Core
         /// <param name="tags">The tags for this log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        public static void Log( this IActivityMonitor @this, LogLevel level, Func<string> text, CKTrait tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
+        public static void Log( this IActivityMonitor @this, LogLevel level, Func<string> text, CKTag tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
         {
             if(@this.ShouldLogLine(level, fileName, lineNumber ) )
             {
@@ -182,7 +182,7 @@ namespace CK.Core
         /// <param name="tags">The tags for this log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        public static void Log( this IActivityMonitor @this, LogLevel level, Func<string> text, Exception ex, CKTrait tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
+        public static void Log( this IActivityMonitor @this, LogLevel level, Func<string> text, Exception ex, CKTag tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
         {
             if( @this.ShouldLogLine( level, fileName, lineNumber ) )
             {

@@ -110,7 +110,7 @@ namespace CK.Core.Tests.Monitoring
              fileName.Should().NotBeNullOrEmpty();
         }
 
-        void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )
+        void IActivityMonitorClient.OnAutoTagsChanged( CKTag newTag )
         {
         }
     }

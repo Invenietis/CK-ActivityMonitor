@@ -7,7 +7,7 @@ using System.Diagnostics;
 namespace CK.Core
 {
     /// <summary>
-    /// Describes the conclusion of a group. Conclusions are simply <see cref="Text"/> <see cref="Tag"/>ged with a <see cref="CKTrait"/>.
+    /// Describes the conclusion of a group. Conclusions are simply <see cref="Text"/> <see cref="Tag"/>ged with a <see cref="CKTag"/>.
     /// </summary>
     public struct ActivityLogGroupConclusion
     {
@@ -16,7 +16,7 @@ namespace CK.Core
         /// It may be combined but is often atomic like <see cref="ActivityMonitor.Tags.UserConclusion"/>, 
         /// or <see cref="ActivityMonitor.Tags.GetTextConclusion"/>.
         /// </summary>
-        public readonly CKTrait Tag;
+        public readonly CKTag Tag;
 
         /// <summary>
         /// The conclusion (never null).
@@ -28,7 +28,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="conclusion">Must not be null (may be empty).</param>
         /// <param name="tag">Must be null or be registered in <see cref="ActivityMonitor.Tags"/>.</param>
-        public ActivityLogGroupConclusion( string conclusion, CKTrait tag = null )
+        public ActivityLogGroupConclusion( string conclusion, CKTag tag = null )
         {
             if( conclusion == null ) throw new ArgumentNullException( "conclusion" );
             if( tag == null ) tag = ActivityMonitor.Tags.Empty;
@@ -37,7 +37,7 @@ namespace CK.Core
             Text = conclusion;
         }
 
-        internal ActivityLogGroupConclusion( CKTrait t, string conclusion )
+        internal ActivityLogGroupConclusion( CKTag t, string conclusion )
         {
             Debug.Assert( t != null && t.Context == ActivityMonitor.Tags.Context );
             Debug.Assert( conclusion != null );

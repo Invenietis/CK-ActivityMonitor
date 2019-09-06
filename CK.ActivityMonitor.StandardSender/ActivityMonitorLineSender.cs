@@ -56,7 +56,7 @@ namespace CK.Core
             get { return _monitor == null; }
         }
 
-        internal void InitializeAndSend( Exception exception, CKTrait tags, string text )
+        internal void InitializeAndSend( Exception exception, CKTag tags, string text )
         {
             Debug.Assert( !IsRejected );
             Initialize( text, exception, tags, _monitor.NextLogTime() );
