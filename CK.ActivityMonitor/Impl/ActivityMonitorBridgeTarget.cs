@@ -97,7 +97,7 @@ namespace CK.Core
             foreach( var b in callbacks ) b.OnTargetActualFilterChanged();
         }
 
-        internal void TargetAutoTagsChanged( CKTrait newTags )
+        internal void TargetAutoTagsChanged( CKTag newTags )
         {
             foreach( var b in _callbacks )
             {
@@ -116,7 +116,7 @@ namespace CK.Core
             }
         }
 
-        internal void GetTargetAndAutoTags( out string targetTopic, out CKTrait targetTags )
+        internal void GetTargetAndAutoTags( out string targetTopic, out CKTag targetTags )
         {
             targetTopic = _monitor.Topic;
             targetTags = _monitor.AutoTags;
@@ -127,7 +127,7 @@ namespace CK.Core
             _monitor.SetTopic( newTopic, fileName, lineNumber );
         }
 
-        internal void SetAutoTags( CKTrait tags )
+        internal void SetAutoTags( CKTag tags )
         {
             _monitor.AutoTags = tags;
         }

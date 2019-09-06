@@ -179,7 +179,7 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitorLineSender"/> object.</param>
 		/// <param name="tags">Tags for the log.</param>
 		/// <param name="text">The text of the log.</param>
-        static public void Send( this IActivityMonitorLineSender @this, CKTrait tags, string text )
+        static public void Send( this IActivityMonitorLineSender @this, CKTag tags, string text )
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
@@ -193,7 +193,7 @@ namespace CK.Core
 		/// <param name="tags">Tags for the log.</param>
 		/// <param name="format">The text format of the log with 1 placeholders.</param>
 		/// <param name="arg0">Parameter to format (placeholder {0}).</param>
-        static public void Send( this IActivityMonitorLineSender @this, CKTrait tags, string format, object arg0 )
+        static public void Send( this IActivityMonitorLineSender @this, CKTag tags, string format, object arg0 )
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
@@ -209,7 +209,7 @@ namespace CK.Core
 		/// <param name="format">The text format of the log with 2 placeholders.</param>
 		/// <param name="arg0">Parameter to format (placeholder {0}).</param>
 		/// <param name="arg1">Parameter to format (placeholder {1}).</param>
-        static public void Send( this IActivityMonitorLineSender @this, CKTrait tags, string format, object arg0, object arg1 )
+        static public void Send( this IActivityMonitorLineSender @this, CKTag tags, string format, object arg0, object arg1 )
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
@@ -225,7 +225,7 @@ namespace CK.Core
 		/// <param name="arg0">Parameter to format (placeholder {0}).</param>
 		/// <param name="arg1">Parameter to format (placeholder {1}).</param>
 		/// <param name="arg2">Parameter to format (placeholder {2}).</param>
-        static public void Send( this IActivityMonitorLineSender @this, CKTrait tags, string format, object arg0, object arg1, object arg2 )
+        static public void Send( this IActivityMonitorLineSender @this, CKTag tags, string format, object arg0, object arg1, object arg2 )
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
@@ -239,7 +239,7 @@ namespace CK.Core
 		/// <param name="tags">Tags for the log.</param>
 		/// <param name="format">The text format of the log with 4 placeholders.</param>
 		/// <param name="arguments">Multiple parameters to format.</param>
-        static public void Send( this IActivityMonitorLineSender @this, CKTrait tags, string format, params object[] arguments )
+        static public void Send( this IActivityMonitorLineSender @this, CKTag tags, string format, params object[] arguments )
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
@@ -253,7 +253,7 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitorLineSender"/> object.</param>
 		/// <param name="tags">Tags for the log.</param> 
         /// <param name="text">Function that returns a string. Must not be null.</param>
-        public static void Send( this IActivityMonitorLineSender @this, CKTrait tags, Func<string> text )
+        public static void Send( this IActivityMonitorLineSender @this, CKTag tags, Func<string> text )
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
@@ -269,7 +269,7 @@ namespace CK.Core
 		/// <param name="tags">Tags for the log.</param> 
         /// <param name="text">Function that returns a string. Must not be null.</param>
         /// <param name="param">Parameter of the <paramref name="text"/> delegate.</param>
-        public static void Send<T>( this IActivityMonitorLineSender @this, CKTrait tags, Func<T,string> text, T param )
+        public static void Send<T>( this IActivityMonitorLineSender @this, CKTag tags, Func<T,string> text, T param )
         {
             ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
 			if( s.IsRejected ) return;
@@ -287,7 +287,7 @@ namespace CK.Core
         /// <param name="text">Function that returns a string. Must not be null.</param>
         /// <param name="param1">First parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param2">Second parameter for the <paramref name="text"/> delegate.</param>
-        public static void Send<T1,T2>( this IActivityMonitorLineSender @this, CKTrait tags, Func<T1,T2,string> text, T1 param1, T2 param2 )
+        public static void Send<T1,T2>( this IActivityMonitorLineSender @this, CKTag tags, Func<T1,T2,string> text, T1 param1, T2 param2 )
         {
             ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
 			if( s.IsRejected ) return;
@@ -307,7 +307,7 @@ namespace CK.Core
         /// <param name="param1">First parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param2">Second parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param3">Third parameter for the <paramref name="text"/> delegate.</param>
-        public static void Send<T1,T2,T3>( this IActivityMonitorLineSender @this, CKTrait tags, Func<T1,T2,T3,string> text, T1 param1, T2 param2, T3 param3 )
+        public static void Send<T1,T2,T3>( this IActivityMonitorLineSender @this, CKTag tags, Func<T1,T2,T3,string> text, T1 param1, T2 param2, T3 param3 )
         {
             ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
 			if( s.IsRejected ) return;
@@ -480,7 +480,7 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitorLineSender"/> object.</param>
 		/// <param name="ex">The exception. Must not be null.</param>
 		/// <param name="tags">Tags for the log.</param>
-        static public void Send( this IActivityMonitorLineSender @this, Exception ex, CKTrait tags )
+        static public void Send( this IActivityMonitorLineSender @this, Exception ex, CKTag tags )
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
@@ -494,7 +494,7 @@ namespace CK.Core
 		/// <param name="ex">The exception. Must not be null.</param>
 		/// <param name="tags">Tags for the log.</param>
 		/// <param name="text">The text of the log.</param>
-        static public void Send( this IActivityMonitorLineSender @this, Exception ex, CKTrait tags, string text )
+        static public void Send( this IActivityMonitorLineSender @this, Exception ex, CKTag tags, string text )
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
@@ -509,7 +509,7 @@ namespace CK.Core
 		/// <param name="tags">Tags for the log.</param>
 		/// <param name="format">The text format of the log with 1 placeholders.</param>
 		/// <param name="arg0">Parameter to format (placeholder {0}).</param>
-        static public void Send( this IActivityMonitorLineSender @this, Exception ex, CKTrait tags, string format, object arg0 )
+        static public void Send( this IActivityMonitorLineSender @this, Exception ex, CKTag tags, string format, object arg0 )
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
@@ -525,7 +525,7 @@ namespace CK.Core
 		/// <param name="format">The text format of the log with 2 placeholders.</param>
 		/// <param name="arg0">Parameter to format (placeholder {0}).</param>
 		/// <param name="arg1">Parameter to format (placeholder {1}).</param>
-        static public void Send( this IActivityMonitorLineSender @this, Exception ex, CKTrait tags, string format, object arg0, object arg1 )
+        static public void Send( this IActivityMonitorLineSender @this, Exception ex, CKTag tags, string format, object arg0, object arg1 )
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
@@ -542,7 +542,7 @@ namespace CK.Core
 		/// <param name="arg0">Parameter to format (placeholder {0}).</param>
 		/// <param name="arg1">Parameter to format (placeholder {1}).</param>
 		/// <param name="arg2">Parameter to format (placeholder {2}).</param>
-        static public void Send( this IActivityMonitorLineSender @this, Exception ex, CKTrait tags, string format, object arg0, object arg1, object arg2 )
+        static public void Send( this IActivityMonitorLineSender @this, Exception ex, CKTag tags, string format, object arg0, object arg1, object arg2 )
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
@@ -557,7 +557,7 @@ namespace CK.Core
 		/// <param name="tags">Tags for the log.</param>
 		/// <param name="format">The text format of the log with 4 placeholders.</param>
 		/// <param name="arguments">Multiple parameters to format.</param>
-        static public void Send( this IActivityMonitorLineSender @this, Exception ex, CKTrait tags, string format, params object[] arguments )
+        static public void Send( this IActivityMonitorLineSender @this, Exception ex, CKTag tags, string format, params object[] arguments )
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
@@ -572,7 +572,7 @@ namespace CK.Core
 		/// <param name="ex">The exception. Must not be null.</param>
 		/// <param name="tags">Tags for the log.</param> 
         /// <param name="text">Function that returns a string. Must not be null.</param>
-        public static void Send( this IActivityMonitorLineSender @this, Exception ex, CKTrait tags, Func<string> text )
+        public static void Send( this IActivityMonitorLineSender @this, Exception ex, CKTag tags, Func<string> text )
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
@@ -589,7 +589,7 @@ namespace CK.Core
 		/// <param name="tags">Tags for the log.</param> 
         /// <param name="text">Function that returns a string. Must not be null.</param>
         /// <param name="param">Parameter of the <paramref name="text"/> delegate.</param>
-        public static void Send<T>( this IActivityMonitorLineSender @this, Exception ex, CKTrait tags, Func<T,string> text, T param )
+        public static void Send<T>( this IActivityMonitorLineSender @this, Exception ex, CKTag tags, Func<T,string> text, T param )
         {
             ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
 			if( s.IsRejected ) return;
@@ -608,7 +608,7 @@ namespace CK.Core
         /// <param name="text">Function that returns a string. Must not be null.</param>
         /// <param name="param1">First parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param2">Second parameter for the <paramref name="text"/> delegate.</param>
-        public static void Send<T1,T2>( this IActivityMonitorLineSender @this, Exception ex, CKTrait tags, Func<T1,T2,string> text, T1 param1, T2 param2 )
+        public static void Send<T1,T2>( this IActivityMonitorLineSender @this, Exception ex, CKTag tags, Func<T1,T2,string> text, T1 param1, T2 param2 )
         {
             ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
 			if( s.IsRejected ) return;
@@ -629,7 +629,7 @@ namespace CK.Core
         /// <param name="param1">First parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param2">Second parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param3">Third parameter for the <paramref name="text"/> delegate.</param>
-        public static void Send<T1,T2,T3>( this IActivityMonitorLineSender @this, Exception ex, CKTrait tags, Func<T1,T2,T3,string> text, T1 param1, T2 param2, T3 param3 )
+        public static void Send<T1,T2,T3>( this IActivityMonitorLineSender @this, Exception ex, CKTag tags, Func<T1,T2,T3,string> text, T1 param1, T2 param2, T3 param3 )
         {
             ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
 			if( s.IsRejected ) return;

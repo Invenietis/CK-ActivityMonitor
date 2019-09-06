@@ -33,7 +33,7 @@ namespace CK.Core
         /// <param name="getConclusionText">Optional function that provides delayed obtention of the group conclusion: will be called on group closing.</param>
         /// <param name="fileName">Name of the source file that emitted the log. Can be null.</param>
         /// <param name="lineNumber">Line number in the source file that emitted the log.</param>
-        public ActivityMonitorGroupData( LogLevel level, CKTrait tags, string text, DateTimeStamp logTime, Exception exception, Func<string> getConclusionText, string fileName, int lineNumber )
+        public ActivityMonitorGroupData( LogLevel level, CKTag tags, string text, DateTimeStamp logTime, Exception exception, Func<string> getConclusionText, string fileName, int lineNumber )
             : base( level, exception, tags, text, logTime, fileName, lineNumber )
         {
             _getConclusion = getConclusionText;
@@ -69,7 +69,7 @@ namespace CK.Core
         /// You may use <see cref="DateTimeStamp.UtcNow"/> or <see cref="ActivityMonitorExtension.NextLogTime">IActivityMonitor.NextLogTime()</see> extension method.
         /// </param>
         /// <param name="getConclusionText">Optional function that provides delayed obtention of the group conclusion: will be called on group closing.</param>
-        public void Initialize( string text, Exception exception, CKTrait tags, DateTimeStamp logTime, Func<string> getConclusionText )
+        public void Initialize( string text, Exception exception, CKTag tags, DateTimeStamp logTime, Func<string> getConclusionText )
         {
             base.Initialize( text, exception, tags, logTime );
             _getConclusion = getConclusionText;

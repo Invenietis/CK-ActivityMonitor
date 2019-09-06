@@ -107,7 +107,7 @@ namespace CK.Core
         /// treated as if a different LogLevel is used.
         /// </para>
         /// </remarks>
-        static public void UnfilteredLog( this IActivityMonitor @this, CKTrait tags, LogLevel level, string text, DateTimeStamp logTime, Exception ex, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        static public void UnfilteredLog( this IActivityMonitor @this, CKTag tags, LogLevel level, string text, DateTimeStamp logTime, Exception ex, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
             @this.UnfilteredLog( new ActivityMonitorLogData( level, ex, tags, text, logTime, fileName, lineNumber ) );
         }
@@ -145,7 +145,7 @@ namespace CK.Core
         /// Note that this automatic configuration restoration works even if the group is filtered (when the <paramref name="level"/> is None).
         /// </para>
         /// </remarks>
-        static public IDisposable UnfilteredOpenGroup( this IActivityMonitor @this, CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTimeStamp logTime, Exception ex, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        static public IDisposable UnfilteredOpenGroup( this IActivityMonitor @this, CKTag tags, LogLevel level, Func<string> getConclusionText, string text, DateTimeStamp logTime, Exception ex, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
             return @this.UnfilteredOpenGroup( new ActivityMonitorGroupData( level, tags, text, logTime, ex, getConclusionText, fileName, lineNumber ) );
         }
@@ -289,7 +289,7 @@ namespace CK.Core
             {
             }
 
-            public void OnAutoTagsChanged( CKTrait newTrait )
+            public void OnAutoTagsChanged( CKTag newTag )
             {
             }
         }
@@ -385,9 +385,9 @@ namespace CK.Core
         class TagsSentinel : IDisposable
         {
             readonly IActivityMonitor _monitor;
-            readonly CKTrait _previous;
+            readonly CKTag _previous;
 
-            public TagsSentinel( IActivityMonitor l, CKTrait t )
+            public TagsSentinel( IActivityMonitor l, CKTag t )
             {
                 _previous = l.AutoTags;
                 _monitor = l;
@@ -412,7 +412,7 @@ namespace CK.Core
         /// <param name="tags">Tags to combine with the current one.</param>
         /// <param name="operation">Defines the way the new <paramref name="tags"/> must be combined with current ones.</param>
         /// <returns>A <see cref="IDisposable"/> object that will restore the current tag when disposed.</returns>
-        public static IDisposable TemporarilySetAutoTags( this IActivityMonitor @this, CKTrait tags, SetOperation operation = SetOperation.Union )
+        public static IDisposable TemporarilySetAutoTags( this IActivityMonitor @this, CKTag tags, SetOperation operation = SetOperation.Union )
         {
             return new TagsSentinel( @this, @this.AutoTags.Apply( tags, operation ) );
         }

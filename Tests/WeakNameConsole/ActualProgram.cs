@@ -18,7 +18,7 @@ namespace WeakNameConsole
             using( m.OpenInfo( "From inside WeakNameConsole." ) )
             {
                 DumpVersion( m, typeof( CK.Text.StringMatcher ) );
-                DumpVersion( m, typeof( CK.Core.CKTrait ) );
+                DumpVersion( m, typeof( CK.Core.SimpleServiceContainer ) );
             }
         }
 

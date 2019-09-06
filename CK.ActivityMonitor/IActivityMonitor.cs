@@ -41,11 +41,11 @@ namespace CK.Core
     {
         /// <summary>
         /// Gets or sets the tags of this monitor: any subsequent logs will be tagged by these tags.
-        /// The <see cref="CKTrait"/> must be registered in <see cref="ActivityMonitor.Tags"/>.
+        /// The <see cref="CKTag"/> must be registered in <see cref="ActivityMonitor.Tags"/>.
         /// Modifications to this property are scoped to the current Group since when a Group is closed, this
         /// property (and <see cref="MinimalFilter"/>) is automatically restored to its original value (captured when the Group was opened).
         /// </summary>
-        CKTrait AutoTags { get; set; }
+        CKTag AutoTags { get; set; }
 
         /// <summary>
         /// Gets or sets a filter for the log level.

@@ -47,7 +47,7 @@ namespace CK.Core
             /// <summary>
             /// Gets the tags of the log entry.
             /// </summary>
-            public CKTrait Tags { get; internal set; }
+            public CKTag Tags { get; internal set; }
             /// <summary>
             /// Gets the log level of the log entry.
             /// </summary>
