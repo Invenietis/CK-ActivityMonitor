@@ -1208,7 +1208,7 @@ namespace CK.Core.Tests.Monitoring
 
 
         [Test]
-        public void testing_all_the_overloads_of_StandardSender_with_Tags()
+        public void testing_all_the_overloads_of_StandardSender_with_Traits()
         {
 
             Exception ex = new Exception( "EXCEPTION" );
@@ -1222,7 +1222,7 @@ namespace CK.Core.Tests.Monitoring
             var collector = new ActivityMonitorSimpleCollector() { MinimalFilter = LogLevelFilter.Trace, Capacity = 1 };
             d.Output.RegisterClients( collector, new CheckAlwaysFilteredClient() );
 
-            CKTag tag = ActivityMonitor.Tags.Register( "TAG" );
+            CKTrait tag = ActivityMonitor.Tags.Register( "TAG" );
 
             d.Trace().Send( tag, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
             d.Trace().Send( tag, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );

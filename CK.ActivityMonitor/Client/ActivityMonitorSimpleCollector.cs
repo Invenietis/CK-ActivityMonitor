@@ -47,7 +47,7 @@ namespace CK.Core
             /// <summary>
             /// The tags of the log entry.
             /// </summary>
-            public readonly CKTag Tags;
+            public readonly CKTrait Tags;
 
             /// <summary>
             /// The log level of the log entry.
@@ -69,7 +69,7 @@ namespace CK.Core
             /// </summary>
             public readonly Exception Exception;
 
-            internal Entry( CKTag tags, LogLevel level, string text, DateTimeStamp logTime, Exception ex )
+            internal Entry( CKTrait tags, LogLevel level, string text, DateTimeStamp logTime, Exception ex )
             {
                 Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
                 Tags = tags;
@@ -179,7 +179,7 @@ namespace CK.Core
         {
         }
 
-        void IActivityMonitorClient.OnAutoTagsChanged( CKTag newTag )
+        void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )
         {
         }
     }

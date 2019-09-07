@@ -35,7 +35,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the tags for the log group.
         /// </summary>
-        CKTag GroupTags { get; }
+        CKTrait GroupTags { get; }
 
         /// <summary>
         /// Gets the log time for the log.
@@ -68,7 +68,7 @@ namespace CK.Core
         /// Gets the <see cref="IActivityMonitor.AutoTags"/> that will be restored when group will be closed.
         /// Initialized with the current value of IActivityMonitor.Tags when the group has been opened.
         /// </summary>
-        CKTag SavedMonitorTags { get; }
+        CKTrait SavedMonitorTags { get; }
 
         /// <summary>
         /// Gets the level associated to this group.

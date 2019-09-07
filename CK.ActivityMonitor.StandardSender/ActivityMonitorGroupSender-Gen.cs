@@ -191,7 +191,7 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitorGroupSender"/> object.</param>
 		/// <param name="tags">Tags for the log.</param>
 		/// <param name="text">The text of the log.</param>
-        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, CKTag tags, string text )
+        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, CKTrait tags, string text )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
@@ -205,7 +205,7 @@ namespace CK.Core
 		/// <param name="tags">Tags for the log.</param>
 		/// <param name="format">The text format of the log with 1 placeholders.</param>
 		/// <param name="arg0">Parameter to format (placeholder {0}).</param>
-        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, CKTag tags, string format, object arg0 )
+        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, CKTrait tags, string format, object arg0 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
@@ -221,7 +221,7 @@ namespace CK.Core
 		/// <param name="format">The text format of the log with 2 placeholders.</param>
 		/// <param name="arg0">Parameter to format (placeholder {0}).</param>
 		/// <param name="arg1">Parameter to format (placeholder {1}).</param>
-        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, CKTag tags, string format, object arg0, object arg1 )
+        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, CKTrait tags, string format, object arg0, object arg1 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
@@ -237,7 +237,7 @@ namespace CK.Core
 		/// <param name="arg0">Parameter to format (placeholder {0}).</param>
 		/// <param name="arg1">Parameter to format (placeholder {1}).</param>
 		/// <param name="arg2">Parameter to format (placeholder {2}).</param>
-        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, CKTag tags, string format, object arg0, object arg1, object arg2 )
+        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, CKTrait tags, string format, object arg0, object arg1, object arg2 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
@@ -254,7 +254,7 @@ namespace CK.Core
 		/// <param name="arg1">Parameter to format (placeholder {1}).</param>
 		/// <param name="arg2">Parameter to format (placeholder {2}).</param>
 		/// <param name="arg3">Parameter to format (placeholder {3}).</param>
-        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, CKTag tags, string format, object arg0, object arg1, object arg2, object arg3 )
+        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, CKTrait tags, string format, object arg0, object arg1, object arg2, object arg3 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
@@ -268,7 +268,7 @@ namespace CK.Core
 		/// <param name="tags">Tags for the log.</param>
 		/// <param name="format">The text format of the log with 5 placeholders.</param>
 		/// <param name="arguments">Multiple parameters to format.</param>
-        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, CKTag tags, string format, params object[] arguments )
+        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, CKTrait tags, string format, params object[] arguments )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
@@ -282,7 +282,7 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitorGroupSender"/> object.</param>
 		/// <param name="tags">Tags for the log.</param> 
         /// <param name="text">Function that returns a string. Must not be null.</param>
-        public static IDisposableGroup Send( this IActivityMonitorGroupSender @this, CKTag tags, Func<string> text )
+        public static IDisposableGroup Send( this IActivityMonitorGroupSender @this, CKTrait tags, Func<string> text )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( null, tags, text == null ? null : text() );
@@ -297,7 +297,7 @@ namespace CK.Core
 		/// <param name="tags">Tags for the log.</param> 
         /// <param name="text">Function that returns a string. Must not be null.</param>
         /// <param name="param">Parameter of the <paramref name="text"/> delegate.</param>
-        public static IDisposableGroup Send<T>( this IActivityMonitorGroupSender @this, CKTag tags, Func<T,string> text, T param )
+        public static IDisposableGroup Send<T>( this IActivityMonitorGroupSender @this, CKTrait tags, Func<T,string> text, T param )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( null, tags, text == null ? null : text(param) );
@@ -314,7 +314,7 @@ namespace CK.Core
         /// <param name="text">Function that returns a string. Must not be null.</param>
         /// <param name="param1">First parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param2">Second parameter for the <paramref name="text"/> delegate.</param>
-        public static IDisposableGroup Send<T1,T2>( this IActivityMonitorGroupSender @this, CKTag tags, Func<T1,T2,string> text, T1 param1, T2 param2 )
+        public static IDisposableGroup Send<T1,T2>( this IActivityMonitorGroupSender @this, CKTrait tags, Func<T1,T2,string> text, T1 param1, T2 param2 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( null, tags, text == null ? null : text(param1,param2) );
@@ -333,7 +333,7 @@ namespace CK.Core
         /// <param name="param1">First parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param2">Second parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param3">Third parameter for the <paramref name="text"/> delegate.</param>
-        public static IDisposableGroup Send<T1,T2,T3>( this IActivityMonitorGroupSender @this, CKTag tags, Func<T1,T2,T3,string> text, T1 param1, T2 param2, T3 param3 )
+        public static IDisposableGroup Send<T1,T2,T3>( this IActivityMonitorGroupSender @this, CKTrait tags, Func<T1,T2,T3,string> text, T1 param1, T2 param2, T3 param3 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( null, tags, text == null ? null : text(param1,param2,param3) );
@@ -518,7 +518,7 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitorGroupSender"/> object.</param>
 		/// <param name="ex">The exception. Must not be null.</param>
 		/// <param name="tags">Tags for the log.</param>
-        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, Exception ex, CKTag tags )
+        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, Exception ex, CKTrait tags )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
@@ -532,7 +532,7 @@ namespace CK.Core
 		/// <param name="ex">The exception. Must not be null.</param>
 		/// <param name="tags">Tags for the log.</param>
 		/// <param name="text">The text of the log.</param>
-        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, Exception ex, CKTag tags, string text )
+        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, Exception ex, CKTrait tags, string text )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
@@ -547,7 +547,7 @@ namespace CK.Core
 		/// <param name="tags">Tags for the log.</param>
 		/// <param name="format">The text format of the log with 1 placeholders.</param>
 		/// <param name="arg0">Parameter to format (placeholder {0}).</param>
-        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, Exception ex, CKTag tags, string format, object arg0 )
+        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, Exception ex, CKTrait tags, string format, object arg0 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
@@ -563,7 +563,7 @@ namespace CK.Core
 		/// <param name="format">The text format of the log with 2 placeholders.</param>
 		/// <param name="arg0">Parameter to format (placeholder {0}).</param>
 		/// <param name="arg1">Parameter to format (placeholder {1}).</param>
-        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, Exception ex, CKTag tags, string format, object arg0, object arg1 )
+        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, Exception ex, CKTrait tags, string format, object arg0, object arg1 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
@@ -580,7 +580,7 @@ namespace CK.Core
 		/// <param name="arg0">Parameter to format (placeholder {0}).</param>
 		/// <param name="arg1">Parameter to format (placeholder {1}).</param>
 		/// <param name="arg2">Parameter to format (placeholder {2}).</param>
-        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, Exception ex, CKTag tags, string format, object arg0, object arg1, object arg2 )
+        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, Exception ex, CKTrait tags, string format, object arg0, object arg1, object arg2 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
@@ -598,7 +598,7 @@ namespace CK.Core
 		/// <param name="arg1">Parameter to format (placeholder {1}).</param>
 		/// <param name="arg2">Parameter to format (placeholder {2}).</param>
 		/// <param name="arg3">Parameter to format (placeholder {3}).</param>
-        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, Exception ex, CKTag tags, string format, object arg0, object arg1, object arg2, object arg3 )
+        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, Exception ex, CKTrait tags, string format, object arg0, object arg1, object arg2, object arg3 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
@@ -613,7 +613,7 @@ namespace CK.Core
 		/// <param name="tags">Tags for the log.</param>
 		/// <param name="format">The text format of the log with 5 placeholders.</param>
 		/// <param name="arguments">Multiple parameters to format.</param>
-        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, Exception ex, CKTag tags, string format, params object[] arguments )
+        static public IDisposableGroup Send( this IActivityMonitorGroupSender @this, Exception ex, CKTrait tags, string format, params object[] arguments )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
@@ -628,7 +628,7 @@ namespace CK.Core
 		/// <param name="ex">The exception. Must not be null.</param>
 		/// <param name="tags">Tags for the log.</param> 
         /// <param name="text">Function that returns a string. Must not be null.</param>
-        public static IDisposableGroup Send( this IActivityMonitorGroupSender @this, Exception ex, CKTag tags, Func<string> text )
+        public static IDisposableGroup Send( this IActivityMonitorGroupSender @this, Exception ex, CKTrait tags, Func<string> text )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( ex, tags, text == null ? null : text() );
@@ -644,7 +644,7 @@ namespace CK.Core
 		/// <param name="tags">Tags for the log.</param> 
         /// <param name="text">Function that returns a string. Must not be null.</param>
         /// <param name="param">Parameter of the <paramref name="text"/> delegate.</param>
-        public static IDisposableGroup Send<T>( this IActivityMonitorGroupSender @this, Exception ex, CKTag tags, Func<T,string> text, T param )
+        public static IDisposableGroup Send<T>( this IActivityMonitorGroupSender @this, Exception ex, CKTrait tags, Func<T,string> text, T param )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( ex, tags, text == null ? null : text(param) );
@@ -662,7 +662,7 @@ namespace CK.Core
         /// <param name="text">Function that returns a string. Must not be null.</param>
         /// <param name="param1">First parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param2">Second parameter for the <paramref name="text"/> delegate.</param>
-        public static IDisposableGroup Send<T1,T2>( this IActivityMonitorGroupSender @this, Exception ex, CKTag tags, Func<T1,T2,string> text, T1 param1, T2 param2 )
+        public static IDisposableGroup Send<T1,T2>( this IActivityMonitorGroupSender @this, Exception ex, CKTrait tags, Func<T1,T2,string> text, T1 param1, T2 param2 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( ex, tags, text == null ? null : text(param1,param2) );
@@ -682,7 +682,7 @@ namespace CK.Core
         /// <param name="param1">First parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param2">Second parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param3">Third parameter for the <paramref name="text"/> delegate.</param>
-        public static IDisposableGroup Send<T1,T2,T3>( this IActivityMonitorGroupSender @this, Exception ex, CKTag tags, Func<T1,T2,T3,string> text, T1 param1, T2 param2, T3 param3 )
+        public static IDisposableGroup Send<T1,T2,T3>( this IActivityMonitorGroupSender @this, Exception ex, CKTrait tags, Func<T1,T2,T3,string> text, T1 param1, T2 param2, T3 param3 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( ex, tags, text == null ? null : text(param1,param2,param3) );

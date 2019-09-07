@@ -42,7 +42,7 @@ namespace CK.Core.Tests.Monitoring
             {
             }
 
-            public void OnAutoTagsChanged( CKTag newTag )
+            public void OnAutoTagsChanged( CKTrait newTrait )
             {
             }
         }

@@ -78,7 +78,7 @@ namespace CodeCake
                    // Replaces CK.Text with its old version v6.0.0 in Net451.
                    System.IO.File.Copy( binPath + "CK.Text.dll", binPath + "CK.Text.dll.backup", true );
                    System.IO.File.Copy( "CodeCakeBuilder/WeakBindingTestSupport/CK.Text.dll.v6.0.0.Net451.bin", binPath + "CK.Text.dll", true );
-                   // CK.Core v12 breaks the compatibility because of the Tag that replace the Trait. 
+                   // CK.Core v12 breaks the compatibility because of the new CKTraitContext.Create factory method. 
                    //// Replaces CK.Core.dll with its old version v9.0.0 in Net461.
                    //System.IO.File.Copy( binPath + "CK.Core.dll", binPath + "CK.Core.dll.backup", true );
                    //System.IO.File.Copy( "CodeCakeBuilder/WeakBindingTestSupport/CK.Core.dll.v9.0.0.Net461.bin", binPath + "CK.Core.dll", true );
@@ -116,7 +116,7 @@ namespace CodeCake
                    // Replaces CK.Text with its old version v6.0.0 in Net451.
                    System.IO.File.Copy( binPath + "CK.Text.dll", binPath + "CK.Text.dll.backup", true );
                    System.IO.File.Copy( "CodeCakeBuilder/WeakBindingTestSupport/CK.Text.dll.v6.0.0.netstandard1.3.bin", binPath + "CK.Text.dll", true );
-                   // CK.Core v12 breaks the compatibility because of the Tag that replace the Trait. 
+                   // CK.Core v12 breaks the compatibility because of the new CKTraitContext.Create factory method. 
                    //// Replaces CK.Core.dll with its old version v9.0.0 in Net461.
                    //System.IO.File.Copy( binPath + "CK.Core.dll", binPath + "CK.Core.dll.backup", true );
                    //System.IO.File.Copy( "CodeCakeBuilder/WeakBindingTestSupport/CK.Core.dll.v9.0.0.netstandard2.0.bin", binPath + "CK.Core.dll", true );

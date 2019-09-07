@@ -25,7 +25,7 @@ namespace CK.Core
         /// <summary>
         /// Tags group conclusions emitted because of premature (unbalanced) removing of a bridge from a source monitor.
         /// </summary>
-        public static readonly CKTag TagBridgePrematureClose = ActivityMonitor.Tags.Register( "c:ClosedByBridgeRemoved" );
+        public static readonly CKTrait TagBridgePrematureClose = ActivityMonitor.Tags.Register( "c:ClosedByBridgeRemoved" );
 
         /// <summary>
         /// Initialize a new <see cref="ActivityMonitorBridge"/> bound to an existing <see cref="ActivityMonitorBridgeTarget"/>
@@ -84,7 +84,7 @@ namespace CK.Core
             _source.SetTopic( newTopic, fileName, lineNumber );
         }
 
-        void IActivityMonitorBridgeCallback.OnTargetAutoTagsChanged( CKTag newTags )
+        void IActivityMonitorBridgeCallback.OnTargetAutoTagsChanged( CKTrait newTags )
         {
             _source.AutoTags = newTags;
         }
@@ -202,7 +202,7 @@ namespace CK.Core
             if( _pushTopicAndAutoTagsToTarget ) _bridgeTarget.SetTopic( newTopic, fileName, lineNumber );
         }
 
-        void IActivityMonitorClient.OnAutoTagsChanged( CKTag newTags )
+        void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTags )
         {
             if( _pushTopicAndAutoTagsToTarget )
             {
