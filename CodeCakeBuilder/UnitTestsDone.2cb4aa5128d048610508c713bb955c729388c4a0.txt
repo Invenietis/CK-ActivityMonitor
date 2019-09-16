@@ -1,2 +1,0 @@
-C:/Dev/CK/CK-Core-Projects/CK-ActivityMonitor/Tests/CK.ActivityMonitor.Tests/bin/Debug/net461/CK.ActivityMonitor.Tests.dll
-C:/Dev/CK/CK-Core-Projects/CK-ActivityMonitor/Tests/CK.ActivityMonitor.Tests/bin/Debug/netcoreapp2.1/CK.ActivityMonitor.Tests.dll
