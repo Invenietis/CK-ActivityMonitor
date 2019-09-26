@@ -78,9 +78,10 @@ namespace CodeCake
                    // Replaces CK.Text with its old version v6.0.0 in Net451.
                    System.IO.File.Copy( binPath + "CK.Text.dll", binPath + "CK.Text.dll.backup", true );
                    System.IO.File.Copy( "CodeCakeBuilder/WeakBindingTestSupport/CK.Text.dll.v6.0.0.Net451.bin", binPath + "CK.Text.dll", true );
-                   // Replaces CK.Core.dll with its old version v9.0.0 in Net461.
-                   System.IO.File.Copy( binPath + "CK.Core.dll", binPath + "CK.Core.dll.backup", true );
-                   System.IO.File.Copy( "CodeCakeBuilder/WeakBindingTestSupport/CK.Core.dll.v9.0.0.Net461.bin", binPath + "CK.Core.dll", true );
+                   // CK.Core v12 breaks the compatibility because of the new CKTraitContext.Create factory method. 
+                   //// Replaces CK.Core.dll with its old version v9.0.0 in Net461.
+                   //System.IO.File.Copy( binPath + "CK.Core.dll", binPath + "CK.Core.dll.backup", true );
+                   //System.IO.File.Copy( "CodeCakeBuilder/WeakBindingTestSupport/CK.Core.dll.v9.0.0.Net461.bin", binPath + "CK.Core.dll", true );
                    try
                    {
                        var fName = System.IO.Path.GetFullPath( binPath + "WeakNameConsole.exe" );
@@ -90,11 +91,11 @@ namespace CodeCake
                            foundMonitorTrace |= output.Contains( "From inside WeakNameConsole." );
                        } );
                        if( !foundMonitorTrace ) Cake.TerminateWithError( "'From inside WeakNameConsole.' logged not found in output." );
-                       if( conflictCount != 2 ) Cake.TerminateWithError( "Assembly binding failed (Expected CK.Text and CK.Core weak bindings)." );
+                       if( conflictCount != 1 ) Cake.TerminateWithError( "Assembly binding failed (Expected CK.Text weak bindings)." );
                    }
                    finally
                    {
-                       System.IO.File.Copy( binPath + "CK.Core.dll.backup", binPath + "CK.Core.dll", true );
+                       //System.IO.File.Copy( binPath + "CK.Core.dll.backup", binPath + "CK.Core.dll", true );
                        System.IO.File.Copy( binPath + "CK.Text.dll.backup", binPath + "CK.Text.dll", true );
                    }
                } );
@@ -115,9 +116,10 @@ namespace CodeCake
                    // Replaces CK.Text with its old version v6.0.0 in Net451.
                    System.IO.File.Copy( binPath + "CK.Text.dll", binPath + "CK.Text.dll.backup", true );
                    System.IO.File.Copy( "CodeCakeBuilder/WeakBindingTestSupport/CK.Text.dll.v6.0.0.netstandard1.3.bin", binPath + "CK.Text.dll", true );
-                   // Replaces CK.Core.dll with its old version v9.0.0 in Net461.
-                   System.IO.File.Copy( binPath + "CK.Core.dll", binPath + "CK.Core.dll.backup", true );
-                   System.IO.File.Copy( "CodeCakeBuilder/WeakBindingTestSupport/CK.Core.dll.v9.0.0.netstandard2.0.bin", binPath + "CK.Core.dll", true );
+                   // CK.Core v12 breaks the compatibility because of the new CKTraitContext.Create factory method. 
+                   //// Replaces CK.Core.dll with its old version v9.0.0 in Net461.
+                   //System.IO.File.Copy( binPath + "CK.Core.dll", binPath + "CK.Core.dll.backup", true );
+                   //System.IO.File.Copy( "CodeCakeBuilder/WeakBindingTestSupport/CK.Core.dll.v9.0.0.netstandard2.0.bin", binPath + "CK.Core.dll", true );
                    try
                    {
                        var fName = System.IO.Path.GetFullPath( binPath + "WeakNameConsole.dll" );
@@ -127,12 +129,11 @@ namespace CodeCake
                            foundMonitorTrace |= output.Contains( "From inside WeakNameConsole." );
                        } );
                        if( !foundMonitorTrace ) Cake.TerminateWithError( "'From inside WeakNameConsole.' logged not found in output." );
-                       if( conflictCount == 0 ) Cake.Warning( "At least one Assembly binding conflict should have been detected (Expected CK.Text or CK.Core weak bindings)." );
-                       if( conflictCount == 1 ) Cake.Warning( "Only one Assembly binding conflict detected (should be CK.Text and CK.Core)." );
+                       if( conflictCount == 0 ) Cake.Warning( "At least one Assembly binding conflict should have been detected (Expected CK.Text weak bindings)." );
                    }
                    finally
                    {
-                       System.IO.File.Copy( binPath + "CK.Core.dll.backup", binPath + "CK.Core.dll", true );
+                       //System.IO.File.Copy( binPath + "CK.Core.dll.backup", binPath + "CK.Core.dll", true );
                        System.IO.File.Copy( binPath + "CK.Text.dll.backup", binPath + "CK.Text.dll", true );
                    }
                } );

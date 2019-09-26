@@ -86,14 +86,11 @@ namespace CK.Core
             /// </summary>
             /// <param name="tags">Atomic tag or multiple tags separated by pipes (|).</param>
             /// <returns>Registered tags.</returns>
-            static public CKTrait Register( string tags )
-            {
-                return Context.FindOrCreate( tags );
-            }
+            static public CKTrait Register( string tags ) => Context.FindOrCreate( tags );
 
             static Tags()
             {
-                Context = new CKTraitContext( "ActivityMonitor" );
+                Context = CKTraitContext.Create( "ActivityMonitor" );
                 Empty = Context.EmptyTrait;
                 UserConclusion = Context.FindOrCreate( "c:User" );
                 GetTextConclusion = Context.FindOrCreate( "c:GetText" );
