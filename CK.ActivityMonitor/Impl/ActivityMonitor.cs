@@ -888,11 +888,11 @@ namespace CK.Core
             {
                 if( alreadyEnteredId == currentThreadId )
                 {
-                    throw new InvalidOperationException( ActivityMonitorResources.ActivityMonitorReentrancyError );
+                    throw new CKException( ActivityMonitorResources.ActivityMonitorReentrancyError, _uniqueId);
                 }
                 else
                 {
-                    throw new InvalidOperationException( ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess );
+                    throw new CKException( ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess, _uniqueId );
                 }
             }
         }
@@ -915,7 +915,7 @@ namespace CK.Core
                 }
                 else
                 {
-                    throw new InvalidOperationException( ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess );
+                    throw new CKException( ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess, _uniqueId );
                 }
             }
             return true;
@@ -932,7 +932,7 @@ namespace CK.Core
             int currentThreadId = Thread.CurrentThread.ManagedThreadId;
             if( Interlocked.CompareExchange( ref _enteredThreadId, 0, currentThreadId ) != currentThreadId )
             {
-                throw new CKException( ActivityMonitorResources.ActivityMonitorReentrancyReleaseError, _enteredThreadId, Thread.CurrentThread.Name, currentThreadId );
+                throw new CKException( ActivityMonitorResources.ActivityMonitorReentrancyReleaseError, _enteredThreadId, Thread.CurrentThread.Name, currentThreadId, _uniqueId );
             }
         }
 

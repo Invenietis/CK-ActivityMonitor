@@ -20,7 +20,7 @@ namespace CK.Core.Tests.Monitoring
             var m = new ActivityMonitor( false );
             m.MinimalFilter = LogFilter.Trace;
             StringBuilder b = new StringBuilder();
-            var client = new ActivityMonitorTextWriterClient( s => b.Append( s ) );
+            var client = new ActivityMonitorTextWriterClient( s => b.Append( s ), LogFilter.Undefined, '|' );
             m.Output.RegisterClient( client );
             using( TestHelper.Monitor.TemporarilySetMinimalFilter( LogFilter.Trace ) )
             using( m.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )

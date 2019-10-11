@@ -48,7 +48,7 @@ namespace CK.Core.Tests.Monitoring
                 using( _source.ReentrancyAndConcurrencyLock() )
                 {
                     _source.Invoking( sut => sut.ReentrancyAndConcurrencyLock() )
-                           .Should().Throw<InvalidOperationException>( "Reentrant lock can be obtained only once." );
+                           .Should().Throw<CKException>( "Reentrant lock can be obtained only once." );
                     Thread.Sleep( SleepTime );
                     _source.InternalMonitor.Info( "Talk: " + msg );
                     if( SleepTime != TimeSpan.Zero ) _source.InternalMonitor.Info( $"SleepTime: {SleepTime}." );
