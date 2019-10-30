@@ -122,8 +122,8 @@ namespace CK.Core.Tests.Monitoring
                 client.WaitForOnUnfilteredLog();
 
                 monitor.Invoking( sut => sut.Info().Send( "Test must fail" ) )
-                       .Should().Throw<InvalidOperationException>()
-                       .WithMessage( Impl.ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess );
+                       .Should().Throw<CKException>()
+                       .WithMessage( Impl.ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess.Replace( "{0}", "*" ) );
 
                 monitor.Output.Clients.Should().HaveCount( clientCount, $"Still {clientCount}: Concurrent call: not the fault of the Client." );
             }
@@ -139,8 +139,8 @@ namespace CK.Core.Tests.Monitoring
             monitor.Output.RegisterClient( new ActionActivityMonitorClient( () =>
               {
                   monitor.Invoking( sut => sut.Info().Send( "Test must fail reentrant client" ) )
-                         .Should().Throw<InvalidOperationException>()
-                         .WithMessage( Impl.ActivityMonitorResources.ActivityMonitorReentrancyError );
+                         .Should().Throw<CKException>()
+                         .WithMessage( Impl.ActivityMonitorResources.ActivityMonitorReentrancyError.Replace( "{0}", "*" ) );
               } ) );
 
             monitor.Info().Send( "Test must work after reentrant client" );
@@ -200,7 +200,7 @@ namespace CK.Core.Tests.Monitoring
 
             tasks.Where( x => x.IsFaulted )
                  .SelectMany( x => x.Exception.Flatten().InnerExceptions )
-                 .Should().AllBeOfType<InvalidOperationException>();
+                 .Should().AllBeOfType<CKException>();
 
             monitor.Info().Send( "Test" );
         }

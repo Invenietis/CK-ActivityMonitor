@@ -44,7 +44,7 @@ namespace CK.Core
 
         static ActivityMonitorTextHelperClient()
         {
-            //preload cache with 20 depth
+            // Preload cache with 20 depths.
             _prefixGroupDepthCache = new string[20];
             _prefixGroupDepthCache[0] = "";
             for( int i = 1; i < _prefixGroupDepthCache.Length; i++ )
