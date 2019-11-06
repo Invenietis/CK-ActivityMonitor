@@ -16,6 +16,13 @@ namespace CK.Core
         {
             if( monitor == null ) throw new ArgumentNullException( nameof( monitor ) );
             Monitor = monitor;
+        }        
+        
+        /// <summary>
+        /// Initializes a new <see cref="EventMonitoredArgs"/> with no monitor.
+        /// </summary>
+        protected EventMonitoredArgs()
+        {
         }
 
         /// <summary>
