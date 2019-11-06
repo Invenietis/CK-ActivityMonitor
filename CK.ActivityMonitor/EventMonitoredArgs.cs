@@ -20,8 +20,9 @@ namespace CK.Core
 
         /// <summary>
         /// Gets the monitor that should be used while processing the event.
-        /// Specialized classes may need to set this monitor when implementing shared, pooled, reusable event arguments.
+        /// Specialized classes may need to set this monitor when implementing shared, pooled, reusable event arguments
+        /// or to override this default getter implementation.
         /// </summary>
-        public IActivityMonitor Monitor { get; protected set; }
+        public virtual IActivityMonitor Monitor { get; protected set; }
     }
 }
