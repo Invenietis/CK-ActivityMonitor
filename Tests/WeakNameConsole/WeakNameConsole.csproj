@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <IsPackable>False</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CK.WeakAssemblyNameResolver" Version="0.6.0-a" />
+    <PackageReference Include="CK.WeakAssemblyNameResolver" Version="0.6.0-a00-00-0011-develop" />
     <ProjectReference Include="..\..\CK.ActivityMonitor.SimpleSender\CK.ActivityMonitor.SimpleSender.csproj" />
   </ItemGroup>
 </Project>
