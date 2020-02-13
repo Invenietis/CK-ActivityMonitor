@@ -21,13 +21,8 @@
 *-----------------------------------------------------------------------------*/
 #endregion
 
-using CK.Text;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using CK.Text;
 
 namespace CK.Core
 {
@@ -36,8 +31,9 @@ namespace CK.Core
     /// This value type exposes predefined configured couples: <see cref="Debug"/>, <see cref="Trace"/> (full trace), <see cref="Verbose"/>, <see cref="Monitor"/>, 
     /// <see cref="Terse"/>, <see cref="Release"/> and <see cref="Off"/> (no log at all).
     /// </summary>
+    [System.ComponentModel.TypeConverter( typeof( LogFilterTypeConverter ) )]
     [Serializable]
-    public struct LogFilter
+    public readonly struct LogFilter
     {
         /// <summary>
         /// Undefined filter is <see cref="LogLevelFilter.None"/> for both <see cref="Line"/> and <see cref="Group"/>.
