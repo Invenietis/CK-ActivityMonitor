@@ -1,4 +1,4 @@
-﻿#region LGPL License
+#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\SourceLogFilter.cs) is part of CiviKey. 
 *  
@@ -32,7 +32,7 @@ namespace CK.Core
     /// <summary>
     /// Immutable encapsulation of the two source filters: this enables overriding or filtering per source file.
     /// </summary>
-    public struct SourceLogFilter
+    public readonly struct SourceLogFilter
     {
         /// <summary>
         /// Undefined filter is <see cref="LogFilter.Undefined"/> for both <see cref="Override"/> and <see cref="Minimal"/>.
