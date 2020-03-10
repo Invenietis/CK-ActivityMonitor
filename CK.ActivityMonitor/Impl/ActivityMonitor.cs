@@ -190,7 +190,7 @@ namespace CK.Core
         int _enteredThreadId;
         string _topic;
         //
-        volatile string _currentStackTraceString;
+        volatile StackTrace _currentStackTrace;
         bool _trackStackTrace;
 
         /// <summary>
@@ -908,12 +908,12 @@ namespace CK.Core
                 }
                 else
                 {
-                    ThrowConcurrentThreadAccessException( currentThreadId );
+                    ThrowConcurrentThreadAccessException( ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess, currentThreadId );
                 }
             }
             if( _trackStackTrace )
             {
-                _currentStackTraceString = AddCurrentStackTrace( new StackTrace( 3, true ) );
+                _currentStackTrace = new StackTrace( 3, true );
             }
         }
 
@@ -935,24 +935,24 @@ namespace CK.Core
                 }
                 else
                 {
-                    ThrowConcurrentThreadAccessException( currentThreadId );
+                    ThrowConcurrentThreadAccessException( ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess, currentThreadId );
                 }
             }
             if( _trackStackTrace )
             {
-                _currentStackTraceString = AddCurrentStackTrace( new StackTrace( 3, true ) );
+                _currentStackTrace = new StackTrace( 3, true );
             }
             return true;
         }
 
-        private void ThrowConcurrentThreadAccessException( int currentThreadId )
+        private void ThrowConcurrentThreadAccessException( string messageFormat, int currentThreadId )
         {
-            while( _trackStackTrace && _currentStackTraceString == null )
+            while( _trackStackTrace && _currentStackTrace == null )
             {
                 Thread.Yield();
             }
-            var msg = String.Format( ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess, _uniqueId, currentThreadId, _enteredThreadId );
-            msg += _currentStackTraceString;
+            var msg = String.Format( messageFormat, _uniqueId, currentThreadId, _enteredThreadId );
+            if( _trackStackTrace ) msg = AddCurrentStackTrace( msg );
             throw new CKException( msg );
         }
 
@@ -966,24 +966,24 @@ namespace CK.Core
             int currentThreadId = Thread.CurrentThread.ManagedThreadId;
             if( Interlocked.CompareExchange( ref _enteredThreadId, 0, currentThreadId ) != currentThreadId )
             {
-                var msg = String.Format( ActivityMonitorResources.ActivityMonitorReentrancyReleaseError, _uniqueId, currentThreadId, _enteredThreadId );
-                msg += _currentStackTraceString;
-                throw new CKException( msg );
+                ThrowConcurrentThreadAccessException( ActivityMonitorResources.ActivityMonitorReentrancyReleaseError, currentThreadId );
             }
-            _currentStackTraceString = null;
+           _currentStackTrace = null;
         }
 
-        string AddCurrentStackTrace( StackTrace st )
+        string AddCurrentStackTrace( string msg )
         {
-            StringBuilder b = new StringBuilder();
-            for( int i = 0; i < st.FrameCount; ++i )
+            bool inLogs = false;
+            StringBuilder b = new StringBuilder( msg );
+            for( int i = 0; i < _currentStackTrace.FrameCount; ++i )
             {
-                var f = st.GetFrame( i );
+                var f = _currentStackTrace.GetFrame( i );
                 var m = f.GetMethod();
                 var t = m.DeclaringType;
-                if( b.Length != 0 || t.Assembly != typeof(ActivityMonitor).Assembly )
+                if( inLogs || t.Assembly != typeof(ActivityMonitor).Assembly )
                 {
-                    if( b.Length == 0 ) b.AppendLine().Append( "-- Other Monitor's StackTrace (" ).Append( st.FrameCount - i ).Append( " frames):" ).AppendLine();
+                    if( !inLogs ) b.AppendLine().Append( "-- Other Monitor's StackTrace (" ).Append( _currentStackTrace.FrameCount - i ).Append( " frames):" ).AppendLine();
+                    inLogs = true;
                     b.Append( t.FullName ).Append( '.' ).Append( m.Name )
                      .Append( " at " )
                      .Append( f.GetFileName() ).Append( " (" ).Append( f.GetFileLineNumber() ).Append(',').Append( f.GetFileColumnNumber() ).Append(')')
