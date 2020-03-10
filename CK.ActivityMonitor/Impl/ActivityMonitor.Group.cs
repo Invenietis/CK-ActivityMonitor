@@ -76,6 +76,7 @@ namespace CK.Core
             {
                 SavedMonitorFilter = Monitor._configuredFilter;
                 SavedMonitorTags = Monitor._currentTag;
+                SavedTrackStackTrace = Monitor._trackStackTrace;
                 if( (_unfilteredParent = Monitor._currentUnfiltered) != null ) _depth = _unfilteredParent._depth + 1;
                 else _depth = 1;
                 // Logs everything when a Group is a fatal or an error: we then have full details available without
@@ -92,6 +93,7 @@ namespace CK.Core
             {
                 SavedMonitorFilter = Monitor._configuredFilter;
                 SavedMonitorTags = Monitor._currentTag;
+                SavedTrackStackTrace = Monitor._trackStackTrace;
                 _unfilteredParent = Monitor._currentUnfiltered;
                 _depth = 0;
                 _data = _rejectedGroupDataInstance;
@@ -174,6 +176,12 @@ namespace CK.Core
             /// Initialized with the current value of IActivityMonitor.Filter when the group has been opened.
             /// </summary>
             public LogFilter SavedMonitorFilter { get; private set; }
+
+            /// <summary>
+            /// Internal memory of whether the <see cref="Tags.StackTrace"/> tag exists in <see cref="IActivityMonitor.AutoTags"/>
+            /// that will be restored when the group is closed.
+            /// </summary>
+            internal bool SavedTrackStackTrace { get; private set; }
 
             /// <summary>
             /// Gets or sets the <see cref="IActivityMonitor.AutoTags"/> that will be restored when group will be closed.
