@@ -248,14 +248,23 @@ namespace CK.Core.Tests.Monitoring
             //using( monitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
             {
                 CheckConccurrentException( monitor, false );
-                monitor.AutoTags = monitor.AutoTags.Union( ActivityMonitor.Tags.StackTrace );
+                // This activates the Concurrent Access stack trace capture.
+                monitor.AutoTags += ActivityMonitor.Tags.StackTrace;
                 CheckConccurrentException( monitor, true );
                 using( monitor.OpenInfo( $"No more Stack in this group." ) )
                 {
-                    monitor.AutoTags = monitor.AutoTags.Except( ActivityMonitor.Tags.StackTrace );
+                    // This removes the tracking.
+                    monitor.AutoTags -= ActivityMonitor.Tags.StackTrace;
                     CheckConccurrentException( monitor, false );
                 }
                 // AutoTags are preserved (just like MinimalFilter).
+
+                // To test if the StackTrace is enabled:
+                // 1 - The Contains method can be used on the Atomic traits...
+                monitor.AutoTags.AtomicTraits.Contains( ActivityMonitor.Tags.StackTrace ).Should().BeTrue();
+                // 2 - ...or the & (Intersect) operator can do the job.
+                ((monitor.AutoTags & ActivityMonitor.Tags.StackTrace) == ActivityMonitor.Tags.StackTrace).Should().BeTrue();
+
                 CheckConccurrentException( monitor, true );
                 monitor.AutoTags = monitor.AutoTags.Except( ActivityMonitor.Tags.StackTrace );
                 CheckConccurrentException( monitor, false );
