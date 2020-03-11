@@ -121,9 +121,10 @@ namespace CK.Core.Tests.Monitoring
 
                 client.WaitForOnUnfilteredLog();
 
+                var expectedMessage = Impl.ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess.Replace( "{0}", "*" ).Replace( "{1}", "*" ).Replace( "{2}", "*" );
                 monitor.Invoking( sut => sut.Info().Send( "Test must fail" ) )
                        .Should().Throw<CKException>()
-                       .WithMessage( Impl.ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess.Replace( "{0}", "*" ) );
+                       .WithMessage( expectedMessage );
 
                 monitor.Output.Clients.Should().HaveCount( clientCount, $"Still {clientCount}: Concurrent call: not the fault of the Client." );
             }
@@ -157,13 +158,41 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Test]
+        public void simple_reentrancy_detection()
+        {
+            IActivityMonitor monitor = new ActivityMonitor();
+            using( monitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
+            {
+                int clientCount = monitor.Output.Clients.Count;
+                monitor.Output.Clients.Should().HaveCount( clientCount );
+
+                BuggyActivityMonitorClient client = new BuggyActivityMonitorClient( monitor );
+                monitor.Output.RegisterClient( client );
+                monitor.Output.Clients.Should().HaveCount( clientCount + 1 );
+                monitor.Info().Send( "Test" );
+                ActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
+                monitor.Output.Clients.Should().HaveCount( clientCount );
+
+                monitor.Info().Send( "Test" );
+            }
+        }
+
+        [Test]
         public void concurrent_access_are_detected()
         {
             IActivityMonitor monitor = new ActivityMonitor();
             if( TestHelper.LogsToConsole ) monitor.Output.RegisterClient( new ActivityMonitorConsoleClient() );
+
             // Artficially slows down logging to ensure that concurrent access occurs.
             monitor.Output.RegisterClient( new ActionActivityMonitorClient( () => Thread.Sleep( 50 ) ) );
+            AggregateException ex = ConcurrentThrow( monitor );
+            ex.Should().NotBeNull();
 
+            monitor.Info().Send( "Test" );
+        }
+
+        static AggregateException ConcurrentThrow( IActivityMonitor monitor )
+        {
             object lockTasks = new object();
             object lockRunner = new object();
             int enteredThread = 0;
@@ -186,42 +215,74 @@ namespace CK.Core.Tests.Monitoring
                 new Task( () => { getLock(); monitor.Info().Send( "Test T3" ); } )
             };
 
-            Parallel.ForEach( tasks, t => t.Start() );
+            try
+            {
+                foreach( var t in tasks ) t.Start();
 
-            lock( lockRunner )
-                while( enteredThread < tasks.Length )
-                    Monitor.Wait( lockRunner );
+                lock( lockRunner )
+                    while( enteredThread < tasks.Length )
+                        Monitor.Wait( lockRunner );
 
-            lock( lockTasks )
-                Monitor.PulseAll( lockTasks );
+                lock( lockTasks )
+                    Monitor.PulseAll( lockTasks );
 
-            Action fail = () => Task.WaitAll( tasks );
-            fail.Should().Throw<AggregateException>();
-
-            tasks.Where( x => x.IsFaulted )
-                 .SelectMany( x => x.Exception.Flatten().InnerExceptions )
-                 .Should().AllBeOfType<CKException>();
-
-            monitor.Info().Send( "Test" );
+                Task.WaitAll( tasks );
+            }
+            catch( AggregateException ex )
+            {
+                tasks.Where( x => x.IsFaulted )
+                     .SelectMany( x => x.Exception.Flatten().InnerExceptions )
+                     .Should().AllBeOfType<CKException>();
+                return ex;
+            }
+            return null;
         }
 
         [Test]
-        public void simple_reentrancy_detection()
+        public void StackTrace_is_available_on_concurrent_errors_thanks_to_the_StackTrace_tag()
         {
             IActivityMonitor monitor = new ActivityMonitor();
-            using( monitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
+            // Artficially slows down logging to ensure that concurrent access occurs.
+            monitor.Output.RegisterClient( new ActionActivityMonitorClient( () => Thread.Sleep( 80 ) ) );
+            // Use a temporary bridge to redirect the logs to the TestHelper.Monitor.
+            //using( monitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
             {
-                int clientCount = monitor.Output.Clients.Count;
-                monitor.Output.Clients.Should().HaveCount( clientCount );
+                CheckConccurrentException( monitor, false );
+                // This activates the Concurrent Access stack trace capture.
+                monitor.AutoTags += ActivityMonitor.Tags.StackTrace;
+                CheckConccurrentException( monitor, true );
+                using( monitor.OpenInfo( $"No more Stack in this group." ) )
+                {
+                    // This removes the tracking.
+                    monitor.AutoTags -= ActivityMonitor.Tags.StackTrace;
+                    CheckConccurrentException( monitor, false );
+                }
+                // AutoTags are preserved (just like MinimalFilter).
 
-                BuggyActivityMonitorClient client = new BuggyActivityMonitorClient( monitor );
-                monitor.Output.RegisterClient( client );
-                monitor.Output.Clients.Should().HaveCount( clientCount + 1 );
-                monitor.Info().Send( "Test" );
-                ActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
-                monitor.Output.Clients.Should().HaveCount( clientCount );
+                // To test if the StackTrace is enabled:
+                // 1 - The Contains method can be used on the Atomic traits...
+                monitor.AutoTags.AtomicTraits.Contains( ActivityMonitor.Tags.StackTrace ).Should().BeTrue();
+                // 2 - ...or the & (Intersect) operator can do the job.
+                ((monitor.AutoTags & ActivityMonitor.Tags.StackTrace) == ActivityMonitor.Tags.StackTrace).Should().BeTrue();
 
-                monitor.Info().Send( "Test" );
+                CheckConccurrentException( monitor, true );
+                monitor.AutoTags = monitor.AutoTags.Except( ActivityMonitor.Tags.StackTrace );
+                CheckConccurrentException( monitor, false );
+            }
+
+            static void CheckConccurrentException( IActivityMonitor  m, bool mustHaveCallStack )
+            {
+                AggregateException ex = ConcurrentThrow( m );
+                ex.Should().NotBeNull();
+                CKException one = ex.Flatten().InnerExceptions.OfType<CKException>().First();
+                if( mustHaveCallStack )
+                {
+                    one.Message.Should().Contain( "-- Other Monitor's StackTrace" );
+                }
+                else
+                {
+                    one.Message.Should().NotContain( "-- Other Monitor's StackTrace" );
+                }
             }
         }
     }

@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using CK.Core.Impl;
 using System.Linq;
+using System.Text;
 
 namespace CK.Core
 {
@@ -82,6 +83,12 @@ namespace CK.Core
             static public readonly CKTrait InternalMonitor;
 
             /// <summary>
+            /// A "StackTrace" tag activates stack trace tracking and dumping when a concurrent access is detected.
+            /// logs.
+            /// </summary>
+            static public readonly CKTrait StackTrace;
+
+            /// <summary>
             /// Simple shortcut to <see cref="CKTraitContext.FindOrCreate(string)"/>.
             /// </summary>
             /// <param name="tags">Atomic tag or multiple tags separated by pipes (|).</param>
@@ -99,6 +106,7 @@ namespace CK.Core
                 StartDependentActivity = Context.FindOrCreate( "dep:StartActivity" );
                 MonitorEnd = Context.FindOrCreate("MonitorEnd");
                 InternalMonitor = Context.FindOrCreate( "m:Internal" );
+                StackTrace = Context.FindOrCreate( "StackTrace" );
             }
         }
 
@@ -181,6 +189,9 @@ namespace CK.Core
         CKTrait _currentTag;
         int _enteredThreadId;
         string _topic;
+        //
+        volatile StackTrace _currentStackTrace;
+        bool _trackStackTrace;
 
         /// <summary>
         /// Simple box around <see cref="DateTimeStamp"/> to be able to share it as needed.
@@ -245,6 +256,7 @@ namespace CK.Core
             _groups = new Group[8];
             for( int i = 0; i < _groups.Length; ++i ) _groups[i] = new Group( this, i );
             _currentTag = tags ?? Tags.Empty;
+            _trackStackTrace = _currentTag.AtomicTraits.Contains( Tags.StackTrace );
             _topic = String.Empty;
             _output = new ActivityMonitorOutput( this );
             if( applyAutoConfigurations )
@@ -348,6 +360,7 @@ namespace CK.Core
             Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
             Debug.Assert( newTags != null && _currentTag != newTags && newTags.Context == Tags.Context );
             _currentTag = newTags;
+            _trackStackTrace = _currentTag.AtomicTraits.Contains( Tags.StackTrace );
             _output.BridgeTarget.TargetAutoTagsChanged( newTags );
             MonoParameterSafeCall( ( client, tags ) => client.OnAutoTagsChanged( tags ), newTags );
         }
@@ -724,6 +737,7 @@ namespace CK.Core
             {
                 if( g.SavedMonitorFilter != _configuredFilter ) DoSetConfiguredFilter( g.SavedMonitorFilter );
                 _currentTag = g.SavedMonitorTags;
+                _trackStackTrace = g.SavedTrackStackTrace;
                 _current = g.Index > 0 ? _groups[g.Index - 1] : null;
             }
             else
@@ -784,6 +798,7 @@ namespace CK.Core
                 }
                 if( g.SavedMonitorFilter != _configuredFilter ) DoSetConfiguredFilter( g.SavedMonitorFilter );
                 _currentTag = g.SavedMonitorTags;
+                _trackStackTrace = g.SavedTrackStackTrace;
                 _current = g.Index > 0 ? _groups[g.Index - 1] : null;
                 _currentUnfiltered = (Group)g.Parent;
 
@@ -889,19 +904,23 @@ namespace CK.Core
             {
                 if( alreadyEnteredId == currentThreadId )
                 {
-                    throw new CKException( ActivityMonitorResources.ActivityMonitorReentrancyError, _uniqueId);
+                    throw new CKException( ActivityMonitorResources.ActivityMonitorReentrancyError, _uniqueId );
                 }
                 else
                 {
-                    throw new CKException( ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess, _uniqueId );
+                    ThrowConcurrentThreadAccessException( ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess, currentThreadId );
                 }
+            }
+            if( _trackStackTrace )
+            {
+                _currentStackTrace = new StackTrace( 3, true );
             }
         }
 
-
         /// <summary>
         /// Checks only for concurrency issues. 
-        /// False if a call already exists (reentrant call): when true is returned, ReentrantAndConcurrentRelease must be called.
+        /// False if a call already exists (reentrant call): when true is returned, ReentrantAndConcurrentRelease must be called
+        /// to cleanup the concurency detection internal state.
         /// </summary>
         /// <returns>False for a reentrant call, true otherwise.</returns>
         bool ConcurrentOnlyCheck()
@@ -916,15 +935,29 @@ namespace CK.Core
                 }
                 else
                 {
-                    throw new CKException( ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess, _uniqueId );
+                    ThrowConcurrentThreadAccessException( ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess, currentThreadId );
                 }
+            }
+            if( _trackStackTrace )
+            {
+                _currentStackTrace = new StackTrace( 3, true );
             }
             return true;
         }
 
+        private void ThrowConcurrentThreadAccessException( string messageFormat, int currentThreadId )
+        {
+            while( _trackStackTrace && _currentStackTrace == null )
+            {
+                Thread.Yield();
+            }
+            var msg = String.Format( messageFormat, _uniqueId, currentThreadId, _enteredThreadId );
+            if( _trackStackTrace ) msg = AddCurrentStackTrace( msg );
+            throw new CKException( msg );
+        }
+
         void ReentrantAndConcurrentRelease()
         {
-            Debug.Assert( Thread.CurrentThread.ManagedThreadId == _enteredThreadId );
             if( _internalMonitor != null && _internalMonitor.Recorder.History.Count > 0 )
             {
                 DoReplayInternalLogs();
@@ -933,9 +966,31 @@ namespace CK.Core
             int currentThreadId = Thread.CurrentThread.ManagedThreadId;
             if( Interlocked.CompareExchange( ref _enteredThreadId, 0, currentThreadId ) != currentThreadId )
             {
-                throw new CKException( ActivityMonitorResources.ActivityMonitorReentrancyReleaseError, _enteredThreadId, Thread.CurrentThread.Name, currentThreadId, _uniqueId );
+                ThrowConcurrentThreadAccessException( ActivityMonitorResources.ActivityMonitorReentrancyReleaseError, currentThreadId );
             }
+           _currentStackTrace = null;
         }
 
+        string AddCurrentStackTrace( string msg )
+        {
+            bool inLogs = false;
+            StringBuilder b = new StringBuilder( msg );
+            for( int i = 0; i < _currentStackTrace.FrameCount; ++i )
+            {
+                var f = _currentStackTrace.GetFrame( i );
+                var m = f.GetMethod();
+                var t = m.DeclaringType;
+                if( inLogs || t.Assembly != typeof(ActivityMonitor).Assembly )
+                {
+                    if( !inLogs ) b.AppendLine().Append( "-- Other Monitor's StackTrace (" ).Append( _currentStackTrace.FrameCount - i ).Append( " frames):" ).AppendLine();
+                    inLogs = true;
+                    b.Append( t.FullName ).Append( '.' ).Append( m.Name )
+                     .Append( " at " )
+                     .Append( f.GetFileName() ).Append( " (" ).Append( f.GetFileLineNumber() ).Append(',').Append( f.GetFileColumnNumber() ).Append(')')
+                     .AppendLine();
+                }
+            }
+            return b.ToString();
+        }
     }
 }

@@ -104,6 +104,8 @@ namespace CK.Core
             Debug.Assert( Thread.CurrentThread.ManagedThreadId == _enteredThreadId );
             CKTrait savedTags = _currentTag;
             string changedTopic = _topic;
+            bool savedTrackStackTrace = _trackStackTrace;
+            _trackStackTrace = false;
             // Secure any unclosed groups.
             while( _internalMonitor.CloseGroup() ) ;
             // Replay the history, trusting the exisiting data time.
@@ -143,6 +145,7 @@ namespace CK.Core
             }
             _internalMonitor.Recorder.OnStopReplay();
             _currentTag = savedTags;
+            _trackStackTrace = savedTrackStackTrace;
         }
 
 
