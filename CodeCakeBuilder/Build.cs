@@ -34,8 +34,7 @@ namespace CodeCake
         {
             Cake.Log.Verbosity = Verbosity.Diagnostic;
 
-            SimpleRepositoryInfo gitInfo = Cake.GetSimpleRepositoryInfo();
-            StandardGlobalInfo globalInfo = CreateStandardGlobalInfo( gitInfo )
+            StandardGlobalInfo globalInfo = CreateStandardGlobalInfo()
                                                 .AddDotnet()
                                                 .SetCIBuildTag();
 
@@ -74,7 +73,7 @@ namespace CodeCake
                .IsDependentOn( "Build" )
                .Does( () =>
                {
-                   string binPath = $"Tests/WeakNameConsole/bin/{(globalInfo.IsRelease ? "Release" : "Debug")}/net461/";
+                   string binPath = $"Tests/WeakNameConsole/bin/{(globalInfo.BuildInfo.BuildConfiguration)}/net461/";
                    // Replaces CK.Text with its old version v6.0.0 in Net451.
                    System.IO.File.Copy( binPath + "CK.Text.dll", binPath + "CK.Text.dll.backup", true );
                    System.IO.File.Copy( "CodeCakeBuilder/WeakBindingTestSupport/CK.Text.dll.v6.0.0.Net451.bin", binPath + "CK.Text.dll", true );
@@ -104,15 +103,14 @@ namespace CodeCake
                .IsDependentOn( "Build" )
                .Does( () =>
                {
-                   var configuration = globalInfo.IsRelease ? "Release" : "Debug";
-                   var config = new DotNetCorePublishSettings().AddVersionArguments( gitInfo, c =>
+                   var config = new DotNetCorePublishSettings().AddVersionArguments( globalInfo.BuildInfo, c =>
                    {
-                       c.Configuration = configuration;
+                       c.Configuration = globalInfo.BuildInfo.BuildConfiguration;
                        c.Framework = "netcoreapp2.1";
                    } );
                    Cake.DotNetCorePublish( "Tests/WeakNameConsole/WeakNameConsole.csproj", config );
 
-                   string binPath = $"Tests/WeakNameConsole/bin/{configuration}/netcoreapp2.1/publish/";
+                   string binPath = $"Tests/WeakNameConsole/bin/{globalInfo.BuildInfo.BuildConfiguration}/netcoreapp2.1/publish/";
                    // Replaces CK.Text with its old version v6.0.0 in Net451.
                    System.IO.File.Copy( binPath + "CK.Text.dll", binPath + "CK.Text.dll.backup", true );
                    System.IO.File.Copy( "CodeCakeBuilder/WeakBindingTestSupport/CK.Text.dll.v6.0.0.netstandard1.3.bin", binPath + "CK.Text.dll", true );
@@ -143,7 +141,7 @@ namespace CodeCake
                .IsDependentOn( "WeakAssemblyBinding-Test-NetCore" );
 
             Task( "Create-NuGet-Packages" )
-                .WithCriteria( () => gitInfo.IsValid )
+                .WithCriteria( () => globalInfo.IsValid )
                 .IsDependentOn( "WeakAssemblyBinding-Test" )
                 .IsDependentOn( "Unit-Testing" )
                 .Does( () =>
@@ -153,7 +151,7 @@ namespace CodeCake
 
             Task( "Push-Artifacts" )
                 .IsDependentOn( "Create-NuGet-Packages" )
-                .WithCriteria( () => gitInfo.IsValid )
+                .WithCriteria( () => globalInfo.IsValid )
                 .Does( () =>
                 {
                     globalInfo.PushArtifacts();
