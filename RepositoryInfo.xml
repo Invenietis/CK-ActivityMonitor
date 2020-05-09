@@ -1,6 +1,4 @@
 ﻿<RepositoryInfo>
-  <StartingVersionForCSemVer>v7.0.0-beta</StartingVersionForCSemVer>
-  <!--<Debug IgnoreDirtyWorkingFolder="true"/>-->
 
   <SimpleGitVersion StartingVersion="v7.0.0-beta">
     <Branches>
