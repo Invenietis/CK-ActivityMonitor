@@ -95,12 +95,12 @@ namespace CK.Core.Tests.Monitoring
             int loopNeeded = 0;
             ActivityMonitor.DependentToken token;
             while( (token = m.DependentActivity().CreateTokenWithTopic( "Test..." )).CreationDate.Uniquifier == 0
-                    && loopNeeded < 10 )
+                    && loopNeeded < 100 )
             {
                 ++loopNeeded;
             }
             token.Topic.Should().Be( "Test..." );
-            if( loopNeeded == 10 )
+            if( loopNeeded == 100 )
             {
                 m.Info( $"Unable to generate time collision in {loopNeeded} loops." );
             }
@@ -123,7 +123,7 @@ namespace CK.Core.Tests.Monitoring
                 {
                     ActivityMonitor.DependentToken t2 = ActivityMonitor.DependentToken.Parse( tokenToString );
                     t2.OriginatorId.Should().Be( ((IUniqueId)m).UniqueId );
-                    t2.CreationDate.Should().Be( cLaunch.Entries[loopNeeded].LogTime );
+                    t2.CreationDate.Should().Be( cLaunch.Entries[loopNeeded].LogTime, "CreationDate is the time of the log entry." );
                     t2.Topic.Should().Be( "Test..." );
                 }
                 StupidStringClient.Entry[] logs = RunDependentActivity( token );

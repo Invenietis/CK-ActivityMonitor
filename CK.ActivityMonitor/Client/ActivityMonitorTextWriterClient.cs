@@ -13,6 +13,7 @@ namespace CK.Core
     /// </summary>
     public class ActivityMonitorTextWriterClient : ActivityMonitorTextHelperClient
     {
+        readonly string _depthPadding;
         readonly StringBuilder _buffer;
         Action<string> _writer;
         string _prefix;
@@ -24,18 +25,33 @@ namespace CK.Core
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitorTextWriterClient"/> bound to a 
         /// function that must write a string, with a filter.
+        /// The depth padding is using white spaces.
         /// </summary>
         /// <param name="writer">Function that writes the content.</param>
         /// <param name="filter">Filter to apply.</param>
         public ActivityMonitorTextWriterClient( Action<string> writer, LogFilter filter )
+            : this( writer, filter, ' ' )
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="ActivityMonitorTextWriterClient"/> bound to a 
+        /// function that must write a string, with a filter and a character that starts the "depth padding".
+        /// </summary>
+        /// <param name="writer">Function that writes the content.</param>
+        /// <param name="filter">Filter to apply.</param>
+        /// <param name="depthInitial">The character to use in front of the "depth padding".</param>
+        public ActivityMonitorTextWriterClient( Action<string> writer, LogFilter filter, char depthInitial )
             : this( filter )
         {
+            if( depthInitial != ' ' ) _depthPadding = depthInitial + _depthPadding.Substring( 1 );
             Writer = writer ?? throw new ArgumentNullException( "writer" );
         }
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitorTextWriterClient"/> bound to a 
         /// function that must write a string.
+        /// The depth padding is using white spaces.
         /// </summary>
         /// <param name="writer">Function that writes the content.</param>
         public ActivityMonitorTextWriterClient( Action<string> writer )
@@ -46,11 +62,13 @@ namespace CK.Core
         /// <summary>
         /// Initialize a new <see cref="ActivityMonitorTextWriterClient"/> that is not bound to any <see cref="Writer"/>.
         /// Unless explictly initialized, this will not write anything anywhere.
+        /// The depth padding is using white spaces.
         /// </summary>
         /// <param name="filter">Filter to apply.</param>
         public ActivityMonitorTextWriterClient( LogFilter filter )
             : base( filter )
         {
+            _depthPadding = "   ";
             _buffer = new StringBuilder();
             _prefixLevel = _prefix = String.Empty;
             _currentTags = ActivityMonitor.Tags.Empty;
@@ -60,6 +78,7 @@ namespace CK.Core
         /// <summary>
         /// Initialize a new <see cref="ActivityMonitorTextWriterClient"/> that is not bound to any <see cref="Writer"/>.
         /// Unless explictly initialized, this will not write anything anywhere.
+        /// The depth padding is using white spaces.
         /// </summary>
         public ActivityMonitorTextWriterClient()
             : this( LogFilter.Undefined )
@@ -140,7 +159,7 @@ namespace CK.Core
             var w = _buffer.Clear();
             string levelLabel = g.MaskedGroupLevel.ToString();
             string start = string.Format( "{0}> {1}: ", _prefix, levelLabel );
-            _prefix += "|  ";
+            _prefix += _depthPadding;
             _prefixLevel = _prefix;
             string prefixLabel = _prefixLevel + new string( ' ', levelLabel.Length + 1 );
 

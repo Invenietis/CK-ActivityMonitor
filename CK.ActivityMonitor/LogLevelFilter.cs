@@ -39,34 +39,42 @@ namespace CK.Core
         /// compute the final (minimal) filter level to take into account, must be ignored.
         /// </summary>
         None = 0,
+
         /// <summary>
         /// Everything is logged (<see cref="LogLevel.Debug"/>).
         /// </summary>
         Debug = 1,
+
         /// <summary>
         /// <see cref="LogLevel.Trace"/> and above is logged..
         /// </summary>
         Trace = 2,
+
         /// <summary>
         /// Only <see cref="LogLevel.Info"/> and above is logged.
         /// </summary>
         Info = 4,
+
         /// <summary>
         /// Only <see cref="LogLevel.Warn"/> and above is logged.
         /// </summary>
         Warn = 8,
+
         /// <summary>
         /// Only <see cref="LogLevel.Error"/> and above is logged.
         /// </summary>
         Error = 16,
+
         /// <summary>
         /// Only <see cref="LogLevel.Fatal"/> is logged.
         /// </summary>
         Fatal = 32,
+
         /// <summary>
         /// Do not log anything.
         /// </summary>
         Off = 64,
+
         /// <summary>
         /// Invalid filter can be use to designate an unknown filter. 
         /// Since its value is -1, in the worst case it will not filter anything.

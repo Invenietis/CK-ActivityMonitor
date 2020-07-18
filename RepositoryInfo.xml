@@ -1,11 +1,9 @@
-<RepositoryInfo xmlns="http://csemver.org/schemas/2015">
-  <StartingVersionForCSemVer>v7.0.0-beta</StartingVersionForCSemVer>
-  <!--<Debug IgnoreDirtyWorkingFolder="true"/>-->
+﻿<RepositoryInfo>
 
-  <Branches>
-    <Branch Name="develop" VersionName="develop" CIVersionMode="LastReleaseBased" />
-
-  </Branches>
-
-  <Debug IgnoreDirtyWorkingFolder="true" />
+  <SimpleGitVersion StartingVersion="v7.0.0-beta">
+    <Branches>
+      <Branch Name="develop" CIVersionMode="LastReleaseBased" VersionName="develop" />
+      <Branch Name="develop-local" CIVersionMode="ZeroTimed" VersionName="local" />
+    </Branches>
+  </SimpleGitVersion>
 </RepositoryInfo>

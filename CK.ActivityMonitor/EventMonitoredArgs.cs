@@ -4,6 +4,7 @@ namespace CK.Core
 {
     /// <summary>
     /// Simple <see cref="EventArgs"/> that captures and exposes a <see cref="IActivityMonitor"/>.
+    /// This is often used as a base class that exposes more contextual information.
     /// </summary>
     public class EventMonitoredArgs : EventArgs
     {
@@ -15,11 +16,20 @@ namespace CK.Core
         {
             if( monitor == null ) throw new ArgumentNullException( nameof( monitor ) );
             Monitor = monitor;
+        }        
+        
+        /// <summary>
+        /// Initializes a new <see cref="EventMonitoredArgs"/> with no monitor.
+        /// </summary>
+        protected EventMonitoredArgs()
+        {
         }
 
         /// <summary>
         /// Gets the monitor that should be used while processing the event.
+        /// Specialized classes may need to set this monitor when implementing shared, pooled, reusable event arguments
+        /// or to override this default getter implementation.
         /// </summary>
-        public IActivityMonitor Monitor { get; }
+        public virtual IActivityMonitor Monitor { get; protected set; }
     }
 }

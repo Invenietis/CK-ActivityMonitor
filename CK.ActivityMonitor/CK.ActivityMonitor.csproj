@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\Common\Shared.props" />
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <Description>Hierarchical logger API and LogFile path centralization. Main types are: LogFile, IActivityMonitor, ActivityMonitor, ActivityMonitorClient and standard clients like ActivityMonitorTextWriterClient.
     </Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CK.Core" Version="0.0.0--02fziyy-local+v11.2.0" />
+    <PackageReference Include="CK.Core" Version="0.0.0--02w93qz-local+v13.2.0" />
   </ItemGroup>
 </Project>
