@@ -107,7 +107,7 @@ namespace CK.Core
         /// <remarks>
         /// <para>
         /// Opening a group does not change the current <see cref="MinimalFilter"/>, except when opening a <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/> group:
-        /// in such case, the MinimalFilter is automatically sets to <see cref="LogFilter.Trace"/> to capture all potential information inside the error group.
+        /// in such case, the MinimalFilter is automatically sets to <see cref="LogFilter.Debug"/> to capture all potential information inside the error group.
         /// </para>
         /// <para>
         /// Changes to the monitor's current Filter or AutoTags that occur inside a group are automatically restored to their original values when the group is closed.
