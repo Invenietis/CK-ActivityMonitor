@@ -1061,6 +1061,7 @@ namespace CK.Core.Tests.Monitoring
             }
         }
 
+
         [Test]
         public void testing_all_the_overloads_of_StandardSender()
         {
@@ -1366,6 +1367,21 @@ namespace CK.Core.Tests.Monitoring
             tester.ReceivedTexts
                 .Should().Match( e => e.Any( t => t.Contains( "Here I am in Debug." ) ) )
                          .And.Match( e => !e.All( t => t.Contains( "Here I am NOT in Debug." ) ) );
+        }
+
+        [Test]
+        [SetCulture("en-US")]
+        public void an_empty_exception_message_is_handled_with_no_log_string()
+        {
+            var ex = new Exception( null );
+            ex.Message.Should().Be( "Exception of type 'System.Exception' was thrown." );
+
+            ActivityMonitor m = new ActivityMonitor( false );
+            var tester = m.Output.RegisterClient( new ActivityMonitorClientTester() );
+            m.Fatal( new Exception( "" ) );
+            tester.ReceivedTexts
+                .Should().Match( e => e.Any( t => t.Contains( "[no-log]" ) ) );
+
         }
     }
 }
