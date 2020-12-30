@@ -174,7 +174,9 @@ namespace CK.Core
         {
             if( string.IsNullOrEmpty( (_text = text) ) )
             {
-                _text = exception == null ? ActivityMonitor.NoLogText : exception.Message;
+                _text = exception == null || exception.Message.Length == 0
+                        ? ActivityMonitor.NoLogText
+                        : exception.Message;
             }
             _exception = exception;
             _tags = tags ?? ActivityMonitor.Tags.Empty;

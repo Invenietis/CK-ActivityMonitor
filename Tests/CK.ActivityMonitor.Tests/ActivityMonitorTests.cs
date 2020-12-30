@@ -1061,6 +1061,7 @@ namespace CK.Core.Tests.Monitoring
             }
         }
 
+
         [Test]
         public void testing_all_the_overloads_of_StandardSender()
         {
@@ -1350,7 +1351,36 @@ namespace CK.Core.Tests.Monitoring
             d.OpenTrace().Send( ex, tag, fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
             d.OpenTrace().Send( ex, tag, fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
             d.OpenTrace().Send( ex, tag, fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
+        }
 
+        [Test]
+        public void in_a_OpenError_or_OpenFatal_group_level_is_automatically_sets_to_Debug()
+        {
+            ActivityMonitor m = new ActivityMonitor( false );
+            var tester = m.Output.RegisterClient( new ActivityMonitorClientTester() );
+            m.MinimalFilter = LogFilter.Release;
+            m.Debug( "Here I am in NOT in Debug." );
+            using( m.OpenError( "An error." ) )
+            {
+                m.Debug( "Here I am in Debug." );
+            }
+            tester.ReceivedTexts
+                .Should().Match( e => e.Any( t => t.Contains( "Here I am in Debug." ) ) )
+                         .And.Match( e => !e.All( t => t.Contains( "Here I am NOT in Debug." ) ) );
+        }
+
+        [Test]
+        [SetCulture("en-US")]
+        public void an_empty_exception_message_is_handled_with_no_log_string()
+        {
+            var ex = new Exception( null );
+            ex.Message.Should().Be( "Exception of type 'System.Exception' was thrown." );
+
+            ActivityMonitor m = new ActivityMonitor( false );
+            var tester = m.Output.RegisterClient( new ActivityMonitorClientTester() );
+            m.Fatal( new Exception( "" ) );
+            tester.ReceivedTexts
+                .Should().Match( e => e.Any( t => t.Contains( "[no-log]" ) ) );
 
         }
     }
