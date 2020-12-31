@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -14,7 +13,7 @@ namespace CK.Core
     {
         readonly ActivityMonitorBridgeTarget _bridgeTarget;
         readonly IActivityMonitor _targetMonitor;
-        IActivityMonitorImpl _source;
+        IActivityMonitorImpl? _source;
         // I'm missing a BitList in the framework...
         readonly List<bool> _openedGroups;
         LogFilter _targetActualFilter;
@@ -79,20 +78,22 @@ namespace CK.Core
             if( s != null ) s.SignalChange();
         }
 
-        void IActivityMonitorBridgeCallback.OnTargetTopicChanged( string newTopic, string fileName, int lineNumber )
+        void IActivityMonitorBridgeCallback.OnTargetTopicChanged( string newTopic, string? fileName, int lineNumber )
         {
+            if( _source == null ) throw new InvalidOperationException(nameof( IActivityMonitorBoundClient.SetMonitor ) + "should be called before calling this method." );
             _source.SetTopic( newTopic, fileName, lineNumber );
         }
 
         void IActivityMonitorBridgeCallback.OnTargetAutoTagsChanged( CKTrait newTags )
         {
+            if( _source == null ) throw new InvalidOperationException(nameof( IActivityMonitorBoundClient.SetMonitor ) + "should be called before calling this method." );
             _source.AutoTags = newTags;
         }
 
         /// <summary>
         /// forceBuggyRemove is not used here since this client is not lockable.
         /// </summary>
-        void IActivityMonitorBoundClient.SetMonitor( Impl.IActivityMonitorImpl source, bool forceBuggyRemove )
+        void IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl? source, bool forceBuggyRemove )
         {
             if( source != null && _source != null ) throw ActivityMonitorClient.CreateMultipleRegisterOnBoundClientException( this );
             if( _source != null )
@@ -114,7 +115,7 @@ namespace CK.Core
                 _targetActualFilter = _bridgeTarget.TargetFinalFilter;
                 if( _pullTargetTopicAndAutoTagsFromTarget )
                 {
-                    source.InitializeTopicAndAutoTags( this._targetMonitor.Topic, _targetMonitor.AutoTags );
+                    source.InitializeTopicAndAutoTags( _targetMonitor.Topic, _targetMonitor.AutoTags ); //TODO: @Spi there is a bug there too, no ?
                 }
 
             }
@@ -181,14 +182,14 @@ namespace CK.Core
             else _openedGroups[idx - 1] = false;
         }
 
-        void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
+        void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions )
         {
             // Does nothing.
             // The Clients of the target do not see the "Closing" of a Group here: it will receive it as part of the CloseGroup issued by 
             // OnGroupClosed method below.
         }
 
-        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
             if( _openedGroups[group.Depth - 1] )
             {
@@ -197,7 +198,7 @@ namespace CK.Core
             }
         }
 
-        void IActivityMonitorClient.OnTopicChanged( string newTopic, string fileName, int lineNumber )
+        void IActivityMonitorClient.OnTopicChanged( string newTopic, string? fileName, int lineNumber )
         {
             if( _pushTopicAndAutoTagsToTarget ) _bridgeTarget.SetTopic( newTopic, fileName, lineNumber );
         }

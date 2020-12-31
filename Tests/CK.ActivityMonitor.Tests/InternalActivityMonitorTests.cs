@@ -2,10 +2,7 @@
 using FluentAssertions;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using CK.Core.Impl;
 using System.Threading;
 
@@ -185,7 +182,7 @@ namespace CK.Core.Tests.Monitoring
         static TimeSpan[] DiffTimes( DateTime[] times )
         {
             TimeSpan[] diff = new TimeSpan[times.Length - 1];
-            for(int i = 0; i < diff.Length; ++i )
+            for( int i = 0; i < diff.Length; ++i )
             {
                 diff[i] = times[i + 1] - times[i];
             }

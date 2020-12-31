@@ -84,7 +84,7 @@ namespace CK.Core
         /// <param name="fileName">The source code file name from which the topic is set.</param>
         /// <param name="lineNumber">The line number in the source from which the topic is set.</param>
         /// <param name="newTopic">The new topic string to associate to this monitor.</param>
-        void SetTopic( string newTopic, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 );
+        void SetTopic( string newTopic, [CallerFilePath]string? fileName = null, [CallerLineNumber]int lineNumber = 0 );
 
         /// <summary>
         /// Logs a line regardless of <see cref="ActualFilter"/> level (except for <see cref="LogLevelFilter.Off"/>). 
@@ -118,7 +118,7 @@ namespace CK.Core
         /// Note that this automatic configuration restoration works even if the group has been filtered.
         /// </para>
         /// </remarks>
-        IDisposableGroup UnfilteredOpenGroup( ActivityMonitorGroupData data );
+        IDisposableGroup UnfilteredOpenGroup( ActivityMonitorGroupData? data );
 
         /// <summary>
         /// Closes the current Group. Optional parameter is polymorphic. It can be a string, a <see cref="ActivityLogGroupConclusion"/>, 
@@ -135,7 +135,7 @@ namespace CK.Core
         /// An untyped object is used here to easily and efficiently accommodate both string and already existing ActivityLogGroupConclusion.
         /// When a List&lt;ActivityLogGroupConclusion&gt; is used, it will be directly used to collect conclusion objects (new conclusions will be added to it). This is an optimization.
         /// </remarks>
-        bool CloseGroup( DateTimeStamp logTime, object userConclusion = null );
+        bool CloseGroup( DateTimeStamp logTime, object? userConclusion = null );
 
         /// <summary>
         /// Gets the <see cref="IActivityMonitorOutput"/> for this monitor.

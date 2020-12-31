@@ -22,11 +22,7 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
 
 namespace CK.Core
 {
@@ -42,13 +38,13 @@ namespace CK.Core
         /// <summary>
         /// Used only by filtering extension methods (level is always filtered).
         /// </summary>
-        internal ActivityMonitorGroupSender( IActivityMonitor monitor, LogLevel level, string fileName, int lineNumber )
+        internal ActivityMonitorGroupSender( IActivityMonitor monitor, LogLevel level, string? fileName, int lineNumber )
             : base( level, fileName, lineNumber )
         {
             Debug.Assert( monitor != null );
             Debug.Assert( ((level & LogLevel.IsFiltered) != 0 && MaskedLevel != LogLevel.None),
                 "The level is already filtered and not None or we are initializing the monitor's FakeLineSender." );
-            Monitor = monitor;
+            Monitor = monitor!;
         }
 
         /// <summary>
@@ -57,10 +53,10 @@ namespace CK.Core
         internal ActivityMonitorGroupSender( IActivityMonitor monitor )
         {
             Debug.Assert( monitor != null );
-            Monitor = monitor;
+            Monitor = monitor!;
         }
 
-        internal IDisposableGroup InitializeAndSend( Exception exception, CKTrait tags, string text )
+        internal IDisposableGroup InitializeAndSend( Exception? exception, CKTrait? tags, string? text )
         {
             Debug.Assert( !IsRejected );
             Initialize( text, exception, tags, Monitor.NextLogTime() );

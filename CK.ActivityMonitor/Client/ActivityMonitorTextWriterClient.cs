@@ -72,7 +72,7 @@ namespace CK.Core
             _buffer = new StringBuilder();
             _prefixLevel = _prefix = String.Empty;
             _currentTags = ActivityMonitor.Tags.Empty;
-            Writer = _none;
+            _writer = _none;
         }
 
         /// <summary>
@@ -182,13 +182,13 @@ namespace CK.Core
         /// </summary>
         /// <param name="g">Group that must be closed.</param>
         /// <param name="conclusions">Conclusions for the group.</param>
-        protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
             _prefixLevel = _prefix = _prefix.Remove( _prefix.Length - 3 );
-            if( conclusions.Count == 0 ) return;
+            if( conclusions is null || conclusions.Count == 0 ) return;
             var w = _buffer.Clear();
             bool one = false;
-            List<ActivityLogGroupConclusion> withMultiLines = null;
+            List<ActivityLogGroupConclusion>? withMultiLines = null;
             foreach( var c in conclusions )
             {
                 if( c.Text.Contains( '\n' ) )
@@ -286,22 +286,20 @@ namespace CK.Core
                     {
                         w.AppendLine( localPrefix + " ┌──────────────────────────■ [Loader Exceptions] ■──────────────────────────" );
                         p = localPrefix + " | ";
-                        foreach( var item in typeLoadEx.LoaderExceptions )
+                        for( int i = 0; i < typeLoadEx.Types.Length; i++ )
                         {
-                            DumpException( w, p, true, item );
+                            // apparently, Types/LoaderExceptions are parallel array.
+                            // A null in Types[i] mean there is an exception in LoaderException[i]
+                            // https://docs.microsoft.com/en-us/dotnet/api/system.reflection.reflectiontypeloadexception.loaderexceptions?view=netstandard-2.0#property-value
+                            if( typeLoadEx.Types[i] != null ) 
+                            {
+                                Debug.Assert( typeLoadEx.LoaderExceptions[i] == null );
+                                continue;
+                            }
+                            DumpException( w, p, true, typeLoadEx.LoaderExceptions[i]! );
                         }
                         w.AppendLine( localPrefix + " └─────────────────────────────────────────────────────────────────────────" );
                     }
-#if NET461
-                    else
-                    {
-                        var configEx = ex as System.Configuration.ConfigurationException;
-                        if( configEx != null )
-                        {
-                            if( !String.IsNullOrEmpty( configEx.Filename ) ) w.AppendLine( localPrefix + "FileName: " + configEx.Filename );
-                        }
-                    }
-#endif
                 }
             }
             // The InnerException of an aggregated exception is the same as the first of it InnerExceptionS.

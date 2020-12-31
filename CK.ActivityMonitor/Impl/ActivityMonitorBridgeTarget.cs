@@ -1,12 +1,9 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 
 //#if NET451 || NET46
 //using System.Runtime.Remoting.Lifetime;
 //#endif
-using System.Threading;
 using CK.Core.Impl;
 
 namespace CK.Core
@@ -108,7 +105,7 @@ namespace CK.Core
             }
         }
 
-        internal void TargetTopicChanged( string newTopic, string fileName, int lineNumber )
+        internal void TargetTopicChanged( string newTopic, string? fileName, int lineNumber )
         {
             foreach( var b in _callbacks )
             {
@@ -122,7 +119,7 @@ namespace CK.Core
             targetTags = _monitor.AutoTags;
         }
 
-        internal void SetTopic( string newTopic, string fileName, int lineNumber )
+        internal void SetTopic( string newTopic, string? fileName, int lineNumber )
         {
             _monitor.SetTopic( newTopic, fileName, lineNumber );
         }

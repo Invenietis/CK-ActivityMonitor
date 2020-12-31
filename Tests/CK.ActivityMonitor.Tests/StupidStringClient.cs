@@ -1,4 +1,4 @@
-﻿#region LGPL License
+#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (Tests\CK.Core.Tests\Monitoring\StupidStringClient.cs) is part of CiviKey. 
 *  
@@ -23,11 +23,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Xml;
-using CK.Core;
 
 namespace CK.Core.Tests.Monitoring
 {

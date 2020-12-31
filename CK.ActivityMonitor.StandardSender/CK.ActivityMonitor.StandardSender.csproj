@@ -5,7 +5,15 @@
     <Description>Provides extension methods to send log entries. The OpenTrace/Info/Warn/Error/Fatal and Trace/Info/Warn/Error/Fatal extension methods support file name and line number capture but requires a Send method to emit the log itself.
     This package is somehow deprecated: thanks to the C# 6 string interpolation the new CK.ActivityMonitor.SimpleSender package should be used instead. 
     </Description>
+    <Nullable>enable</Nullable>
+    <LangVersion>9</LangVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TunnelVisionLabs.ReferenceAssemblyAnnotator" Version="1.0.0-alpha.160" PrivateAssets="all" />
+    <PackageDownload Include="Microsoft.NETCore.App.Ref" Version="[5.0.0]" />
+  </ItemGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\CK.ActivityMonitor\CK.ActivityMonitor.csproj" />
   </ItemGroup>
@@ -39,5 +47,8 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>ActivityMonitorSenderExtension-Gen.tt</DependentUpon>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
 </Project>

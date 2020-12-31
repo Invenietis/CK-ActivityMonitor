@@ -22,11 +22,8 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace CK.Core
 {
@@ -36,11 +33,11 @@ namespace CK.Core
     /// </summary>
     public class ActivityMonitorLogData
     {
-        string _text;
-        CKTrait _tags;
+        string? _text;
+        CKTrait? _tags;
         DateTimeStamp _logTime;
-        Exception _exception;
-        CKExceptionData _exceptionData;
+        Exception? _exception;
+        CKExceptionData? _exceptionData;
 
         /// <summary>
         /// Log level. Can not be <see cref="LogLevel.None"/>.
@@ -57,7 +54,7 @@ namespace CK.Core
         /// <summary>
         /// Name of the source file that emitted the log. Can be null.
         /// </summary>
-        public readonly string FileName;
+        public readonly string? FileName;
 
         /// <summary>
         /// Line number in the source file that emitted the log. Can be null.
@@ -73,12 +70,12 @@ namespace CK.Core
         /// Tags (from <see cref="ActivityMonitor.Tags"/>) associated to the log. 
         /// It will be union-ed with the current <see cref="IActivityMonitor.AutoTags"/>.
         /// </summary>
-        public CKTrait Tags => _tags;
+        public CKTrait Tags => _tags ?? throw new InvalidOperationException( $"Object was not initialized. Please call {nameof( Initialize )} before accessing getters." );
 
         /// <summary>
         /// Text of the log. Can not be null.
         /// </summary>
-        public string Text => _text;
+        public string Text => _text ?? throw new InvalidOperationException( $"Object was not initialized. Please call {nameof( Initialize )} before accessing getters." );
 
         /// <summary>
         /// Gets the time of the log.
@@ -88,7 +85,7 @@ namespace CK.Core
         /// <summary>
         /// Exception of the log. Can be null.
         /// </summary>
-        public Exception Exception => _exception;
+        public Exception? Exception => _exception;
 
         /// <summary>
         /// Gets the <see cref="CKExceptionData"/> that captures exception information 
@@ -96,7 +93,7 @@ namespace CK.Core
         /// If this log data has not been built on CKExceptionData and if <see cref="P:Exception"/>
         /// is not null, <see cref="CKExceptionData.CreateFrom(Exception)"/> is automatically called.
         /// </summary>
-        public CKExceptionData ExceptionData
+        public CKExceptionData? ExceptionData
         {
             get
             {
@@ -126,7 +123,7 @@ namespace CK.Core
         /// </param>
         /// <param name="fileName">Name of the source file that emitted the log. Can be null.</param>
         /// <param name="lineNumber">Line number in the source file that emitted the log.</param>
-        public ActivityMonitorLogData( LogLevel level, Exception exception, CKTrait tags, string text, DateTimeStamp logTime, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        public ActivityMonitorLogData( LogLevel level, Exception? exception, CKTrait? tags, string? text, DateTimeStamp logTime, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
             : this( level, fileName, lineNumber )
         {
             if( MaskedLevel == LogLevel.None || MaskedLevel == LogLevel.Mask ) throw new ArgumentException( Impl.ActivityMonitorResources.ActivityMonitorInvalidLogLevel, "level" );
@@ -139,7 +136,7 @@ namespace CK.Core
         /// <param name="level">Log level. Can be <see cref="LogLevel.None"/> (the log will be ignored).</param>
         /// <param name="fileName">Name of the source file that emitted the log. Can be null.</param>
         /// <param name="lineNumber">Line number in the source file that emitted the log.</param>
-        public ActivityMonitorLogData( LogLevel level, string fileName, int lineNumber )
+        public ActivityMonitorLogData( LogLevel level, string? fileName, int lineNumber )
         {
             Level = level;
             MaskedLevel = level & LogLevel.Mask;
@@ -170,9 +167,9 @@ namespace CK.Core
         /// Time of the log. 
         /// You can use <see cref="DateTimeStamp.UtcNow"/> or <see cref="ActivityMonitorExtension.NextLogTime">IActivityMonitor.NextLogTime()</see> extension method.
         /// </param>
-        public void Initialize( string text, Exception exception, CKTrait tags, DateTimeStamp logTime )
+        public void Initialize( string? text, Exception? exception, CKTrait? tags, DateTimeStamp logTime )
         {
-            if( string.IsNullOrEmpty( (_text = text) ) )
+            if( string.IsNullOrEmpty( _text = text ) )
             {
                 _text = exception == null || exception.Message.Length == 0
                         ? ActivityMonitor.NoLogText
@@ -185,14 +182,14 @@ namespace CK.Core
 
         internal void CombineTags( CKTrait tags )
         {
-            if( _tags.IsEmpty ) _tags = tags;
-            else _tags = _tags.Union( tags );
+            if( Tags.IsEmpty ) _tags = tags;
+            else _tags = Tags.Union( tags );
         }
 
         internal DateTimeStamp CombineTagsAndAdjustLogTime( CKTrait tags, DateTimeStamp lastLogTime )
         {
-            if( _tags.IsEmpty ) _tags = tags;
-            else _tags = _tags.Union( tags );
+            if( Tags.IsEmpty ) _tags = tags;
+            else _tags = Tags.Union( tags );
             return _logTime = new DateTimeStamp( lastLogTime, _logTime.IsKnown ? _logTime : DateTimeStamp.UtcNow );
         }
     }

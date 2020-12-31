@@ -1,10 +1,3 @@
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Text;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-
 namespace CK.Core
 {
     /// <summary>
@@ -17,7 +10,7 @@ namespace CK.Core
         /// <summary>
         /// Private method used by XXX (Trace, Info,..., Fatal) extension methods.
         /// </summary>
-        static IActivityMonitorLineSender FilterLogLine( this IActivityMonitor @this, LogLevel level, string fileName, int lineNumber )
+        static IActivityMonitorLineSender FilterLogLine( this IActivityMonitor @this, LogLevel level, string? fileName, int lineNumber )
         {
             System.Diagnostics.Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
             if( @this.ShouldLogLine( level, fileName, lineNumber ) )
@@ -30,7 +23,7 @@ namespace CK.Core
         /// <summary>
         /// Private method used by OpenXXX (Trace, Info,..., Fatal) extension methods.
         /// </summary>
-        static IActivityMonitorGroupSender FilteredGroup( IActivityMonitor @this, LogLevel level, string fileName, int lineNumber )
+        static IActivityMonitorGroupSender FilteredGroup( IActivityMonitor @this, LogLevel level, string? fileName, int lineNumber )
         {
             System.Diagnostics.Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
             if( @this.ShouldLogGroup( level, fileName, lineNumber ) )

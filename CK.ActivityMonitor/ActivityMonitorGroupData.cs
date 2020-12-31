@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
+using System;
 
 namespace CK.Core
 {
@@ -11,9 +7,9 @@ namespace CK.Core
     /// </summary>
     public class ActivityMonitorGroupData : ActivityMonitorLogData
     {
-        Func<string> _getConclusion;
+        Func<string>? _getConclusion;
 
-        internal Func<string> GetConclusionText
+        internal Func<string>? GetConclusionText
         {
             get { return _getConclusion; }
             set { _getConclusion = value; }
@@ -33,7 +29,7 @@ namespace CK.Core
         /// <param name="getConclusionText">Optional function that provides delayed obtention of the group conclusion: will be called on group closing.</param>
         /// <param name="fileName">Name of the source file that emitted the log. Can be null.</param>
         /// <param name="lineNumber">Line number in the source file that emitted the log.</param>
-        public ActivityMonitorGroupData( LogLevel level, CKTrait tags, string text, DateTimeStamp logTime, Exception exception, Func<string> getConclusionText, string fileName, int lineNumber )
+        public ActivityMonitorGroupData( LogLevel level, CKTrait? tags, string? text, DateTimeStamp logTime, Exception? exception, Func<string>? getConclusionText, string? fileName, int lineNumber )
             : base( level, exception, tags, text, logTime, fileName, lineNumber )
         {
             _getConclusion = getConclusionText;
@@ -45,7 +41,7 @@ namespace CK.Core
         /// <param name="level">Log level. Can not be <see cref="LogLevel.None"/>.</param>
         /// <param name="fileName">Name of the source file that emitted the log. Can be null.</param>
         /// <param name="lineNumber">Line number in the source file that emitted the log.</param>
-        public ActivityMonitorGroupData( LogLevel level, string fileName, int lineNumber )
+        public ActivityMonitorGroupData( LogLevel level, string? fileName, int lineNumber )
             : base( level, fileName, lineNumber )
         {
         }
@@ -78,9 +74,9 @@ namespace CK.Core
         /// <summary>
         /// Calls <see cref="GetConclusionText"/> and sets it to null.
         /// </summary>
-        internal string ConsumeConclusionText()
+        internal string? ConsumeConclusionText()
         {
-            string autoText = null;
+            string? autoText = null;
             if( _getConclusion != null )
             {
                 try

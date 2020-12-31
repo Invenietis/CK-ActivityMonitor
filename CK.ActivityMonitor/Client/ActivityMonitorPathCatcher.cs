@@ -24,9 +24,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using CK.Core.Impl;
 
 namespace CK.Core
@@ -47,7 +45,7 @@ namespace CK.Core
             /// <summary>
             /// Gets the tags of the log entry.
             /// </summary>
-            public CKTrait Tags { get; internal set; }
+            public CKTrait Tags { get; internal set; } = null!; // Never null after late init.
             /// <summary>
             /// Gets the log level of the log entry.
             /// </summary>
@@ -55,28 +53,25 @@ namespace CK.Core
             /// <summary>
             /// Gets the text of the log entry.
             /// </summary>
-            public string Text { get; internal set; }
+            public string Text { get; internal set; } = null!; // Never null after late init.
             /// <summary>
             /// Gets the conclusions associated to a group. Null if this element does not correspond to a group.
             /// </summary>
-            public IReadOnlyList<ActivityLogGroupConclusion> GroupConclusion { get; internal set; }
+            public IReadOnlyList<ActivityLogGroupConclusion>? GroupConclusion { get; internal set; }
 
             /// <summary>
             /// Overridden to return the <see cref="Text"/> of this element.
             /// </summary>
             /// <returns>This <see cref="Text"/> property.</returns>
-            public override string ToString()
-            {
-                return Text;
-            }
+            public override string ToString() => Text;
         }
 
-        IReadOnlyList<PathElement> _errorSnaphot;
-        IReadOnlyList<PathElement> _warnSnaphot;
+        IReadOnlyList<PathElement>? _errorSnaphot;
+        IReadOnlyList<PathElement>? _warnSnaphot;
 
         readonly List<PathElement> _path;
-        PathElement _current;
-        IActivityMonitor _source;
+        PathElement? _current;
+        IActivityMonitor? _source;
         bool _currentIsGroup;
         bool _currentIsGroupClosed;
         bool _locked;
@@ -89,7 +84,7 @@ namespace CK.Core
             _path = new List<PathElement>();
         }
 
-        void IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove )
+        void IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl? source, bool forceBuggyRemove )
         {
             if( !forceBuggyRemove )
             {
@@ -119,7 +114,7 @@ namespace CK.Core
         /// Null if no error nor fatal occurred.
         /// Use the extension method <see cref="ActivityMonitorExtension.ToStringPath"/> to easily format this path.
         /// </summary>
-        public IReadOnlyList<PathElement> LastErrorPath => _errorSnaphot;
+        public IReadOnlyList<PathElement>? LastErrorPath => _errorSnaphot;
 
         /// <summary>
         /// Clears current <see cref="LastErrorPath"/> (sets it to null).
@@ -131,7 +126,7 @@ namespace CK.Core
         /// Null if no error, fatal nor warn occurred.
         /// Use the extension method <see cref="ActivityMonitorExtension.ToStringPath"/> to easily format this path.
         /// </summary>
-        public IReadOnlyList<PathElement> LastWarnOrErrorPath => _warnSnaphot; 
+        public IReadOnlyList<PathElement>? LastWarnOrErrorPath => _warnSnaphot; 
 
         /// <summary>
         /// Clears current <see cref="LastWarnOrErrorPath"/> (sets it to null), and
@@ -191,7 +186,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="group">The closed group.</param>
         /// <param name="conclusions">Texts that conclude the group. Never null but can be empty.</param>
-        protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
             if( _currentIsGroupClosed ) HandleCurrentGroupIsClosed();
             if( _path.Count > 0 )

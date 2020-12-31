@@ -24,7 +24,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using CK.Core.Impl;
 
 namespace CK.Core
@@ -38,7 +37,7 @@ namespace CK.Core
         int _curLevel;
         LogFilter _filter;
         Stack<bool> _openGroups;
-        IActivityMonitorImpl _source;
+        IActivityMonitorImpl? _source;
         static string[] _prefixGroupDepthCache;
         const string _emptyLinePrefix = "| ";
 
@@ -138,11 +137,11 @@ namespace CK.Core
             OnGroupOpen( group );
         }
 
-        void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
+        void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions )
         {
         }
 
-        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
             if( _curLevel != -1 )
             {
@@ -182,10 +181,10 @@ namespace CK.Core
         /// </summary>
         /// <param name="group">The closing group.</param>
         /// <param name="conclusions">Texts that concludes the group. Never null but can be empty.</param>
-        protected abstract void OnGroupClose( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions );
+        protected abstract void OnGroupClose( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions );
 
 
-        void IActivityMonitorClient.OnTopicChanged( string newTopic, string fileName, int lineNumber )
+        void IActivityMonitorClient.OnTopicChanged( string newTopic, string? fileName, int lineNumber )
         {
         }
 
@@ -228,7 +227,7 @@ namespace CK.Core
 
         LogFilter IActivityMonitorBoundClient.MinimalFilter => _filter;
 
-        void IActivityMonitorBoundClient.SetMonitor( Impl.IActivityMonitorImpl source, bool forceBuggyRemove )
+        void IActivityMonitorBoundClient.SetMonitor( Impl.IActivityMonitorImpl? source, bool forceBuggyRemove )
         {
             if( !forceBuggyRemove )
             {

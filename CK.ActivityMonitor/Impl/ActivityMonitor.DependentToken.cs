@@ -1,4 +1,4 @@
-﻿#region LGPL License
+#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\Impl\ActivityMonitor.DependentToken.cs) is part of CiviKey. 
 *  
@@ -22,14 +22,8 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Diagnostics;
-using CK.Core.Impl;
-using System.Threading;
-using System.Globalization;
-using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
 using CK.Text;
 
 namespace CK.Core
@@ -50,7 +44,7 @@ namespace CK.Core
             readonly DateTimeStamp _creationDate;
             readonly string _topic;
             [NonSerialized]
-            string _delayedLaunchMessage;
+            string? _delayedLaunchMessage;
 
             internal DependentToken( Guid monitorId, DateTimeStamp logTime, string topic )
             {
@@ -62,13 +56,13 @@ namespace CK.Core
             /// <summary>
             /// Unique identifier of the activity that created this dependent token.
             /// </summary>
-            public Guid OriginatorId => _originatorId; 
+            public Guid OriginatorId => _originatorId;
 
             /// <summary>
             /// Gets the creation date. This is the log time of the unfiltered Info log that has 
             /// been emitted in the originator monitor.
             /// </summary>
-            public DateTimeStamp CreationDate => _creationDate; 
+            public DateTimeStamp CreationDate => _creationDate;
 
             /// <summary>
             /// Gets the topic that must be set on the dependent activity.
@@ -92,7 +86,7 @@ namespace CK.Core
             /// <param name="s">The string to parse.</param>
             /// <param name="t">The resulting dependent token.</param>
             /// <returns>True on success, false otherwise.</returns>
-            static public bool TryParse( string s, out DependentToken t )
+            static public bool TryParse( string s, [MaybeNullWhen( false )] out DependentToken t )
             {
                 t = null;
                 StringMatcher m = new StringMatcher( s );
@@ -100,8 +94,7 @@ namespace CK.Core
                 DateTimeStamp time;
                 if( MatchOriginatorAndTime( m, out id, out time ) && m.TryMatchText( " with" ) )
                 {
-                    string topic;
-                    if( ExtractTopic( s, m.StartIndex, out topic ) )
+                    if( ExtractTopic( s, m.StartIndex, out string? topic ) )
                     {
                         t = new DependentToken( id, time, topic );
                         return true;
@@ -118,7 +111,7 @@ namespace CK.Core
             /// <returns>The resulting dependent token.</returns>
             static public DependentToken Parse( string s )
             {
-                DependentToken t;
+                DependentToken? t;
                 if( !TryParse( s, out t ) ) throw new FormatException( "Invalid Dependent token string." );
                 return t;
             }
@@ -131,7 +124,7 @@ namespace CK.Core
             /// <param name="withTopic">True if an explicit topic has been associated to the dependent activity.</param>
             /// <param name="dependentTopic">When <paramref name="withTopic"/> is true, this contains the explicitly set topic.</param>
             /// <returns>True on success.</returns>
-            public static bool TryParseLaunchOrCreateMessage( string message, out bool launched, out bool withTopic, out string dependentTopic )
+            public static bool TryParseLaunchOrCreateMessage( string message, out bool launched, out bool withTopic, out string? dependentTopic )
             {
                 if( message == null ) throw new ArgumentNullException();
                 launched = false;
@@ -139,20 +132,20 @@ namespace CK.Core
                 dependentTopic = null;
 
                 if( message.Length < 10 ) return false;
-                if( message.StartsWith( _prefixLaunchWithTopic ) ) 
+                if( message.StartsWith( _prefixLaunchWithTopic ) )
                 {
                     launched = true;
                     withTopic = true;
                     Debug.Assert( _prefixLaunchWithTopic.Length == 33 );
                     if( !ExtractTopic( message, 33, out dependentTopic ) ) return false;
                 }
-                else if( message.StartsWith( _prefixCreateWithTopic ) ) 
+                else if( message.StartsWith( _prefixCreateWithTopic ) )
                 {
                     withTopic = true;
                     Debug.Assert( _prefixCreateWithTopic.Length == 37 );
                     if( !ExtractTopic( message, 37, out dependentTopic ) ) return false;
                 }
-                else if( message.StartsWith( _prefixLaunch ) ) 
+                else if( message.StartsWith( _prefixLaunch ) )
                 {
                     launched = true;
                 }
@@ -163,13 +156,13 @@ namespace CK.Core
             /// <summary>
             /// Captures the log message when created with a delayed launch so that DependentSender.Launch( token ) can log it.
             /// </summary>
-            internal string DelayedLaunchMessage
+            internal string? DelayedLaunchMessage
             {
                 get { return _delayedLaunchMessage; }
                 set { _delayedLaunchMessage = value; }
             }
 
-            private static bool ExtractTopic( string message, int start, out string dependentTopic )
+            private static bool ExtractTopic( string message, int start, [MaybeNullWhen( false )] out string dependentTopic )
             {
                 Debug.Assert( _suffixWithoutTopic.Length == 9 );
                 Debug.Assert( _suffixWithTopic.Length == 8 );
@@ -188,7 +181,7 @@ namespace CK.Core
                 if( message.Length < start + 9 + 1 ) return false;
                 if( string.CompareOrdinal( message, start, _suffixWithoutTopic, 0, 8 ) == 0 )
                 {
-                    return true;
+                    return true; // We exit but dependentTopic is null, is this intended ?
                 }
                 return false;
             }
@@ -254,7 +247,7 @@ namespace CK.Core
                 return msg + '.';
             }
 
-            static internal IDisposable Start( ActivityMonitor.DependentToken token, IActivityMonitor monitor, string fileName, int lineNumber )
+            static internal IDisposable Start( ActivityMonitor.DependentToken token, IActivityMonitor monitor, string? fileName, int lineNumber )
             {
                 string msg = token.FormatStartMessage();
                 if( token.Topic != null )

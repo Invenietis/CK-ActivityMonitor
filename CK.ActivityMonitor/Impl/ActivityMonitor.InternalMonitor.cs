@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 
 namespace CK.Core
@@ -34,9 +33,9 @@ namespace CK.Core
             public class CloseGroupData
             {
                 public readonly DateTimeStamp ClosingDate;
-                public readonly IReadOnlyList<ActivityLogGroupConclusion> Conclusions;
+                public readonly IReadOnlyList<ActivityLogGroupConclusion>? Conclusions;
 
-                public CloseGroupData( DateTimeStamp d, IReadOnlyList<ActivityLogGroupConclusion> c )
+                public CloseGroupData( DateTimeStamp d, IReadOnlyList<ActivityLogGroupConclusion>? c )
                 {
                     ClosingDate = d;
                     Conclusions = c;
@@ -61,16 +60,16 @@ namespace CK.Core
                 if( !_replaying ) History.Add( group.InnerData );
             }
 
-            void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
+            void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions )
             {
             }
 
-            void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+            void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
             {
                 if( !_replaying ) History.Add( new CloseGroupData( group.CloseLogTime, conclusions ) );
             }
 
-            void IActivityMonitorClient.OnTopicChanged( string newTopic, string fileName, int lineNumber )
+            void IActivityMonitorClient.OnTopicChanged( string newTopic, string? fileName, int lineNumber )
             {
             }
 
@@ -81,7 +80,7 @@ namespace CK.Core
 
             bool IActivityMonitorBoundClient.IsDead => false;
 
-            void IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove )
+            void IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl? source, bool forceBuggyRemove )
             {
                 if( source != _owner ) throw ActivityMonitorClient.CreateBoundClientIsLockedException( this );
             }

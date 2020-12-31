@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -7,7 +6,6 @@ using System.Text.RegularExpressions;
 using NUnit.Framework;
 using System.Xml.Linq;
 using System.Collections.Generic;
-using CK.Text;
 using FluentAssertions;
 
 namespace CK.Core.Tests.Monitoring

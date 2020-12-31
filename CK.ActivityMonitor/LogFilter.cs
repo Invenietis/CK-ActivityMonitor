@@ -177,7 +177,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="obj">Other object.</param>
         /// <returns>True if Line and Group are equal.</returns>
-        public override bool Equals( object obj )
+        public override bool Equals( object? obj )
         {
             if( obj is LogFilter )
             {

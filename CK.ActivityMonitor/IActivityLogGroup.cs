@@ -51,7 +51,7 @@ namespace CK.Core
         /// <summary>
         /// Get the previous group in its origin monitor. Null if this group is a top level group.
         /// </summary>
-        IActivityLogGroup Parent { get; }
+        IActivityLogGroup? Parent { get; }
 
         /// <summary>
         /// Gets the depth of this group in its origin monitor. (1 for top level groups).
@@ -91,13 +91,13 @@ namespace CK.Core
         /// <summary>
         /// Gets the associated <see cref="Exception"/> if it exists.
         /// </summary>
-        Exception Exception { get; }
+        Exception? Exception { get; }
 
         /// <summary>
         /// Gets the <see cref="CKExceptionData"/> that captures exception information 
         /// if it exists. Returns null if no <see cref="P:Exception"/> exists.
         /// </summary>
-        CKExceptionData ExceptionData { get; }
+        CKExceptionData? ExceptionData { get; }
 
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the file name of the source code that issued the log.
         /// </summary>
-        string FileName { get; }
+        string? FileName { get; }
 
         /// <summary>
         /// Gets the line number of the <see cref="FileName"/> that issued the log.
