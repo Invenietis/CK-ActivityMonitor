@@ -133,7 +133,7 @@ namespace CK.Core
                 }
                 if( changedTopic != _topic )
                 {
-                    var d = new ActivityMonitorLogData( LogLevel.Info, null, Tags.Empty, ActivityMonitorResources.ReplayRestoreTopic, this.NextLogTime(), null );
+                    var d = new ActivityMonitorLogData( LogLevel.Info, null, Tags.Empty, ActivityMonitorResources.ReplayRestoreTopic, this.NextLogTime() );
                     DoUnfilteredLog( d );
                     SendTopicLogLine();
                 }

@@ -14,10 +14,10 @@ namespace CK.Core
         public struct DependentSender
         {
             readonly IActivityMonitor _monitor;
-            readonly string? _fileName;
+            readonly string _fileName;
             readonly int _lineNumber;
 
-            internal DependentSender( IActivityMonitor m, string? f, int n )
+            internal DependentSender( IActivityMonitor m, string f, int n )
             {
                 _monitor = m;
                 _fileName = f;
@@ -135,7 +135,7 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
         /// <returns>Sender object.</returns>
-        static public DependentSender DependentActivity( this IActivityMonitor @this, [CallerFilePath]string? fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        static public DependentSender DependentActivity( this IActivityMonitor @this, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
             return new DependentSender( @this, fileName, lineNumber );
         }
@@ -149,7 +149,7 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
         /// <returns>A disposable object. It must be disposed at the end of the activity.</returns>
-        static public IDisposable StartDependentActivity( this IActivityMonitor @this, ActivityMonitor.DependentToken token, [CallerFilePath]string? fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        static public IDisposable StartDependentActivity( this IActivityMonitor @this, ActivityMonitor.DependentToken token, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
             if( token == null ) throw new ArgumentNullException( "token" );
             return ActivityMonitor.DependentToken.Start( token, @this, fileName, lineNumber );

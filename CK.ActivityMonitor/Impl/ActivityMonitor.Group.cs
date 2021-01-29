@@ -220,7 +220,7 @@ namespace CK.Core
             /// <summary>
             /// Gets the file name of the source code that issued the log.
             /// </summary>
-            public string? FileName
+            public string FileName
             {
                 get
                 {
@@ -248,7 +248,13 @@ namespace CK.Core
             {
                 if( _data != null )
                 {
-                    while( Monitor._current != this ) ((IDisposable)Monitor._current).Dispose(); //TODO: @Spi Is this a bug ? Still it would be hard to hit this codepath.
+                    Group? g = Monitor._current;
+                    while( g != this )
+                    {
+                        // The current group cannot be null (or this object would have been already disposed). We bang!
+                        ((IDisposable)g!).Dispose();
+                        g = Monitor._current;
+                    }
                     Monitor.CloseGroup( Monitor.NextLogTime(), null );
                 }
             }

@@ -78,15 +78,15 @@ namespace CK.Core
             if( s != null ) s.SignalChange();
         }
 
-        void IActivityMonitorBridgeCallback.OnTargetTopicChanged( string newTopic, string? fileName, int lineNumber )
+        void IActivityMonitorBridgeCallback.OnTargetTopicChanged( string newTopic, string fileName, int lineNumber )
         {
-            if( _source == null ) throw new InvalidOperationException(nameof( IActivityMonitorBoundClient.SetMonitor ) + "should be called before calling this method." );
+            if( _source == null ) throw new InvalidOperationException(nameof( IActivityMonitorBoundClient.SetMonitor ) + " should be called before calling this method." );
             _source.SetTopic( newTopic, fileName, lineNumber );
         }
 
         void IActivityMonitorBridgeCallback.OnTargetAutoTagsChanged( CKTrait newTags )
         {
-            if( _source == null ) throw new InvalidOperationException(nameof( IActivityMonitorBoundClient.SetMonitor ) + "should be called before calling this method." );
+            if( _source == null ) throw new InvalidOperationException( nameof( IActivityMonitorBoundClient.SetMonitor ) + " should be called before calling this method." );
             _source.AutoTags = newTags;
         }
 
@@ -109,15 +109,14 @@ namespace CK.Core
                 }
                 _openedGroups.Clear();
             }
-            else
+            if( source != null )
             {
                 _bridgeTarget.AddCallback( this );
                 _targetActualFilter = _bridgeTarget.TargetFinalFilter;
                 if( _pullTargetTopicAndAutoTagsFromTarget )
                 {
-                    source.InitializeTopicAndAutoTags( _targetMonitor.Topic, _targetMonitor.AutoTags ); //TODO: @Spi there is a bug there too, no ?
+                    source.InitializeTopicAndAutoTags( _targetMonitor.Topic, _targetMonitor.AutoTags );
                 }
-
             }
             _source = source;
             Interlocked.MemoryBarrier();
@@ -198,7 +197,7 @@ namespace CK.Core
             }
         }
 
-        void IActivityMonitorClient.OnTopicChanged( string newTopic, string? fileName, int lineNumber )
+        void IActivityMonitorClient.OnTopicChanged( string newTopic, string fileName, int lineNumber )
         {
             if( _pushTopicAndAutoTagsToTarget ) _bridgeTarget.SetTopic( newTopic, fileName, lineNumber );
         }

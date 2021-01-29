@@ -294,7 +294,7 @@ namespace CK.Core
         /// Sets the current topic for this monitor. This can be any non null string (null topic is mapped to the empty string) that describes
         /// the current activity.
         /// </summary>
-        public void SetTopic( string newTopic, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
+        public void SetTopic( string newTopic, [CallerFilePath] string fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
             if( newTopic == null ) newTopic = String.Empty;
             if( _topic != newTopic )
@@ -311,7 +311,7 @@ namespace CK.Core
             }
         }
 
-        void DoSetTopic( string newTopic, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
+        void DoSetTopic( string newTopic, [CallerFilePath] string fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
             Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
             Debug.Assert( newTopic != null && _topic != newTopic );
@@ -322,7 +322,7 @@ namespace CK.Core
             SendTopicLogLine( fileName, lineNumber );
         }
 
-        void SendTopicLogLine( [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
+        void SendTopicLogLine( [CallerFilePath] string fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
             _lastLogTime.Value = new DateTimeStamp( _lastLogTime.Value, DateTime.UtcNow );
             DoUnfilteredLog( new ActivityMonitorLogData( LogLevel.Info, null, Tags.MonitorTopicChanged, SetTopicPrefix + _topic, _lastLogTime.Value, fileName, lineNumber ) );
@@ -371,7 +371,7 @@ namespace CK.Core
         /// inside their SetMonitor or any other methods provided that a reentrant and concurrent lock 
         /// has been obtained (otherwise an InvalidOperationException is thrown).
         /// </summary>
-        void IActivityMonitorImpl.InitializeTopicAndAutoTags( string newTopic, CKTrait newTags, string? fileName, int lineNumber )
+        void IActivityMonitorImpl.InitializeTopicAndAutoTags( string newTopic, CKTrait newTags, string fileName, int lineNumber )
         {
             RentrantOnlyCheck();
             if( newTopic != null && _topic != newTopic ) DoSetTopic( newTopic, fileName, lineNumber );
@@ -784,8 +784,14 @@ namespace CK.Core
                         else
                         {
                             IEnumerable<ActivityLogGroupConclusion>? multi = userConclusion as IEnumerable<ActivityLogGroupConclusion>;
-                            if( multi != null ) conclusions.AddRange( multi );
-                            else conclusions.Add( new ActivityLogGroupConclusion( Tags.UserConclusion, userConclusion.ToString() ) );// another nullref warning there
+                            if( multi != null )
+                            {
+                                conclusions.AddRange( multi );
+                            }
+                            else
+                            {
+                                conclusions.Add( new ActivityLogGroupConclusion( Tags.UserConclusion, userConclusion.ToString() ?? String.Empty ) );
+                            }
                         }
                     }
                 }

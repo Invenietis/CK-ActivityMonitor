@@ -184,7 +184,7 @@ namespace CK.Core
         protected abstract void OnGroupClose( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions );
 
 
-        void IActivityMonitorClient.OnTopicChanged( string newTopic, string? fileName, int lineNumber )
+        void IActivityMonitorClient.OnTopicChanged( string newTopic, string fileName, int lineNumber )
         {
         }
 

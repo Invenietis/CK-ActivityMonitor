@@ -1,4 +1,4 @@
-﻿#region LGPL License
+#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.ActivityMonitor.StandardSender\ActivityMonitorSenderExtension.Gen.cs 
 * (and CK.ActivityMonitor.StandardSender\ActivityMonitorSenderExtension.Gen.tt) 
@@ -44,7 +44,7 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A <see cref="ActivityMonitorLineSender"/> or null if the log must not be emitted.</returns>
-        static public IActivityMonitorLineSender Debug( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        static public IActivityMonitorLineSender Debug( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
         {
             return FilterLogLine( @this, LogLevel.Debug, fileName, lineNumber );
         }
@@ -57,7 +57,7 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A <see cref="ActivityMonitorGroupSender"/> or null if the group must not be emitted.</returns>
-		static public IActivityMonitorGroupSender OpenDebug( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+		static public IActivityMonitorGroupSender OpenDebug( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
         {
             return FilteredGroup( @this, LogLevel.Debug, fileName, lineNumber );
         }
@@ -71,7 +71,7 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A <see cref="ActivityMonitorLineSender"/> or null if the log must not be emitted.</returns>
-        static public IActivityMonitorLineSender Trace( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        static public IActivityMonitorLineSender Trace( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
         {
             return FilterLogLine( @this, LogLevel.Trace, fileName, lineNumber );
         }
@@ -84,7 +84,7 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A <see cref="ActivityMonitorGroupSender"/> or null if the group must not be emitted.</returns>
-		static public IActivityMonitorGroupSender OpenTrace( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+		static public IActivityMonitorGroupSender OpenTrace( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
         {
             return FilteredGroup( @this, LogLevel.Trace, fileName, lineNumber );
         }
@@ -98,7 +98,7 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A <see cref="ActivityMonitorLineSender"/> or null if the log must not be emitted.</returns>
-        static public IActivityMonitorLineSender Info( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        static public IActivityMonitorLineSender Info( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
         {
             return FilterLogLine( @this, LogLevel.Info, fileName, lineNumber );
         }
@@ -111,7 +111,7 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A <see cref="ActivityMonitorGroupSender"/> or null if the group must not be emitted.</returns>
-		static public IActivityMonitorGroupSender OpenInfo( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+		static public IActivityMonitorGroupSender OpenInfo( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
         {
             return FilteredGroup( @this, LogLevel.Info, fileName, lineNumber );
         }
@@ -125,7 +125,7 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A <see cref="ActivityMonitorLineSender"/> or null if the log must not be emitted.</returns>
-        static public IActivityMonitorLineSender Warn( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        static public IActivityMonitorLineSender Warn( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
         {
             return FilterLogLine( @this, LogLevel.Warn, fileName, lineNumber );
         }
@@ -138,7 +138,7 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A <see cref="ActivityMonitorGroupSender"/> or null if the group must not be emitted.</returns>
-		static public IActivityMonitorGroupSender OpenWarn( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+		static public IActivityMonitorGroupSender OpenWarn( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
         {
             return FilteredGroup( @this, LogLevel.Warn, fileName, lineNumber );
         }
@@ -152,7 +152,7 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A <see cref="ActivityMonitorLineSender"/> or null if the log must not be emitted.</returns>
-        static public IActivityMonitorLineSender Error( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        static public IActivityMonitorLineSender Error( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
         {
             return FilterLogLine( @this, LogLevel.Error, fileName, lineNumber );
         }
@@ -165,7 +165,7 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A <see cref="ActivityMonitorGroupSender"/> or null if the group must not be emitted.</returns>
-		static public IActivityMonitorGroupSender OpenError( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+		static public IActivityMonitorGroupSender OpenError( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
         {
             return FilteredGroup( @this, LogLevel.Error, fileName, lineNumber );
         }
@@ -179,7 +179,7 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A <see cref="ActivityMonitorLineSender"/> or null if the log must not be emitted.</returns>
-        static public IActivityMonitorLineSender Fatal( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        static public IActivityMonitorLineSender Fatal( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
         {
             return FilterLogLine( @this, LogLevel.Fatal, fileName, lineNumber );
         }
@@ -192,7 +192,7 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A <see cref="ActivityMonitorGroupSender"/> or null if the group must not be emitted.</returns>
-		static public IActivityMonitorGroupSender OpenFatal( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+		static public IActivityMonitorGroupSender OpenFatal( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
         {
             return FilteredGroup( @this, LogLevel.Fatal, fileName, lineNumber );
         }

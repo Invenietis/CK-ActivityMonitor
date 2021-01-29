@@ -47,7 +47,7 @@ namespace CK.Core
         /// <param name="newTopic">The new topic string (never null but can be empty).</param>
         /// <param name="fileName">Source file name where <see cref="IActivityMonitor.SetTopic"/> has been called.</param>
         /// <param name="lineNumber">Source line number where IActivityMonitor.SetTopic has been called.</param>
-        void OnTopicChanged( string newTopic, string? fileName, int lineNumber );
+        void OnTopicChanged( string newTopic, string fileName, int lineNumber );
 
         /// <summary>
         /// Called when <see cref="IActivityMonitor.AutoTags"/> changed.

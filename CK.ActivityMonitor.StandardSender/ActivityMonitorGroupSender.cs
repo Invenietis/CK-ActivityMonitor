@@ -38,7 +38,7 @@ namespace CK.Core
         /// <summary>
         /// Used only by filtering extension methods (level is always filtered).
         /// </summary>
-        internal ActivityMonitorGroupSender( IActivityMonitor monitor, LogLevel level, string? fileName, int lineNumber )
+        internal ActivityMonitorGroupSender( IActivityMonitor monitor, LogLevel level, string fileName, int lineNumber )
             : base( level, fileName, lineNumber )
         {
             Debug.Assert( monitor != null );

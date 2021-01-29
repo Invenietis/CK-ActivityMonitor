@@ -42,11 +42,11 @@ namespace CK.Core
         {
             readonly Guid _originatorId;
             readonly DateTimeStamp _creationDate;
-            readonly string _topic;
+            readonly string? _topic;
             [NonSerialized]
             string? _delayedLaunchMessage;
 
-            internal DependentToken( Guid monitorId, DateTimeStamp logTime, string topic )
+            internal DependentToken( Guid monitorId, DateTimeStamp logTime, string? topic )
             {
                 _originatorId = monitorId;
                 _creationDate = logTime;
@@ -68,7 +68,7 @@ namespace CK.Core
             /// Gets the topic that must be set on the dependent activity.
             /// When null, the current <see cref="IActivityMonitor.Topic"/> of the dependent monitor is not changed.
             /// </summary>
-            public string Topic => _topic;
+            public string? Topic => _topic;
 
             /// <summary>
             /// Overridden to give a readable description of this token that can be <see cref="Parse"/>d (or <see cref="TryParse"/>) back:
@@ -162,7 +162,7 @@ namespace CK.Core
                 set { _delayedLaunchMessage = value; }
             }
 
-            private static bool ExtractTopic( string message, int start, [MaybeNullWhen( false )] out string dependentTopic )
+            private static bool ExtractTopic( string message, int start, out string? dependentTopic )
             {
                 Debug.Assert( _suffixWithoutTopic.Length == 9 );
                 Debug.Assert( _suffixWithTopic.Length == 8 );
@@ -181,7 +181,8 @@ namespace CK.Core
                 if( message.Length < start + 9 + 1 ) return false;
                 if( string.CompareOrdinal( message, start, _suffixWithoutTopic, 0, 8 ) == 0 )
                 {
-                    return true; // We exit but dependentTopic is null, is this intended ?
+                    // We exit with true and a null dependentTopic since there is no topic.
+                    return true; 
                 }
                 return false;
             }
@@ -239,7 +240,7 @@ namespace CK.Core
                 return new DependentToken( ((IUniqueId)m).UniqueId, m.NextLogTime(), dependentTopic );
             }
 
-            static string AppendTopic( string msg, string dependentTopic )
+            static string AppendTopic( string msg, string? dependentTopic )
             {
                 Debug.Assert( msg.EndsWith( " with" ) );
                 if( dependentTopic == null ) msg += _suffixWithoutTopic;
@@ -247,7 +248,7 @@ namespace CK.Core
                 return msg + '.';
             }
 
-            static internal IDisposable Start( ActivityMonitor.DependentToken token, IActivityMonitor monitor, string? fileName, int lineNumber )
+            static internal IDisposable Start( ActivityMonitor.DependentToken token, IActivityMonitor monitor, string fileName, int lineNumber )
             {
                 string msg = token.FormatStartMessage();
                 if( token.Topic != null )
