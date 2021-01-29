@@ -10,6 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitignore = .gitignore
 		appveyor.yml = appveyor.yml
 		NuGet.config = NuGet.config
+		README.md = README.md
 		RepositoryInfo.xml = RepositoryInfo.xml
 		Common\Shared.props = Common\Shared.props
 		Common\SharedKey.snk = Common\SharedKey.snk
@@ -26,6 +27,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CK.ActivityMonitor.SimpleSender", "CK.ActivityMonitor.SimpleSender\CK.ActivityMonitor.SimpleSender.csproj", "{D938232C-9B33-45FB-9266-038E06D7BC36}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WeakNameConsole", "Tests\WeakNameConsole\WeakNameConsole.csproj", "{9B4FA0F7-2594-4BE4-980D-1BF008059DCE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CK.PerfectEvent", "CK.PerfectEvent\CK.PerfectEvent.csproj", "{E7048C22-022F-46DB-AA5C-D1AC0BC00424}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,6 +60,10 @@ Global
 		{9B4FA0F7-2594-4BE4-980D-1BF008059DCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B4FA0F7-2594-4BE4-980D-1BF008059DCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B4FA0F7-2594-4BE4-980D-1BF008059DCE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E7048C22-022F-46DB-AA5C-D1AC0BC00424}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7048C22-022F-46DB-AA5C-D1AC0BC00424}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7048C22-022F-46DB-AA5C-D1AC0BC00424}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7048C22-022F-46DB-AA5C-D1AC0BC00424}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

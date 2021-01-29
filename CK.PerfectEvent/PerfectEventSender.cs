@@ -237,7 +237,7 @@ namespace CK.PerfectEvent
         /// <param name="fileName">The source filename where this event is raised.</param>
         /// <param name="lineNumber">The source line number in the filename where this event is raised.</param>
         /// <returns>True on success, false if an exception occurred.</returns>
-        public async Task<bool> SafeRaiseAsync( IActivityMonitor monitor, TEvent e, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
+        public async Task<bool> SafeRaiseAsync( IActivityMonitor monitor, TEvent e, [CallerFilePath] string fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
             try
             {

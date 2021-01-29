@@ -1,5 +1,4 @@
 using CK.Core;
-using CK.Testing;
 using FluentAssertions;
 using FluentAssertions.Equivalency;
 using NUnit.Framework;
@@ -9,9 +8,8 @@ using System.Reflection.Metadata;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static CK.Testing.MonitorTestHelper;
 
-namespace CK.DeviceModel.Tests
+namespace CK.Core.Tests.Monitoring
 {
     [TestFixture]
     public partial class AsyncLockTests

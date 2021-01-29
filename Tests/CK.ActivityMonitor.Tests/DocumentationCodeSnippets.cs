@@ -10,13 +10,13 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void SimpleUsage()
         {
-                 var f = new FileInfo(Path.Combine(TestHelper.SolutionFolder, "Tests", "CK.ActivityMonitor.Tests", "DocumentationCodeSnippets.cs"));
-                DemoLogs(TestHelper.Monitor, f, new Exception());
-                DemoOpenGroupFarFromPerfect(TestHelper.Monitor);
-                DemoOpenGroupBetter(TestHelper.Monitor);
-                DemoOpenGroupThisWorksFine(TestHelper.Monitor);
-                DemoOpenGroupWithDynamicConclusion(TestHelper.Monitor);
-                DoSomething(TestHelper.Monitor, f);
+            var f = new FileInfo( Path.Combine( TestHelper.SolutionFolder, "Tests", "CK.ActivityMonitor.Tests", "DocumentationCodeSnippets.cs" ) );
+            DemoLogs( TestHelper.Monitor, f, new Exception() );
+            DemoOpenGroupFarFromPerfect( TestHelper.Monitor );
+            DemoOpenGroupBetter( TestHelper.Monitor );
+            DemoOpenGroupThisWorksFine( TestHelper.Monitor );
+            DemoOpenGroupWithDynamicConclusion( TestHelper.Monitor );
+            DoSomething( TestHelper.Monitor, f );
         }
 
         void DemoOpenGroupFarFromPerfect( IActivityMonitor m )
@@ -151,5 +151,19 @@ namespace CK.Core.Tests.Monitoring
             }
         }
 
+        [Test]
+        public void OnError()
+        {
+            var monitor = new ActivityMonitor();
+
+            int errorCount = 0;
+            using( monitor.OnError( () => ++errorCount ) )
+            {
+                monitor.Info( "This is not an error." );
+                monitor.Error( "Ouch!" );
+            }
+            errorCount.Should().Be( 1 );
+
+        }
     }
 }

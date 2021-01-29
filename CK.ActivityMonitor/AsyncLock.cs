@@ -14,7 +14,7 @@ namespace CK.Core
     /// of all the methods: it is this monitor that acts as the "acquisition context".
     /// </summary>
     /// <remarks>
-    /// This lock not disposable and this is intentional because unnecessary: a SemaphoreSlim must be
+    /// This lock is not disposable and this is intentional because unnecessary: a SemaphoreSlim must be
     /// disposed only if its <see cref="SemaphoreSlim.AvailableWaitHandle"/> has been used and since we
     /// encapsulate the semaphore and don't use it, we can avoid the IDisposable burden.
     /// </remarks>
@@ -181,8 +181,8 @@ namespace CK.Core
         public void Enter( IActivityMonitor monitor ) => Enter( monitor, Timeout.Infinite, CancellationToken.None );
 
         /// <summary>
-        /// Blocks the current thread until it can enter this <see cref="AsyncLock"/>, using a 32-bit signed integer to measure the time interval,
-        /// while observing a <see cref="System.Threading.CancellationToken"/>.
+        /// Blocks the current thread until it can enter this <see cref="AsyncLock"/>, using a 32-bit signed integer to measure the
+        /// time interval in milliseconds, while observing a <see cref="System.Threading.CancellationToken"/>.
         /// </summary>
         /// <param name="monitor">The monitor that identifies the activity.</param>
         /// <param name="millisecondsTimeout">The number of milliseconds to wait, or <see cref="Timeout.Infinite"/>(-1) to
@@ -248,7 +248,7 @@ namespace CK.Core
         /// <summary>
         /// Overridden to return the name of this lock.
         /// </summary>
-        /// <returns>The nam of this lock.</returns>
+        /// <returns>The name of this lock.</returns>
         public override string ToString() => _name;
     }
 

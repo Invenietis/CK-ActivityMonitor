@@ -1,11 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  
   <Import Project="..\Common\Shared.props" />
+  
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>Perfect events are .Net events that support 3 kind of callbacks: synchronous, sequential asynchronous and parrallel synchronous.</Description>
     <Nullable>enable</Nullable>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>9</LangVersion>
   </PropertyGroup>
+  
   <ItemGroup>
-    <PackageReference Include="CK.ActivityMonitor" Version="13.3.1" />
+    <ProjectReference Include="..\CK.ActivityMonitor\CK.ActivityMonitor.csproj" />
   </ItemGroup>
+  
 </Project>
