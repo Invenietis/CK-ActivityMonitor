@@ -1,13 +1,11 @@
-using CK.Core;
 using FluentAssertions;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
+
+#nullable enable
 
 namespace CK.Core.Tests.Monitoring
 {
@@ -185,13 +183,13 @@ namespace CK.Core.Tests.Monitoring
 
             // Artficially slows down logging to ensure that concurrent access occurs.
             monitor.Output.RegisterClient( new ActionActivityMonitorClient( () => Thread.Sleep( 50 ) ) );
-            AggregateException ex = ConcurrentThrow( monitor );
+            AggregateException? ex = ConcurrentThrow( monitor );
             ex.Should().NotBeNull();
 
             monitor.Info().Send( "Test" );
         }
 
-        static AggregateException ConcurrentThrow( IActivityMonitor monitor )
+        static AggregateException? ConcurrentThrow( IActivityMonitor monitor )
         {
             object lockTasks = new object();
             object lockRunner = new object();
@@ -231,7 +229,7 @@ namespace CK.Core.Tests.Monitoring
             catch( AggregateException ex )
             {
                 tasks.Where( x => x.IsFaulted )
-                     .SelectMany( x => x.Exception.Flatten().InnerExceptions )
+                     .SelectMany( x => x.Exception!.Flatten().InnerExceptions )
                      .Should().AllBeOfType<CKException>();
                 return ex;
             }
@@ -270,11 +268,11 @@ namespace CK.Core.Tests.Monitoring
                 CheckConccurrentException( monitor, false );
             }
 
-            static void CheckConccurrentException( IActivityMonitor  m, bool mustHaveCallStack )
+            static void CheckConccurrentException( IActivityMonitor m, bool mustHaveCallStack )
             {
-                AggregateException ex = ConcurrentThrow( m );
+                AggregateException? ex = ConcurrentThrow( m );
                 ex.Should().NotBeNull();
-                CKException one = ex.Flatten().InnerExceptions.OfType<CKException>().First();
+                CKException one = ex!.Flatten().InnerExceptions.OfType<CKException>().First();
                 if( mustHaveCallStack )
                 {
                     one.Message.Should().Contain( "-- Other Monitor's StackTrace" );

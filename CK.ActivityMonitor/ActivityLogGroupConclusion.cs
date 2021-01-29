@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Diagnostics;
 
 namespace CK.Core
@@ -28,7 +25,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="conclusion">Must not be null (may be empty).</param>
         /// <param name="tag">Must be null or be registered in <see cref="ActivityMonitor.Tags"/>.</param>
-        public ActivityLogGroupConclusion( string conclusion, CKTrait tag = null )
+        public ActivityLogGroupConclusion( string conclusion, CKTrait? tag = null )
         {
             if( conclusion == null ) throw new ArgumentNullException( "conclusion" );
             if( tag == null ) tag = ActivityMonitor.Tags.Empty;
@@ -41,8 +38,8 @@ namespace CK.Core
         {
             Debug.Assert( t != null && t.Context == ActivityMonitor.Tags.Context );
             Debug.Assert( conclusion != null );
-            Tag = t;
-            Text = conclusion;
+            Tag = t!;
+            Text = conclusion!;
         }
 
         /// <summary>
@@ -50,7 +47,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="obj">Object to test.</param>
         /// <returns>True when equal.</returns>
-        public override bool Equals( object obj )
+        public override bool Equals( object? obj )
         {
             if( obj is ActivityLogGroupConclusion )
             {

@@ -23,8 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace CK.Core
 {
@@ -59,7 +57,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="client">An <see cref="IActivityMonitorClient"/> implementation.</param>
         /// <returns>The unregistered client or null if it has not been found.</returns>
-        IActivityMonitorClient UnregisterClient( IActivityMonitorClient client );
+        IActivityMonitorClient? UnregisterClient( IActivityMonitorClient client );
 
         /// <summary>
         /// Registers a <see cref="IActivityMonitorClient"/> that must be unique in a sense.

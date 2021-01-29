@@ -25,7 +25,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 
 namespace CK.Core.Impl
 {
@@ -77,11 +76,11 @@ namespace CK.Core.Impl
         {
             if( (forceAdded |= (_clients.IndexOf( client ) < 0)) )
             {
-                IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
+                IActivityMonitorBoundClient? bound = client as IActivityMonitorBoundClient;
                 if( bound != null )
                 {
                     // Calling SetMonitor before adding it to the client first:
-                    // - Enables the monitor to initialize itself before being solicited.
+                    // - Enables the monitor to initialize itself before being sollicited.
                     // - If SetMonitor method calls InitializeTopicAndAutoTags, it does not
                     //   receive a "stupid" OnTopic/AutoTagsChanged.
                     // - Any exceptions like the ones created by CreateMultipleRegisterOnBoundClientException or
@@ -117,7 +116,7 @@ namespace CK.Core.Impl
         /// When null is returned by the factory function, nothing is added and null is returned. 
         /// The factory is called only when no client satisfy the tester function: this makes the 'added' out parameter useless.
         /// </remarks>
-        public T RegisterUniqueClient<T>( Func<T, bool> tester, Func<T> factory ) where T : IActivityMonitorClient
+        public T? RegisterUniqueClient<T>( Func<T, bool> tester, Func<T?> factory ) where T : IActivityMonitorClient
         {
             if( tester == null ) throw new ArgumentNullException( "tester" );
             if( factory == null ) throw new ArgumentNullException( "factory" );
@@ -143,7 +142,7 @@ namespace CK.Core.Impl
         /// </summary>
         /// <param name="client">An <see cref="IActivityMonitorClient"/> implementation.</param>
         /// <returns>The unregistered client or null if it has not been found.</returns>
-        public IActivityMonitorClient UnregisterClient( IActivityMonitorClient client )
+        public IActivityMonitorClient? UnregisterClient( IActivityMonitorClient client )
         {
             if( client == null ) throw new ArgumentNullException( "client" );
             using( _monitor.ReentrancyAndConcurrencyLock() )
@@ -152,7 +151,7 @@ namespace CK.Core.Impl
                 if( (idx = _clients.IndexOf( client )) >= 0 )
                 {
                     LogFilter filter = LogFilter.Undefined;
-                    IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
+                    IActivityMonitorBoundClient? bound = client as IActivityMonitorBoundClient;
                     if( bound != null )
                     {
                         filter = bound.MinimalFilter;
@@ -174,7 +173,7 @@ namespace CK.Core.Impl
         internal void ForceRemoveCondemnedClient( IActivityMonitorClient client )
         {
             Debug.Assert( client != null && _clients.Contains( client ) );
-            IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
+            IActivityMonitorBoundClient? bound = client as IActivityMonitorBoundClient;
             if( bound != null )
             {
                 try

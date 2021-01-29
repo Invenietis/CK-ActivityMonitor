@@ -24,8 +24,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
 
 namespace CK.Core
 {
@@ -82,7 +80,7 @@ namespace CK.Core
         /// This can be null if no conclusions have been added yet. 
         /// It is up to the first client that wants to add a conclusion to instantiate a new List object to carry the conclusions.
         /// </param>
-        protected virtual void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
+        protected virtual void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions )
         {
         }
 
@@ -92,7 +90,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="group">The closed group.</param>
         /// <param name="conclusions">Text that conclude the group. Never null but can be empty.</param>
-        protected virtual void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        protected virtual void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
         }
 
@@ -103,7 +101,7 @@ namespace CK.Core
         /// <param name="newTopic">The new topic.</param>
         /// <param name="fileName">Source file name where <see cref="IActivityMonitor.SetTopic"/> has been called.</param>
         /// <param name="lineNumber">Source line number where IActivityMonitor.SetTopic has been called.</param>
-        protected virtual void OnTopicChanged( string newTopic, string fileName, int lineNumber )
+        protected virtual void OnTopicChanged( string newTopic, string? fileName, int lineNumber )
         {
         }
 
@@ -148,17 +146,17 @@ namespace CK.Core
             OnOpenGroup( group );
         }
 
-        void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
+        void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions )
         {
             OnGroupClosing( group, ref conclusions );
         }
 
-        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
             OnGroupClosed( group, conclusions );
         }
 
-        void IActivityMonitorClient.OnTopicChanged( string newTopic, string fileName, int lineNumber )
+        void IActivityMonitorClient.OnTopicChanged( string newTopic, string? fileName, int lineNumber )
         {
             OnTopicChanged( newTopic, fileName, lineNumber );
         }

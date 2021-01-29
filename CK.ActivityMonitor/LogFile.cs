@@ -1,11 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using CK.Core.Impl;
 
 namespace CK.Core
@@ -18,8 +16,8 @@ namespace CK.Core
     /// </summary>
     public static class LogFile
     {
-        static string _logPath;
-        static string _criticalErrorsPath;
+        static string? _logPath;
+        static string? _criticalErrorsPath;
         static int _activityMonitorErrorTracked;
         const string CriticalErrorsSubPath = "CriticalErrors";
 
@@ -29,9 +27,9 @@ namespace CK.Core
             ActivityMonitor.CriticalErrorCollector.OnErrorFromBackgroundThreads += OnTrackActivityMonitorLoggingError;
         }
 
-        static void OnTrackActivityMonitorLoggingError( object sender, CriticalErrorCollector.ErrorEventArgs e )
+        static void OnTrackActivityMonitorLoggingError( object? sender, CriticalErrorCollector.ErrorEventArgs e )
         {
-            string logPath = _logPath;
+            string? logPath = _logPath;
             if( logPath != null )
             {
                 foreach( var error in e.Errors )
@@ -106,9 +104,11 @@ namespace CK.Core
         /// When not null, it necessarily ends with a <see cref="Path.DirectorySeparatorChar"/>.
         /// </para>
         /// </remarks>
-        static public string RootLogPath
+        [DisallowNull]
+        static public string? RootLogPath
         {
             get { return _logPath; }
+            [MemberNotNull( nameof( _criticalErrorsPath ), nameof( _logPath ) )]
             set
             {
                 if( string.IsNullOrWhiteSpace( value ) ) throw new ArgumentNullException();
@@ -141,9 +141,12 @@ namespace CK.Core
         /// <summary>
         /// Checks that <see cref="RootLogPath"/> is correctly configured by throwing a exception if not. 
         /// </summary>
+        [MemberNotNull( nameof( RootLogPath ), nameof( _criticalErrorsPath ), nameof( _logPath ) )]
         public static void AssertRootLogPathIsSet()
         {
             if( RootLogPath == null ) throw new Exception( ActivityMonitorResources.RootLogPathMustBeSet );
+            Debug.Assert( _criticalErrorsPath != null );
+            Debug.Assert( _logPath != null );
         }
 
     }

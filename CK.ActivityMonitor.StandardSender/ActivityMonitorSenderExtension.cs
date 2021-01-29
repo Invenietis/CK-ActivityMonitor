@@ -1,10 +1,3 @@
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Text;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-
 namespace CK.Core
 {
     /// <summary>

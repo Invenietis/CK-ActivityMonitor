@@ -30,6 +30,6 @@ namespace CK.Core
         /// Specialized classes may need to set this monitor when implementing shared, pooled, reusable event arguments
         /// or to override this default getter implementation.
         /// </summary>
-        public virtual IActivityMonitor Monitor { get; protected set; }
+        public virtual IActivityMonitor? Monitor { get; protected set; }
     }
 }
