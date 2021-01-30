@@ -30,6 +30,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WeakNameConsole", "Tests\We
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CK.PerfectEvent", "CK.PerfectEvent\CK.PerfectEvent.csproj", "{E7048C22-022F-46DB-AA5C-D1AC0BC00424}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Doc", "Doc", "{17FDB5B1-BA57-44F1-BCDB-71F0186442CA}"
+	ProjectSection(SolutionItems) = preProject
+		Common\Doc\ColoredConsoleOutput.png = Common\Doc\ColoredConsoleOutput.png
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +76,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{3D7C6FB7-B726-43E7-BC1C-74DC421CBA93} = {A87208F3-D73C-4AD4-9FF5-0314968EDD74}
 		{9B4FA0F7-2594-4BE4-980D-1BF008059DCE} = {A87208F3-D73C-4AD4-9FF5-0314968EDD74}
+		{17FDB5B1-BA57-44F1-BCDB-71F0186442CA} = {E3559EF9-ED4A-4169-9287-6F94CFBD09FA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8BDD2562-0C87-40BA-98AA-A666A8DC27A0}
