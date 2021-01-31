@@ -251,10 +251,10 @@ paket-files/
 .idea/
 *.sln.iml
 
-Tests/CK.ActivityMonitor.Tests/TestFolder/CriticalErrors/
+Tests/CK.Core.Monitoring.Tests/TestFolder/CriticalErrors/
 CodeCakeBuilder/Tools/
-Tests/CK.ActivityMonitor.Tests/CriticalErrors/
-Tests/CK.ActivityMonitor.Tests/TestFolder/
+Tests/CK.Core.Monitoring.Tests/CriticalErrors/
+Tests/CK.Core.Monitoring.Tests/TestFolder/
 TestResult.*.xml
 
 Tests/**/TestResult*.xml

@@ -1,4 +1,4 @@
-﻿#region LGPL License
+#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.ActivityMonitor.StandardSender\ActivityMonitorSenderExtension.Gen.cs 
 * (and CK.ActivityMonitor.StandardSender\ActivityMonitorSenderExtension.Gen.tt) 

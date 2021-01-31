@@ -23,11 +23,7 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CK.Core
 {
@@ -133,7 +129,7 @@ namespace CK.Core
             /// <param name="fileName">The file name: do not specify it to inject the path of your source file.</param>
             public static void SetFilter( SourceLogFilter filter, [CallerFilePath]string fileName = null )
             {
-                if( filter.IsUndefined ) _filters.TryRemove( fileName, out filter );
+                if( filter.IsUndefined ) _filters.TryRemove( fileName, out filter ); // nullref warn
                 else _filters.AddOrUpdate( fileName, filter, ( s, prev ) => filter ); 
             }
 

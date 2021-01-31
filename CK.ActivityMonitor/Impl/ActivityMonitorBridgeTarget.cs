@@ -1,12 +1,9 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 
 //#if NET451 || NET46
 //using System.Runtime.Remoting.Lifetime;
 //#endif
-using System.Threading;
 using CK.Core.Impl;
 
 namespace CK.Core

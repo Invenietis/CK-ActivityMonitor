@@ -22,11 +22,7 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CK.Core.Impl
 {
@@ -40,7 +36,7 @@ namespace CK.Core.Impl
         /// Gets the currently opened group.
         /// Null when no group is currently opened.
         /// </summary>
-        IActivityLogGroup CurrentGroup { get; }
+        IActivityLogGroup? CurrentGroup { get; }
 
         /// <summary>
         /// Gets a disposable object that checks for reentrant and concurrent calls.

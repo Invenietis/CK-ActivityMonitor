@@ -23,9 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Diagnostics;
 using CK.Core.Impl;
 
 namespace CK.Core
@@ -47,15 +44,15 @@ namespace CK.Core
             /// The monitor that owns this group.
             /// </summary>
             public readonly ActivityMonitor Monitor;
-            
+
             /// <summary>
             /// The raw index of the group. 
             /// </summary>
             public readonly int Index;
 
-            ActivityMonitorGroupData _data;
+            ActivityMonitorGroupData? _data;
             DateTimeStamp _closeLogTime;
-            Group _unfilteredParent;
+            Group? _unfilteredParent;
             int _depth;
 
             /// <summary>
@@ -107,61 +104,82 @@ namespace CK.Core
             /// <summary>
             /// Gets the tags for the log group.
             /// </summary>
-            public CKTrait GroupTags => _data.Tags;
+            public CKTrait GroupTags => _data?.Tags ?? throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
 
             /// <summary>
             /// Gets the log time for the log.
             /// </summary>
-            public DateTimeStamp LogTime => _data.LogTime; 
+            public DateTimeStamp LogTime => _data?.LogTime ?? throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
 
             /// <summary>
             /// Gets the log time of the group closing.
             /// It is <see cref="DateTimeStamp.MinValue"/> when the group is not closed yet.
             /// </summary>
-            public DateTimeStamp CloseLogTime 
-            { 
-                get { return _closeLogTime; } 
-                internal set { _closeLogTime = value; } 
+            public DateTimeStamp CloseLogTime
+            {
+                get { return _closeLogTime; }
+                internal set { _closeLogTime = value; }
             }
 
             /// <summary>
             /// Gets the <see cref="CKExceptionData"/> that captures exception information 
             /// if it exists. Returns null if no <see cref="P:Exception"/> exists.
             /// </summary>
-            public CKExceptionData ExceptionData => _data.ExceptionData; 
+            public CKExceptionData? ExceptionData
+            {
+                get
+                {
+                    if( _data == null ) throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
+                    return _data.ExceptionData;
+                }
+            }
 
             /// <summary>
             /// Get the previous group in its origin monitor. Null if this group is a top level group.
             /// </summary>
-            public IActivityLogGroup Parent => _unfilteredParent;
-            
+            public IActivityLogGroup? Parent => _unfilteredParent;
+
             /// <summary>
             /// Gets the depth of this group in its origin monitor (1 for top level groups).
             /// </summary>
-            public int Depth => _depth; 
+            public int Depth => _depth;
 
             /// <summary>
             /// Gets the level associated to this group.
             /// The <see cref="LogLevel.IsFiltered"/> can be set here: use <see cref="MaskedGroupLevel"/> to get 
             /// the actual level from <see cref="LogLevel.Trace"/> to <see cref="LogLevel.Fatal"/>.
             /// </summary>
-            public LogLevel GroupLevel => _data.Level;
+            public LogLevel GroupLevel => _data?.Level ?? throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
 
             /// <summary>
             /// Gets the actual level (from <see cref="LogLevel.Trace"/> to <see cref="LogLevel.Fatal"/>) associated to this group
             /// without <see cref="LogLevel.IsFiltered"/> bit.
             /// </summary>
-            public LogLevel MaskedGroupLevel => _data.MaskedLevel;
+            public LogLevel MaskedGroupLevel => _data?.MaskedLevel ?? throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
 
             /// <summary>
             /// Gets the text with which this group has been opened. Null if and only if the group is closed.
             /// </summary>
-            public string GroupText => _data.Text;
+            public string GroupText
+            {
+                get
+                {
+                    if( _data == null ) throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
+                    return _data.Text;
+                }
+            }
 
             /// <summary>
             /// Gets the associated <see cref="Exception"/> if it exists.
             /// </summary>
-            public Exception Exception => _data.Exception;
+            public Exception? Exception
+            {
+                get
+                {
+                    if( _data == null ) throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
+                    return _data.Exception;
+                }
+            }
 
             /// <summary>
             /// Gets the group data itself. Its properties are exposed
@@ -169,7 +187,7 @@ namespace CK.Core
             /// to capture the Group information (the <see cref="Impl.IActivityMonitorImpl.InternalMonitor"/>
             /// uses this).
             /// </summary>
-            public ActivityMonitorGroupData InnerData => _data;
+            public ActivityMonitorGroupData InnerData => _data ?? throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
 
             /// <summary>
             /// Gets or sets the <see cref="IActivityMonitor.MinimalFilter"/> that will be restored when group will be closed.
@@ -183,29 +201,42 @@ namespace CK.Core
             /// </summary>
             internal bool SavedTrackStackTrace { get; private set; }
 
+            CKTrait? _savedMonitorTags;
             /// <summary>
             /// Gets or sets the <see cref="IActivityMonitor.AutoTags"/> that will be restored when group will be closed.
             /// Initialized with the current value of IActivityMonitor.Tags when the group has been opened.
             /// </summary>
-            public CKTrait SavedMonitorTags { get; private set; }
+            public CKTrait SavedMonitorTags
+            {
+                get => _savedMonitorTags ?? throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
+                private set => _savedMonitorTags = value;
+            }
 
             /// <summary>
             /// Gets whether the <see cref="GroupText"/> is actually the <see cref="Exception"/> message.
             /// </summary>
-            public bool IsGroupTextTheExceptionMessage => _data.IsTextTheExceptionMessage; 
+            public bool IsGroupTextTheExceptionMessage => _data?.IsTextTheExceptionMessage ?? throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
 
             /// <summary>
             /// Gets the file name of the source code that issued the log.
             /// </summary>
-            public string FileName => _data.FileName;
+            public string FileName
+            {
+                get
+                {
+                    if( _data == null ) throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
+                    return _data.FileName;
+                }
+            }
 
             /// <summary>
             /// Gets the line number of the <see cref="FileName"/> that issued the log.
             /// </summary>
-            public int LineNumber => _data.LineNumber;
+            public int LineNumber => _data?.LineNumber ?? throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
 
             IDisposable IDisposableGroup.ConcludeWith( Func<string> getConclusionText )
             {
+                if( _data == null ) throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
                 if( !IsRejectedGroup ) _data.GetConclusionText = getConclusionText;
                 return this;
             }
@@ -217,14 +248,21 @@ namespace CK.Core
             {
                 if( _data != null )
                 {
-                    while( Monitor._current != this ) ((IDisposable)Monitor._current).Dispose();
+                    Group? g = Monitor._current;
+                    while( g != this )
+                    {
+                        // The current group cannot be null (or this object would have been already disposed). We bang!
+                        ((IDisposable)g!).Dispose();
+                        g = Monitor._current;
+                    }
                     Monitor.CloseGroup( Monitor.NextLogTime(), null );
                 }
-            }           
+            }
 
-            internal void GroupClosing( ref List<ActivityLogGroupConclusion> conclusions )
+            internal void GroupClosing( ref List<ActivityLogGroupConclusion>? conclusions )
             {
-                string auto = _data.ConsumeConclusionText();
+                if( _data == null ) throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
+                string? auto = _data.ConsumeConclusionText();
                 if( auto != null )
                 {
                     if( conclusions == null ) conclusions = new List<ActivityLogGroupConclusion>();
@@ -232,16 +270,16 @@ namespace CK.Core
                 }
             }
 
-            internal void GroupClosed() =>  _data = null;
+            internal void GroupClosed() => _data = null;
         }
 
-        IActivityLogGroup IActivityMonitorImpl.CurrentGroup => _current; 
+        IActivityLogGroup? IActivityMonitorImpl.CurrentGroup => _current;
 
         /// <summary>
         /// Gets the currently opened group.
         /// Null when no group is currently opened.
         /// </summary>
-        protected IActivityLogGroup CurrentGroup => _current; 
+        protected IActivityLogGroup? CurrentGroup => _current;
 
     }
 }

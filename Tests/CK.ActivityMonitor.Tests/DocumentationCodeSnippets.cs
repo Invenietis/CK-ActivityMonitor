@@ -1,9 +1,5 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
-using CK.Core;
 using NUnit.Framework;
 using FluentAssertions;
 
@@ -11,16 +7,59 @@ namespace CK.Core.Tests.Monitoring
 {
     public class DocumentationCodeSnippets
     {
-        [Test]
+        public class Program
+        {
+            public static void SampleMain()
+            {
+                // An ActivityMonitor is a lightweight object that is tied to non concurrent
+                // (sequential) set of calls (this perfectly complies with async/await calls).
+                var m = new ActivityMonitor();
+                int onError = 0, onSuccess = 0;
+                foreach( var f in Directory.GetFiles( Environment.CurrentDirectory ) )
+                {
+                    using( m.OpenTrace( $"Processing file '{f}'." ) )
+                    {
+                        try
+                        {
+                            if( ProcessFile( m, f ) )
+                            {
+                                ++onSuccess;
+                            }
+                            else
+                            {
+                                ++onError;
+                            }
+                        }
+                        catch( Exception ex )
+                        {
+                            m.Error( $"Unhandled error while processing file '{f}'. Continuing.", ex );
+                            ++onError;
+                        }
+                    }
+                }
+                m.Info( $"Done: {onSuccess} files succeed and {onError} failed." );
+            }
+
+            /// When consuming a monitor, we always use the IActivityMonitor interface.
+            static bool ProcessFile( IActivityMonitor m, string f )
+            {
+                int ticks = Environment.TickCount;
+                m.Debug( $"Ticks: {ticks} for '{f}'." );
+                /// Quick and dirty way to return a (not really) random boolean.
+                return ticks % 2 == 0;
+            }
+        }
+
+    [Test]
         public void SimpleUsage()
         {
-                 var f = new FileInfo(Path.Combine(TestHelper.SolutionFolder, "Tests", "CK.ActivityMonitor.Tests", "DocumentationCodeSnippets.cs"));
-                DemoLogs(TestHelper.Monitor, f, new Exception());
-                DemoOpenGroupFarFromPerfect(TestHelper.Monitor);
-                DemoOpenGroupBetter(TestHelper.Monitor);
-                DemoOpenGroupThisWorksFine(TestHelper.Monitor);
-                DemoOpenGroupWithDynamicConclusion(TestHelper.Monitor);
-                DoSomething(TestHelper.Monitor, f);
+            var f = new FileInfo( Path.Combine( TestHelper.SolutionFolder, "Tests", "CK.ActivityMonitor.Tests", "DocumentationCodeSnippets.cs" ) );
+            DemoLogs( TestHelper.Monitor, f, new Exception() );
+            DemoOpenGroupFarFromPerfect( TestHelper.Monitor );
+            DemoOpenGroupBetter( TestHelper.Monitor );
+            DemoOpenGroupThisWorksFine( TestHelper.Monitor );
+            DemoOpenGroupWithDynamicConclusion( TestHelper.Monitor );
+            DoSomething( TestHelper.Monitor, f );
         }
 
         void DemoOpenGroupFarFromPerfect( IActivityMonitor m )
@@ -155,5 +194,19 @@ namespace CK.Core.Tests.Monitoring
             }
         }
 
+        [Test]
+        public void OnError()
+        {
+            var monitor = new ActivityMonitor();
+
+            int errorCount = 0;
+            using( monitor.OnError( () => ++errorCount ) )
+            {
+                monitor.Info( "This is not an error." );
+                monitor.Error( "Ouch!" );
+            }
+            errorCount.Should().Be( 1 );
+
+        }
     }
 }

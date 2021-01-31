@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace CK.Core
 {
@@ -128,7 +127,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="g">Group that must be closed.</param>
         /// <param name="conclusions">Conclusions for the group.</param>
-        protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
             _currentLogLevel = g.MaskedGroupLevel;
             base.OnGroupClose( g, conclusions );

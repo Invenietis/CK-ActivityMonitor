@@ -2,8 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -35,7 +33,7 @@ namespace CK.Core.Tests.Monitoring
             }
         }
 
-        public void OnGroupClosing( IActivityLogGroup group, ref System.Collections.Generic.List<ActivityLogGroupConclusion> conclusions )
+        public void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
         {
             lock( _buffer ) _buffer.Append( _prefix ).AppendFormat( "[Closing]{0}", group.GroupText ).AppendLine();
         }
@@ -107,7 +105,7 @@ namespace CK.Core.Tests.Monitoring
             MayFail();
         }
 
-        public void OnGroupClosing( IActivityLogGroup group, ref System.Collections.Generic.List<ActivityLogGroupConclusion> conclusions )
+        public void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
         {
             MayFail();
         }

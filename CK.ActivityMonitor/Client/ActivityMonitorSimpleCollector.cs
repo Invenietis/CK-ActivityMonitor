@@ -24,8 +24,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 
 namespace CK.Core
 {
@@ -67,9 +65,9 @@ namespace CK.Core
             /// <summary>
             /// The exception of the log entry if any.
             /// </summary>
-            public readonly Exception Exception;
+            public readonly Exception? Exception;
 
-            internal Entry( CKTrait tags, LogLevel level, string text, DateTimeStamp logTime, Exception ex )
+            internal Entry( CKTrait tags, LogLevel level, string text, DateTimeStamp logTime, Exception? ex )
             {
                 Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
                 Tags = tags;
@@ -166,16 +164,16 @@ namespace CK.Core
             }
         }
 
-        void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
+        void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions )
         {
         }
 
-        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
         }
 
 
-        void IActivityMonitorClient.OnTopicChanged( string newTopic, string fileName, int lineNumber )
+        void IActivityMonitorClient.OnTopicChanged( string newTopic, string? fileName, int lineNumber )
         {
         }
 

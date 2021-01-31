@@ -57,6 +57,6 @@ namespace CK.Core
         /// The <paramref name="source"/> is necessarily null and a client has no way to
         /// prevent the removal.
         /// </param>
-        void SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove );
+        void SetMonitor( IActivityMonitorImpl? source, bool forceBuggyRemove );
     }
 }
