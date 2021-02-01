@@ -46,7 +46,7 @@ namespace CK.Core
         /// <param name="lineNmber">The line number in the source file where this lock has been instantiated. Automatically set by the compiler.</param>
         public AsyncLock( LockRecursionPolicy recursionPolicy, [CallerFilePath] string? filePath = null, [CallerLineNumber] int lineNmber = 0 )
         {
-            _semaphore = new SemaphoreSlim( 1, 1 );
+            _semaphore = new SemaphoreSlim( initialCount: 1, maxCount: 1 );
             _policy = recursionPolicy;
             _name = filePath + '@' + lineNmber.ToString( CultureInfo.InvariantCulture );
         }
@@ -88,7 +88,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Disposabe value type.
+        /// Disposable value type.
         /// Note that the Dispose explicit implementation must not be called more
         /// than once. (Using an explicit implementation here and exposing this Releaser
         /// type should avoid any misuse.)

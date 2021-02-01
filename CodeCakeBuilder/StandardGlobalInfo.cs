@@ -2,6 +2,7 @@ using Cake.Common;
 using Cake.Common.Build;
 using Cake.Common.Build.AppVeyor;
 using Cake.Common.Build.AzurePipelines;
+using Cake.Common.Build.TFBuild;
 using Cake.Common.Diagnostics;
 using Cake.Core;
 using CK.Text;
