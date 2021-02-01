@@ -8,16 +8,9 @@
     <LangVersion>9</LangVersion>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-  <ItemGroup>
-    <None Remove="AsyncLock.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="AsyncLock.md" />
-  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="CK.Core" Version="13.2.1" />
-  </ItemGroup>
-  <ItemGroup>
     <!--
     This magic packages provides a: IL weaver for adding nullability annotations to .NET Framework and .NET Standard reference assemblies.
     It means that it provides for instance to the Debug.Assert( x != null ) the [DoesNotReturnIfNull] attribute even if, in netstandard2.0,
