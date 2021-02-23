@@ -5,6 +5,7 @@ using System.Text;
 using System.Reflection;
 using System.Diagnostics;
 using CK.Text;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core
 {
@@ -19,8 +20,6 @@ namespace CK.Core
         string _prefix;
         string _prefixLevel;
         CKTrait _currentTags;
-
-        static readonly Action<string> _none = _ => { };
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitorTextWriterClient"/> bound to a 
@@ -60,8 +59,9 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Initialize a new <see cref="ActivityMonitorTextWriterClient"/> that is not bound to any <see cref="Writer"/>.
-        /// Unless explictly initialized, this will not write anything anywhere.
+        /// Initialize a new <see cref="ActivityMonitorTextWriterClient"/> with a 
+        /// <see cref="Writer"/> sets to <see cref="Util.ActionVoid{string}"/>.
+        /// Unless explicitly initialized, this will not write anything anywhere.
         /// The depth padding is using white spaces.
         /// </summary>
         /// <param name="filter">Filter to apply.</param>
@@ -72,12 +72,13 @@ namespace CK.Core
             _buffer = new StringBuilder();
             _prefixLevel = _prefix = String.Empty;
             _currentTags = ActivityMonitor.Tags.Empty;
-            _writer = _none;
+            _writer = Util.ActionVoid<string>;
         }
 
         /// <summary>
-        /// Initialize a new <see cref="ActivityMonitorTextWriterClient"/> that is not bound to any <see cref="Writer"/>.
-        /// Unless explictly initialized, this will not write anything anywhere.
+        /// Initialize a new <see cref="ActivityMonitorTextWriterClient"/> with a 
+        /// <see cref="Writer"/> sets to <see cref="Util.ActionVoid{string}"/>.
+        /// Unless explicitly initialized, this will not write anything anywhere.
         /// The depth padding is using white spaces.
         /// </summary>
         public ActivityMonitorTextWriterClient()
@@ -87,8 +88,10 @@ namespace CK.Core
 
         /// <summary>
         /// Gets or sets the actual writer function.
+        /// When set to null, the empty <see cref="Util.ActionVoid{string}"/> is set.
         /// </summary>
-        protected Action<string> Writer { get => _writer; set => _writer = value ?? _none; }
+        [AllowNull]
+        protected Action<string> Writer { get => _writer; set => _writer = value ?? Util.ActionVoid<string>; }
 
         /// <summary>
         /// Writes all the information.
