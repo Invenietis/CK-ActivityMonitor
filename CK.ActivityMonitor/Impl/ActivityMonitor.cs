@@ -824,7 +824,7 @@ namespace CK.Core
                 _current = g.Index > 0 ? _groups[g.Index - 1] : null;
                 _currentUnfiltered = (Group?)g.Parent;
 
-                var sentConclusions = conclusions != null ? conclusions.ToArray() : Util.Array.Empty<ActivityLogGroupConclusion>();
+                var sentConclusions = conclusions != null ? conclusions.ToArray() : Array.Empty<ActivityLogGroupConclusion>();
                 foreach( var l in _output.Clients )
                 {
                     try

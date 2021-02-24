@@ -76,7 +76,7 @@ namespace CK.Core.Tests.Monitoring
             if( source != null && _source != null ) throw ActivityMonitorClient.CreateMultipleRegisterOnBoundClientException( this );
             if( source != null )
             {
-                Interlocked.Exchange( ref _text, Util.Array.Empty<string>() );
+                Interlocked.Exchange( ref _text, Array.Empty<string>() );
                 _source = source;
             }
             else _source = null;

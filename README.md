@@ -95,7 +95,7 @@ Logs received by the `IActivityMonitor` façade are routed to its clients (see [
 In practice, more powerful logs management that this simple direct clients is required and we use the packages from
 [CK-Monitoring](https://github.com/Invenietis/CK-Monitoring) repository (that implements the `GrandOutput` central collector) and, for tests,
 the [CK.Testing.Monitoring](https://github.com/Invenietis/CK-Testing/tree/master/CK.Testing.Monitoring) package that adds a Monitor property on the **TestHelper**
-mixin: it's easy to use `TestHelper.Monitor` from any tests.
+mix-in: it's easy to use `TestHelper.Monitor` from any tests.
 
 ## Content projects
 
@@ -105,7 +105,8 @@ The core abstractions, and default implementation of `ActivityMonitor`. Also con
 - Standard but basic [Clients](CK.ActivityMonitor/Client). 
 - The LogFile static class that exposes the `RootLogPath` property.
 - The [EventMonitoredArgs](CK.ActivityMonitor/EventMonitoredArgs.cs) that is an EventArgs with a monitor.
-- The [AsyncLock](CK.ActivityMonitor/AsyncLock.cs) that can detect, handles or reject asynchronous lock reentrancy without any awful [AsyncLocal](https://docs.microsoft.com/en-us/dotnet/api/system.threading.asynclocal-1) thanks to the `IActivityMonitor` ubiquitous parameter. 
+- The [AsyncLock](CK.ActivityMonitor/AsyncLock.md) that can detect, handles or reject asynchronous lock reentrancy without any awful [AsyncLocal](https://docs.microsoft.com/en-us/dotnet/api/system.threading.asynclocal-1) 
+thanks to the `IActivityMonitor` ubiquitous parameter. 
 
 ### <a name="SimpleSender"></a>CK.ActivityMonitor.SimpleSender [![Nuget](https://img.shields.io/nuget/vpre/CK.ActivityMonitor.SimpleSender.svg)](https://www.nuget.org/packages/CK.ActivityMonitor.SimpleSender/)
 
@@ -161,7 +162,7 @@ two-steps approach. Even if we maintain this package, we recommend to use the Si
  
 ### CK.PerfectEvent [![Nuget](https://img.shields.io/nuget/vpre/CK.PerfectEvent.svg)](https://www.nuget.org/packages/CK.PerfectEvent/)
 
-A simple implementation of an asynchronous .Net events that handles synchronous, sequential asynchronous and parrallel asynchronous callbacks.
+A simple implementation of an asynchronous .Net events that handles synchronous, sequential asynchronous and parallel asynchronous callbacks.
 
 ## Bug tracker
 
@@ -175,4 +176,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
 <http://www.gnu.org/licenses/>.
 
-Copyright © 2007-2021 Invenietis <http://www.invenietis.com> All rights reserved.
+Copyright © 2007-2021 Signature-Code <http://www.signature-code.com> All rights reserved.

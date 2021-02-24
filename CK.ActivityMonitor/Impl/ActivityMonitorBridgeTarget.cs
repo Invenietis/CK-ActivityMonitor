@@ -31,7 +31,7 @@ namespace CK.Core
             if( targetMonitor == null ) throw new ArgumentNullException( "targetMonitor" );
             _monitor = targetMonitor;
             _honorTargetFilter = honorMonitorFilter;
-            _callbacks = Util.Array.Empty<IActivityMonitorBridgeCallback>();
+            _callbacks = Array.Empty<IActivityMonitorBridgeCallback>();
         }
 
         /// <summary>
