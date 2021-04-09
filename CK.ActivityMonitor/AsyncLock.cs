@@ -124,6 +124,8 @@ namespace CK.Core
 
         /// <summary>
         /// Asynchronously waits to enter this <see cref="AsyncLock"/>.
+        /// This MUST NOT be used in a using statement (unfortunately, a Task is IDisposable),
+        /// use <see cref="LockAsync(IActivityMonitor)"/> for this.
         /// </summary>
         /// <param name="monitor">The monitor that identifies the activity.</param>
         /// <returns>A task that will complete when the lock has been entered.</returns>
@@ -134,6 +136,8 @@ namespace CK.Core
         /// <summary>
         /// Asynchronously waits to enter this <see cref="AsyncLock"/>, using a 32-bit signed integer to measure the time interval,
         /// while observing a <see cref="CancellationToken"/>.
+        /// This MUST NOT be used in a using statement (unfortunately, a Task is IDisposable),
+        /// use <see cref="LockAsync(IActivityMonitor)"/> for this.
         /// </summary>
         /// <param name="monitor">The monitor that identifies the activity.</param>
         /// <param name="millisecondsTimeout">
