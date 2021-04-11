@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace CK.Core
@@ -45,6 +46,7 @@ namespace CK.Core
         /// Modifications to this property are scoped to the current Group since when a Group is closed, this
         /// property (and <see cref="MinimalFilter"/>) is automatically restored to its original value (captured when the Group was opened).
         /// </summary>
+        [AllowNull]
         CKTrait AutoTags { get; set; }
 
         /// <summary>

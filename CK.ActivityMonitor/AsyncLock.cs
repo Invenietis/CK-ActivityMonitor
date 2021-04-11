@@ -1,6 +1,7 @@
 using CK.Core;
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -118,12 +119,14 @@ namespace CK.Core
         /// <exception cref="ArgumentNullException">The monitor is null.</exception>
         public bool IsEnteredBy( IActivityMonitor monitor )
         {
-            if( monitor == null ) throw new ArgumentNullException( nameof( monitor ) );
+            if( monitor == null ) ActivityMonitor.ThrowNullArg( nameof( monitor ) );
             return _current == monitor.Output;
         }
 
         /// <summary>
         /// Asynchronously waits to enter this <see cref="AsyncLock"/>.
+        /// This MUST NOT be used in a using statement (unfortunately, a Task is IDisposable),
+        /// use <see cref="LockAsync(IActivityMonitor)"/> for this.
         /// </summary>
         /// <param name="monitor">The monitor that identifies the activity.</param>
         /// <returns>A task that will complete when the lock has been entered.</returns>
@@ -134,6 +137,8 @@ namespace CK.Core
         /// <summary>
         /// Asynchronously waits to enter this <see cref="AsyncLock"/>, using a 32-bit signed integer to measure the time interval,
         /// while observing a <see cref="CancellationToken"/>.
+        /// This MUST NOT be used in a using statement (unfortunately, a Task is IDisposable),
+        /// use <see cref="LockAsync(IActivityMonitor)"/> for this.
         /// </summary>
         /// <param name="monitor">The monitor that identifies the activity.</param>
         /// <param name="millisecondsTimeout">
@@ -153,7 +158,7 @@ namespace CK.Core
         /// <exception cref="LockRecursionException">Recursion detected and <see cref="LockRecursionPolicy.NoRecursion"/> has been configured.</exception>
         public async Task<bool> EnterAsync( IActivityMonitor monitor, int millisecondsTimeout, CancellationToken cancellationToken )
         {
-            if( monitor == null ) throw new ArgumentNullException( nameof( monitor ) );
+            if( monitor == null ) ActivityMonitor.ThrowNullArg( nameof(monitor) );
             if( _current == monitor.Output )
             {
                 if( _policy == LockRecursionPolicy.NoRecursion ) throw new LockRecursionException( Name );
@@ -198,7 +203,7 @@ namespace CK.Core
         /// <exception cref="LockRecursionException">Recursion detected and <see cref="LockRecursionPolicy.NoRecursion"/> has been configured.</exception>
         public bool Enter( IActivityMonitor monitor, int millisecondsTimeout, CancellationToken cancellationToken )
         {
-            if( monitor == null ) throw new ArgumentNullException( nameof( monitor ) );
+            if( monitor == null ) ActivityMonitor.ThrowNullArg( nameof( monitor ) );
             if( _current == monitor.Output )
             {
                 if( _policy == LockRecursionPolicy.NoRecursion ) throw new LockRecursionException( Name );

@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using CK.Core.Impl;
 
 namespace CK.Core
@@ -51,9 +52,10 @@ namespace CK.Core
             public readonly int Index;
 
             ActivityMonitorGroupData? _data;
-            DateTimeStamp _closeLogTime;
+            CKTrait? _savedMonitorTags;
             Group? _unfilteredParent;
             int _depth;
+            DateTimeStamp _closeLogTime;
 
             /// <summary>
             /// Initialized a new Group at a given index.
@@ -104,12 +106,26 @@ namespace CK.Core
             /// <summary>
             /// Gets the tags for the log group.
             /// </summary>
-            public CKTrait GroupTags => _data?.Tags ?? throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
+            public CKTrait GroupTags 
+            {
+                get
+                {
+                    if( _data == null ) ThrowOnGroupOrDataNotInitialized();
+                    return _data.Tags;
+                }
+            }
 
             /// <summary>
             /// Gets the log time for the log.
             /// </summary>
-            public DateTimeStamp LogTime => _data?.LogTime ?? throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
+            public DateTimeStamp LogTime
+            {
+                get
+                {
+                    if( _data == null ) ThrowOnGroupOrDataNotInitialized();
+                    return _data.LogTime;
+                }
+            }
 
             /// <summary>
             /// Gets the log time of the group closing.
@@ -129,7 +145,7 @@ namespace CK.Core
             {
                 get
                 {
-                    if( _data == null ) throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
+                    if( _data == null ) ThrowOnGroupOrDataNotInitialized();
                     return _data.ExceptionData;
                 }
             }
@@ -149,13 +165,27 @@ namespace CK.Core
             /// The <see cref="LogLevel.IsFiltered"/> can be set here: use <see cref="MaskedGroupLevel"/> to get 
             /// the actual level from <see cref="LogLevel.Trace"/> to <see cref="LogLevel.Fatal"/>.
             /// </summary>
-            public LogLevel GroupLevel => _data?.Level ?? throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
+            public LogLevel GroupLevel
+            {
+                get
+                {
+                    if( _data == null ) ThrowOnGroupOrDataNotInitialized();
+                    return _data.Level;
+                }
+            }
 
             /// <summary>
             /// Gets the actual level (from <see cref="LogLevel.Trace"/> to <see cref="LogLevel.Fatal"/>) associated to this group
             /// without <see cref="LogLevel.IsFiltered"/> bit.
             /// </summary>
-            public LogLevel MaskedGroupLevel => _data?.MaskedLevel ?? throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
+            public LogLevel MaskedGroupLevel
+            {
+                get
+                {
+                    if( _data == null ) ThrowOnGroupOrDataNotInitialized();
+                    return _data.MaskedLevel;
+                }
+            }
 
             /// <summary>
             /// Gets the text with which this group has been opened. Null if and only if the group is closed.
@@ -164,7 +194,7 @@ namespace CK.Core
             {
                 get
                 {
-                    if( _data == null ) throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
+                    if( _data == null ) ThrowOnGroupOrDataNotInitialized();
                     return _data.Text;
                 }
             }
@@ -172,14 +202,7 @@ namespace CK.Core
             /// <summary>
             /// Gets the associated <see cref="Exception"/> if it exists.
             /// </summary>
-            public Exception? Exception
-            {
-                get
-                {
-                    if( _data == null ) throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
-                    return _data.Exception;
-                }
-            }
+            public Exception? Exception => _data?.Exception;
 
             /// <summary>
             /// Gets the group data itself. Its properties are exposed
@@ -187,7 +210,14 @@ namespace CK.Core
             /// to capture the Group information (the <see cref="Impl.IActivityMonitorImpl.InternalMonitor"/>
             /// uses this).
             /// </summary>
-            public ActivityMonitorGroupData InnerData => _data ?? throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
+            public ActivityMonitorGroupData InnerData
+            {
+                get
+                {
+                    if( _data == null ) ThrowOnGroupOrDataNotInitialized();
+                    return _data;
+                }
+            }
 
             /// <summary>
             /// Gets or sets the <see cref="IActivityMonitor.MinimalFilter"/> that will be restored when group will be closed.
@@ -201,21 +231,31 @@ namespace CK.Core
             /// </summary>
             internal bool SavedTrackStackTrace { get; private set; }
 
-            CKTrait? _savedMonitorTags;
             /// <summary>
             /// Gets or sets the <see cref="IActivityMonitor.AutoTags"/> that will be restored when group will be closed.
             /// Initialized with the current value of IActivityMonitor.Tags when the group has been opened.
             /// </summary>
             public CKTrait SavedMonitorTags
             {
-                get => _savedMonitorTags ?? throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
+                get
+                {
+                    if( _savedMonitorTags == null ) ThrowOnGroupOrDataNotInitialized();
+                    return _savedMonitorTags;
+                }
                 private set => _savedMonitorTags = value;
             }
 
             /// <summary>
             /// Gets whether the <see cref="GroupText"/> is actually the <see cref="Exception"/> message.
             /// </summary>
-            public bool IsGroupTextTheExceptionMessage => _data?.IsTextTheExceptionMessage ?? throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
+            public bool IsGroupTextTheExceptionMessage
+            {
+                get
+                {
+                    if( _data == null ) ThrowOnGroupOrDataNotInitialized();
+                    return _data.IsTextTheExceptionMessage;
+                }
+            }
 
             /// <summary>
             /// Gets the file name of the source code that issued the log.
@@ -224,7 +264,7 @@ namespace CK.Core
             {
                 get
                 {
-                    if( _data == null ) throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
+                    if( _data == null ) ThrowOnGroupOrDataNotInitialized();
                     return _data.FileName;
                 }
             }
@@ -232,12 +272,21 @@ namespace CK.Core
             /// <summary>
             /// Gets the line number of the <see cref="FileName"/> that issued the log.
             /// </summary>
-            public int LineNumber => _data?.LineNumber ?? throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
+            public int LineNumber
+            {
+                get
+                {
+                    if( _data == null ) ThrowOnGroupOrDataNotInitialized();
+                    return _data.LineNumber;
+                }
+            }
 
             IDisposable IDisposableGroup.ConcludeWith( Func<string> getConclusionText )
             {
-                if( _data == null ) throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
+                if( _data == null ) ThrowOnGroupOrDataNotInitialized();
+                bool isNotReentrant = Monitor.ConcurrentOnlyCheck();
                 if( !IsRejectedGroup ) _data.GetConclusionText = getConclusionText;
+                if( isNotReentrant ) Monitor.ReentrantAndConcurrentRelease();
                 return this;
             }
 
@@ -246,22 +295,30 @@ namespace CK.Core
             /// </summary>
             void IDisposable.Dispose()
             {
-                if( _data != null )
+                bool isNotReentrant = Monitor.ConcurrentOnlyCheck();
+                try
                 {
-                    Group? g = Monitor._current;
-                    while( g != this )
+                    if( _data != null )
                     {
-                        // The current group cannot be null (or this object would have been already disposed). We bang!
-                        ((IDisposable)g!).Dispose();
-                        g = Monitor._current;
+                        Group? g = Monitor._current;
+                        while( g != this )
+                        {
+                            // The current group cannot be null (or this object would have been already disposed). We bang!
+                            ((IDisposable)g!).Dispose();
+                            g = Monitor._current;
+                        }
+                        Monitor.CloseGroup( Monitor.NextLogTime(), null );
                     }
-                    Monitor.CloseGroup( Monitor.NextLogTime(), null );
+                }
+                finally
+                {
+                    if( isNotReentrant ) Monitor.ReentrantAndConcurrentRelease();
                 }
             }
 
             internal void GroupClosing( ref List<ActivityLogGroupConclusion>? conclusions )
             {
-                if( _data == null ) throw new InvalidOperationException( $"Object not initiliazed, please call {nameof( Initialize )}." );
+                if( _data == null ) ThrowOnGroupOrDataNotInitialized();
                 string? auto = _data.ConsumeConclusionText();
                 if( auto != null )
                 {

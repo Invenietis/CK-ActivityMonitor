@@ -2,7 +2,9 @@
   <Import Project="..\..\Common\Shared.props" />
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
+    <LangVersion>9</LangVersion>
     <IsPackable>False</IsPackable>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CK.ActivityMonitor\CK.ActivityMonitor.csproj" />

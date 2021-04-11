@@ -181,7 +181,7 @@ namespace CK.Core.Tests.Monitoring
             IActivityMonitor monitor = new ActivityMonitor();
             if( TestHelper.LogsToConsole ) monitor.Output.RegisterClient( new ActivityMonitorConsoleClient() );
 
-            // Artficially slows down logging to ensure that concurrent access occurs.
+            // Artificially slows down logging to ensure that concurrent access occurs.
             monitor.Output.RegisterClient( new ActionActivityMonitorClient( () => Thread.Sleep( 50 ) ) );
             AggregateException? ex = ConcurrentThrow( monitor );
             ex.Should().NotBeNull();
@@ -240,7 +240,7 @@ namespace CK.Core.Tests.Monitoring
         public void StackTrace_is_available_on_concurrent_errors_thanks_to_the_StackTrace_tag()
         {
             IActivityMonitor monitor = new ActivityMonitor();
-            // Artficially slows down logging to ensure that concurrent access occurs.
+            // Artificially slows down logging to ensure that concurrent access occurs.
             monitor.Output.RegisterClient( new ActionActivityMonitorClient( () => Thread.Sleep( 80 ) ) );
             // Use a temporary bridge to redirect the logs to the TestHelper.Monitor.
             //using( monitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
