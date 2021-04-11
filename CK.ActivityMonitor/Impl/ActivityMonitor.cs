@@ -7,6 +7,7 @@ using CK.Core.Impl;
 using System.Linq;
 using System.Text;
 using System.Reflection;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core
 {
@@ -334,6 +335,7 @@ namespace CK.Core
         /// Modifications to this property are scoped to the current Group since when a Group is closed, this
         /// property (like <see cref="MinimalFilter"/>) is automatically restored to its original value (captured when the Group was opened).
         /// </summary>
+        [AllowNull]
         public CKTrait AutoTags
         {
             get { return _currentTag; }
@@ -708,7 +710,7 @@ namespace CK.Core
         /// a <see cref="List{T}"/> or an <see cref="IEnumerable{T}"/> of ActivityLogGroupConclusion, or any object with an overridden <see cref="Object.ToString"/> method. 
         /// See remarks (especially for List&lt;ActivityLogGroupConclusion&gt;).
         /// </summary>
-        /// <param name="logTime">Timestamp of the group closing.</param>
+        /// <param name="logTime">Time stamp of the group closing.</param>
         /// <param name="userConclusion">Optional string, enumerable of <see cref="ActivityLogGroupConclusion"/>) or object to conclude the group. See remarks.</param>
         /// <returns>True if a group has actually been closed, false if there is no more opened group.</returns>
         /// <remarks>
@@ -717,30 +719,15 @@ namespace CK.Core
         /// </remarks>
         public virtual bool CloseGroup( DateTimeStamp logTime, object? userConclusion = null )
         {
-            ReentrantAndConcurrentCheck();
+            bool isNoReentrant = ConcurrentOnlyCheck();
             try
             {
                 return DoCloseGroup( logTime, userConclusion );
             }
             finally
             {
-                ReentrantAndConcurrentRelease();
+                if( isNoReentrant ) ReentrantAndConcurrentRelease();
             }
-        }
-
-        void Test()
-        {
-            object? obj = null;
-            if( obj == null )
-            {
-                obj = new object();
-            }
-            DoStuff( obj );
-        }
-
-        void DoStuff( object obj )
-        {
-
         }
 
         bool DoCloseGroup( DateTimeStamp logTime, object? userConclusion, bool trustDataTime = false )
@@ -1015,5 +1002,24 @@ namespace CK.Core
             }
             return b.ToString();
         }
+
+        [DoesNotReturn]
+        internal static void ThrowOnGroupOrDataNotInitialized()
+        {
+            throw new InvalidOperationException( $"Group or Data not initialized, please call Initialize." );
+        }
+
+        [DoesNotReturn]
+        internal static void ThrowNullArg( string name )
+        {
+            throw new ArgumentNullException( name );
+        }
+
+        [DoesNotReturn]
+        internal static void ThrowOutOfRangeArg( string name )
+        {
+            throw new ArgumentOutOfRangeException( name );
+        }
+
     }
 }

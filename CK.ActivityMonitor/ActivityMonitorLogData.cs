@@ -23,6 +23,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace CK.Core
@@ -70,12 +71,26 @@ namespace CK.Core
         /// Tags (from <see cref="ActivityMonitor.Tags"/>) associated to the log. 
         /// It will be union-ed with the current <see cref="IActivityMonitor.AutoTags"/>.
         /// </summary>
-        public CKTrait Tags => _tags ?? throw new InvalidOperationException( $"Object was not initialized. Please call {nameof( Initialize )} before accessing getters." );
+        public CKTrait Tags
+        {
+            get
+            {
+                if( _tags == null ) ActivityMonitor.ThrowOnGroupOrDataNotInitialized();
+                return _tags;
+            }
+        }
 
         /// <summary>
         /// Text of the log. Can not be null.
         /// </summary>
-        public string Text => _text ?? throw new InvalidOperationException( $"Object was not initialized. Please call {nameof( Initialize )} before accessing getters." );
+        public string Text
+        {
+            get
+            {
+                if( _text == null ) ActivityMonitor.ThrowOnGroupOrDataNotInitialized();
+                return _text;
+            }
+        }
 
         /// <summary>
         /// Gets the time of the log.
@@ -126,8 +141,17 @@ namespace CK.Core
         public ActivityMonitorLogData( LogLevel level, Exception? exception, CKTrait? tags, string? text, DateTimeStamp logTime, [CallerFilePath] string fileName = null, [CallerLineNumber] int lineNumber = 0 )
             : this( level, fileName, lineNumber )
         {
-            if( MaskedLevel == LogLevel.None || MaskedLevel == LogLevel.Mask ) throw new ArgumentException( Impl.ActivityMonitorResources.ActivityMonitorInvalidLogLevel, "level" );
+            if( MaskedLevel == LogLevel.None || MaskedLevel == LogLevel.Mask )
+            {
+                ThrowInvalidLogLevel();
+            }
             Initialize( text, exception, tags, logTime );
+        }
+
+        [DoesNotReturn]
+        static void ThrowInvalidLogLevel()
+        {
+            throw new ArgumentException( Impl.ActivityMonitorResources.ActivityMonitorInvalidLogLevel, "level" );
         }
 
         /// <summary>
