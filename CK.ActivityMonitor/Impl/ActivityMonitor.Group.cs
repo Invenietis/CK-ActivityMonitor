@@ -283,10 +283,16 @@ namespace CK.Core
 
             IDisposable IDisposableGroup.ConcludeWith( Func<string> getConclusionText )
             {
-                if( _data == null ) ThrowOnGroupOrDataNotInitialized();
                 bool isNotReentrant = Monitor.ConcurrentOnlyCheck();
-                if( !IsRejectedGroup ) _data.GetConclusionText = getConclusionText;
-                if( isNotReentrant ) Monitor.ReentrantAndConcurrentRelease();
+                try
+                {
+                    if( _data == null ) ThrowOnGroupOrDataNotInitialized();
+                    if( !IsRejectedGroup ) _data.GetConclusionText = getConclusionText;
+                }
+                finally
+                {
+                    if( isNotReentrant ) Monitor.ReentrantAndConcurrentRelease();
+                }
                 return this;
             }
 

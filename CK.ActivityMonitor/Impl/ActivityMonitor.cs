@@ -929,7 +929,7 @@ namespace CK.Core
         /// <summary>
         /// Checks only for concurrency issues. 
         /// False if a call already exists (reentrant call): when true is returned, ReentrantAndConcurrentRelease must be called
-        /// to cleanup the concurency detection internal state.
+        /// to cleanup the concurrency detection internal state.
         /// </summary>
         /// <returns>False for a reentrant call, true otherwise.</returns>
         bool ConcurrentOnlyCheck()
