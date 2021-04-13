@@ -917,7 +917,7 @@ namespace CK.Core
                 }
                 else
                 {
-                    ThrowConcurrentThreadAccessException( ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess, currentThreadId );
+                    ThrowConcurrentThreadAccessException( ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess, alreadyEnteredId, currentThreadId );
                 }
             }
             if( _trackStackTrace )
@@ -944,7 +944,7 @@ namespace CK.Core
                 }
                 else
                 {
-                    ThrowConcurrentThreadAccessException( ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess, currentThreadId );
+                    ThrowConcurrentThreadAccessException( ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess, alreadyEnteredId, currentThreadId );
                 }
             }
             if( _trackStackTrace )
@@ -954,14 +954,16 @@ namespace CK.Core
             return true;
         }
 
-        private void ThrowConcurrentThreadAccessException( string messageFormat, int currentThreadId )
+        private void ThrowConcurrentThreadAccessException( string messageFormat, int alreadyEnteredId, int currentThreadId )
         {
-            while( _trackStackTrace && _currentStackTrace == null )
+            StackTrace? t = _currentStackTrace;
+            while( _trackStackTrace && t == null )
             {
                 Thread.Yield();
+                t = _currentStackTrace;
             }
-            var msg = String.Format( messageFormat, _uniqueId, currentThreadId, _enteredThreadId );
-            if( _trackStackTrace ) msg = AddCurrentStackTrace( msg );
+            var msg = String.Format( messageFormat, _uniqueId, currentThreadId, alreadyEnteredId );
+            if( t != null ) msg = AddCurrentStackTrace( msg, t );
             throw new CKException( msg );
         }
 
@@ -973,18 +975,19 @@ namespace CK.Core
             }
             // Reset and check even in Release.
             int currentThreadId = Thread.CurrentThread.ManagedThreadId;
-            if( Interlocked.CompareExchange( ref _enteredThreadId, 0, currentThreadId ) != currentThreadId )
+            int alreadyEnteredId = Interlocked.CompareExchange( ref _enteredThreadId, 0, currentThreadId );
+            if( alreadyEnteredId != currentThreadId )
             {
-                ThrowConcurrentThreadAccessException( ActivityMonitorResources.ActivityMonitorReentrancyReleaseError, currentThreadId );
+                ThrowConcurrentThreadAccessException( ActivityMonitorResources.ActivityMonitorReentrancyReleaseError, alreadyEnteredId, currentThreadId );
             }
             _currentStackTrace = null;
         }
 
-        string AddCurrentStackTrace( string msg )
+        string AddCurrentStackTrace( string msg, StackTrace trace )
         {
             bool inLogs = false;
             StringBuilder b = new StringBuilder( msg );
-            StackFrame[] frames = _currentStackTrace!.GetFrames();
+            StackFrame[] frames = trace.GetFrames();
             for( int i = 0; i < frames.Length; ++i )
             {
                 StackFrame f = frames[i];
@@ -992,7 +995,7 @@ namespace CK.Core
                 Type t = m.DeclaringType!;
                 if( inLogs || t.Assembly != typeof( ActivityMonitor ).Assembly )
                 {
-                    if( !inLogs ) b.AppendLine().Append( "-- Other Monitor's StackTrace (" ).Append( _currentStackTrace.FrameCount - i ).Append( " frames):" ).AppendLine();
+                    if( !inLogs ) b.AppendLine().Append( "-- Other Monitor's StackTrace (" ).Append( trace.FrameCount - i ).Append( " frames):" ).AppendLine();
                     inLogs = true;
                     b.Append( t.FullName ).Append( '.' ).Append( m.Name )
                      .Append( " at " )
