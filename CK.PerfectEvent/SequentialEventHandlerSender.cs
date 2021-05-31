@@ -56,19 +56,19 @@ namespace CK.PerfectEvent
         public SequentialEventHandlerSender<TEvent> Remove( SequentialEventHandler<TEvent> handler )
         {
             if( handler == null ) throw new ArgumentNullException( nameof( handler ) );
-            Util.InterlockedSet( ref _handler, h =>
-            {
-                if( h == null ) return null;
-                if( h is SequentialEventHandler<TEvent> a ) return a == handler ? null : h;
-                var current = (SequentialEventHandler<TEvent>[])h;
-                int idx = Array.IndexOf( current, handler );
-                if( idx < 0 ) return current;
-                Debug.Assert( current.Length > 1 );
-                var ah = new SequentialEventHandler<TEvent>[current.Length - 1];
-                Array.Copy( current, 0, ah, 0, idx );
-                Array.Copy( current, idx + 1, ah, idx, ah.Length - idx );
-                return ah;
-            } );
+            _ = Util.InterlockedSet( ref _handler, h =>
+              {
+                  if( h == null ) return null;
+                  if( h is SequentialEventHandler<TEvent> a ) return a == handler ? null : h;
+                  var current = (SequentialEventHandler<TEvent>[])h;
+                  int idx = Array.IndexOf( current, handler );
+                  if( idx < 0 ) return current;
+                  Debug.Assert( current.Length > 1 );
+                  var ah = new SequentialEventHandler<TEvent>[current.Length - 1];
+                  Array.Copy( current, 0, ah, 0, idx );
+                  Array.Copy( current, idx + 1, ah, idx, ah.Length - idx );
+                  return ah;
+              } );
             return this;
         }
 

@@ -127,9 +127,10 @@ namespace CK.Core
             /// </summary>
             /// <param name="filter">The filter to set for the file.</param>
             /// <param name="fileName">The file name: do not specify it to inject the path of your source file.</param>
-            public static void SetFilter( SourceLogFilter filter, [CallerFilePath]string fileName = null )
+            public static void SetFilter( SourceLogFilter filter, [CallerFilePath]string? fileName = null )
             {
-                if( filter.IsUndefined ) _filters.TryRemove( fileName, out filter ); // nullref warn
+                if( fileName == null ) throw new ArgumentNullException( nameof( fileName ) );
+                if( filter.IsUndefined ) _filters.TryRemove( fileName, out filter );
                 else _filters.AddOrUpdate( fileName, filter, ( s, prev ) => filter ); 
             }
 
@@ -140,7 +141,7 @@ namespace CK.Core
             /// </summary>
             /// <param name="overrideFilter">The override filter to set for the file.</param>
             /// <param name="fileName">The file name: do not specify it to inject the path of your source file.</param>
-            public static void SetOverrideFilter( LogFilter overrideFilter, [CallerFilePath]string fileName = null )
+            public static void SetOverrideFilter( LogFilter overrideFilter, [CallerFilePath]string? fileName = null )
             {
                 SetFilter( new SourceLogFilter( overrideFilter, LogFilter.Undefined ), fileName );
             }
@@ -151,7 +152,7 @@ namespace CK.Core
             /// </summary>
             /// <param name="minimalFilter">The minimal filter to set for the file.</param>
             /// <param name="fileName">The file name: do not specify it to inject the path of your source file.</param>
-            public static void SetMinimalFilter( LogFilter minimalFilter, [CallerFilePath]string fileName = null )
+            public static void SetMinimalFilter( LogFilter minimalFilter, [CallerFilePath]string? fileName = null )
             {
                 SetFilter( new SourceLogFilter( LogFilter.Undefined, minimalFilter ), fileName );
             }

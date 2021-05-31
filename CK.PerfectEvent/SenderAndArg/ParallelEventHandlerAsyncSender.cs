@@ -110,9 +110,10 @@ namespace CK.PerfectEvent
         {
             var h = _handler;
             if( h == null ) return Task.CompletedTask;
-            if( h is ParallelEventHandlerAsync<TSender, TArg> a ) return a( monitor.DependentActivity().CreateToken(), sender, args );
+            ActivityMonitor.DependentToken token = monitor.DependentActivity().CreateToken();
+            if( h is ParallelEventHandlerAsync<TSender, TArg> a ) return a( token, sender, args );
             var all = (ParallelEventHandlerAsync<TSender, TArg>[])h;
-            return Task.WhenAll( all.Select( x => x( monitor.DependentActivity().CreateToken(), sender, args ) ) );
+            return Task.WhenAll( all.Select( x => x( token, sender, args ) ) );
         }
     }
 }

@@ -44,7 +44,7 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
         /// <returns>True if the log should be emitted.</returns>
-        public static bool ShouldLogLine( this IActivityMonitor @this, LogLevel level, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        public static bool ShouldLogLine( this IActivityMonitor @this, LogLevel level, [CallerFilePath]string? fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
             var h = ActivityMonitor.SourceFilter.FilterSource;
             int combined = h == null ? 0 : (int)h( ref fileName, ref lineNumber ).LineFilter;
