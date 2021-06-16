@@ -232,11 +232,11 @@ namespace CK.Core
         #region Catch & CatchCounter
 
         /// <summary>
-        /// Enables simple "using" syntax to easily collect any <see cref="LogLevel"/> (or above) entries (defaults to <see cref="LogLevel.Error"/>) around operations.
-        /// The callback is called when the the returned IDisposable is disposed and there are at least one collected entry.
+        /// Enables simple "using" syntax to easily collect any <paramref name="level"/> (or above) entries (defaults to <see cref="LogLevel.Error"/>) around operations.
+        /// The callback is called when the returned IDisposable is disposed and there are at least one collected entry.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="errorHandler">An action that accepts a list of fatal or error <see cref="ActivityMonitorSimpleCollector.Entry">entries</see>.</param>
+        /// <param name="errorHandler">An action that accepts a list of <see cref="ActivityMonitorSimpleCollector.Entry">entries</see>.</param>
         /// <param name="level">Defines the level of the collected entries (by default fatal or error entries).</param>
         /// <param name="capacity">Capacity of the collector defaults to 50.</param>
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
@@ -249,6 +249,25 @@ namespace CK.Core
             {
                 @this.Output.UnregisterClient( errorTracker );
                 if( errorTracker.Entries.Count > 0 ) errorHandler( errorTracker.Entries );
+            } );
+        }
+
+        /// <summary>
+        /// Enables simple "using" syntax to easily collect any <see cref="LogLevel"/> (or above) entries (defaults to <see cref="LogLevel.Error"/>) around operations.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="entries">Collector for <see cref="ActivityMonitorSimpleCollector.Entry">entries</see>.</param>
+        /// <param name="level">Defines the level of the collected entries (by default fatal or error entries).</param>
+        /// <param name="capacity">Capacity of the collector defaults to 50.</param>
+        /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
+        public static IDisposable CollectEntries( this IActivityMonitor @this, out IReadOnlyList<ActivityMonitorSimpleCollector.Entry> entries, LogLevelFilter level = LogLevelFilter.Error, int capacity = 50 )
+        {
+            ActivityMonitorSimpleCollector errorTracker = new ActivityMonitorSimpleCollector() { MinimalFilter = level, Capacity = capacity };
+            @this.Output.RegisterClient( errorTracker );
+            entries = errorTracker.Entries;
+            return Util.CreateDisposableAction( () =>
+            {
+                @this.Output.UnregisterClient( errorTracker );
             } );
         }
 
