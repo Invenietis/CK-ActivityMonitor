@@ -53,9 +53,9 @@ namespace CK.Core
         public readonly LogLevel MaskedLevel;
 
         /// <summary>
-        /// Name of the source file that emitted the log. Cannot be null.
+        /// Name of the source file that emitted the log.
         /// </summary>
-        public readonly string FileName;
+        public readonly string? FileName;
 
         /// <summary>
         /// Line number in the source file that emitted the log. Can be null.
@@ -138,7 +138,7 @@ namespace CK.Core
         /// </param>
         /// <param name="fileName">Name of the source file that emitted the log. Can be null.</param>
         /// <param name="lineNumber">Line number in the source file that emitted the log.</param>
-        public ActivityMonitorLogData( LogLevel level, Exception? exception, CKTrait? tags, string? text, DateTimeStamp logTime, [CallerFilePath] string fileName = null, [CallerLineNumber] int lineNumber = 0 )
+        public ActivityMonitorLogData( LogLevel level, Exception? exception, CKTrait? tags, string? text, DateTimeStamp logTime, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
             : this( level, fileName, lineNumber )
         {
             if( MaskedLevel == LogLevel.None || MaskedLevel == LogLevel.Mask )
@@ -158,9 +158,9 @@ namespace CK.Core
         /// Preinitializes a new <see cref="ActivityMonitorLogData"/>: <see cref="Initialize"/> has yet to be called.
         /// </summary>
         /// <param name="level">Log level. Can be <see cref="LogLevel.None"/> (the log will be ignored).</param>
-        /// <param name="fileName">Name of the source file that emitted the log. Cannot be null.</param>
+        /// <param name="fileName">Name of the source file that emitted the log.</param>
         /// <param name="lineNumber">Line number in the source file that emitted the log.</param>
-        public ActivityMonitorLogData( LogLevel level, string fileName, int lineNumber )
+        public ActivityMonitorLogData( LogLevel level, string? fileName, int lineNumber )
         {
             Level = level;
             MaskedLevel = level & LogLevel.Mask;
@@ -174,7 +174,6 @@ namespace CK.Core
         internal ActivityMonitorLogData()
         {
             Debug.Assert( Level == LogLevel.None );
-            FileName = String.Empty;
         }
 
         /// <summary>

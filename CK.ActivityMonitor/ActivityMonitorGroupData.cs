@@ -27,9 +27,9 @@ namespace CK.Core
         /// </param>
         /// <param name="exception">Exception of the log. Can be null.</param>
         /// <param name="getConclusionText">Optional function that provides delayed obtention of the group conclusion: will be called on group closing.</param>
-        /// <param name="fileName">Name of the source file that emitted the log. Cannot be null.</param>
+        /// <param name="fileName">Name of the source file that emitted the log.</param>
         /// <param name="lineNumber">Line number in the source file that emitted the log.</param>
-        public ActivityMonitorGroupData( LogLevel level, CKTrait? tags, string? text, DateTimeStamp logTime, Exception? exception, Func<string>? getConclusionText, string fileName, int lineNumber )
+        public ActivityMonitorGroupData( LogLevel level, CKTrait? tags, string? text, DateTimeStamp logTime, Exception? exception, Func<string>? getConclusionText, string? fileName, int lineNumber )
             : base( level, exception, tags, text, logTime, fileName, lineNumber )
         {
             _getConclusion = getConclusionText;
@@ -39,7 +39,7 @@ namespace CK.Core
         /// Preinitializes a new <see cref="ActivityMonitorLogData"/>: <see cref="Initialize"/> has yet to be called.
         /// </summary>
         /// <param name="level">Log level. Can not be <see cref="LogLevel.None"/>.</param>
-        /// <param name="fileName">Name of the source file that emitted the log. Cannot be null.</param>
+        /// <param name="fileName">Name of the source file that emitted the log.</param>
         /// <param name="lineNumber">Line number in the source file that emitted the log.</param>
         public ActivityMonitorGroupData( LogLevel level, string fileName, int lineNumber )
             : base( level, fileName, lineNumber )

@@ -105,7 +105,7 @@ namespace CK.Core
             }
         }
 
-        internal void TargetTopicChanged( string newTopic, string fileName, int lineNumber )
+        internal void TargetTopicChanged( string newTopic, string? fileName, int lineNumber )
         {
             foreach( var b in _callbacks )
             {
@@ -119,7 +119,7 @@ namespace CK.Core
             targetTags = _monitor.AutoTags;
         }
 
-        internal void SetTopic( string newTopic, string fileName, int lineNumber )
+        internal void SetTopic( string newTopic, string? fileName, int lineNumber )
         {
             _monitor.SetTopic( newTopic, fileName, lineNumber );
         }

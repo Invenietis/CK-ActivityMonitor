@@ -126,7 +126,7 @@ namespace CK.Core
         /// Internal event used by ActivityMonitorBridgeTarget that have at least one ActivityMonitorBridge in another application domain.
         /// </summary>
         static internal event EventHandler? DefaultFilterLevelChanged;
-        static object _lockDefaultFilterLevel;
+        static readonly object _lockDefaultFilterLevel;
 
         /// <summary>
         /// Gets or sets the default filter that should be used when the <see cref="IActivityMonitor.ActualFilter"/> is <see cref="LogFilter.Undefined"/>.
@@ -205,7 +205,8 @@ namespace CK.Core
             /// </summary>
             public DateTimeStamp Value = DateTimeStamp.MinValue;
         }
-        DateTimeStampProvider _lastLogTime;
+
+        readonly DateTimeStampProvider _lastLogTime;
         readonly Guid _uniqueId;
         InternalMonitor? _internalMonitor;
 
@@ -233,7 +234,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
         /// <param name="topic">Optional initial topic (can be null).</param>
-        public ActivityMonitor( bool applyAutoConfigurations, string topic = null )
+        public ActivityMonitor( bool applyAutoConfigurations, string? topic = null )
             : this( new DateTimeStampProvider(), Guid.NewGuid(), Tags.Empty, applyAutoConfigurations )
         {
             if( topic != null ) SetTopic( topic );
@@ -295,7 +296,7 @@ namespace CK.Core
         /// Sets the current topic for this monitor. This can be any non null string (null topic is mapped to the empty string) that describes
         /// the current activity.
         /// </summary>
-        public void SetTopic( string newTopic, [CallerFilePath] string fileName = null, [CallerLineNumber] int lineNumber = 0 )
+        public void SetTopic( string newTopic, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
             if( newTopic == null ) newTopic = String.Empty;
             if( _topic != newTopic )
@@ -312,7 +313,7 @@ namespace CK.Core
             }
         }
 
-        void DoSetTopic( string newTopic, [CallerFilePath] string fileName = null, [CallerLineNumber] int lineNumber = 0 )
+        void DoSetTopic( string newTopic, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
             Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
             Debug.Assert( newTopic != null && _topic != newTopic );
@@ -323,7 +324,7 @@ namespace CK.Core
             SendTopicLogLine( fileName, lineNumber );
         }
 
-        void SendTopicLogLine( [CallerFilePath] string fileName = null, [CallerLineNumber] int lineNumber = 0 )
+        void SendTopicLogLine( [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
             _lastLogTime.Value = new DateTimeStamp( _lastLogTime.Value, DateTime.UtcNow );
             DoUnfilteredLog( new ActivityMonitorLogData( LogLevel.Info, null, Tags.MonitorTopicChanged, SetTopicPrefix + _topic, _lastLogTime.Value, fileName, lineNumber ) );
@@ -473,8 +474,7 @@ namespace CK.Core
             List<IActivityMonitorClient>? clientsToRemove = null;
             foreach( var l in _output.Clients )
             {
-                IActivityMonitorBoundClient? bound = l as IActivityMonitorBoundClient;
-                if( bound != null )
+                if( l is IActivityMonitorBoundClient bound )
                 {
                     try
                     {
@@ -764,14 +764,13 @@ namespace CK.Core
                     }
                     else
                     {
-                        if( userConclusion is ActivityLogGroupConclusion )
+                        if( userConclusion is ActivityLogGroupConclusion c )
                         {
-                            conclusions.Add( (ActivityLogGroupConclusion)userConclusion );
+                            conclusions.Add( c );
                         }
                         else
                         {
-                            IEnumerable<ActivityLogGroupConclusion>? multi = userConclusion as IEnumerable<ActivityLogGroupConclusion>;
-                            if( multi != null )
+                            if( userConclusion is IEnumerable<ActivityLogGroupConclusion> multi )
                             {
                                 conclusions.AddRange( multi );
                             }

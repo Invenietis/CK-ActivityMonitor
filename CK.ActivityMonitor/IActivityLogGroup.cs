@@ -108,7 +108,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the file name of the source code that issued the log.
         /// </summary>
-        string FileName { get; }
+        string? FileName { get; }
 
         /// <summary>
         /// Gets the line number of the <see cref="FileName"/> that issued the log.
