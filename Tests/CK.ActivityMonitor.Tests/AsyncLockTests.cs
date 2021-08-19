@@ -110,17 +110,17 @@ namespace CK.Core.Tests.Monitoring
                 }
             };
 
-            Func<IActivityMonitor,Task> asyncJob = async m =>
-            {
-                Thread.Sleep( 10 );
-                for( int i = 0; i < asyncDecLoop; i++ )
-                {
-                    await guard.EnterAsync( m );
-                    nByJob--;
-                    nByJobAsync++;
-                    guard.Leave( m );
-                }
-            };
+            Func<IActivityMonitor, Task> asyncJob = async m =>
+             {
+                 Thread.Sleep( 10 );
+                 for( int i = 0; i < asyncDecLoop; i++ )
+                 {
+                     await guard.EnterAsync( m );
+                     nByJob--;
+                     nByJobAsync++;
+                     guard.Leave( m );
+                 }
+             };
 
             IActivityMonitor m1 = new ActivityMonitor( applyAutoConfigurations: false );
             IActivityMonitor m2 = new ActivityMonitor( applyAutoConfigurations: false );
@@ -168,5 +168,38 @@ namespace CK.Core.Tests.Monitoring
             l.IsEnteredBy( m ).Should().BeFalse();
         }
 
+        [Test]
+        public async Task TryEnter_works_as_expected()
+        {
+            var m = TestHelper.Monitor;
+            var l = new AsyncLock( LockRecursionPolicy.SupportsRecursion );
+
+            using( await l.LockAsync( m ) )
+            {
+                l.IsEnteredBy( m ).Should().BeTrue();
+
+                // SupportsRecursion
+                l.TryEnter( m ).Should().BeTrue();
+                l.IsEnteredBy( m ).Should().BeTrue();
+                l.Leave( m );
+                l.IsEnteredBy( m ).Should().BeTrue();
+
+                l.IsEnteredBy( m ).Should().BeTrue();
+            }
+            l.IsEnteredBy( m ).Should().BeFalse();
+
+            var m2 = new ActivityMonitor();
+
+            using( await l.LockAsync( m ) )
+            {
+                l.IsEnteredBy( m ).Should().BeTrue();
+
+                l.TryEnter( m2 ).Should().BeFalse();
+                l.IsEnteredBy( m2 ).Should().BeFalse();
+
+                l.IsEnteredBy( m ).Should().BeTrue();
+            }
+
+        }
     }
 }

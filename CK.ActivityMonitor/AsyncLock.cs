@@ -221,6 +221,14 @@ namespace CK.Core
             return false;
         }
 
+
+        /// <summary>
+        /// Takes the lock immediately and returns true or returns false.
+        /// </summary>
+        /// <param name="m">The monitor that identifies the activity.</param>
+        /// <returns>true if the lock was taken, false otherwise.</returns>
+        public bool TryEnter( IActivityMonitor m ) => Enter( m, 0, default );
+
         /// <summary>
         /// Leaves the lock that must have been previously entered by the <paramref name="monitor"/>.
         /// </summary>
