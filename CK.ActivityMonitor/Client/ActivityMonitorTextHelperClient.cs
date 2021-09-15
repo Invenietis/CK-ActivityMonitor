@@ -192,9 +192,6 @@ namespace CK.Core
         {
         }
 
-        [Obsolete("Use MinimalFilter property instead.")]
-        public LogFilter Filter { get => _filter; set => MinimalFilter = value; }
-
         /// <summary>
         /// Gets or sets the filter for this client.
         /// Setting this to any level ensures that the bounded monitor will accept
