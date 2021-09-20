@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core
 {
@@ -29,7 +30,7 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        public static void MonitorEnd(this IActivityMonitor @this, string? text = null, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0)
+        public static void MonitorEnd(this IActivityMonitor @this, string? text = null, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0)
         {
             while (@this.CloseGroup(NextLogTime(@this)));
             @this.UnfilteredLog(ActivityMonitor.Tags.MonitorEnd, LogLevel.Info, text ?? "Done.", NextLogTime(@this), null, fileName, lineNumber);
@@ -44,7 +45,7 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
         /// <returns>True if the log should be emitted.</returns>
-        public static bool ShouldLogLine( this IActivityMonitor @this, LogLevel level, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        public static bool ShouldLogLine( this IActivityMonitor @this, LogLevel level, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
             var h = ActivityMonitor.SourceFilter.FilterSource;
             int combined = h == null ? 0 : (int)h( ref fileName, ref lineNumber ).LineFilter;
@@ -65,7 +66,7 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
         /// <returns>True if the log should be emitted.</returns>
-        public static bool ShouldLogGroup( this IActivityMonitor @this, LogLevel level, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        public static bool ShouldLogGroup( this IActivityMonitor @this, LogLevel level, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
             var h = ActivityMonitor.SourceFilter.FilterSource;
             int combined = h == null ? 0 : (int)h( ref fileName, ref lineNumber ).GroupFilter;
@@ -106,7 +107,14 @@ namespace CK.Core
         /// treated as if a different LogLevel is used.
         /// </para>
         /// </remarks>
-        static public void UnfilteredLog( this IActivityMonitor @this, CKTrait? tags, LogLevel level, string? text, DateTimeStamp logTime, Exception? ex, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        static public void UnfilteredLog( this IActivityMonitor @this,
+                                          CKTrait? tags,
+                                          LogLevel level,
+                                          string? text,
+                                          DateTimeStamp logTime,
+                                          Exception? ex,
+                                          [CallerFilePath] string? fileName = null,
+                                          [CallerLineNumber] int lineNumber = 0 )
         {
             @this.UnfilteredLog( new ActivityMonitorLogData( level, ex, tags, text, logTime, fileName, lineNumber ) );
         }
@@ -144,7 +152,15 @@ namespace CK.Core
         /// Note that this automatic configuration restoration works even if the group is filtered (when the <paramref name="level"/> is None).
         /// </para>
         /// </remarks>
-        static public IDisposable UnfilteredOpenGroup( this IActivityMonitor @this, CKTrait tags, LogLevel level, Func<string>? getConclusionText, string text, DateTimeStamp logTime, Exception? ex, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        static public IDisposable UnfilteredOpenGroup( this IActivityMonitor @this,
+                                                       CKTrait tags,
+                                                       LogLevel level,
+                                                       Func<string>? getConclusionText,
+                                                       string text,
+                                                       DateTimeStamp logTime,
+                                                       Exception? ex,
+                                                       [CallerFilePath] string? fileName = null,
+                                                       [CallerLineNumber] int lineNumber = 0 )
         {
             return @this.UnfilteredOpenGroup( new ActivityMonitorGroupData( level, tags, text, logTime, ex, getConclusionText, fileName, lineNumber ) );
         }
@@ -232,11 +248,11 @@ namespace CK.Core
         #region Catch & CatchCounter
 
         /// <summary>
-        /// Enables simple "using" syntax to easily collect any <see cref="LogLevel"/> (or above) entries (defaults to <see cref="LogLevel.Error"/>) around operations.
-        /// The callback is called when the the returned IDisposable is disposed and there are at least one collected entry.
+        /// Enables simple "using" syntax to easily collect any <paramref name="level"/> (or above) entries (defaults to <see cref="LogLevel.Error"/>) around operations.
+        /// The callback is called when the returned IDisposable is disposed and there are at least one collected entry.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="errorHandler">An action that accepts a list of fatal or error <see cref="ActivityMonitorSimpleCollector.Entry">entries</see>.</param>
+        /// <param name="errorHandler">An action that accepts a list of <see cref="ActivityMonitorSimpleCollector.Entry">entries</see>.</param>
         /// <param name="level">Defines the level of the collected entries (by default fatal or error entries).</param>
         /// <param name="capacity">Capacity of the collector defaults to 50.</param>
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
@@ -249,6 +265,26 @@ namespace CK.Core
             {
                 @this.Output.UnregisterClient( errorTracker );
                 if( errorTracker.Entries.Count > 0 ) errorHandler( errorTracker.Entries );
+            } );
+        }
+
+        /// <summary>
+        /// Enables simple "using" syntax to easily collect any <see cref="LogLevel"/> (or above) entries (defaults to <see cref="LogLevel.Error"/>) around operations.
+        /// Entries are added in the <paramref name="entries"/> as soon as they appear.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="entries">Collector for <see cref="ActivityMonitorSimpleCollector.Entry">entries</see>.</param>
+        /// <param name="level">Defines the level of the collected entries (by default fatal or error entries).</param>
+        /// <param name="capacity">Capacity of the collector defaults to 50.</param>
+        /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
+        public static IDisposable CollectEntries( this IActivityMonitor @this, out IReadOnlyList<ActivityMonitorSimpleCollector.Entry> entries, LogLevelFilter level = LogLevelFilter.Error, int capacity = 50 )
+        {
+            ActivityMonitorSimpleCollector errorTracker = new ActivityMonitorSimpleCollector() { MinimalFilter = level, Capacity = capacity };
+            @this.Output.RegisterClient( errorTracker );
+            entries = errorTracker.Entries;
+            return Util.CreateDisposableAction( () =>
+            {
+                @this.Output.UnregisterClient( errorTracker );
             } );
         }
 
@@ -328,8 +364,8 @@ namespace CK.Core
 
         class LogFilterSentinel : IDisposable
         {
-            IActivityMonitor _monitor;
-            LogFilter _prevLevel;
+            readonly IActivityMonitor _monitor;
+            readonly LogFilter _prevLevel;
 
             public LogFilterSentinel( IActivityMonitor l, LogFilter filter )
             {
@@ -430,8 +466,7 @@ namespace CK.Core
         /// <returns>The registered client.</returns>
         public static IActivityMonitorClient RegisterClient( this IActivityMonitorOutput @this, IActivityMonitorClient client )
         {
-            bool added;
-            return @this.RegisterClient( client, out added );
+            return @this.RegisterClient( client, out _ );
         }
 
         /// <summary>
@@ -444,8 +479,7 @@ namespace CK.Core
         /// <returns>The registered client.</returns>
         public static T RegisterClient<T>( this IActivityMonitorOutput @this, T client ) where T : IActivityMonitorClient
         {
-            bool added;
-            return @this.RegisterClient<T>( client, out added );
+            return @this.RegisterClient<T>( client, out _ );
         }
 
         /// <summary>
@@ -478,10 +512,9 @@ namespace CK.Core
         /// <see cref="Activator.CreateInstance{T}()"/> is called if necessary.
         /// </summary>
         /// <returns>The found or newly created client.</returns>
-        public static T RegisterUniqueClient<T>( this IActivityMonitorOutput @this ) 
-            where T : IActivityMonitorClient, new()
+        public static T RegisterUniqueClient<T>( this IActivityMonitorOutput @this ) where T : IActivityMonitorClient, new()
         {
-            return @this.RegisterUniqueClient( c => true, () => Activator.CreateInstance<T>() );
+            return @this.RegisterUniqueClient( c => true, () => Activator.CreateInstance<T>() )!;
         }
 
         /// <summary>

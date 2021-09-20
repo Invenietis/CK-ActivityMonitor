@@ -184,16 +184,13 @@ namespace CK.Core
         protected abstract void OnGroupClose( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions );
 
 
-        void IActivityMonitorClient.OnTopicChanged( string newTopic, string fileName, int lineNumber )
+        void IActivityMonitorClient.OnTopicChanged( string newTopic, string? fileName, int lineNumber )
         {
         }
 
         void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )
         {
         }
-
-        [Obsolete("Use MinimalFilter property instead.")]
-        public LogFilter Filter { get => _filter; set => MinimalFilter = value; }
 
         /// <summary>
         /// Gets or sets the filter for this client.

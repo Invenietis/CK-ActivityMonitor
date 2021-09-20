@@ -44,12 +44,12 @@ namespace CK.Core
         /// <summary>
         /// Debug filter enables full <see cref="LogLevelFilter.Debug"/> for both <see cref="Line"/> and <see cref="Group"/>.
         /// </summary>
-        static public readonly LogFilter Debug = new LogFilter(LogLevelFilter.Debug, LogLevelFilter.Debug);
+        static public readonly LogFilter Debug = new LogFilter( LogLevelFilter.Debug, LogLevelFilter.Debug );
 
         /// <summary>
         /// Trace filter enables full <see cref="LogLevelFilter.Trace"/> for both <see cref="Line"/> and <see cref="Group"/>.
         /// </summary>
-        static public readonly LogFilter Trace = new LogFilter(LogLevelFilter.Trace, LogLevelFilter.Trace);
+        static public readonly LogFilter Trace = new LogFilter( LogLevelFilter.Trace, LogLevelFilter.Trace );
 
         /// <summary>
         /// Verbose <see cref="LogLevelFilter.Trace"/> all <see cref="Group"/>s but limits <see cref="Line"/> to <see cref="LogLevelFilter.Info"/> level.
@@ -65,7 +65,7 @@ namespace CK.Core
         /// Terse filter captures only errors for <see cref="Line"/> and limits <see cref="Group"/>s to <see cref="LogLevelFilter.Info"/> level.
         /// </summary>
         static public readonly LogFilter Terse = new LogFilter( LogLevelFilter.Info, LogLevelFilter.Error );
-        
+
         /// <summary>
         /// Release filter captures only <see cref="LogLevelFilter.Error"/>s for both <see cref="Line"/> and <see cref="Group"/>.
         /// </summary>
@@ -152,7 +152,7 @@ namespace CK.Core
         /// <returns>True if combining this filter and <paramref name="x"/> will change x.</returns>
         public bool HasImpactOn( LogFilter x )
         {
-            return (Line != LogLevelFilter.None && Line < x.Line) || (Group != LogLevelFilter.None && Group < x.Group); 
+            return (Line != LogLevelFilter.None && Line < x.Line) || (Group != LogLevelFilter.None && Group < x.Group);
         }
 
         /// <summary>
@@ -202,15 +202,15 @@ namespace CK.Core
         /// <returns>A {group,line} string.</returns>
         public override string ToString()
         {
-            if (this == LogFilter.Undefined) return "Undefined";
-            if (this == LogFilter.Debug) return "Debug";
-            if (this == LogFilter.Trace) return "Trace";
-            if (this == LogFilter.Verbose) return "Verbose";
-            if (this == LogFilter.Monitor) return "Monitor";
-            if (this == LogFilter.Terse) return "Terse";
-            if (this == LogFilter.Release) return "Release";
-            if (this == LogFilter.Off) return "Off";
-            if (this == LogFilter.Invalid) return "Invalid";
+            if( this == LogFilter.Undefined ) return "Undefined";
+            if( this == LogFilter.Debug ) return "Debug";
+            if( this == LogFilter.Trace ) return "Trace";
+            if( this == LogFilter.Verbose ) return "Verbose";
+            if( this == LogFilter.Monitor ) return "Monitor";
+            if( this == LogFilter.Terse ) return "Terse";
+            if( this == LogFilter.Release ) return "Release";
+            if( this == LogFilter.Off ) return "Off";
+            if( this == LogFilter.Invalid ) return "Invalid";
             return $"{{{Group},{Line}}}";
         }
 
@@ -249,7 +249,7 @@ namespace CK.Core
         {
             if( filter == null ) throw new ArgumentNullException( filter );
             LogFilter f;
-            if( !TryParse( filter, out f ) ) throw new ArgumentException( $"Invalid LogFilter: '{filter}'.", nameof(filter) );
+            if( !TryParse( filter, out f ) ) throw new ArgumentException( $"Invalid LogFilter: '{filter}'.", nameof( filter ) );
             return f;
         }
 

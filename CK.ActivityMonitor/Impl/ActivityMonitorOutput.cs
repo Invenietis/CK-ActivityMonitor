@@ -122,7 +122,7 @@ namespace CK.Core.Impl
             if( factory == null ) throw new ArgumentNullException( "factory" );
             using( _monitor.ReentrancyAndConcurrencyLock() )
             {
-                T e = _clients.OfType<T>().FirstOrDefault( tester );
+                T? e = _clients.OfType<T>().FirstOrDefault( tester );
                 if( e == null )
                 {
                     bool forceAdded = true;

@@ -24,6 +24,9 @@ namespace CK.Core
         /// <summary>
         /// Called when the target Topic changed.
         /// </summary>
-        void OnTargetTopicChanged( string newTopic, string fileName, int lineNumber );
+        /// <param name="newTopic">The new topic.</param>
+        /// <param name="fileName">File name of the caller.</param>
+        /// <param name="lineNumber">Line number in the caller's file.</param>
+        void OnTargetTopicChanged( string newTopic, string? fileName, int lineNumber );
     }
 }

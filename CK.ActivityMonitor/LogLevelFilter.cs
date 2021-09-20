@@ -33,9 +33,9 @@ namespace CK.Core
     public enum LogLevelFilter : short
     {
         /// <summary>
-        /// No filter: can have the same effect as Trace but SHOULD indicate
-        /// an unknown or undefined filter that, when combined with other level filters to 
-        /// compute the final (minimal) filter level to take into account, must be ignored.
+        /// No filter: can have the same effect as Debug but SHOULD indicate
+        /// an unknown or undefined filter that must be ignored, when combined with other level filters to 
+        /// compute a final (minimal) filter level.
         /// </summary>
         None = 0,
 

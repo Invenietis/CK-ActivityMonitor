@@ -9,9 +9,6 @@ namespace CK.PerfectEvent
 {
     /// <summary>
     /// A perfect event sender offers synchronous, asynchronous and parallel asynchronous event support.
-    /// You can use the <see cref="Sync"/>, <see cref="Async"/> or <see cref="ParallelAsync"/> properties
-    /// or directly add or remove one of the 3 handler types, either by using the Add/Remove method overloads
-    /// or, more directly, <c>+=</c> and <c>-=</c> standard event operators.
     /// <para>
     /// Instances of this class should be kept private: only the sender object should be able to call <see cref="RaiseAsync(IActivityMonitor, TEvent)"/>
     /// or <see cref="SafeRaiseAsync(IActivityMonitor, TEvent, string?, int)"/>.
@@ -56,45 +53,6 @@ namespace CK.PerfectEvent
             _parallelAsync.RemoveAll();
         }
 
-        /// <summary>
-        /// Gets the Synchronous event registration point.
-        /// </summary>
-        /// <remarks>
-        /// Note that handlers of the 3 types can be added and removed directly to this <see cref="PerfectEventSender{TEvent}"/>:
-        /// this event is a helper that better express the intent of the code.
-        /// </remarks>
-        public event SequentialEventHandler<TEvent> Sync
-        {
-            add => _seq.Add( value );
-            remove => _seq.Remove( value );
-        }
-
-        /// <summary>
-        /// Gets the Asynchronous event registration point.
-        /// </summary>
-        /// <remarks>
-        /// Note that handlers of the 3 types can be added and removed directly to this <see cref="PerfectEventSender{TEvent}"/>:
-        /// this event is a helper that better express the intent of the code.
-        /// </remarks>
-        public event SequentialEventHandlerAsync<TEvent> Async
-        {
-            add => _seqAsync.Add( value );
-            remove => _seqAsync.Remove( value );
-        }
-
-        /// <summary>
-        /// Gets the Parallel Asynchronous event registration point.
-        /// </summary>
-        /// <remarks>
-        /// Note that handlers of the 3 types can be added and removed directly to this <see cref="PerfectEventSender{TEvent}"/>:
-        /// this event is a helper that better express the intent of the code.
-        /// </remarks>
-        public event ParallelEventHandlerAsync<TEvent> ParallelAsync
-        {
-            add => _parallelAsync.Add( value );
-            remove => _parallelAsync.Add( value );
-        }
-
         #region Sequential.
 
         /// <summary>
@@ -118,23 +76,6 @@ namespace CK.PerfectEvent
             _seq.Remove( handler );
             return this;
         }
-
-        /// <summary>
-        /// Relays to <see cref="Add(SequentialEventHandler{TEvent})"/>.
-        /// </summary>
-        /// <param name="this">This PerfectEventSender.</param>
-        /// <param name="handler">The non null handler to add.</param>
-        /// <returns>This PerfectEventSender.</returns>
-        public static PerfectEventSender<TEvent> operator +( PerfectEventSender<TEvent> @this, SequentialEventHandler<TEvent> handler ) => @this.Add( handler );
-
-        /// <summary>
-        /// Relays to <see cref="Remove(SequentialEventHandler{TEvent})"/>.
-        /// </summary>
-        /// <param name="this">The host.</param>
-        /// <param name="handler">The non null handler to remove.</param>
-        /// <returns>This PerfectEventSender.</returns>
-        public static PerfectEventSender<TEvent> operator -( PerfectEventSender<TEvent> @this, SequentialEventHandler<TEvent> handler ) => @this.Remove( handler );
-
         #endregion
 
         #region Sequential Async.
@@ -160,23 +101,6 @@ namespace CK.PerfectEvent
             _seqAsync.Remove( handler );
             return this;
         }
-
-        /// <summary>
-        /// Relays to <see cref="Add(SequentialEventHandlerAsync{TEvent})"/>.
-        /// </summary>
-        /// <param name="this">This PerfectEventSender.</param>
-        /// <param name="handler">The non null handler to add.</param>
-        /// <returns>This PerfectEventSender.</returns>
-        public static PerfectEventSender<TEvent> operator +( PerfectEventSender<TEvent> @this, SequentialEventHandlerAsync<TEvent> handler ) => @this.Add( handler );
-
-        /// <summary>
-        /// Relays to <see cref="Remove(SequentialEventHandlerAsync{TEvent})"/>.
-        /// </summary>
-        /// <param name="this">This PerfectEventSender.</param>
-        /// <param name="handler">The non null handler to remove.</param>
-        /// <returns>This PerfectEventSender.</returns>
-        public static PerfectEventSender<TEvent> operator -( PerfectEventSender<TEvent> @this, SequentialEventHandlerAsync<TEvent> handler ) => @this.Remove( handler );
-
         #endregion
 
         #region Parallel Async.
@@ -223,10 +147,10 @@ namespace CK.PerfectEvent
         #endregion
 
         /// <summary>
-        /// Raises this event: <see cref="ParallelAsync"/> events are executing while <see cref="Sync"/> events and then <see cref="Async"/>
-        /// events are executing.
+        /// Same as <see cref="RaiseAsync"/> except that if exceptions occurred they are caught and logged
+        /// and a gentle false is returned.
         /// <para>
-        /// The returned task is resolved once the parrallels, the synchronous and the asynhronous event handlers have finished their jobs.
+        /// The returned task is resolved once the parallels, the synchronous and the asynchronous event handlers have finished their jobs.
         /// </para>
         /// <para>
         /// If exceptions occurred, they are logged and false is returned.
@@ -237,7 +161,7 @@ namespace CK.PerfectEvent
         /// <param name="fileName">The source filename where this event is raised.</param>
         /// <param name="lineNumber">The source line number in the filename where this event is raised.</param>
         /// <returns>True on success, false if an exception occurred.</returns>
-        public async Task<bool> SafeRaiseAsync( IActivityMonitor monitor, TEvent e, [CallerFilePath] string fileName = null, [CallerLineNumber] int lineNumber = 0 )
+        public async Task<bool> SafeRaiseAsync( IActivityMonitor monitor, TEvent e, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
             try
             {
@@ -257,9 +181,9 @@ namespace CK.PerfectEvent
         }
 
         /// <summary>
-        /// Raises this event: <see cref="ParallelAsync"/> events are executing while <see cref="Sync"/> events and then <see cref="Async"/>
-        /// events are executing.
-        /// The returned task is resolved once the parallels, the synchronous and the asynhronous event handlers have finished their jobs.
+        /// Raises this event: <see cref="PerfectEvent{TEvent}.ParallelAsync"/> handlers are called (but not awaited), then the <see cref="PerfectEvent{TEvent}.Sync"/> handlers
+        /// are called and then the <see cref="PerfectEvent{TEvent}.Async"/> handlers are called (one after the other).
+        /// The returned task is resolved once the parallels, the synchronous and the asynchronous event handlers have finished their jobs.
         /// </summary>
         /// <param name="monitor">The monitor to use.</param>
         /// <param name="e">The argument of the event.</param>

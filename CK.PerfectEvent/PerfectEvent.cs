@@ -4,9 +4,8 @@ namespace CK.PerfectEvent
 {
     /// <summary>
     /// Registration facade for <see cref="PerfectEventSender{TEvent}"/>.
-    /// You can use the <see cref="Sync"/>, <see cref="Async"/> or <see cref="ParallelAsync"/> properties
-    /// or directly add or remove one of the 3 handler types, either by using the Add/Remove method overloads
-    /// or, more directly, <c>+=</c> and <c>-=</c> standard event operators.
+    /// To subscribe and unsubscribe to this event, use the <see cref="Sync"/>, <see cref="Async"/> or <see cref="ParallelAsync"/> with
+    /// <c>+=</c> and <c>-=</c> standard event operators, or one of the Add/Remove method overloads.
     /// </summary>
     /// <typeparam name="TEvent">The type of the event argument.</typeparam>
     public readonly struct PerfectEvent<TEvent>
@@ -26,10 +25,6 @@ namespace CK.PerfectEvent
         /// <summary>
         /// Gets the Synchronous event registration point.
         /// </summary>
-        /// <remarks>
-        /// Note that handlers of the 3 types can be added and removed directly to this <see cref="PerfectEvent{TEvent}"/>:
-        /// this event is a helper that better express the intent of the code.
-        /// </remarks>
         public event SequentialEventHandler<TEvent> Sync
         {
             add => _sender.Add( value );
@@ -39,10 +34,6 @@ namespace CK.PerfectEvent
         /// <summary>
         /// Gets the Asynchronous event registration point.
         /// </summary>
-        /// <remarks>
-        /// Note that handlers of the 3 types can be added and removed directly to this <see cref="PerfectEvent{TEvent}"/>:
-        /// this event is a helper that better express the intent of the code.
-        /// </remarks>
         public event SequentialEventHandlerAsync<TEvent> Async
         {
             add => _sender.Add( value );
@@ -52,10 +43,6 @@ namespace CK.PerfectEvent
         /// <summary>
         /// Gets the Parallel Asynchronous event registration point.
         /// </summary>
-        /// <remarks>
-        /// Note that handlers of the 3 types can be added and removed directly to this <see cref="PerfectEvent{TEvent}"/>:
-        /// this event is a helper that better express the intent of the code.
-        /// </remarks>
         public event ParallelEventHandlerAsync<TEvent> ParallelAsync
         {
             add => _sender.Add( value );
@@ -86,22 +73,6 @@ namespace CK.PerfectEvent
             return this;
         }
 
-        /// <summary>
-        /// Relays to <see cref="Add(SequentialEventHandler{TEvent})"/>.
-        /// </summary>
-        /// <param name="this">This PerfectEvent.</param>
-        /// <param name="handler">The non null handler to add.</param>
-        /// <returns>This PerfectEvent.</returns>
-        public static PerfectEvent<TEvent> operator +( PerfectEvent<TEvent> @this, SequentialEventHandler<TEvent> handler ) => @this.Add( handler );
-
-        /// <summary>
-        /// Relays to <see cref="Remove(SequentialEventHandler{TEvent})"/>.
-        /// </summary>
-        /// <param name="this">The host.</param>
-        /// <param name="handler">The non null handler to remove.</param>
-        /// <returns>This PerfectEvent.</returns>
-        public static PerfectEvent<TEvent> operator -( PerfectEvent<TEvent> @this, SequentialEventHandler<TEvent> handler ) => @this.Remove( handler );
-
         #endregion
 
         #region Sequential Async.
@@ -128,22 +99,6 @@ namespace CK.PerfectEvent
             return this;
         }
 
-        /// <summary>
-        /// Relays to <see cref="Add(SequentialEventHandlerAsync{TEvent})"/>.
-        /// </summary>
-        /// <param name="this">This PerfectEvent.</param>
-        /// <param name="handler">The non null handler to add.</param>
-        /// <returns>This PerfectEvent.</returns>
-        public static PerfectEvent<TEvent> operator +( PerfectEvent<TEvent> @this, SequentialEventHandlerAsync<TEvent> handler ) => @this.Add( handler );
-
-        /// <summary>
-        /// Relays to <see cref="Remove(SequentialEventHandlerAsync{TEvent})"/>.
-        /// </summary>
-        /// <param name="this">This PerfectEvent.</param>
-        /// <param name="handler">The non null handler to remove.</param>
-        /// <returns>This PerfectEvent.</returns>
-        public static PerfectEvent<TEvent> operator -( PerfectEvent<TEvent> @this, SequentialEventHandlerAsync<TEvent> handler ) => @this.Remove( handler );
-
         #endregion
 
         #region Parallel Async.
@@ -169,22 +124,6 @@ namespace CK.PerfectEvent
             _sender.Remove( handler );
             return this;
         }
-
-        /// <summary>
-        /// Relays to <see cref="Add(ParallelEventHandlerAsync{TEvent})"/>.
-        /// </summary>
-        /// <param name="this">This PerfectEvent.</param>
-        /// <param name="handler">The non null handler to add.</param>
-        /// <returns>This PerfectEvent.</returns>
-        public static PerfectEvent<TEvent> operator +( PerfectEvent<TEvent> @this, ParallelEventHandlerAsync<TEvent> handler ) => @this.Add( handler );
-
-        /// <summary>
-        /// Relays to <see cref="Remove(ParallelEventHandlerAsync{TEvent})"/>.
-        /// </summary>
-        /// <param name="this">This PerfectEvent.</param>
-        /// <param name="handler">The non null handler to remove.</param>
-        /// <returns>This PerfectEvent.</returns>
-        public static PerfectEvent<TEvent> operator -( PerfectEvent<TEvent> @this, ParallelEventHandlerAsync<TEvent> handler ) => @this.Remove( handler );
 
         #endregion
 

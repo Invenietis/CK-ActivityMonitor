@@ -78,7 +78,7 @@ namespace CK.Core
             if( s != null ) s.SignalChange();
         }
 
-        void IActivityMonitorBridgeCallback.OnTargetTopicChanged( string newTopic, string fileName, int lineNumber )
+        void IActivityMonitorBridgeCallback.OnTargetTopicChanged( string newTopic, string? fileName, int lineNumber )
         {
             if( _source == null ) throw new InvalidOperationException(nameof( IActivityMonitorBoundClient.SetMonitor ) + " should be called before calling this method." );
             _source.SetTopic( newTopic, fileName, lineNumber );
@@ -197,7 +197,7 @@ namespace CK.Core
             }
         }
 
-        void IActivityMonitorClient.OnTopicChanged( string newTopic, string fileName, int lineNumber )
+        void IActivityMonitorClient.OnTopicChanged( string newTopic, string? fileName, int lineNumber )
         {
             if( _pushTopicAndAutoTagsToTarget ) _bridgeTarget.SetTopic( newTopic, fileName, lineNumber );
         }
