@@ -109,5 +109,33 @@ namespace CK.PerfectEvent
                 foreach( var x in all ) x( monitor, e );
             }
         }
+
+        // TODO: support CancellationToken in callbacks.
+        // This impacts the callback signatures (and of course should be supported on async).
+        // 
+        ///// <summary>
+        ///// Raises this event.
+        ///// </summary>
+        ///// <param name="monitor">The monitor to use.</param>
+        ///// <param name="e">The event argument.</param>
+        ///// <param name="cancellation">Optional cancellation token.</param>
+        ///// <returns>True if all the handlers have been called, false if the <paramref name="cancellation"/> has skipped some of them.</returns>
+        //public bool Raise( IActivityMonitor monitor, TEvent e, CancellationToken cancellation = default )
+        //{
+        //    var h = _handler;
+        //    if( h == null ) return true;
+        //    if( h is SequentialEventHandler<TEvent> a ) a( monitor, e );
+        //    else
+        //    {
+        //        var all = (SequentialEventHandler<TEvent>[])h;
+        //        foreach( var x in all )
+        //        {
+        //            if( cancellation.IsCancellationRequested ) return false;
+        //            x( monitor, e );
+        //        }
+        //    }
+        //    return true;
+        //}
+
     }
 }
