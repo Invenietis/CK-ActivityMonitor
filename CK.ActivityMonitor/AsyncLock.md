@@ -77,15 +77,15 @@ async Task SafeMethodAsync()
 
 Unfortunately, the code above is dangerous... and it's not obvious (this is why it's actually very dangerous).
 The point is that SemaphoreSlim cannot handle reentrancy. And here, "cannot" must be understood in its primary
-meaning: SemaphoreSlim is not able to handle reentrancy.
+meaning: SemaphoreSlim is not able to handle reentrancy meaning that it cannot detect it (and throw), it can only 
+block... definitely!  
 
-Actually it could, but with a (too high) price in terms of performances.
+Actually ONE solution exists to detect reentrancy but with a serious price to pay in terms of performances and by opening the doors to subtle (understand _awful_) issues:
+using an [AsyncLocal](https://docs.microsoft.com/en-us/dotnet/api/system.threading.asynclocal-1).
 
-**TODO**
-- Quick explanation of what is reentrancy. 
-- Show reentrant async lock attempts (VS lib, some libs).
-- Explain why we strongly reject any use of the AsyncLocal (or link to a dedicated issue).
-
+We strongly encourage you to NEVER rely on `AsyncLocal`. There are plenty of discussions about this and even if some
+disagree, we NEVER use them. See this intersting post https://codeblog.jonskeet.uk/2010/11/08/the-importance-of-context-and-a-question-of-explicitness/
+and this (sad) [story](https://github.com/dotnet/aspnetcore/issues/4731).
 
 ### Our IActivityMonitor-based answer
 

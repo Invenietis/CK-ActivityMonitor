@@ -48,7 +48,7 @@ namespace CK.Core
         /// Converts from a string.
         /// This uses <see cref="LogFilter.TryParse(string, out LogFilter)"/> since exceptions are usually
         /// swallowed by callers that fallback to the default value for the type (the rational behind being that
-        /// conversion is not validation and that validator souhld be used if validation is required).
+        /// conversion is not validation and that validator should be used if validation is required).
         /// </summary>
         /// <param name="context">Unused.</param>
         /// <param name="culture">Unused.</param>
