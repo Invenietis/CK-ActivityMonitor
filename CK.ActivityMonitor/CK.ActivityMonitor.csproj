@@ -9,7 +9,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CK.Core" Version="14.2.2--0005-develop" />
+    <PackageReference Include="CK.Core" Version="14.2.1" />
     <!--
     This magic packages provides a: IL weaver for adding nullability annotations to .NET Framework and .NET Standard reference assemblies.
     It means that it provides for instance to the Debug.Assert( x != null ) the [DoesNotReturnIfNull] attribute even if, in netstandard2.0,
