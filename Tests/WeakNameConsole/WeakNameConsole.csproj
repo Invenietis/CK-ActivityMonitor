@@ -5,7 +5,7 @@
     <IsPackable>False</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CK.WeakAssemblyNameResolver" Version="0.5.2" />
+    <PackageReference Include="CK.WeakAssemblyNameResolver" Version="0.5.3--0007-develop" />
     <ProjectReference Include="..\..\CK.ActivityMonitor.SimpleSender\CK.ActivityMonitor.SimpleSender.csproj" />
   </ItemGroup>
 </Project>
