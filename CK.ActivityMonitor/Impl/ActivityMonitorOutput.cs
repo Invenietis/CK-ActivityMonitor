@@ -150,6 +150,10 @@ namespace CK.Core.Impl
                 int idx;
                 if( (idx = _clients.IndexOf( client )) >= 0 )
                 {
+                    // Removes the client first: if an exception is raised here
+                    // (by a bound client), it bubbles to the caller and this is fine:
+                    // UnregisterClient is a direct API call.
+                    _clients.RemoveAt( idx );
                     LogFilter filter = LogFilter.Undefined;
                     IActivityMonitorBoundClient? bound = client as IActivityMonitorBoundClient;
                     if( bound != null )
@@ -157,7 +161,6 @@ namespace CK.Core.Impl
                         filter = bound.MinimalFilter;
                         bound.SetMonitor( null, false );
                     }
-                    _clients.RemoveAt( idx );
                     if( filter != LogFilter.Undefined ) _monitor.OnClientMinimalFilterChanged( filter, LogFilter.Undefined );
                     return client;
                 }
@@ -170,11 +173,10 @@ namespace CK.Core.Impl
         /// </summary>
         public IReadOnlyList<IActivityMonitorClient> Clients => _clients;
 
-        internal void ForceRemoveCondemnedClient( IActivityMonitorClient client )
+        internal Exception? ForceRemoveCondemnedClient( IActivityMonitorClient client )
         {
             Debug.Assert( client != null && _clients.Contains( client ) );
-            IActivityMonitorBoundClient? bound = client as IActivityMonitorBoundClient;
-            if( bound != null )
+            if( client is IActivityMonitorBoundClient bound )
             {
                 try
                 {
@@ -182,10 +184,11 @@ namespace CK.Core.Impl
                 }
                 catch( Exception ex )
                 {
-                    ActivityMonitor.CriticalErrorCollector.Add( ex, $"While removing condemned client." );
+                    return ex;
                 }
             }
             _clients.Remove( client );
+            return null;
         }
 
     }

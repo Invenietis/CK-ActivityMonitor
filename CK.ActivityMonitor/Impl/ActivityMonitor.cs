@@ -112,14 +112,6 @@ namespace CK.Core
             }
         }
 
-        /// <summary>
-        /// The monitoring error collector. 
-        /// Any error that occurs while dispatching logs to <see cref="IActivityMonitorClient"/>
-        /// are collected and the culprit is removed from <see cref="Output"/>.
-        /// See <see cref="T:CriticalErrorCollector"/>.
-        /// </summary>
-        public static readonly CriticalErrorCollector CriticalErrorCollector;
-
         static LogFilter _defaultFilterLevel;
 
         /// <summary>
@@ -146,14 +138,8 @@ namespace CK.Core
                         var h = DefaultFilterLevelChanged;
                         if( h != null )
                         {
-                            try
-                            {
-                                h( null, EventArgs.Empty );
-                            }
-                            catch( Exception ex )
-                            {
-                                CriticalErrorCollector.Add( ex, "DefaultFilter changed." );
-                            }
+                            // Let any exception bubble up.
+                            h( null, EventArgs.Empty );
                         }
                     }
                 }
@@ -174,7 +160,6 @@ namespace CK.Core
 
         static ActivityMonitor()
         {
-            CriticalErrorCollector = new CriticalErrorCollector();
             AutoConfiguration = null;
             _defaultFilterLevel = LogFilter.Trace;
             _lockDefaultFilterLevel = new object();
@@ -471,7 +456,7 @@ namespace CK.Core
             Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
 
             LogFilter minimal = LogFilter.Undefined;
-            List<IActivityMonitorClient>? clientsToRemove = null;
+            List<IActivityMonitorClient>? buggyClients = null;
             foreach( var l in _output.Clients )
             {
                 if( l is IActivityMonitorBoundClient bound )
@@ -480,8 +465,8 @@ namespace CK.Core
                     {
                         if( bound.IsDead )
                         {
-                            if( clientsToRemove == null ) clientsToRemove = new List<IActivityMonitorClient>();
-                            clientsToRemove.Add( l );
+                            if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
+                            buggyClients.Add( l );
                         }
                         else
                         {
@@ -490,15 +475,13 @@ namespace CK.Core
                     }
                     catch( Exception exCall )
                     {
-                        CriticalErrorCollector.Add( exCall, l.GetType().FullName );
-                        if( clientsToRemove == null ) clientsToRemove = new List<IActivityMonitorClient>();
-                        clientsToRemove.Add( l );
+                        if( !InternalLogUnhandledClientError( exCall, l, ref buggyClients ) ) throw;
                     }
                 }
             }
-            if( clientsToRemove != null )
+            if( buggyClients != null )
             {
-                foreach( var l in clientsToRemove ) _output.ForceRemoveCondemnedClient( l );
+                HandleBuggyClients( buggyClients );
             }
             return minimal;
         }
@@ -615,16 +598,12 @@ namespace CK.Core
                 }
                 catch( Exception exCall )
                 {
-                    CriticalErrorCollector.Add( exCall, l.GetType().FullName );
-                    if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
-                    buggyClients.Add( l );
+                    if( !InternalLogUnhandledClientError( exCall, l, ref buggyClients ) ) throw;
                 }
             }
             if( buggyClients != null )
             {
-                foreach( var l in buggyClients ) _output.ForceRemoveCondemnedClient( l );
-                _clientFilter = HandleBoundClientsSignal();
-                UpdateActualFilter();
+                HandleBuggyClients( buggyClients );
             }
         }
 
@@ -793,16 +772,13 @@ namespace CK.Core
                     }
                     catch( Exception exCall )
                     {
-                        CriticalErrorCollector.Add( exCall, l.GetType().FullName );
-                        if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
-                        buggyClients.Add( l );
+                        if( !InternalLogUnhandledClientError( exCall, l, ref buggyClients ) ) throw;
                     }
                 }
                 if( buggyClients != null )
                 {
-                    foreach( var l in buggyClients ) _output.ForceRemoveCondemnedClient( l );
-                    buggyClients.Clear();
-                    hasBuggyClients = true;
+                    HandleBuggyClients( buggyClients );
+                    buggyClients = null;
                 }
                 if( g.SavedMonitorFilter != _configuredFilter ) DoSetConfiguredFilter( g.SavedMonitorFilter );
                 _currentTag = g.SavedMonitorTags;
@@ -819,20 +795,12 @@ namespace CK.Core
                     }
                     catch( Exception exCall )
                     {
-                        CriticalErrorCollector.Add( exCall, l.GetType().FullName );
-                        if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
-                        buggyClients.Add( l );
+                        if( !InternalLogUnhandledClientError( exCall, l, ref buggyClients ) ) throw;
                     }
                 }
                 if( buggyClients != null )
                 {
-                    foreach( var l in buggyClients ) _output.ForceRemoveCondemnedClient( l );
-                    hasBuggyClients = true;
-                }
-                if( hasBuggyClients )
-                {
-                    _clientFilter = HandleBoundClientsSignal();
-                    UpdateActualFilter();
+                    HandleBuggyClients( buggyClients );
                 }
                 #endregion
             }
@@ -855,16 +823,12 @@ namespace CK.Core
                 }
                 catch( Exception exCall )
                 {
-                    CriticalErrorCollector.Add( exCall, l.GetType().FullName );
-                    if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
-                    buggyClients.Add( l );
+                    if( !InternalLogUnhandledClientError( exCall, l, ref buggyClients ) ) throw;
                 }
             }
             if( buggyClients != null )
             {
-                foreach( var l in buggyClients ) _output.ForceRemoveCondemnedClient( l );
-                _clientFilter = HandleBoundClientsSignal();
-                UpdateActualFilter();
+                HandleBuggyClients( buggyClients );
             }
         }
 

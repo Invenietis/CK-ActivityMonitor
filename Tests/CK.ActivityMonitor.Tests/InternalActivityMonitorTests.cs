@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using CK.Core.Impl;
 using System.Threading;
+using System.Diagnostics;
 
 namespace CK.Core.Tests.Monitoring
 {
@@ -19,8 +20,9 @@ namespace CK.Core.Tests.Monitoring
 
             public TimeSpan SleepTime { get; set; }
 
-            public void SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove )
+            public void SetMonitor( IActivityMonitorImpl? source, bool forceBuggyRemove )
             {
+                Debug.Assert( source != null );
                 _source = source;
             }
 

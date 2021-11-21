@@ -50,7 +50,7 @@ namespace CK.Core.Tests.Monitoring
             }
         }
 
-    [Test]
+        [Test]
         public void SimpleUsage()
         {
             var f = new FileInfo( Path.Combine( TestHelper.SolutionFolder, "Tests", "CK.ActivityMonitor.Tests", "DocumentationCodeSnippets.cs" ) );

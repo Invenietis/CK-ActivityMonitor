@@ -92,7 +92,7 @@ namespace CK.Core.Tests
             LogFile.RootLogPath = Path.Combine( _testFolder, "Logs" );
             Console.WriteLine($"SolutionFolder is: {_solutionFolder}.");
             Console.WriteLine($"TestFolder is: {_testFolder}.");
-            Console.WriteLine($"Core path: {typeof(string).GetTypeInfo().Assembly.CodeBase}.");
+            Console.WriteLine($"Core path: {typeof(string).GetTypeInfo().Assembly.Location}.");
         }
 
     }

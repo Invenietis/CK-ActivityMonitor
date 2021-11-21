@@ -7,6 +7,7 @@ using NUnit.Framework;
 using System.Xml.Linq;
 using System.Collections.Generic;
 using FluentAssertions;
+using System.Diagnostics;
 
 namespace CK.Core.Tests.Monitoring
 {
@@ -16,15 +17,6 @@ namespace CK.Core.Tests.Monitoring
         public void ResetGlobalState()
         {
             TestHelper.Monitor.MinimalFilter = LogFilter.Undefined;
-            ActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
-            ActivityMonitor.CriticalErrorCollector.Clear();
-        }
-
-        [TearDown]
-        public void CheckNoCriticalGlobalErrors()
-        {
-            var e = ActivityMonitor.CriticalErrorCollector.ToArray();
-            e.Should().BeEmpty();
         }
 
         [Test]
@@ -67,10 +59,11 @@ namespace CK.Core.Tests.Monitoring
             fail.Should().Throw<InvalidOperationException>( "PathCatcher can be registered in one source at a time." );
 
             IActivityMonitor other = new ActivityMonitor( applyAutoConfigurations: false );
-            ActivityMonitorBridge bridgeToConsole;
+            ActivityMonitorBridge? bridgeToConsole;
             using( monitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
             {
                 bridgeToConsole = monitor.Output.FindBridgeTo( TestHelper.Monitor.Output.BridgeTarget );
+                Debug.Assert( bridgeToConsole != null );
                 monitor.Output.Clients.Should().HaveCount( 3 );
                 bridgeToConsole.TargetMonitor.Should().BeSameAs( TestHelper.Monitor );
 
