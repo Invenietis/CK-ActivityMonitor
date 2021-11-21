@@ -21,7 +21,7 @@ namespace CK.Core.Tests.Monitoring
 
             protected override void OnUnfilteredLog( ActivityMonitorLogData data )
             {
-                _monitor.Info().Send( "I'm buggy: I'm logging back in my monitor!" );
+                _monitor.Info( "I'm buggy: I'm logging back in my monitor!" );
                 base.OnUnfilteredLog( data );
             }
         }
@@ -114,13 +114,13 @@ namespace CK.Core.Tests.Monitoring
             {
                 Task.Factory.StartNew( () =>
                  {
-                     monitor.Info().Send( "Test must work in task" );
+                     monitor.Info( "Test must work in task" );
                  } );
 
                 client.WaitForOnUnfilteredLog();
 
                 var expectedMessage = Impl.ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess.Replace( "{0}", "*" ).Replace( "{1}", "*" ).Replace( "{2}", "*" );
-                monitor.Invoking( sut => sut.Info().Send( "Test must fail" ) )
+                monitor.Invoking( sut => sut.Info( "Test must fail" ) )
                        .Should().Throw<CKException>()
                        .WithMessage( expectedMessage );
 
@@ -132,26 +132,26 @@ namespace CK.Core.Tests.Monitoring
             }
 
             Thread.Sleep( 50 );
-            monitor.Info().Send( "Test must work after task" );
+            monitor.Info( "Test must work after task" );
 
             ++clientCount;
             monitor.Output.RegisterClient( new ActionActivityMonitorClient( () =>
               {
-                  monitor.Invoking( sut => sut.Info().Send( "Test must fail reentrant client" ) )
+                  monitor.Invoking( sut => sut.Info( "Test must fail reentrant client" ) )
                          .Should().Throw<CKException>()
                          .WithMessage( Impl.ActivityMonitorResources.ActivityMonitorReentrancyError.Replace( "{0}", "*" ) );
               } ) );
 
-            monitor.Info().Send( "Test must work after reentrant client" );
+            monitor.Info( "Test must work after reentrant client" );
             monitor.Output.Clients.Should().HaveCount( clientCount, "The RegisterClient action above is ok: it checks that it triggered a reentrant call." );
 
             ++clientCount;
             monitor.Output.RegisterClient( new ActionActivityMonitorClient( () =>
               {
-                  monitor.Info().Send( "Test must fail reentrant client" );
+                  monitor.Info( "Test must fail reentrant client" );
               } ) );
 
-            monitor.Info().Send( "Test must work after reentrant client" );
+            monitor.Info( "Test must work after reentrant client" );
             monitor.Output.Clients.Should().HaveCount( clientCount - 1, "The BUGGY RegisterClient action above is NOT ok: it triggers a reentrant call exception => We have removed it." );
         }
 
@@ -167,11 +167,11 @@ namespace CK.Core.Tests.Monitoring
                 BuggyActivityMonitorClient client = new BuggyActivityMonitorClient( monitor );
                 monitor.Output.RegisterClient( client );
                 monitor.Output.Clients.Should().HaveCount( clientCount + 1 );
-                monitor.Info().Send( "Test" );
+                monitor.Info( "Test" );
                 ActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
                 monitor.Output.Clients.Should().HaveCount( clientCount );
 
-                monitor.Info().Send( "Test" );
+                monitor.Info( "Test" );
             }
         }
 
@@ -186,7 +186,7 @@ namespace CK.Core.Tests.Monitoring
             AggregateException? ex = ConcurrentThrow( monitor );
             ex.Should().NotBeNull();
 
-            monitor.Info().Send( "Test" );
+            monitor.Info( "Test" );
         }
 
         static AggregateException? ConcurrentThrow( IActivityMonitor monitor )
@@ -208,9 +208,9 @@ namespace CK.Core.Tests.Monitoring
 
             Task[] tasks = new Task[]
             {
-                new Task( () => { getLock(); monitor.Info().Send( "Test T1" ); } ),
-                new Task( () => { getLock(); monitor.Info().Send( new Exception(), "Test T2" ); } ),
-                new Task( () => { getLock(); monitor.Info().Send( "Test T3" ); } )
+                new Task( () => { getLock(); monitor.Info( "Test T1" ); } ),
+                new Task( () => { getLock(); monitor.Info( "Test T2", new Exception() ); } ),
+                new Task( () => { getLock(); monitor.Info( "Test T3" ); } )
             };
 
             try

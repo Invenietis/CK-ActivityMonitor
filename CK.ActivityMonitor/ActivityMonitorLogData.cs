@@ -53,12 +53,12 @@ namespace CK.Core
         public readonly LogLevel MaskedLevel;
 
         /// <summary>
-        /// Name of the source file that emitted the log.
+        /// Name of the source file that emitted the log. Can be null.
         /// </summary>
         public readonly string? FileName;
 
         /// <summary>
-        /// Line number in the source file that emitted the log. Can be null.
+        /// Line number in the source file that emitted the log. 
         /// </summary>
         public readonly int LineNumber;
 

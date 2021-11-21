@@ -1,7 +1,6 @@
 using System;
 using System.Text;
 using NUnit.Framework;
-using CK.Text;
 using FluentAssertions;
 
 namespace CK.Core.Tests.Monitoring
@@ -19,11 +18,11 @@ namespace CK.Core.Tests.Monitoring
             using( TestHelper.Monitor.TemporarilySetMinimalFilter( LogFilter.Trace ) )
             using( m.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
             {
-                using( m.OpenInfo().Send( "IL1" + Environment.NewLine + "IL2" + Environment.NewLine + "IL3" ) )
+                using( m.OpenInfo( "IL1" + Environment.NewLine + "IL2" + Environment.NewLine + "IL3" ) )
                 {
-                    using( m.OpenTrace().Send( "TL1" + Environment.NewLine + "TL2" + Environment.NewLine + "TL3" ) )
+                    using( m.OpenTrace( "TL1" + Environment.NewLine + "TL2" + Environment.NewLine + "TL3" ) )
                     {
-                        m.Warn().Send( "WL1" + Environment.NewLine + "WL2" + Environment.NewLine + "WL3" );
+                        m.Warn( "WL1" + Environment.NewLine + "WL2" + Environment.NewLine + "WL3" );
                         m.CloseGroup( new[]
                         {
                             new ActivityLogGroupConclusion("c1"),

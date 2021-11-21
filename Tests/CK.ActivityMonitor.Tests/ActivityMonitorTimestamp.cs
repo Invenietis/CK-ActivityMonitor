@@ -55,11 +55,11 @@ namespace CK.Core.Tests.Monitoring
             }
             for( int i = 0; i < 10; ++i )
             {
-                m.Trace().Send( "This should clash!" );
+                m.Trace( "This should clash!" );
             }
             for( int i = 0; i < 10; ++i )
             {
-                using( m.OpenTrace().Send( "This should clash!" ) )
+                using( m.OpenTrace( "This should clash!" ) )
                 {
                 }
             }

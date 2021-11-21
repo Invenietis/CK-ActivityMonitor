@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using NUnit.Framework;
 using FluentAssertions;
-using CK.Text;
 
 namespace CK.Core.Tests.Monitoring
 {

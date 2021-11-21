@@ -1,12 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   
   <Import Project="..\Common\Shared.props" />
   
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <Description>Perfect events are .Net events that support 3 kind of callbacks: synchronous, sequential asynchronous and parrallel synchronous.</Description>
+    <TargetFramework>net6.0</TargetFramework>
+    <Description>Perfect events are .Net events that support 3 kind of callbacks: synchronous, sequential asynchronous and parallel asynchronous.</Description>
     <Nullable>enable</Nullable>
-    <LangVersion>9</LangVersion>
   </PropertyGroup>
   
   <ItemGroup>

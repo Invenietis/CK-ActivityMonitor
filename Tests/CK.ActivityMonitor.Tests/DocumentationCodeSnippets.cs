@@ -64,14 +64,14 @@ namespace CK.Core.Tests.Monitoring
 
         void DemoOpenGroupFarFromPerfect( IActivityMonitor m )
         {
-            m.OpenInfo().Send( "Doing things..." );
+            m.OpenInfo( "Doing things..." );
             // ...
             m.CloseGroup( "Success." );
         }
 
         void DemoOpenGroupBetter( IActivityMonitor m )
         {
-            using( m.OpenInfo().Send( "Doing things..." ) )
+            using( m.OpenInfo( "Doing things..." ) )
             {
                 // ...
             }
@@ -79,7 +79,7 @@ namespace CK.Core.Tests.Monitoring
 
         void DemoOpenGroupThisWorksFine( IActivityMonitor m )
         {
-            using( m.OpenInfo().Send( "Doing things..." ) )
+            using( m.OpenInfo( "Doing things..." ) )
             {
                 // ...
                 m.CloseGroup( "Success." );
@@ -89,7 +89,7 @@ namespace CK.Core.Tests.Monitoring
         void DemoOpenGroupWithDynamicConclusion( IActivityMonitor m )
         {
             int nbProcessed = 0;
-            using( m.OpenInfo().Send( "Doing things..." )
+            using( m.OpenInfo( "Doing things..." )
                                 .ConcludeWith( () => String.Format( "{0} files.", nbProcessed ) ) )
             {
                 // ...
@@ -99,14 +99,14 @@ namespace CK.Core.Tests.Monitoring
             }
         }
 
-        void DemoLogs(IActivityMonitor m, FileInfo f, Exception ex)
+        void DemoLogs( IActivityMonitor m, FileInfo f, Exception ex )
         {
-            m.Debug().Send( info => $"Content is: {File.ReadAllText( info.FullName )}'.", f );
-            m.Trace().Send("Data from '{0}' processed.", f.Name);
-            m.Info().Send(ex, "An error occurred while processing '{0}'. Process will be retried later.", f.Name);
-            m.Warn().Send("File '{0}' is too big ({1} Kb). It must be less than 50Kb.", f.Name, f.Length / 1024);
-            m.Error().Send(ex, "File '{0}' can not be processed.", f.Name);
-            m.Fatal().Send(ex, "This will cancel the whole operation.");
+            m.Debug( $"Content is: {File.ReadAllText( f.FullName )}'." );
+            m.Trace( $"Data from '{f.Name}' processed." );
+            m.Info( $"An error occurred while processing '{f.Name}'. Process will be retried later.", ex );
+            m.Warn( $"File '{f.Name}' is too big ({f.Length / 1024} Kb). It must be less than 50Kb." );
+            m.Error( $"File '{f.Name}' cannot be processed." );
+            m.Fatal( "This will cancel the whole operation.", ex );
         }
 
         void Create()
@@ -122,9 +122,9 @@ namespace CK.Core.Tests.Monitoring
                 var counter = new ActivityMonitorErrorCounter();
                 m.Output.RegisterClient( counter );
 
-                m.Fatal().Send( "An horrible error occurred." );
+                m.Fatal( "An horrible error occurred." );
 
-                 counter.Current.FatalCount.Should().Be( 1 );
+                counter.Current.FatalCount.Should().Be( 1 );
                 m.Output.UnregisterClient( counter );
             }
             {
@@ -133,7 +133,7 @@ namespace CK.Core.Tests.Monitoring
                 int errorCount = 0;
                 using( m.OnError( () => ++errorCount ) )
                 {
-                    m.Fatal().Send( "An horrible error occurred." );
+                    m.Fatal( "An horrible error occurred." );
                 }
                  errorCount.Should().Be(1 );
             }
@@ -156,7 +156,7 @@ namespace CK.Core.Tests.Monitoring
                 IActivityMonitor m = new ActivityMonitor();
                 m.MinimalFilter = LogFilter.Off;
                 // ...
-                using( m.OpenWarn().Send( "Ouch..." ) )
+                using( m.OpenWarn( "Ouch..." ) )
                 {
                      m.ActualFilter.Should().Be(LogFilter.Off );
                     m.MinimalFilter = LogFilter.Trace;
@@ -170,22 +170,22 @@ namespace CK.Core.Tests.Monitoring
 
         bool DoSomething( IActivityMonitor m, FileInfo file )
         {
-            using( m.OpenInfo().Send( "Do something important on file '{0}'.", file.Name ) )
+            using( m.OpenInfo( $"Do something important on file '{file.Name}'." ) )
             {
                 if( !file.Exists )
                 {
-                    m.Warn().Send( "File does not exist." );
+                    m.Warn( "File does not exist." );
                 }
                 else
                 {
-                    m.Trace().Send( "File last modified at {1:T}. {0} Kb to process.", file.Length, file.LastWriteTimeUtc );
+                    m.Trace( $"File last modified at {file.LastWriteTimeUtc:T}. {file.Length} Kb to process." );
                     try
                     {
                         // ... Process file ...
                     }
                     catch( Exception ex )
                     {
-                        m.Error().Send( ex, "While processing." );
+                        m.Error( "While processing.", ex );
                         return false;
                     }
                 }

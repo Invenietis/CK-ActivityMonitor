@@ -260,7 +260,7 @@ namespace CK.Core
             /// <summary>
             /// Gets the file name of the source code that issued the log.
             /// </summary>
-            public string FileName
+            public string? FileName
             {
                 get
                 {

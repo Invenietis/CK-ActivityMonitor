@@ -39,14 +39,14 @@ namespace CK.Core.Tests.Monitoring
             ActivityMonitor.DefaultFilter.Should().Be( LogFilter.Trace );
             monitor.MinimalFilter.Should().Be( LogFilter.Undefined );
             monitor.ActualFilter.Should().Be( LogFilter.Undefined );
-            monitor.Trace().Send( "n°1" );
-            monitor.Debug().Send( "NOSHOW 1" );
+            monitor.Trace( "n°1" );
+            monitor.Debug( "NOSHOW 1" );
 
             ActivityMonitor.DefaultFilter = LogFilter.Debug;
             monitor.MinimalFilter.Should().Be( LogFilter.Undefined );
             monitor.ActualFilter.Should().Be( LogFilter.Undefined );
-            monitor.Trace().Send( "n°2" );
-            monitor.Debug().Send( "Debug works." );
+            monitor.Trace( "n°2" );
+            monitor.Debug( "Debug works." );
             ActivityMonitor.DefaultFilter = LogFilter.Trace;
 
             client.ToString().Should().Match( "*n°1*n°2*Debug works.*" );

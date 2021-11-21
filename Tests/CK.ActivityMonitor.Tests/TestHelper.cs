@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using CK.Text;
 
 namespace CK.Core.Tests
 {
@@ -75,7 +74,7 @@ namespace CK.Core.Tests
                 catch( Exception ex )
                 {
                     if( ++tryCount == 20 ) throw;
-                    Monitor.Info().Send( ex, "While cleaning up test directory. Retrying." );
+                    Monitor.Info( "While cleaning up test directory. Retrying.", ex );
                     System.Threading.Thread.Sleep( 100 );
                 }
             }

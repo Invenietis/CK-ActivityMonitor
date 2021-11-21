@@ -35,7 +35,7 @@ namespace CK.Core.Tests.Monitoring
             ActivityMonitor.AutoConfiguration = null;
             ActivityMonitor.AutoConfiguration += m => m.Output.RegisterClient( c );
             int i = 0;
-            ActivityMonitor.AutoConfiguration += m => m.Trace().Send( "This monitors has been created at {0:O}, n°{1}", DateTime.UtcNow, ++i );
+            ActivityMonitor.AutoConfiguration += m => m.UnfilteredLog( null, LogLevel.Info, $"This monitors has been created at {DateTime.UtcNow:O}, n°{++i}", m.NextLogTime(), null );
 
             ActivityMonitor monitor1 = new ActivityMonitor();
             ActivityMonitor monitor2 = new ActivityMonitor();
@@ -141,20 +141,20 @@ namespace CK.Core.Tests.Monitoring
                 var domainDump = domainMonitor.Output.RegisterClient( new StupidStringClient() );
 
                 int i = 0;
-                for( ; i < 10; i++ ) mainMonitor.OpenInfo().Send( "NOT Bridged n°{0}", i );
+                for( ; i < 10; i++ ) mainMonitor.OpenInfo( "NOT Bridged n°{0}", i );
 
                 using( domainMonitor.Output.CreateBridgeTo( mainMonitor.Output.BridgeTarget ) )
                 {
-                    domainMonitor.OpenInfo().Send( "Bridged n°10" );
-                    domainMonitor.OpenInfo().Send( "Bridged n°20" );
+                    domainMonitor.OpenInfo( "Bridged n°10" );
+                    domainMonitor.OpenInfo( "Bridged n°20" );
                     domainMonitor.CloseGroup( "Bridged close n°10" );
                     domainMonitor.CloseGroup( "Bridged close n°20" );
 
-                    using( domainMonitor.OpenInfo().Send( "Bridged n°50" ) )
+                    using( domainMonitor.OpenInfo( "Bridged n°50" ) )
                     {
-                        using( domainMonitor.OpenInfo().Send( "Bridged n°60" ) )
+                        using( domainMonitor.OpenInfo( "Bridged n°60" ) )
                         {
-                            using( domainMonitor.OpenInfo().Send( "Bridged n°70" ) )
+                            using( domainMonitor.OpenInfo( "Bridged n°70" ) )
                             {
                                 // Number of Prematurely closed by Bridge removed depends on the max level of groups open
                             }
@@ -188,14 +188,14 @@ namespace CK.Core.Tests.Monitoring
             monitor.MinimalFilter = LogFilter.Trace;
 
             int i = 0;
-            for( ; i < 60; i++ ) monitor.OpenInfo().Send( "Not Bridged n°{0}", i );
+            for( ; i < 60; i++ ) monitor.OpenInfo( "Not Bridged n°{0}", i );
             int j = 0;
             using( monitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
             using( monitor.Output.CreateBridgeTo( pseudoConsole.Output.BridgeTarget ) )
             {
-                for( ; i < 62; i++ ) monitor.OpenInfo().Send( "Bridged n°{0} (appear in Console)", i );
-                for( ; i < 64; i++ ) monitor.OpenTrace().Send( "Bridged n°{0} (#NOT appear# in Console since level is Trace)", i );
-                for( ; i < 66; i++ ) monitor.OpenWarn().Send( "Bridged n°{0} (appear in Console)", i );
+                for( ; i < 62; i++ ) monitor.OpenInfo( "Bridged n°{0} (appear in Console)", i );
+                for( ; i < 64; i++ ) monitor.OpenTrace( "Bridged n°{0} (#NOT appear# in Console since level is Trace)", i );
+                for( ; i < 66; i++ ) monitor.OpenWarn( "Bridged n°{0} (appear in Console)", i );
 
                 // Now close the groups, but not completely.
                 for( ; j < 2; j++ ) monitor.CloseGroup( String.Format( "Close n°{0} (Close Warn appear in Console)", j ) );
@@ -222,11 +222,11 @@ namespace CK.Core.Tests.Monitoring
         public void closing_group_restores_previous_AutoTags_and_MinimalFilter()
         {
             ActivityMonitor monitor = new ActivityMonitor();
-            using( monitor.OpenTrace().Send( "G1" ) )
+            using( monitor.OpenTrace( "G1" ) )
             {
                 monitor.AutoTags = ActivityMonitor.Tags.Register( "Tag" );
                 monitor.MinimalFilter = LogFilter.Monitor;
-                using( monitor.OpenWarn().Send( "G2" ) )
+                using( monitor.OpenWarn( "G2" ) )
                 {
                     monitor.AutoTags = ActivityMonitor.Tags.Register( "A|B|C" );
                     monitor.MinimalFilter = LogFilter.Release;
@@ -245,7 +245,7 @@ namespace CK.Core.Tests.Monitoring
         {
             var m = new ActivityMonitor( false );
             var c = m.Output.RegisterClient( new StupidStringClient() );
-            m.Trace().Send( "Trace1" );
+            m.Trace( "Trace1" );
             m.MinimalFilter = LogFilter.Off;
             m.UnfilteredLog( ActivityMonitor.Tags.Empty, LogLevel.Fatal, "NOSHOW-1", m.NextLogTime(), null );
             m.UnfilteredOpenGroup( ActivityMonitor.Tags.Empty, LogLevel.Fatal, null, "NOSHOW-2", m.NextLogTime(), null );
@@ -254,7 +254,7 @@ namespace CK.Core.Tests.Monitoring
             m.MinimalFilter = LogFilter.Trace;
             m.CloseGroup( "NOSHOW-4" );
             m.MinimalFilter = LogFilter.Trace;
-            m.Trace().Send( "Trace2" );
+            m.Trace( "Trace2" );
 
             var s = c.ToString();
             s.Should().Contain( "Trace1" ).And.Contain( "Trace2" );
@@ -266,11 +266,12 @@ namespace CK.Core.Tests.Monitoring
         {
             var m = new ActivityMonitor( false );
             var c = m.Output.RegisterClient( new StupidStringClient() );
-            m.Trace().Send( "" );
+            m.Trace( "" );
             m.UnfilteredLog( null, LogLevel.Error, null, m.NextLogTime(), null );
-            m.OpenTrace().Send( ActivityMonitor.Tags.Empty, null, this );
-            m.OpenInfo().Send( "" );
+            m.OpenTrace( (Exception?)null );
+            m.OpenInfo( "" );
 
+            c.Entries.Should().HaveCount( 4 );
             c.Entries.All( e => e.Text == ActivityMonitor.NoLogText );
         }
 
@@ -287,29 +288,29 @@ namespace CK.Core.Tests.Monitoring
                 var tag2 = ActivityMonitor.Tags.Register( "Sql" );
                 var tag3 = ActivityMonitor.Tags.Register( "Combined Tag|Sql|Engine V2|Product" );
 
-                using( monitor.OpenError().Send( "MainGroupError" ).ConcludeWith( () => "EndMainGroupError" ) )
+                using( monitor.OpenError( "MainGroupError" ).ConcludeWith( () => "EndMainGroupError" ) )
                 {
-                    using( monitor.OpenTrace().Send( "MainGroup" ).ConcludeWith( () => "EndMainGroup" ) )
+                    using( monitor.OpenTrace( "MainGroup" ).ConcludeWith( () => "EndMainGroup" ) )
                     {
-                        monitor.Trace().Send( tag1, "First" );
+                        monitor.Trace( "First", tag1 );
                         using( monitor.TemporarilySetAutoTags( tag1 ) )
                         {
-                            monitor.Trace().Send( "Second" );
-                            monitor.Trace().Send( tag3, "Third" );
+                            monitor.Trace( "Second" );
+                            monitor.Trace( "Third", tag3 );
                             using( monitor.TemporarilySetAutoTags( tag2 ) )
                             {
-                                monitor.Info().Send( "First" );
+                                monitor.Info( "First" );
                             }
                         }
-                        using( monitor.OpenInfo().Send( "InfoGroup" ).ConcludeWith( () => "Conclusion of Info Group (no newline)." ) )
+                        using( monitor.OpenInfo( "InfoGroup" ).ConcludeWith( () => "Conclusion of Info Group (no newline)." ) )
                         {
-                            monitor.Info().Send( "Second" );
-                            monitor.Trace().Send( "Fourth" );
+                            monitor.Info( "Second" );
+                            monitor.Trace( "Fourth" );
 
                             string warnConclusion = "Conclusion of Warn Group" + Environment.NewLine + "with more than one line int it.";
-                            using( monitor.OpenWarn().Send( "WarnGroup {0} - Now = {1}", 4, DateTime.UtcNow ).ConcludeWith( () => warnConclusion ) )
+                            using( monitor.OpenWarn( $"WarnGroup {4} - Now = {DateTime.UtcNow}" ).ConcludeWith( () => warnConclusion ) )
                             {
-                                monitor.Info().Send( "Warn!" );
+                                monitor.Info( "Warn!" );
                                 monitor.CloseGroup( "User conclusion with multiple lines."
                                     + Environment.NewLine + "It will be displayed on "
                                     + Environment.NewLine + "multiple lines." );
@@ -346,8 +347,8 @@ namespace CK.Core.Tests.Monitoring
                 var logLovely = new ActivityMonitorTextWriterClient( ( s ) => wLogLovely.Append( s ) );
                 l.Output.RegisterClient( logLovely );
 
-                l.Error().Send( new Exception( "EXERROR-1" ) );
-                using( l.OpenFatal().Send( new Exception( "EXERROR-2" ), "EXERROR-TEXT2" ) )
+                l.Error( new Exception( "EXERROR-1" ) );
+                using( l.OpenFatal( "EXERROR-TEXT2", new Exception( "EXERROR-2" ) ) )
                 {
                     try
                     {
@@ -355,7 +356,7 @@ namespace CK.Core.Tests.Monitoring
                     }
                     catch( Exception ex )
                     {
-                        l.Trace().Send( ex, "EXERROR-TEXT3" );
+                        l.Trace( "EXERROR-TEXT3", ex );
                     }
                 }
             }
@@ -376,12 +377,12 @@ namespace CK.Core.Tests.Monitoring
             IActivityMonitor m = new ActivityMonitor( applyAutoConfigurations: false );
             var rawLog = new StupidStringClient();
             m.Output.RegisterClient( rawLog );
-            m.OpenFatal().Send( "a group" );
+            m.OpenFatal( "a group" );
             // OpenFatal or OpenError sets their scoped filter to Debug.
             m.MinimalFilter = LogFilter.Release;
-            m.OpenInfo().Send( "a (filtered) group" );
-            m.Fatal().Send( "a line" );
-            m.Info().Send( "a (filtered) line" );
+            m.OpenInfo( "a (filtered) group" );
+            m.Fatal( "a line" );
+            m.Info( "a (filtered) line" );
             m.MonitorEnd();
             m.CloseGroup().Should().BeFalse();
             string logs = rawLog.ToString();
@@ -401,8 +402,8 @@ namespace CK.Core.Tests.Monitoring
                 l.Output.RegisterClient( logLovely );
 
 
-                l.Error().Send( new Exception( "EXERROR-1" ) );
-                using( l.OpenFatal().Send( new Exception( "EXERROR-2" ), "EXERROR-TEXT2" ) )
+                l.Error( new Exception( "EXERROR-1" ) );
+                using( l.OpenFatal( "EXERROR-TEXT2", new Exception( "EXERROR-2" ) ) )
                 {
                     try
                     {
@@ -416,7 +417,7 @@ namespace CK.Core.Tests.Monitoring
                     }
                     catch( Exception ex )
                     {
-                        l.Error().Send( ex, "EXERROR-TEXT3" );
+                        l.Error( "EXERROR-TEXT3", ex );
                     }
                 }
             }
@@ -436,10 +437,10 @@ namespace CK.Core.Tests.Monitoring
                 var log1 = monitor.Output.RegisterClient( new StupidStringClient() );
                 monitor.Output.Clients.Should().HaveCount( 2 );
 
-                using( monitor.OpenTrace().Send( "First" ).ConcludeWith( () => "End First" ) )
+                using( monitor.OpenTrace( "First" ).ConcludeWith( () => "End First" ) )
                 {
                     monitor.CloseGroup( "Pouf" );
-                    using( monitor.OpenWarn().Send( "A group at level 0!" ) )
+                    using( monitor.OpenWarn( "A group at level 0!" ) )
                     {
                         monitor.CloseGroup( "Close it." );
                         monitor.CloseGroup( "Close it again. (not seen)" );
@@ -463,60 +464,60 @@ namespace CK.Core.Tests.Monitoring
                 var log = l.Output.RegisterClient( new StupidStringClient() );
                 using( l.TemporarilySetMinimalFilter( LogLevelFilter.Error, LogLevelFilter.Error ) )
                 {
-                    l.Debug().Send( "NO SHOW" );
-                    l.Trace().Send( "NO SHOW" );
-                    l.Info().Send( "NO SHOW" );
-                    l.Warn().Send( "NO SHOW" );
-                    l.Error().Send( "Error n°1." );
+                    l.Debug( "NO SHOW" );
+                    l.Trace( "NO SHOW" );
+                    l.Info( "NO SHOW" );
+                    l.Warn( "NO SHOW" );
+                    l.Error( "Error n°1." );
                     using( l.TemporarilySetMinimalFilter( WarnWarn ) )
                     {
-                        l.Debug().Send( "NO SHOW" );
-                        l.Trace().Send( "NO SHOW" );
-                        l.Info().Send( "NO SHOW" );
-                        l.Warn().Send( "Warn n°1." );
-                        l.Error().Send( "Error n°2." );
-                        using( l.OpenWarn().Send( "GroupWarn: this appears." ) )
+                        l.Debug( "NO SHOW" );
+                        l.Trace( "NO SHOW" );
+                        l.Info( "NO SHOW" );
+                        l.Warn( "Warn n°1." );
+                        l.Error( "Error n°2." );
+                        using( l.OpenWarn( "GroupWarn: this appears." ) )
                         {
                             l.MinimalFilter.Should().Be( WarnWarn, "Groups does not change the current filter level." );
-                            l.Debug().Send( "NO SHOW" );
-                            l.Trace().Send( "NO SHOW" );
-                            l.Info().Send( "NO SHOW" );
-                            l.Warn().Send( "Warn n°2." );
-                            l.Error().Send( "Error n°3." );
+                            l.Debug( "NO SHOW" );
+                            l.Trace( "NO SHOW" );
+                            l.Info( "NO SHOW" );
+                            l.Warn( "Warn n°2." );
+                            l.Error( "Error n°3." );
                             // Changing the level inside a Group.
                             l.MinimalFilter = FatalFatal;
-                            l.Error().Send( "NO SHOW" );
-                            l.Fatal().Send( "Fatal n°1." );
+                            l.Error( "NO SHOW" );
+                            l.Fatal( "Fatal n°1." );
                         }
-                        using( l.OpenInfo().Send( "GroupInfo: NO SHOW." ) )
+                        using( l.OpenInfo( "GroupInfo: NO SHOW." ) )
                         {
                             l.MinimalFilter.Should().Be( WarnWarn, "Groups does not change the current filter level." );
-                            l.Debug().Send( "NO SHOW" );
-                            l.Trace().Send( "NO SHOW" );
-                            l.Info().Send( "NO SHOW" );
-                            l.Warn().Send( "Warn n°2-bis." );
-                            l.Error().Send( "Error n°3-bis." );
+                            l.Debug( "NO SHOW" );
+                            l.Trace( "NO SHOW" );
+                            l.Info( "NO SHOW" );
+                            l.Warn( "Warn n°2-bis." );
+                            l.Error( "Error n°3-bis." );
                             // Changing the level inside a Group.
                             l.MinimalFilter = FatalFatal;
-                            l.Error().Send( "NO SHOW" );
-                            l.Fatal().Send( "Fatal n°1." );
-                            using( l.OpenError().Send( "GroupError: NO SHOW." ) )
+                            l.Error( "NO SHOW" );
+                            l.Fatal( "Fatal n°1." );
+                            using( l.OpenError( "GroupError: NO SHOW." ) )
                             {
                             }
                         }
                         l.MinimalFilter.Should().Be( WarnWarn, "But Groups restores the original filter level when closed." );
-                        l.Debug().Send( "NO SHOW" );
-                        l.Trace().Send( "NO SHOW" );
-                        l.Info().Send( "NO SHOW" );
-                        l.Warn().Send( "Warn n°3." );
-                        l.Error().Send( "Error n°4." );
-                        l.Fatal().Send( "Fatal n°2." );
+                        l.Debug( "NO SHOW" );
+                        l.Trace( "NO SHOW" );
+                        l.Info( "NO SHOW" );
+                        l.Warn( "Warn n°3." );
+                        l.Error( "Error n°4." );
+                        l.Fatal( "Fatal n°2." );
                     }
-                    l.Debug().Send( "NO SHOW" );
-                    l.Trace().Send( "NO SHOW" );
-                    l.Info().Send( "NO SHOW" );
-                    l.Warn().Send( "NO SHOW" );
-                    l.Error().Send( "Error n°5." );
+                    l.Debug( "NO SHOW" );
+                    l.Trace( "NO SHOW" );
+                    l.Info( "NO SHOW" );
+                    l.Warn( "NO SHOW" );
+                    l.Error( "Error n°5." );
                 }
                 string result = log.Writer.ToString();
                 result.Should().NotContain( "NO SHOW" );
@@ -541,31 +542,31 @@ namespace CK.Core.Tests.Monitoring
             IActivityMonitor l = new ActivityMonitor();
             var log = l.Output.RegisterClient( new StupidStringClient() );
             {
-                IDisposable g0 = l.OpenTrace().Send( "First" );
-                IDisposable g1 = l.OpenTrace().Send( "Second" );
-                IDisposable g2 = l.OpenTrace().Send( "Third" );
+                IDisposable g0 = l.OpenTrace( "First" );
+                IDisposable g1 = l.OpenTrace( "Second" );
+                IDisposable g2 = l.OpenTrace( "Third" );
 
                 g1.Dispose();
-                l.Trace().Send( "Inside First" );
+                l.Trace( "Inside First" );
                 g0.Dispose();
-                l.Trace().Send( "At root" );
+                l.Trace( "At root" );
 
                 var end = "Trace: Inside First" + Environment.NewLine + "-" + Environment.NewLine + "Trace: At root";
                 log.Writer.ToString().Should().EndWith( end );
             }
             {
                 // g2 is closed after g1.
-                IDisposable g0 = l.OpenTrace().Send( "First" );
-                IDisposable g1 = l.OpenTrace().Send( "Second" );
-                IDisposable g2 = l.OpenTrace().Send( "Third" );
+                IDisposable g0 = l.OpenTrace( "First" );
+                IDisposable g1 = l.OpenTrace( "Second" );
+                IDisposable g2 = l.OpenTrace( "Third" );
                 log.Writer.GetStringBuilder().Clear();
                 g1.Dispose();
                 // g2 has already been disposed by g1. 
                 // Nothing changed.
                 g2.Dispose();
-                l.Trace().Send( "Inside First" );
+                l.Trace( "Inside First" );
                 g0.Dispose();
-                l.Trace().Send( "At root" );
+                l.Trace( "At root" );
 
                 var end = "Trace: Inside First" + Environment.NewLine + "-" + Environment.NewLine + "Trace: At root";
                 log.Writer.ToString().Should().EndWith( end );
@@ -590,9 +591,9 @@ namespace CK.Core.Tests.Monitoring
                 var log = l.Output.RegisterClient( new StupidStringClient() );
 
                 // No explicit close conclusion: Success!
-                using( l.OpenTrace().Send( "G" ).ConcludeWith( () => "From Opener" ) )
+                using( l.OpenTrace( "G" ).ConcludeWith( () => "From Opener" ) )
                 {
-                    l.Error().Send( "Pouf" );
+                    l.Error( "Pouf" );
                     l.CloseGroup( new ObjectAsConclusion() );
                 }
                 log.Writer.ToString().Should().Contain( "Explicit User Conclusion, From Opener, 1 Error" );
@@ -606,12 +607,12 @@ namespace CK.Core.Tests.Monitoring
             ActivityMonitorPathCatcher p = monitor.Output.RegisterClient( new ActivityMonitorPathCatcher() );
             monitor.MinimalFilter = LogFilter.Debug;
 
-            using( monitor.OpenDebug().Send( "!D" ) )
-            using( monitor.OpenTrace().Send( "!T" ) )
-            using( monitor.OpenInfo().Send( "!I" ) )
-            using( monitor.OpenWarn().Send( "!W" ) )
-            using( monitor.OpenError().Send( "!E" ) )
-            using( monitor.OpenFatal().Send( "!F" ) )
+            using( monitor.OpenDebug( "!D" ) )
+            using( monitor.OpenTrace( "!T" ) )
+            using( monitor.OpenInfo( "!I" ) )
+            using( monitor.OpenWarn( "!W" ) )
+            using( monitor.OpenError( "!E" ) )
+            using( monitor.OpenFatal( "!F" ) )
             {
                 p.DynamicPath.ToStringPath()
                    .Should().Contain( "!D" ).And.Contain( "!T" ).And.Contain( "!I" ).And.Contain( "!W" ).And.Contain( "!E" ).And.Contain( "!F" );
@@ -631,54 +632,55 @@ namespace CK.Core.Tests.Monitoring
                 ActivityMonitorPathCatcher p = new ActivityMonitorPathCatcher();
                 monitor.Output.RegisterClient( p );
 
-                monitor.Trace().Send( "Trace n°1" );
+                monitor.Trace( "Trace n°1" );
                 p.DynamicPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ).Single().Should().Be( "Trace|Trace n°1" );
-                p.LastErrorPath.Should().BeNull();
-                p.LastWarnOrErrorPath.Should().BeNull();
+                p.LastErrorPath.Should().BeEmpty();
+                p.LastWarnOrErrorPath.Should().BeEmpty();
 
-                monitor.Trace().Send( "Trace n°2" );
+                monitor.Trace( "Trace n°2" );
                 p.DynamicPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ).Single().Should().Be( "Trace|Trace n°2" );
-                p.LastErrorPath.Should().BeNull();
-                p.LastWarnOrErrorPath.Should().BeNull();
+                p.LastErrorPath.Should().BeEmpty();
+                p.LastWarnOrErrorPath.Should().BeEmpty();
 
-                monitor.Warn().Send( "W1" );
+                monitor.Warn( "W1" );
                 p.DynamicPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ).Single().Should().Be( "Warn|W1" );
-                p.LastErrorPath.Should().BeNull();
+                p.LastErrorPath.Should().BeEmpty();
                 p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ).Single().Should().Be( "Warn|W1" );
 
-                monitor.Error().Send( "E2" );
-                monitor.Warn().Send( "W1bis" );
+                monitor.Error( "E2" );
+                monitor.Warn( "W1bis" );
                 p.DynamicPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ).Single().Should().Be( "Warn|W1bis" );
                 p.LastErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ).Single().Should().Be( "Error|E2" );
                 p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ).Single().Should().Be( "Warn|W1bis" );
 
                 p.ClearLastWarnPath();
                 p.LastErrorPath.Should().NotBeNull();
-                p.LastWarnOrErrorPath.Should().BeNull();
+                p.LastWarnOrErrorPath.Should().BeEmpty();
 
                 p.ClearLastErrorPath();
-                p.LastErrorPath.Should().BeNull();
+                p.LastErrorPath.Should().BeEmpty();
 
-                using( monitor.OpenTrace().Send( "G1" ) )
+                using( monitor.OpenTrace( "G1" ) )
                 {
-                    using( monitor.OpenInfo().Send( "G2" ) )
+                    using( monitor.OpenInfo( "G2" ) )
                     {
                         String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).Should().Be( "G1>G2" );
-                        p.LastErrorPath.Should().BeNull();
-                        using( monitor.OpenTrace().Send( "G3" ) )
+                        p.LastErrorPath.Should().BeEmpty();
+                        using( monitor.OpenTrace( "G3" ) )
                         {
-                            using( monitor.OpenInfo().Send( "G4" ) )
+                            using( monitor.OpenInfo( "G4" ) )
                             {
-                                monitor.Warn().Send( "W1" );
+                                monitor.Warn( "W1" );
 
                                 String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).Should().Be( "G1>G2>G3>G4>W1" );
 
-                                monitor.Info().Send(
+                                monitor.Info(
+                                    "Test With an exception: a Group is created. Since the text of the log is given, the Exception.Message must be displayed explicitly.",
                                     new Exception( "An exception logged as an Info.",
-                                        new Exception( "With an inner exception. Since these exceptions have not been thrown, there is no stack trace." ) ),
-                                    "Test With an exception: a Group is created. Since the text of the log is given, the Exception.Message must be displayed explicitely." );
+                                        new Exception( "With an inner exception. Since these exceptions have not been thrown, there is no stack trace." ) )
+                                     );
 
-                                string.Join( ">", p.DynamicPath.Select( e => e.Text ) ).Should().Be( "G1>G2>G3>G4>Test With an exception: a Group is created. Since the text of the log is given, the Exception.Message must be displayed explicitely." );
+                                string.Join( ">", p.DynamicPath.Select( e => e.Text ) ).Should().Be( "G1>G2>G3>G4>Test With an exception: a Group is created. Since the text of the log is given, the Exception.Message must be displayed explicitly." );
 
                                 try
                                 {
@@ -707,18 +709,18 @@ namespace CK.Core.Tests.Monitoring
                                 }
                                 catch( Exception ex )
                                 {
-                                    monitor.Trace().Send( ex );
+                                    monitor.Trace( ex );
                                     p.DynamicPath.ToStringPath().Length.Should().BeGreaterThan( 0 );
                                 }
 
-                                p.LastErrorPath.Should().BeNull();
+                                p.LastErrorPath.Should().BeEmpty();
                                 string.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Info|G2>Trace|G3>Info|G4>Warn|W1" );
                             }
                             String.Join( ">", p.DynamicPath.Select( e => e.ToString() ) ).Should().Be( "G1>G2>G3>G4" );
-                            p.LastErrorPath.Should().BeNull();
+                            p.LastErrorPath.Should().BeEmpty();
                             String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Info|G2>Trace|G3>Info|G4>Warn|W1" );
 
-                            monitor.Error().Send( "E1" );
+                            monitor.Error( "E1" );
                             String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).Should().Be( "G1>G2>G3>E1" );
                             String.Join( ">", p.LastErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Info|G2>Trace|G3>Error|E1" );
                             String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Info|G2>Trace|G3>Error|E1" );
@@ -728,18 +730,18 @@ namespace CK.Core.Tests.Monitoring
                         String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Info|G2>Trace|G3>Error|E1" );
                     }
                     String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).Should().Be( "G1>G2" );
-                    using( monitor.OpenTrace().Send( "G2Bis" ) )
+                    using( monitor.OpenTrace( "G2Bis" ) )
                     {
                         String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).Should().Be( "G1>G2Bis" );
                         String.Join( ">", p.LastErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Info|G2>Trace|G3>Error|E1" );
                         String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Info|G2>Trace|G3>Error|E1" );
 
-                        monitor.Warn().Send( "W2" );
+                        monitor.Warn( "W2" );
                         String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).Should().Be( "G1>G2Bis>W2" );
                         String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Trace|G2Bis>Warn|W2" );
                         String.Join( ">", p.LastErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Info|G2>Trace|G3>Error|E1" );
                     }
-                    monitor.Fatal().Send( "F1" );
+                    monitor.Fatal( "F1" );
                     String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).Should().Be( "G1>F1" );
                     String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Fatal|F1" );
                     String.Join( ">", p.LastErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Fatal|F1" );
@@ -748,7 +750,7 @@ namespace CK.Core.Tests.Monitoring
                 // Extraneous closing are ignored.
                 monitor.CloseGroup( null );
 
-                monitor.Warn().Send( "W3" );
+                monitor.Warn( "W3" );
                 String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).Should().Be( "W3" );
                 String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Warn|W3" );
                 String.Join( ">", p.LastErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Fatal|F1" );
@@ -756,14 +758,14 @@ namespace CK.Core.Tests.Monitoring
                 // Extraneous closing are ignored.
                 monitor.CloseGroup( null );
 
-                monitor.Warn().Send( "W4" );
+                monitor.Warn( "W4" );
                 String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).Should().Be( "W4" );
                 String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Warn|W4" );
                 String.Join( ">", p.LastErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Fatal|F1" );
 
                 p.ClearLastWarnPath( true );
-                p.LastErrorPath.Should().BeNull();
-                p.LastWarnOrErrorPath.Should().BeNull();
+                p.LastErrorPath.Should().BeEmpty();
+                p.LastWarnOrErrorPath.Should().BeEmpty();
             }
         }
 
@@ -788,19 +790,19 @@ namespace CK.Core.Tests.Monitoring
                 c.GenerateConclusion = true;
                 c.Root.MaxLogLevel.Should().Be( LogLevel.None );
 
-                monitor.Trace().Send( "T1" );
+                monitor.Trace( "T1" );
                 c.Root.HasWarnOrError.Should().BeFalse();
                 c.Root.HasError.Should().BeFalse();
                 c.Root.MaxLogLevel.Should().Be( LogLevel.Trace );
                 c.Root.ToString().Should().BeNull();
 
-                monitor.Warn().Send( "W1" );
+                monitor.Warn( "W1" );
                 c.Root.HasWarnOrError.Should().BeTrue();
                 c.Root.HasError.Should().BeFalse();
                 c.Root.MaxLogLevel.Should().Be( LogLevel.Warn );
                 c.Root.ToString().Should().NotBeNullOrEmpty();
 
-                monitor.Error().Send( "E2" );
+                monitor.Error( "E2" );
                 c.Root.HasWarnOrError.Should().BeTrue();
                 c.Root.HasError.Should().BeTrue();
                 c.Root.ErrorCount.Should().Be( 1 );
@@ -820,20 +822,20 @@ namespace CK.Core.Tests.Monitoring
                 c.Root.MaxLogLevel.Should().Be( LogLevel.Info );
                 c.Root.ToString().Should().BeNull();
 
-                using( monitor.OpenTrace().Send( "G1" ) )
+                using( monitor.OpenTrace( "G1" ) )
                 {
                     string errorMessage;
-                    using( monitor.OpenInfo().Send( "G2" ) )
+                    using( monitor.OpenInfo( "G2" ) )
                     {
-                        monitor.Error().Send( "E1" );
-                        monitor.Fatal().Send( "F1" );
+                        monitor.Error( "E1" );
+                        monitor.Fatal( "F1" );
                         c.Root.HasWarnOrError.Should().BeTrue();
                         c.Root.HasError.Should().BeTrue();
                         c.Root.ErrorCount.Should().Be( 1 );
                         c.Root.FatalCount.Should().Be( 1 );
                         c.Root.WarnCount.Should().Be( 0 );
 
-                        using( monitor.OpenInfo().Send( "G3" ) )
+                        using( monitor.OpenInfo( "G3" ) )
                         {
                             c.Current.HasWarnOrError.Should().BeFalse();
                             c.Current.HasError.Should().BeFalse();
@@ -841,7 +843,7 @@ namespace CK.Core.Tests.Monitoring
                             c.Current.FatalCount.Should().Be( 0 );
                             c.Current.WarnCount.Should().Be( 0 );
 
-                            monitor.Error().Send( "An error..." );
+                            monitor.Error( "An error..." );
 
                             c.Current.HasWarnOrError.Should().BeTrue();
                             c.Current.HasError.Should().BeTrue();
@@ -857,9 +859,9 @@ namespace CK.Core.Tests.Monitoring
                     }
                     errorMessage = String.Join( "|", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion.ToStringGroupConclusion() ) );
                     errorMessage.Should().Be( "G1-|G2-1 Fatal error, 2 Errors|G3-1 Error|An error...-" );
-                    monitor.Error().Send( "E3" );
-                    monitor.Fatal().Send( "F2" );
-                    monitor.Warn().Send( "W2" );
+                    monitor.Error( "E3" );
+                    monitor.Fatal( "F2" );
+                    monitor.Warn( "W2" );
                     c.Root.HasWarnOrError.Should().BeTrue();
                     c.Root.HasError.Should().BeTrue();
                     c.Root.FatalCount.Should().Be( 2 );
@@ -877,12 +879,12 @@ namespace CK.Core.Tests.Monitoring
             IActivityMonitor d = new ActivityMonitor( applyAutoConfigurations: false );
             var c = new ActivityMonitorSimpleCollector();
             d.Output.RegisterClient( c );
-            d.Warn().Send( "1" );
-            d.Error().Send( "2" );
-            d.Fatal().Send( "3" );
-            d.Trace().Send( "4" );
-            d.Info().Send( "5" );
-            d.Warn().Send( "6" );
+            d.Warn( "1" );
+            d.Error( "2" );
+            d.Fatal( "3" );
+            d.Trace( "4" );
+            d.Info( "5" );
+            d.Warn( "6" );
             String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "2,3" );
 
             c.MinimalFilter = LogLevelFilter.Fatal;
@@ -892,16 +894,16 @@ namespace CK.Core.Tests.Monitoring
             String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "" );
 
             c.MinimalFilter = LogLevelFilter.Warn;
-            using( d.OpenWarn().Send( "1" ) )
+            using( d.OpenWarn( "1" ) )
             {
-                d.Error().Send( "2" );
-                using( d.OpenFatal().Send( "3" ) )
+                d.Error( "2" );
+                using( d.OpenFatal( "3" ) )
                 {
-                    d.Trace().Send( "4" );
-                    d.Info().Send( "5" );
+                    d.Trace( "4" );
+                    d.Info( "5" );
                 }
             }
-            d.Warn().Send( "6" );
+            d.Warn( "6" );
             String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "1,2,3,6" );
 
             c.MinimalFilter = LogLevelFilter.Fatal;
@@ -909,13 +911,13 @@ namespace CK.Core.Tests.Monitoring
 
             c.MinimalFilter = LogLevelFilter.Debug;
             d.MinimalFilter = LogFilter.Debug;
-            using( d.OpenDebug().Send( "d1" ) )
+            using( d.OpenDebug( "d1" ) )
             {
-                d.Debug().Send( "d2" );
-                using( d.OpenFatal().Send( "f1" ) )
+                d.Debug( "d2" );
+                using( d.OpenFatal( "f1" ) )
                 {
-                    d.Debug().Send( "d3" );
-                    d.Info().Send( "i1" );
+                    d.Debug( "d3" );
+                    d.Info( "i1" );
                 }
             }
             String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "3,d1,d2,f1,d3,i1" );
@@ -932,22 +934,22 @@ namespace CK.Core.Tests.Monitoring
             var c = new ActivityMonitorTextWriterClient( s => sb.Append( s ), LogFilter.Release );
             d.Output.RegisterClient( c );
 
-            d.Trace().Send( "NO SHOW" );
-            d.Trace().Send( "NO SHOW" );
-            using( d.OpenTrace().Send( "NO SHOW" ) )
+            d.Trace( "NO SHOW" );
+            d.Trace( "NO SHOW" );
+            using( d.OpenTrace( "NO SHOW" ) )
             {
-                d.Info().Send( "NO SHOW" );
-                d.Info().Send( "NO SHOW" );
+                d.Info( "NO SHOW" );
+                d.Info( "NO SHOW" );
             }
 
-            d.Error().Send( "Error line at root" );
-            using( d.OpenInfo().Send( "NO SHOW" ) )
+            d.Error( "Error line at root" );
+            using( d.OpenInfo( "NO SHOW" ) )
             {
-                d.Warn().Send( "NO SHOW" );
-                d.Error().Send( "Send error line inside group" );
-                using( d.OpenError().Send( "Open error group" ) )
+                d.Warn( "NO SHOW" );
+                d.Error( "Send error line inside group" );
+                using( d.OpenError( "Open error group" ) )
                 {
-                    d.Error().Send( "Send error line inside sub group" );
+                    d.Error( "Send error line inside sub group" );
                 }
             }
 
@@ -964,37 +966,37 @@ namespace CK.Core.Tests.Monitoring
             var m = new ActivityMonitor( false );
             bool hasError = false;
             using( m.OnError( () => hasError = true ) )
-            using( m.OpenInfo().Send( "Handling StObj objects." ) )
+            using( m.OpenInfo( "Handling StObj objects." ) )
             {
-                m.Fatal().Send( "Oops!" );
+                m.Fatal( "Oops!" );
                 hasError.Should().BeTrue();
                 hasError = false;
-                m.OpenFatal().Send( "Oops! (Group)" ).Dispose();
+                m.OpenFatal( "Oops! (Group)" ).Dispose();
                 hasError.Should().BeTrue();
                 hasError = false;
             }
             hasError = false;
-            m.Fatal().Send( "Oops!" );
+            m.Fatal( "Oops!" );
             hasError.Should().BeFalse();
 
             bool hasFatal = false;
             using( m.OnError( () => hasFatal = true, () => hasError = true ) )
             {
-                m.Fatal().Send( "Big Oops!" );
+                m.Fatal( "Big Oops!" );
                 hasFatal.Should().BeTrue();
                 hasError.Should().BeFalse();
-                m.Error().Send( "Oops!" );
+                m.Error( "Oops!" );
                 hasFatal.Should().BeTrue();
                 hasError.Should().BeTrue();
                 hasFatal = hasError = false;
-                m.OpenError().Send( "Oops! (Group)" ).Dispose();
+                m.OpenError( "Oops! (Group)" ).Dispose();
                 hasFatal.Should().BeFalse();
                 hasError.Should().BeTrue();
-                m.OpenFatal().Send( "Oops! (Group)" ).Dispose();
+                m.OpenFatal( "Oops! (Group)" ).Dispose();
                 hasFatal.Should().BeTrue(); hasError.Should().BeTrue();
                 hasFatal = hasError = false;
             }
-            m.Fatal().Send( "Oops!" );
+            m.Fatal( "Oops!" );
             hasFatal.Should().BeFalse();
             hasError.Should().BeFalse();
         }
@@ -1016,14 +1018,14 @@ namespace CK.Core.Tests.Monitoring
             ActivityMonitor m = new ActivityMonitor( false );
             var tester = m.Output.RegisterClient( new ActivityMonitorClientTester() );
 
-            m.Error().Send( "Hello World!" );
+            m.Error( "Hello World!" );
             tester.ReceivedTexts.Should().Contain( s => s.Contains( "Hello World!" ) );
             // This is totally artificial since IsDead is normally hidden 
             // by IActivityMonitorBoundClients.
             tester.IsDead = true;
             tester.MinimalFilter = LogFilter.Debug;
             // This triggers the processing of the clients (since the level is lowered).
-            m.Error().Send( "NEVER RECEIVED" );
+            m.Error( "NEVER RECEIVED" );
 
             m.Output.Clients.Should().BeEmpty();
             tester.ReceivedTexts.Should().NotContain( s => s.Contains( "NEVER RECEIVED" ) );
@@ -1036,10 +1038,10 @@ namespace CK.Core.Tests.Monitoring
             ActivityMonitor m = new ActivityMonitor( false );
             var tester = m.Output.RegisterClient( new ActivityMonitorClientTester() );
 
-            m.Error().Send( "Hello World!" );
+            m.Error( "Hello World!" );
             tester.ReceivedTexts.Should().Contain( s => s.Contains( "Hello World!" ) );
             tester.AsyncDieAndWait( 20 );
-            m.Error().Send( "NEVER RECEIVED" );
+            m.Error( "NEVER RECEIVED" );
 
             m.Output.Clients.Should().BeEmpty();
             tester.ReceivedTexts.Should().NotContain( s => s.Contains( "NEVER RECEIVED" ) );
@@ -1059,297 +1061,6 @@ namespace CK.Core.Tests.Monitoring
             }
         }
 
-
-        [Test]
-        public void testing_all_the_overloads_of_StandardSender()
-        {
-            Exception ex = new Exception( "EXCEPTION" );
-            string fmt0 = "fmt", fmt1 = "fmt{0}", fmt2 = "fmt{0}{1}", fmt3 = "fmt{0}{1}{2}", fmt4 = "fmt{0}{1}{2}{3}", fmt5 = "fmt{0}{1}{2}{3}{4}", fmt6 = "fmt{0}{1}{2}{3}{4}{5}";
-            string p1 = "p1", p2 = "p2", p3 = "p3", p4 = "p4", p5 = "p5", p6 = "p6";
-            Func<string> onDemandText = () => "onDemand";
-            Func<int, string> onDemandTextP1 = ( i ) => "onDemand" + i.ToString();
-            Func<int, int, string> onDemandTextP2 = ( i, j ) => "onDemand" + i.ToString() + j.ToString();
-
-            IActivityMonitor d = new ActivityMonitor();
-            var collector = new ActivityMonitorSimpleCollector() { MinimalFilter = LogLevelFilter.Trace, Capacity = 1 };
-            d.Output.RegisterClients( collector, new CheckAlwaysFilteredClient() );
-
-            // d.UnfilteredLog( ActivityMonitor.Tags.Empty, LogLevel.Trace, "CheckAlwaysFilteredClient works", DateTime.UtcNow, null );
-
-            d.Trace().Send( fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" );
-            d.Trace().Send( fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" );
-            d.Invoking( sut => sut.Trace().Send( fmt1, ex ) )
-             .Should().Throw<ArgumentException>();
-            d.Trace().Send( onDemandText ); collector.Entries.Last().Text.Should().Be( "onDemand" );
-            d.Trace().Send( onDemandTextP1, 1 ); collector.Entries.Last().Text.Should().Be( "onDemand1" );
-            d.Trace().Send( onDemandTextP2, 1, 2 ); collector.Entries.Last().Text.Should().Be( "onDemand12" );
-            d.Trace().Send( fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" );
-            d.Trace().Send( fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" );
-            d.Trace().Send( fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" );
-            d.Trace().Send( fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" );
-            d.Trace().Send( fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" );
-
-            d.Info().Send( fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" );
-            d.Info().Send( fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" );
-            d.Invoking( sut => sut.Info().Send( fmt1, ex ) )
-             .Should().Throw<ArgumentException>();
-            d.Info().Send( onDemandText ); collector.Entries.Last().Text.Should().Be( "onDemand" );
-            d.Info().Send( onDemandTextP1, 1 ); collector.Entries.Last().Text.Should().Be( "onDemand1" );
-            d.Info().Send( onDemandTextP2, 1, 2 ); collector.Entries.Last().Text.Should().Be( "onDemand12" );
-            d.Info().Send( fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" );
-            d.Info().Send( fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" );
-            d.Info().Send( fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" );
-            d.Info().Send( fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" );
-            d.Info().Send( fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" );
-
-            d.Warn().Send( fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" );
-            d.Warn().Send( fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" );
-            d.Invoking( sut => sut.Warn().Send( fmt1, ex ) )
-             .Should().Throw<ArgumentException>();
-            d.Warn().Send( onDemandText ); collector.Entries.Last().Text.Should().Be( "onDemand" );
-            d.Warn().Send( onDemandTextP1, 1 ); collector.Entries.Last().Text.Should().Be( "onDemand1" );
-            d.Warn().Send( onDemandTextP2, 1, 2 ); collector.Entries.Last().Text.Should().Be( "onDemand12" );
-            d.Warn().Send( fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" );
-            d.Warn().Send( fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" );
-            d.Warn().Send( fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" );
-            d.Warn().Send( fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" );
-            d.Warn().Send( fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" );
-
-            d.Error().Send( fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" );
-            d.Error().Send( fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" );
-            d.Invoking( sut => sut.Error().Send( fmt1, ex ) )
-             .Should().Throw<ArgumentException>();
-            d.Error().Send( onDemandText ); collector.Entries.Last().Text.Should().Be( "onDemand" );
-            d.Error().Send( onDemandTextP1, 1 ); collector.Entries.Last().Text.Should().Be( "onDemand1" );
-            d.Error().Send( onDemandTextP2, 1, 2 ); collector.Entries.Last().Text.Should().Be( "onDemand12" );
-            d.Error().Send( fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" );
-            d.Error().Send( fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" );
-            d.Error().Send( fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" );
-            d.Error().Send( fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" );
-            d.Error().Send( fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" );
-
-            d.Fatal().Send( fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" );
-            d.Fatal().Send( fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" );
-            d.Invoking( sut => sut.Fatal().Send( fmt1, ex ) )
-             .Should().Throw<ArgumentException>();
-            d.Fatal().Send( onDemandText ); collector.Entries.Last().Text.Should().Be( "onDemand" );
-            d.Fatal().Send( onDemandTextP1, 1 ); collector.Entries.Last().Text.Should().Be( "onDemand1" );
-            d.Fatal().Send( onDemandTextP2, 1, 2 ); collector.Entries.Last().Text.Should().Be( "onDemand12" );
-            d.Fatal().Send( fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" );
-            d.Fatal().Send( fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" );
-            d.Fatal().Send( fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" );
-            d.Fatal().Send( fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" );
-            d.Fatal().Send( fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" );
-
-            d.OpenTrace().Send( fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" );
-            d.OpenTrace().Send( fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" );
-            d.OpenTrace().Send( fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" );
-            d.OpenTrace().Send( fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" );
-            d.OpenTrace().Send( fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" );
-            d.OpenTrace().Send( fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" );
-            d.OpenTrace().Send( fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" );
-
-            d.Trace().Send( ex ); collector.Entries.Last().Text.Should().Be( "EXCEPTION" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Trace().Send( ex, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Trace().Send( ex, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Trace().Send( ex, fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Trace().Send( ex, fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Trace().Send( ex, fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Trace().Send( ex, fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Trace().Send( ex, fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-
-            d.Info().Send( ex ); collector.Entries.Last().Text.Should().Be( "EXCEPTION" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Info().Send( ex, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Info().Send( ex, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Info().Send( ex, fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Info().Send( ex, fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Info().Send( ex, fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Info().Send( ex, fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Info().Send( ex, fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-
-            d.Warn().Send( ex ); collector.Entries.Last().Text.Should().Be( "EXCEPTION" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Warn().Send( ex, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Warn().Send( ex, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Warn().Send( ex, fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Warn().Send( ex, fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Warn().Send( ex, fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Warn().Send( ex, fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Warn().Send( ex, fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-
-            d.Error().Send( ex ); collector.Entries.Last().Text.Should().Be( "EXCEPTION" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Error().Send( ex, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Error().Send( ex, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Error().Send( ex, fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Error().Send( ex, fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Error().Send( ex, fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Error().Send( ex, fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Error().Send( ex, fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-
-            d.Fatal().Send( ex ); collector.Entries.Last().Text.Should().Be( "EXCEPTION" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Fatal().Send( ex, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Fatal().Send( ex, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Fatal().Send( ex, fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Fatal().Send( ex, fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Fatal().Send( ex, fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Fatal().Send( ex, fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.Fatal().Send( ex, fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-
-            d.OpenTrace().Send( ex ); collector.Entries.Last().Text.Should().Be( "EXCEPTION" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.OpenTrace().Send( ex, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.OpenTrace().Send( ex, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.OpenTrace().Send( ex, fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.OpenTrace().Send( ex, fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.OpenTrace().Send( ex, fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.OpenTrace().Send( ex, fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-            d.OpenTrace().Send( ex, fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" ); collector.Entries.Last().Exception.Should().BeSameAs( ex );
-
-        }
-
-
-        [Test]
-        public void testing_all_the_overloads_of_StandardSender_with_Traits()
-        {
-
-            Exception ex = new Exception( "EXCEPTION" );
-            string fmt0 = "fmt", fmt1 = "fmt{0}", fmt2 = "fmt{0}{1}", fmt3 = "fmt{0}{1}{2}", fmt4 = "fmt{0}{1}{2}{3}", fmt5 = "fmt{0}{1}{2}{3}{4}", fmt6 = "fmt{0}{1}{2}{3}{4}{5}";
-            string p1 = "p1", p2 = "p2", p3 = "p3", p4 = "p4", p5 = "p5", p6 = "p6";
-            Func<string> onDemandText = () => "onDemand";
-            Func<int, string> onDemandTextP1 = ( i ) => "onDemand" + i.ToString();
-            Func<int, int, string> onDemandTextP2 = ( i, j ) => "onDemand" + i.ToString() + j.ToString();
-
-            IActivityMonitor d = new ActivityMonitor();
-            var collector = new ActivityMonitorSimpleCollector() { MinimalFilter = LogLevelFilter.Trace, Capacity = 1 };
-            d.Output.RegisterClients( collector, new CheckAlwaysFilteredClient() );
-
-            CKTrait tag = ActivityMonitor.Tags.Register( "TAG" );
-
-            d.Trace().Send( tag, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Trace().Send( tag, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Invoking( sut => sut.Trace().Send( tag, fmt1, ex ) )
-             .Should().Throw<ArgumentException>();
-            d.Trace().Send( tag, onDemandText ); collector.Entries.Last().Text.Should().Be( "onDemand" );
-            d.Trace().Send( tag, onDemandTextP1, 1 ); collector.Entries.Last().Text.Should().Be( "onDemand1" );
-            d.Trace().Send( tag, onDemandTextP2, 1, 2 ); collector.Entries.Last().Text.Should().Be( "onDemand12" );
-            d.Trace().Send( tag, fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Trace().Send( tag, fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Trace().Send( tag, fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Trace().Send( tag, fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Trace().Send( tag, fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-
-            d.Info().Send( tag, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Info().Send( tag, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Invoking( sut => sut.Info().Send( tag, fmt1, ex ) )
-             .Should().Throw<ArgumentException>();
-            d.Info().Send( tag, onDemandText ); collector.Entries.Last().Text.Should().Be( "onDemand" );
-            d.Info().Send( tag, onDemandTextP1, 1 ); collector.Entries.Last().Text.Should().Be( "onDemand1" );
-            d.Info().Send( tag, onDemandTextP2, 1, 2 ); collector.Entries.Last().Text.Should().Be( "onDemand12" );
-            d.Info().Send( tag, fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Info().Send( tag, fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Info().Send( tag, fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Info().Send( tag, fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Info().Send( tag, fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-
-            d.Warn().Send( tag, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Warn().Send( tag, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Invoking( sut => sut.Warn().Send( tag, fmt1, ex ) )
-             .Should().Throw<ArgumentException>();
-            d.Warn().Send( tag, onDemandText ); collector.Entries.Last().Text.Should().Be( "onDemand" );
-            d.Warn().Send( tag, onDemandTextP1, 1 ); collector.Entries.Last().Text.Should().Be( "onDemand1" );
-            d.Warn().Send( tag, onDemandTextP2, 1, 2 ); collector.Entries.Last().Text.Should().Be( "onDemand12" );
-            d.Warn().Send( tag, fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Warn().Send( tag, fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Warn().Send( tag, fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Warn().Send( tag, fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Warn().Send( tag, fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-
-            d.Error().Send( tag, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Error().Send( tag, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Invoking( sut => sut.Error().Send( tag, fmt1, ex ) )
-             .Should().Throw<ArgumentException>();
-            d.Error().Send( tag, onDemandText ); collector.Entries.Last().Text.Should().Be( "onDemand" );
-            d.Error().Send( tag, onDemandTextP1, 1 ); collector.Entries.Last().Text.Should().Be( "onDemand1" );
-            d.Error().Send( tag, onDemandTextP2, 1, 2 ); collector.Entries.Last().Text.Should().Be( "onDemand12" );
-            d.Error().Send( tag, fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Error().Send( tag, fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Error().Send( tag, fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Error().Send( tag, fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Error().Send( tag, fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-
-            d.Fatal().Send( tag, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Fatal().Send( tag, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Invoking( sut => sut.Fatal().Send( tag, fmt1, ex ) )
-             .Should().Throw<ArgumentException>();
-            d.Fatal().Send( tag, onDemandText ); collector.Entries.Last().Text.Should().Be( "onDemand" );
-            d.Fatal().Send( tag, onDemandTextP1, 1 ); collector.Entries.Last().Text.Should().Be( "onDemand1" );
-            d.Fatal().Send( tag, onDemandTextP2, 1, 2 ); collector.Entries.Last().Text.Should().Be( "onDemand12" );
-            d.Fatal().Send( tag, fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Fatal().Send( tag, fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Fatal().Send( tag, fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Fatal().Send( tag, fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Fatal().Send( tag, fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-
-            d.OpenTrace().Send( tag, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.OpenTrace().Send( tag, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.OpenTrace().Send( tag, fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.OpenTrace().Send( tag, fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.OpenTrace().Send( tag, fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.OpenTrace().Send( tag, fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.OpenTrace().Send( tag, fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-
-            d.Trace().Send( ex, tag ); collector.Entries.Last().Text.Should().Be( "EXCEPTION" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Trace().Send( ex, tag, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Trace().Send( ex, tag, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Trace().Send( ex, tag, fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Trace().Send( ex, tag, fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Trace().Send( ex, tag, fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Trace().Send( ex, tag, fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Trace().Send( ex, tag, fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-
-            d.Info().Send( ex, tag ); collector.Entries.Last().Text.Should().Be( "EXCEPTION" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Info().Send( ex, tag, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Info().Send( ex, tag, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Info().Send( ex, tag, fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Info().Send( ex, tag, fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Info().Send( ex, tag, fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Info().Send( ex, tag, fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Info().Send( ex, tag, fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-
-            d.Warn().Send( ex, tag ); collector.Entries.Last().Text.Should().Be( "EXCEPTION" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Warn().Send( ex, tag, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Warn().Send( ex, tag, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Warn().Send( ex, tag, fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Warn().Send( ex, tag, fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Warn().Send( ex, tag, fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Warn().Send( ex, tag, fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Warn().Send( ex, tag, fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-
-            d.Error().Send( ex, tag ); collector.Entries.Last().Text.Should().Be( "EXCEPTION" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Error().Send( ex, tag, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Error().Send( ex, tag, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Error().Send( ex, tag, fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Error().Send( ex, tag, fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Error().Send( ex, tag, fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Error().Send( ex, tag, fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Error().Send( ex, tag, fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-
-            d.Fatal().Send( ex, tag ); collector.Entries.Last().Text.Should().Be( "EXCEPTION" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Fatal().Send( ex, tag, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Fatal().Send( ex, tag, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Fatal().Send( ex, tag, fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Fatal().Send( ex, tag, fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Fatal().Send( ex, tag, fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Fatal().Send( ex, tag, fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.Fatal().Send( ex, tag, fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-
-            d.OpenTrace().Send( ex, tag ); collector.Entries.Last().Text.Should().Be( "EXCEPTION" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.OpenTrace().Send( ex, tag, fmt0 ); collector.Entries.Last().Text.Should().Be( "fmt" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.OpenTrace().Send( ex, tag, fmt1, p1 ); collector.Entries.Last().Text.Should().Be( "fmtp1" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.OpenTrace().Send( ex, tag, fmt2, p1, p2 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.OpenTrace().Send( ex, tag, fmt3, p1, p2, p3 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.OpenTrace().Send( ex, tag, fmt4, p1, p2, p3, p4 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.OpenTrace().Send( ex, tag, fmt5, p1, p2, p3, p4, p5 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-            d.OpenTrace().Send( ex, tag, fmt6, p1, p2, p3, p4, p5, p6 ); collector.Entries.Last().Text.Should().Be( "fmtp1p2p3p4p5p6" ); collector.Entries.Last().Exception.Should().BeSameAs( ex ); collector.Entries.Last().Tags.Should().BeSameAs( tag );
-        }
 
         [Test]
         public void in_a_OpenError_or_OpenFatal_group_level_is_automatically_sets_to_Debug()

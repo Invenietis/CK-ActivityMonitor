@@ -14,7 +14,7 @@ namespace CK.Core.Tests.Monitoring
             var monitor = new ActivityMonitor();
             monitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget );
 
-            using( monitor.OpenTrace().Send( "Create token and dependent monitor." ) )
+            using( monitor.OpenTrace( "Create token and dependent monitor." ) )
             {
                 // Creates the token.
                 var token = monitor.DependentActivity().CreateToken();
@@ -23,12 +23,12 @@ namespace CK.Core.Tests.Monitoring
                 dep.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget );
                 using( dep.StartDependentActivity( token ) )
                 {
-                    monitor.Trace().Send( "Doing something..." );
+                    monitor.Trace( "Doing something..." );
                     // ...
                 }
                 dep.MonitorEnd();
             }
-            using( monitor.OpenTrace().Send( "Create token with delayed launch of the dependent activity." ) )
+            using( monitor.OpenTrace( "Create token with delayed launch of the dependent activity." ) )
             {
                 // Creates the token.
                 var token = monitor.DependentActivity().CreateToken( delayedLaunch: true );
@@ -39,7 +39,7 @@ namespace CK.Core.Tests.Monitoring
                 dep.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget );
                 using( dep.StartDependentActivity( token ) )
                 {
-                    monitor.Trace().Send( "Doing something..." );
+                    monitor.Trace( "Doing something..." );
                     // ...
                 }
                 dep.MonitorEnd();
@@ -189,7 +189,7 @@ namespace CK.Core.Tests.Monitoring
                 using( depMonitor.StartDependentActivity( token ) )
                 {
                     depMonitorTopic = depMonitor.Topic;
-                    depMonitor.Trace().Send( "Hello!" );
+                    depMonitor.Trace( "Hello!" );
                 }
                 dependentLogs = cStarted.Entries.ToArray();
             }, token );

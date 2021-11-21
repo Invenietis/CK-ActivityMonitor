@@ -66,8 +66,8 @@ namespace CK.Core
             public override string ToString() => Text;
         }
 
-        IReadOnlyList<PathElement>? _errorSnaphot;
-        IReadOnlyList<PathElement>? _warnSnaphot;
+        IReadOnlyList<PathElement> _errorSnaphot;
+        IReadOnlyList<PathElement> _warnSnaphot;
 
         readonly List<PathElement> _path;
         PathElement? _current;
@@ -82,6 +82,8 @@ namespace CK.Core
         public ActivityMonitorPathCatcher()
         {
             _path = new List<PathElement>();
+            _errorSnaphot = Array.Empty<PathElement>();
+            _warnSnaphot = Array.Empty<PathElement>();  
         }
 
         void IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl? source, bool forceBuggyRemove )
@@ -111,22 +113,22 @@ namespace CK.Core
 
         /// <summary>
         /// Gets the last <see cref="DynamicPath"/> where an <see cref="LogLevel.Error"/> or a <see cref="LogLevel.Fatal"/> occurred.
-        /// Null if no error nor fatal occurred.
+        /// Empty if no error nor fatal occurred.
         /// Use the extension method <see cref="ActivityMonitorExtension.ToStringPath"/> to easily format this path.
         /// </summary>
-        public IReadOnlyList<PathElement>? LastErrorPath => _errorSnaphot;
+        public IReadOnlyList<PathElement> LastErrorPath => _errorSnaphot;
 
         /// <summary>
         /// Clears current <see cref="LastErrorPath"/> (sets it to null).
         /// </summary>
-        public void ClearLastErrorPath() => _errorSnaphot = null;
+        public void ClearLastErrorPath() => _errorSnaphot = Array.Empty<PathElement>();
 
         /// <summary>
         /// Gets the last path with a <see cref="LogLevel.Fatal"/>, <see cref="LogLevel.Error"/> or a <see cref="LogLevel.Warn"/>.
-        /// Null if no error, fatal nor warn occurred.
+        /// Empty if no error, fatal nor warn occurred.
         /// Use the extension method <see cref="ActivityMonitorExtension.ToStringPath"/> to easily format this path.
         /// </summary>
-        public IReadOnlyList<PathElement>? LastWarnOrErrorPath => _warnSnaphot; 
+        public IReadOnlyList<PathElement> LastWarnOrErrorPath => _warnSnaphot; 
 
         /// <summary>
         /// Clears current <see cref="LastWarnOrErrorPath"/> (sets it to null), and
@@ -134,8 +136,8 @@ namespace CK.Core
         /// </summary>
         public void ClearLastWarnPath( bool clearLastErrorPath = false )
         {
-            _warnSnaphot = null;
-            if( clearLastErrorPath ) _errorSnaphot = null;
+            _warnSnaphot = Array.Empty<PathElement>();
+            if( clearLastErrorPath ) _errorSnaphot = Array.Empty<PathElement>();
         }
 
         /// <summary>

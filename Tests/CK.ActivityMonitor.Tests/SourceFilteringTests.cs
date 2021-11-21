@@ -52,14 +52,14 @@ namespace CK.Core.Tests.Monitoring
                 var c = m.Output.RegisterClient( new StupidStringClient() );
 
                  m.ActualFilter.Should().Be( LogFilter.Undefined  );
-                m.Trace().Send( "Trace1" );
-                m.OpenTrace().Send( "OTrace1" );
+                m.Trace( "Trace1" );
+                m.OpenTrace( "OTrace1" );
                 ActivityMonitor.SourceFilter.SetOverrideFilter( LogFilter.Release );
-                m.Trace().Send( "NOSHOW" );
-                m.OpenTrace().Send( "NOSHOW" );
+                m.Trace( "NOSHOW" );
+                m.OpenTrace( "NOSHOW" );
                 ActivityMonitor.SourceFilter.SetOverrideFilter( LogFilter.Undefined );
-                m.Trace().Send( "Trace2" );
-                m.OpenTrace().Send( "OTrace2" );
+                m.Trace( "Trace2" );
+                m.OpenTrace( "OTrace2" );
 
                 c.Entries.Select(e => e.Text).ToArray().Should().BeEquivalentTo(new[] { "Trace1", "OTrace1", "Trace2", "OTrace2" }, o => o.WithStrictOrdering() );
             }
@@ -68,14 +68,14 @@ namespace CK.Core.Tests.Monitoring
                 var c = m.Output.RegisterClient( new StupidStringClient() );
 
                 m.MinimalFilter = LogFilter.Terse;
-                m.Trace().Send( "NOSHOW" );
-                m.OpenTrace().Send( "NOSHOW" );
+                m.Trace( "NOSHOW" );
+                m.OpenTrace( "NOSHOW" );
                 ActivityMonitor.SourceFilter.SetOverrideFilter( LogFilter.Trace );
-                m.Trace().Send( "Trace1" );
-                m.OpenTrace().Send( "OTrace1" );
+                m.Trace( "Trace1" );
+                m.OpenTrace( "OTrace1" );
                 ActivityMonitor.SourceFilter.SetOverrideFilter( LogFilter.Undefined );
-                m.Trace().Send( "NOSHOW" );
-                m.OpenTrace().Send( "NOSHOW" );
+                m.Trace( "NOSHOW" );
+                m.OpenTrace( "NOSHOW" );
 
                 c.Entries.Select(e => e.Text).ToArray().Should().BeEquivalentTo(new[] { "Trace1", "OTrace1" }, o => o.WithStrictOrdering());
             }
@@ -89,14 +89,14 @@ namespace CK.Core.Tests.Monitoring
                 var c = m.Output.RegisterClient( new StupidStringClient() );
 
                  m.ActualFilter.Should().Be( LogFilter.Undefined );
-                m.Trace().Send( "Trace1" );
-                m.OpenTrace().Send( "OTrace1" );
+                m.Trace( "Trace1" );
+                m.OpenTrace( "OTrace1" );
                 ActivityMonitor.SourceFilter.SetMinimalFilter( LogFilter.Release );
-                m.Trace().Send( "NOSHOW" );
-                m.OpenTrace().Send( "NOSHOW" );
+                m.Trace( "NOSHOW" );
+                m.OpenTrace( "NOSHOW" );
                 ActivityMonitor.SourceFilter.SetMinimalFilter( LogFilter.Undefined );
-                m.Trace().Send( "Trace2" );
-                m.OpenTrace().Send( "OTrace2" );
+                m.Trace( "Trace2" );
+                m.OpenTrace( "OTrace2" );
 
                 c.Entries.Select(e => e.Text).ToArray().Should().BeEquivalentTo(new[] { "Trace1", "OTrace1", "Trace2", "OTrace2" }, o => o.WithStrictOrdering());
             }
@@ -105,14 +105,14 @@ namespace CK.Core.Tests.Monitoring
                 var c = m.Output.RegisterClient( new StupidStringClient() );
 
                 m.MinimalFilter = LogFilter.Terse;
-                m.Trace().Send( "NOSHOW" );
-                m.OpenTrace().Send( "NOSHOW" );
+                m.Trace( "NOSHOW" );
+                m.OpenTrace( "NOSHOW" );
                 ActivityMonitor.SourceFilter.SetMinimalFilter( LogFilter.Trace );
-                m.Trace().Send( "Trace1" );
-                m.OpenTrace().Send( "OTrace1" );
+                m.Trace( "Trace1" );
+                m.OpenTrace( "OTrace1" );
                 ActivityMonitor.SourceFilter.SetMinimalFilter( LogFilter.Undefined );
-                m.Trace().Send( "NOSHOW" );
-                m.OpenTrace().Send( "NOSHOW" );
+                m.Trace( "NOSHOW" );
+                m.OpenTrace( "NOSHOW" );
 
                 c.Entries.Select(e => e.Text).ToArray().Should().BeEquivalentTo(new[] { "Trace1", "OTrace1" }, o => o.WithStrictOrdering());;
             }

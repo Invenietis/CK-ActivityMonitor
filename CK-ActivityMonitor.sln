@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29209.62
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{A87208F3-D73C-4AD4-9FF5-0314968EDD74}"
 EndProject
@@ -22,11 +22,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CK.ActivityMonitor", "CK.Ac
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CK.ActivityMonitor.Tests", "Tests\CK.ActivityMonitor.Tests\CK.ActivityMonitor.Tests.csproj", "{3D7C6FB7-B726-43E7-BC1C-74DC421CBA93}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CK.ActivityMonitor.StandardSender", "CK.ActivityMonitor.StandardSender\CK.ActivityMonitor.StandardSender.csproj", "{0EEB4D1B-0BE1-47CD-AD96-810354A73100}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CK.ActivityMonitor.SimpleSender", "CK.ActivityMonitor.SimpleSender\CK.ActivityMonitor.SimpleSender.csproj", "{D938232C-9B33-45FB-9266-038E06D7BC36}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WeakNameConsole", "Tests\WeakNameConsole\WeakNameConsole.csproj", "{9B4FA0F7-2594-4BE4-980D-1BF008059DCE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CK.PerfectEvent", "CK.PerfectEvent\CK.PerfectEvent.csproj", "{E7048C22-022F-46DB-AA5C-D1AC0BC00424}"
 EndProject
@@ -53,18 +49,10 @@ Global
 		{3D7C6FB7-B726-43E7-BC1C-74DC421CBA93}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3D7C6FB7-B726-43E7-BC1C-74DC421CBA93}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3D7C6FB7-B726-43E7-BC1C-74DC421CBA93}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0EEB4D1B-0BE1-47CD-AD96-810354A73100}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0EEB4D1B-0BE1-47CD-AD96-810354A73100}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0EEB4D1B-0BE1-47CD-AD96-810354A73100}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0EEB4D1B-0BE1-47CD-AD96-810354A73100}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D938232C-9B33-45FB-9266-038E06D7BC36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D938232C-9B33-45FB-9266-038E06D7BC36}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D938232C-9B33-45FB-9266-038E06D7BC36}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D938232C-9B33-45FB-9266-038E06D7BC36}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9B4FA0F7-2594-4BE4-980D-1BF008059DCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9B4FA0F7-2594-4BE4-980D-1BF008059DCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9B4FA0F7-2594-4BE4-980D-1BF008059DCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9B4FA0F7-2594-4BE4-980D-1BF008059DCE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E7048C22-022F-46DB-AA5C-D1AC0BC00424}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E7048C22-022F-46DB-AA5C-D1AC0BC00424}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E7048C22-022F-46DB-AA5C-D1AC0BC00424}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -75,7 +63,6 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{3D7C6FB7-B726-43E7-BC1C-74DC421CBA93} = {A87208F3-D73C-4AD4-9FF5-0314968EDD74}
-		{9B4FA0F7-2594-4BE4-980D-1BF008059DCE} = {A87208F3-D73C-4AD4-9FF5-0314968EDD74}
 		{17FDB5B1-BA57-44F1-BCDB-71F0186442CA} = {E3559EF9-ED4A-4169-9287-6F94CFBD09FA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution

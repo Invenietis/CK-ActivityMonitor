@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using System.Diagnostics;
-using CK.Text;
 using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core
@@ -60,7 +59,7 @@ namespace CK.Core
 
         /// <summary>
         /// Initialize a new <see cref="ActivityMonitorTextWriterClient"/> with a 
-        /// <see cref="Writer"/> sets to <see cref="Util.ActionVoid{string}"/>.
+        /// <see cref="Writer"/> sets to <see cref="Util.ActionVoid{T}"/>.
         /// Unless explicitly initialized, this will not write anything anywhere.
         /// The depth padding is using white spaces.
         /// </summary>
@@ -77,7 +76,7 @@ namespace CK.Core
 
         /// <summary>
         /// Initialize a new <see cref="ActivityMonitorTextWriterClient"/> with a 
-        /// <see cref="Writer"/> sets to <see cref="Util.ActionVoid{string}"/>.
+        /// <see cref="Writer"/> sets to <see cref="Util.ActionVoid{T}"/>.
         /// Unless explicitly initialized, this will not write anything anywhere.
         /// The depth padding is using white spaces.
         /// </summary>
@@ -88,7 +87,7 @@ namespace CK.Core
 
         /// <summary>
         /// Gets or sets the actual writer function.
-        /// When set to null, the empty <see cref="Util.ActionVoid{string}"/> is set.
+        /// When set to null, the empty <see cref="Util.ActionVoid{T}"/> is set.
         /// </summary>
         [AllowNull]
         protected Action<string> Writer { get => _writer; set => _writer = value ?? Util.ActionVoid<string>; }

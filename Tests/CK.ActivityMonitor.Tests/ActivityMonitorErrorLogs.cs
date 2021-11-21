@@ -146,7 +146,7 @@ namespace CK.Core.Tests.Monitoring
 
         public void Run()
         {
-            _monitor.Info().Send( "ThreadContext{0}Begin", NumMonitor );
+            _monitor.Info( $"ThreadContext{NumMonitor}Begin" );
             foreach( var bc in _monitor.Output.Clients.OfType<BuggyClient>() )
             {
                 bc.RunThreadId = Thread.CurrentThread.ManagedThreadId;
@@ -156,11 +156,11 @@ namespace CK.Core.Tests.Monitoring
                 double op = Rand.NextDouble();
                 if( op < 1.0 / 60 ) _monitor.MinimalFilter = _monitor.MinimalFilter == LogFilter.Trace ? LogFilter.Verbose : LogFilter.Trace;
 
-                if( op < 1.0 / 3 ) _monitor.Info().Send( "OP-{0}-{1}", NumMonitor, i );
-                else if( op < 2.0 / 3 ) _monitor.OpenInfo().Send( "G-OP-{0}-{1}", NumMonitor, i );
+                if( op < 1.0 / 3 ) _monitor.Info( $"OP-{NumMonitor}-{i}" );
+                else if( op < 2.0 / 3 ) _monitor.OpenInfo( $"G-OP-{NumMonitor}-{i}" );
                 else _monitor.CloseGroup();
             }
-            _monitor.Info().Send( "ThreadContext{0}End", NumMonitor );
+            _monitor.Info( $"ThreadContext{NumMonitor}End" );
         }
 
         IActivityMonitor CreateMonitorWithBuggyListeners( int buggyClientCount )

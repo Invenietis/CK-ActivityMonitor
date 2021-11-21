@@ -1,4 +1,3 @@
-using CK.Text;
 
 namespace CK.Core
 {
