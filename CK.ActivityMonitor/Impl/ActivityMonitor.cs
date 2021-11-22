@@ -359,7 +359,7 @@ namespace CK.Core
         /// inside their SetMonitor or any other methods provided that a reentrant and concurrent lock 
         /// has been obtained (otherwise an InvalidOperationException is thrown).
         /// </summary>
-        void IActivityMonitorImpl.InitializeTopicAndAutoTags( string newTopic, CKTrait newTags, string fileName, int lineNumber )
+        void IActivityMonitorImpl.InitializeTopicAndAutoTags( string newTopic, CKTrait newTags, string? fileName, int lineNumber )
         {
             RentrantOnlyCheck();
             if( newTopic != null && _topic != newTopic ) DoSetTopic( newTopic, fileName, lineNumber );
@@ -762,7 +762,6 @@ namespace CK.Core
                 }
                 g.GroupClosing( ref conclusions );
 
-                bool hasBuggyClients = false;
                 List<IActivityMonitorClient>? buggyClients = null;
                 foreach( var l in _output.Clients )
                 {
@@ -973,18 +972,6 @@ namespace CK.Core
         internal static void ThrowOnGroupOrDataNotInitialized()
         {
             throw new InvalidOperationException( $"Group or Data not initialized, please call Initialize." );
-        }
-
-        [DoesNotReturn]
-        internal static void ThrowNullArg( string name )
-        {
-            throw new ArgumentNullException( name );
-        }
-
-        [DoesNotReturn]
-        internal static void ThrowOutOfRangeArg( string name )
-        {
-            throw new ArgumentOutOfRangeException( name );
         }
 
     }

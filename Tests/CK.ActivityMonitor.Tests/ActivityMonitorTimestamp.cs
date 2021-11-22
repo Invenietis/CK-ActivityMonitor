@@ -34,7 +34,7 @@ namespace CK.Core.Tests.Monitoring
                 _lastOne = group.CloseLogTime;
             }
 
-            public void OnTopicChanged( string newTopic, string fileName, int lineNumber )
+            public void OnTopicChanged( string newTopic, string? fileName, int lineNumber )
             {
             }
 

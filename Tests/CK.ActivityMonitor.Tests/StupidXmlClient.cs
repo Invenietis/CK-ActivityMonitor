@@ -75,7 +75,7 @@ namespace CK.Core.Tests.Monitoring
             XmlWriter.WriteAttributeString( "Text", g.GroupText.ToString() );
         }
 
-        protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
             XmlWriter.WriteEndElement();
             XmlWriter.Flush();

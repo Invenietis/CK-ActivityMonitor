@@ -36,7 +36,7 @@ namespace CK.PerfectEvent
         public SequentialEventHandlerSender<TEvent> Add( SequentialEventHandler<TEvent> handler )
         {
             if( handler == null ) throw new ArgumentNullException( nameof( handler ) );
-            Util.InterlockedSet( ref _handler, h =>
+            Util.InterlockedNullableSet( ref _handler, h =>
             {
                 if( h == null ) return handler;
                 if( h is SequentialEventHandler<TEvent> a ) return new SequentialEventHandler<TEvent>[] { a, handler };
@@ -56,7 +56,7 @@ namespace CK.PerfectEvent
         public SequentialEventHandlerSender<TEvent> Remove( SequentialEventHandler<TEvent> handler )
         {
             if( handler == null ) throw new ArgumentNullException( nameof( handler ) );
-            _ = Util.InterlockedSet( ref _handler, h =>
+            _ = Util.InterlockedNullableSet( ref _handler, h =>
               {
                   if( h == null ) return null;
                   if( h is SequentialEventHandler<TEvent> a ) return a == handler ? null : h;

@@ -17,7 +17,7 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenGroup( this IActivityMonitor @this, LogLevel level, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
+        public static IDisposableGroup OpenGroup( this IActivityMonitor @this, LogLevel level, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( level, fileName, lineNumber )
                                                 ? new ActivityMonitorGroupData( level | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, null, @this.NextLogTime(), ex, null, fileName, lineNumber )
@@ -36,7 +36,7 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenGroup( this IActivityMonitor @this, LogLevel level, string? text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
+        public static IDisposableGroup OpenGroup( this IActivityMonitor @this, LogLevel level, string? text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( level, fileName, lineNumber )
                                                 ? new ActivityMonitorGroupData( level | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text, @this.NextLogTime(), null, null, fileName, lineNumber )
@@ -56,7 +56,7 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenGroup( this IActivityMonitor @this, LogLevel level, string? text, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
+        public static IDisposableGroup OpenGroup( this IActivityMonitor @this, LogLevel level, string? text, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( level, fileName, lineNumber )
                                                 ? new ActivityMonitorGroupData( level | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text, @this.NextLogTime(), ex, null, fileName, lineNumber )
@@ -75,7 +75,7 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenGroup( this IActivityMonitor @this, LogLevel level, Func<string?>? text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
+        public static IDisposableGroup OpenGroup( this IActivityMonitor @this, LogLevel level, Func<string?>? text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( level, fileName, lineNumber )
                                                 ? new ActivityMonitorGroupData( level | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text?.Invoke(), @this.NextLogTime(), null, null, fileName, lineNumber )
@@ -95,7 +95,7 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenGroup( this IActivityMonitor @this, LogLevel level, Func<string?>? text, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
+        public static IDisposableGroup OpenGroup( this IActivityMonitor @this, LogLevel level, Func<string?>? text, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( level, fileName, lineNumber )
                                                 ? new ActivityMonitorGroupData( level | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text?.Invoke(), @this.NextLogTime(), ex, null, fileName, lineNumber )
@@ -117,7 +117,7 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenGroup( this IActivityMonitor @this, LogLevel level, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
+        public static IDisposableGroup OpenGroup( this IActivityMonitor @this, LogLevel level, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( level, fileName, lineNumber )
                                                 ? new ActivityMonitorGroupData( level | LogLevel.IsFiltered, tags, null, @this.NextLogTime(), ex, null, fileName, lineNumber )
@@ -137,7 +137,7 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenGroup( this IActivityMonitor @this, LogLevel level, string? text, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
+        public static IDisposableGroup OpenGroup( this IActivityMonitor @this, LogLevel level, string? text, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( level, fileName, lineNumber )
                                                 ? new ActivityMonitorGroupData( level | LogLevel.IsFiltered, tags, text, @this.NextLogTime(), null, null, fileName, lineNumber )
@@ -158,7 +158,7 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenGroup( this IActivityMonitor @this, LogLevel level, string? text, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
+        public static IDisposableGroup OpenGroup( this IActivityMonitor @this, LogLevel level, string? text, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( level, fileName, lineNumber )
                                                 ? new ActivityMonitorGroupData( level | LogLevel.IsFiltered, tags, text, @this.NextLogTime(), ex, null, fileName, lineNumber )
@@ -178,7 +178,7 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenGroup( this IActivityMonitor @this, LogLevel level, Func<string?>? text, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
+        public static IDisposableGroup OpenGroup( this IActivityMonitor @this, LogLevel level, Func<string?>? text, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( level, fileName, lineNumber )
                                                 ? new ActivityMonitorGroupData( level | LogLevel.IsFiltered, tags, text?.Invoke(), @this.NextLogTime(), null, null, fileName, lineNumber )
@@ -199,7 +199,7 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenGroup( this IActivityMonitor @this, LogLevel level, Func<string?>? text, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
+        public static IDisposableGroup OpenGroup( this IActivityMonitor @this, LogLevel level, Func<string?>? text, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( level, fileName, lineNumber )
                                                 ? new ActivityMonitorGroupData( level | LogLevel.IsFiltered, tags, text?.Invoke(), @this.NextLogTime(), ex, null, fileName, lineNumber )

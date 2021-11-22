@@ -224,7 +224,7 @@ namespace CK.Core
                 return msg + '.';
             }
 
-            static internal IDisposable Start( ActivityMonitor.DependentToken token, IActivityMonitor monitor, string fileName, int lineNumber )
+            static internal IDisposable Start( ActivityMonitor.DependentToken token, IActivityMonitor monitor, string? fileName, int lineNumber )
             {
                 string msg = token.FormatStartMessage();
                 if( token.Topic != null )

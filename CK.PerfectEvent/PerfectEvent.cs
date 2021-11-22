@@ -31,6 +31,7 @@ namespace CK.PerfectEvent
             remove => _sender.Remove( value );
         }
 
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         /// <summary>
         /// Gets the Asynchronous event registration point.
         /// </summary>
@@ -48,6 +49,7 @@ namespace CK.PerfectEvent
             add => _sender.Add( value );
             remove => _sender.Add( value );
         }
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
 
         #region Sequential.
 

@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using CK.Core.Impl;
+using Microsoft.Toolkit.Diagnostics;
 
 namespace CK.Core
 {
@@ -59,7 +60,7 @@ namespace CK.Core
         /// <returns>The string to display the indented group.</returns>
         public static string GetMultilinePrefixWithDepth( int depth )
         {
-            if( depth < 0 && depth >= 1024 ) ActivityMonitor.ThrowOutOfRangeArg( nameof( depth ) );
+            Guard.IsInRange( depth, 0, 1024, nameof( depth ) );
             if( _prefixGroupDepthCache.Length < depth + 1 )
             {
                 string previousPrefix = GetMultilinePrefixWithDepth( depth - 1 );

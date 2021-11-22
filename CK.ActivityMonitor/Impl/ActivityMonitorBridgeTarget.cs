@@ -69,7 +69,7 @@ namespace CK.Core
         /// </summary>
         internal void AddCallback( IActivityMonitorBridgeCallback callback )
         {
-            Debug.Assert( Array.IndexOf( _callbacks, callback ) < 0 );
+            Debug.Assert( _callbacks != null && Array.IndexOf( _callbacks, callback ) < 0 );
             Util.InterlockedAdd( ref _callbacks, callback );
         }
 
@@ -78,7 +78,7 @@ namespace CK.Core
         /// </summary>
         internal void RemoveCallback( IActivityMonitorBridgeCallback callback )
         {
-            Debug.Assert( Array.IndexOf( _callbacks, callback ) >= 0 );
+            Debug.Assert( _callbacks != null && Array.IndexOf( _callbacks, callback ) >= 0 );
             Util.InterlockedRemove( ref _callbacks, callback );
         }
 

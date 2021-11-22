@@ -12,7 +12,12 @@ namespace CK.Core.Tests.Monitoring
         IActivityMonitorImpl? _source;
         LogFilter _minimalFilter;
         int _depth;
-        string[]? _text;
+        string[] _text;
+
+        public ActivityMonitorClientTester()
+        {
+            _text = Array.Empty<string>();
+        }
 
         public LogFilter MinimalFilter
         {

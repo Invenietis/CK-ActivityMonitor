@@ -1,4 +1,5 @@
 using CK.Core;
+using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -63,6 +64,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="monitor">The monitor that identifies the activity.</param>
         /// <returns>The disposable to release the lock.</returns>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public Releaser Lock( IActivityMonitor monitor )
         {
             Enter( monitor );
@@ -117,9 +119,10 @@ namespace CK.Core
         /// <param name="monitor">The monitor that identifies the activity.</param>
         /// <returns>True if the monitor has entered this lock.</returns>
         /// <exception cref="ArgumentNullException">The monitor is null.</exception>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public bool IsEnteredBy( IActivityMonitor monitor )
         {
-            if( monitor == null ) ActivityMonitor.ThrowNullArg( nameof( monitor ) );
+            Guard.IsNotNull( monitor, nameof( monitor ) );
             return _current == monitor.Output;
         }
 
@@ -158,7 +161,7 @@ namespace CK.Core
         /// <exception cref="LockRecursionException">Recursion detected and <see cref="LockRecursionPolicy.NoRecursion"/> has been configured.</exception>
         public async Task<bool> EnterAsync( IActivityMonitor monitor, int millisecondsTimeout, CancellationToken cancellationToken )
         {
-            if( monitor == null ) ActivityMonitor.ThrowNullArg( nameof(monitor) );
+            Guard.IsNotNull( monitor, nameof(monitor) );
             if( _current == monitor.Output )
             {
                 if( _policy == LockRecursionPolicy.NoRecursion ) throw new LockRecursionException( Name );
@@ -203,7 +206,7 @@ namespace CK.Core
         /// <exception cref="LockRecursionException">Recursion detected and <see cref="LockRecursionPolicy.NoRecursion"/> has been configured.</exception>
         public bool Enter( IActivityMonitor monitor, int millisecondsTimeout, CancellationToken cancellationToken )
         {
-            if( monitor == null ) ActivityMonitor.ThrowNullArg( nameof( monitor ) );
+            Guard.IsNotNull( monitor, nameof( monitor ) );
             if( _current == monitor.Output )
             {
                 if( _policy == LockRecursionPolicy.NoRecursion ) throw new LockRecursionException( Name );
@@ -235,6 +238,7 @@ namespace CK.Core
         /// <param name="monitor">The monitor that currently holds this lock.</param>
         public void Leave( IActivityMonitor monitor )
         {
+            Guard.IsNotNull( monitor, nameof( monitor ) );
             if( _current != monitor.Output )
             {
                 var msg = $"Attempt to Release AsyncLock '{_name}' that has {(_current == null ? "never been acquired" : $"been aquired by another monitor")}.";

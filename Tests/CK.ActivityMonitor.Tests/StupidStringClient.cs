@@ -35,10 +35,10 @@ namespace CK.Core.Tests.Monitoring
             public readonly LogLevel Level;
             public readonly CKTrait Tags;
             public readonly string Text;
-            public readonly Exception Exception;
+            public readonly Exception? Exception;
             public readonly DateTimeStamp LogTime;
-            public readonly IActivityLogGroup GroupForConclusions;
-            public IReadOnlyList<ActivityLogGroupConclusion> Conclusions;
+            public readonly IActivityLogGroup? GroupForConclusions;
+            public IReadOnlyList<ActivityLogGroupConclusion>? Conclusions;
 
             public Entry( ActivityMonitorLogData d )
             {
@@ -78,7 +78,7 @@ namespace CK.Core.Tests.Monitoring
 
         #region IActivityMonitorClient members
 
-        void IActivityMonitorClient.OnTopicChanged( string newTopic, string fileName, int lineNumber )
+        void IActivityMonitorClient.OnTopicChanged( string newTopic, string? fileName, int lineNumber )
         {
         }
 
@@ -127,11 +127,11 @@ namespace CK.Core.Tests.Monitoring
             OnGroupOpen( group );
         }
 
-        void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
+        void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions )
         {
         }
 
-        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
             if( _curLevel != -1 )
             {
@@ -176,18 +176,21 @@ namespace CK.Core.Tests.Monitoring
             if( WriteTags ) Writer.Write( "-[{0}]", g.GroupTags.ToString() );
         }
 
-        void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
             Entries.Last( e => e.GroupForConclusions == g ).Conclusions = conclusions;
             Writer.WriteLine();
             Writer.Write( new String( '-', g.Depth ) );
-            if( WriteConclusionTraits )
+            if( conclusions != null )
             {
-                Writer.Write( String.Join( ", ", conclusions.Select( c => c.Text + "-/[/"+ c.Tag.ToString() +"/]/" ) ) );
-            }
-            else
-            {
-                Writer.Write( String.Join( ", ", conclusions.Select( c => c.Text ) ) );
+                if( WriteConclusionTraits )
+                {
+                    Writer.Write( String.Join( ", ", conclusions.Select( c => c.Text + "-/[/" + c.Tag.ToString() + "/]/" ) ) );
+                }
+                else
+                {
+                    Writer.Write( String.Join( ", ", conclusions.Select( c => c.Text ) ) );
+                }
             }
         }
 

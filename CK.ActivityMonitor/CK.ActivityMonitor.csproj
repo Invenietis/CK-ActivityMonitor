@@ -9,6 +9,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CK.Core" Version="0.0.0--03lgm4i-develop" />
+    <PackageReference Include="CK.Core" Version="0.0.0--03lin31-develop" />
   </ItemGroup>
 </Project>

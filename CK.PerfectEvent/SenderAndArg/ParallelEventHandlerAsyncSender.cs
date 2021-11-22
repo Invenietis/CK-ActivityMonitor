@@ -43,7 +43,7 @@ namespace CK.PerfectEvent
         public ParallelEventHandlerAsyncSender<TSender, TArg> Add( ParallelEventHandlerAsync<TSender, TArg> handler )
         {
             if( handler == null ) throw new ArgumentNullException( nameof( handler ) );
-            Util.InterlockedSet( ref _handler, h =>
+            Util.InterlockedNullableSet( ref _handler, h =>
             {
                 if( h == null ) return handler;
                 if( h is ParallelEventHandlerAsync<TSender, TArg> a ) return new ParallelEventHandlerAsync<TSender, TArg>[] { a, handler };
@@ -63,7 +63,7 @@ namespace CK.PerfectEvent
         public ParallelEventHandlerAsyncSender<TSender, TArg> Remove( ParallelEventHandlerAsync<TSender, TArg> handler )
         {
             if( handler == null ) throw new ArgumentNullException( nameof( handler ) );
-            Util.InterlockedSet( ref _handler, h =>
+            Util.InterlockedNullableSet( ref _handler, h =>
             {
                 if( h == null ) return null;
                 if( h is ParallelEventHandlerAsync<TSender, TArg> a ) return a == handler ? null : h;

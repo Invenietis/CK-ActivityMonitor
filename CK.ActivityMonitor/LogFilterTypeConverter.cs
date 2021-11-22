@@ -39,7 +39,7 @@ namespace CK.Core
         /// <param name="context">Unused.</param>
         /// <param name="sourceType">Source type (must be <see cref="String"/>).</param>
         /// <returns>True on success, false otherwise.</returns>
-        public override bool CanConvertFrom( ITypeDescriptorContext context, Type sourceType )
+        public override bool CanConvertFrom( ITypeDescriptorContext? context, Type? sourceType )
         {
             return sourceType == typeof( string );
         }
@@ -54,7 +54,7 @@ namespace CK.Core
         /// <param name="culture">Unused.</param>
         /// <param name="value">Must be as string (see <see cref="LogFilter.Parse(string)"/>).</param>
         /// <returns>The LogFilter (can be <see cref="LogFilter.Undefined"/> on error).</returns>
-        public override object ConvertFrom( ITypeDescriptorContext context, CultureInfo culture, object value )
+        public override object ConvertFrom( ITypeDescriptorContext? context, CultureInfo? culture, object value )
         {
             LogFilter.TryParse( (string)value, out var result );
             return result;
@@ -66,7 +66,7 @@ namespace CK.Core
         /// <param name="context">Unused.</param>
         /// <param name="destinationType">Destination type (must be <see cref="String"/>).</param>
         /// <returns>True on success, false otherwise.</returns>
-        public override bool CanConvertTo( ITypeDescriptorContext context, Type destinationType )
+        public override bool CanConvertTo( ITypeDescriptorContext? context, Type? destinationType )
         {
             return destinationType == typeof( string );
         }
@@ -79,9 +79,9 @@ namespace CK.Core
         /// <param name="value">Must be a <see cref="LogFilter"/> instance.</param>
         /// <param name="destinationType">Destination type (must be <see cref="String"/>).</param>
         /// <returns>The <see cref="LogFilter.ToString"/> result.</returns>
-        public override object ConvertTo( ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType )
+        public override object ConvertTo( ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType )
         {
-            return ((LogFilter)value).ToString();
+            return value == null ? LogFilter.Undefined : ((LogFilter)value).ToString();
         }
     }
 

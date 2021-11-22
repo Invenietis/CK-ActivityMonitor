@@ -17,7 +17,6 @@ namespace CK.Core
     public static class LogFile
     {
         static string? _logPath;
-        static string? _criticalErrorsPath;
 
         /// <summary>
         /// Gets or sets (it can be set only once) the log folder to use (setting multiple time the same path is accepted).
@@ -45,7 +44,7 @@ namespace CK.Core
         static public string? RootLogPath
         {
             get { return _logPath; }
-            [MemberNotNull( nameof( _criticalErrorsPath ), nameof( _logPath ) )]
+            [MemberNotNull( nameof( _logPath ) )]
             set
             {
                 if( string.IsNullOrWhiteSpace( value ) ) throw new ArgumentNullException();
@@ -76,11 +75,10 @@ namespace CK.Core
         /// <summary>
         /// Checks that <see cref="RootLogPath"/> is correctly configured by throwing a exception if not. 
         /// </summary>
-        [MemberNotNull( nameof( RootLogPath ), nameof( _criticalErrorsPath ), nameof( _logPath ) )]
+        [MemberNotNull( nameof( RootLogPath ), nameof( _logPath ) )]
         public static void AssertRootLogPathIsSet()
         {
             if( RootLogPath == null ) throw new Exception( ActivityMonitorResources.RootLogPathMustBeSet );
-            Debug.Assert( _criticalErrorsPath != null );
             Debug.Assert( _logPath != null );
         }
 
