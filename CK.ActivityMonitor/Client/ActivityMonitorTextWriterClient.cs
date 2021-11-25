@@ -96,7 +96,7 @@ namespace CK.Core
         /// Writes all the information.
         /// </summary>
         /// <param name="data">Log data.</param>
-        protected override void OnEnterLevel( ActivityMonitorLogData data )
+        protected override void OnEnterLevel( ref ActivityMonitorLogData data )
         {
             var w = _buffer.Clear();
             _prefixLevel = _prefix + new string( ' ', data.MaskedLevel.ToString().Length + 4 );
@@ -124,7 +124,7 @@ namespace CK.Core
         /// Writes all information.
         /// </summary>
         /// <param name="data">Log data.</param>
-        protected override void OnContinueOnSameLevel( ActivityMonitorLogData data )
+        protected override void OnContinueOnSameLevel( ref ActivityMonitorLogData data )
         {
             var w = _buffer.Clear();
             w.AppendMultiLine( _prefixLevel, data.Text, true );
@@ -159,22 +159,22 @@ namespace CK.Core
         protected override void OnGroupOpen( IActivityLogGroup g )
         {
             var w = _buffer.Clear();
-            string levelLabel = g.MaskedGroupLevel.ToString();
+            string levelLabel = g.Data.MaskedLevel.ToString();
             string start = string.Format( "{0}> {1}: ", _prefix, levelLabel );
             _prefix += _depthPadding;
             _prefixLevel = _prefix;
             string prefixLabel = _prefixLevel + new string( ' ', levelLabel.Length + 1 );
 
-            w.Append( start ).AppendMultiLine( prefixLabel, g.GroupText, false );
-            if( _currentTags != g.GroupTags )
+            w.Append( start ).AppendMultiLine( prefixLabel, g.Data.Text, false );
+            if( _currentTags != g.Data.Tags )
             {
-                w.Append( " -[" ).Append( g.GroupTags ).Append( ']' );
-                _currentTags = g.GroupTags;
+                w.Append( " -[" ).Append( g.Data.Tags ).Append( ']' );
+                _currentTags = g.Data.Tags;
             }
             w.AppendLine();
-            if( g.Exception != null )
+            if( g.Data.Exception != null )
             {
-                DumpException( w, _prefix, !g.IsGroupTextTheExceptionMessage, g.Exception );
+                DumpException( w, _prefix, !g.Data.IsTextTheExceptionMessage, g.Data.Exception );
             }
             Writer( _buffer.ToString() );
         }

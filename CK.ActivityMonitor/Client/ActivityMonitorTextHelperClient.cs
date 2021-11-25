@@ -37,7 +37,7 @@ namespace CK.Core
     {
         int _curLevel;
         LogFilter _filter;
-        Stack<bool> _openGroups;
+        readonly Stack<bool> _openGroups;
         IActivityMonitorImpl? _source;
         static string[] _prefixGroupDepthCache;
         const string _emptyLinePrefix = "| ";
@@ -87,7 +87,7 @@ namespace CK.Core
         {
         }
 
-        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorLogData data )
+        void IActivityMonitorClient.OnUnfilteredLog( ref ActivityMonitorLogData data )
         {
             var level = data.MaskedLevel;
 
@@ -108,7 +108,7 @@ namespace CK.Core
             {
                 if( _curLevel == (int)level )
                 {
-                    OnContinueOnSameLevel( data );
+                    OnContinueOnSameLevel( ref data );
                 }
                 else
                 {
@@ -116,7 +116,7 @@ namespace CK.Core
                     {
                         OnLeaveLevel( (LogLevel)_curLevel );
                     }
-                    OnEnterLevel( data );
+                    OnEnterLevel( ref data );
                     _curLevel = (int)level;
                 }
             }
@@ -129,7 +129,7 @@ namespace CK.Core
                 OnLeaveLevel( (LogLevel)_curLevel );
                 _curLevel = -1;
             }
-            if( !CanOutputGroup( group.MaskedGroupLevel ) )
+            if( !CanOutputGroup( group.Data.MaskedLevel ) )
             {
                 _openGroups.Push( false );
                 return;
@@ -157,13 +157,13 @@ namespace CK.Core
         /// Called for the first text of a <see cref="LogLevel"/>.
         /// </summary>
         /// <param name="data">Log data.</param>
-        protected abstract void OnEnterLevel( ActivityMonitorLogData data );
+        protected abstract void OnEnterLevel( ref ActivityMonitorLogData data );
 
         /// <summary>
         /// Called for text with the same <see cref="LogLevel"/> as the previous ones.
         /// </summary>
         /// <param name="data">Log data.</param>
-        protected abstract void OnContinueOnSameLevel( ActivityMonitorLogData data );
+        protected abstract void OnContinueOnSameLevel( ref ActivityMonitorLogData data );
 
         /// <summary>
         /// Called when current log level changes.

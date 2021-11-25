@@ -1,44 +1,109 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Core\ActivityMonitor\ActivityMonitorLogData.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace CK.Core
 {
     /// <summary>
-    /// Data required by <see cref="IActivityMonitor.UnfilteredLog"/>.
-    /// This is also the base class for <see cref="ActivityMonitorGroupData"/>.
+    /// Data required by <see cref="IActivityMonitor.UnfilteredLog"/> and <see cref="IActivityMonitor.UnfilteredOpenGroup(ref ActivityMonitorLogData)"/>.
     /// </summary>
-    public class ActivityMonitorLogData
+    public struct ActivityMonitorLogData
     {
-        string? _text;
-        CKTrait? _tags;
+        /// <summary>
+        /// Direct with no check constructor except that if <paramref name="text"/> is null or empty
+        /// the text is set to the exception's message or to <see cref="ActivityMonitor.NoLogText"/>.
+        /// </summary>
+        /// <param name="level"></param>
+        /// <param name="finalTags">The final tags (combines the monitors and the line's ones).</param>
+        /// <param name="text">The text.</param>
+        /// <param name="exception">Optional exception.</param>
+        /// <param name="fileName">Optional file name.</param>
+        /// <param name="lineNumber">Line number.</param>
+        public ActivityMonitorLogData( LogLevel level,
+                                       CKTrait finalTags,
+                                       string? text,
+                                       Exception? exception,
+                                       [CallerFilePath]string? fileName = null,
+                                       [CallerLineNumber]int lineNumber = 0 )
+        {
+            if( text == null || text.Length == 0 )
+            {
+                text = exception == null || exception.Message.Length == 0
+                        ? ActivityMonitor.NoLogText
+                        : exception.Message;
+            }
+            Text = text;
+            Tags = finalTags;
+            Exception = exception;
+            _exceptionData = null;
+            FileName = fileName;
+            LineNumber = lineNumber;
+            _logTime = default;
+            Level = level;
+            MaskedLevel = level & LogLevel.Mask;
+        }
+
+        /// <summary>
+        /// Text of the log.
+        /// </summary>
+        public readonly string Text;
+
+        /// <summary>
+        /// Tags (from <see cref="ActivityMonitor.Tags"/> context) of the log line combined
+        /// with the current <see cref="IActivityMonitor.AutoTags"/>.
+        /// </summary>
+        public CKTrait Tags { get; private set; }
+
+        /// <summary>
+        /// Exception of the log.
+        /// </summary>
+        public readonly Exception? Exception;
+
+        internal CKExceptionData? _exceptionData;
+
+        /// <summary>
+        /// Gets the <see cref="CKExceptionData"/> that captures exception information 
+        /// if it exists.
+        /// If this log data has not been built on CKExceptionData and if <see cref="P:Exception"/>
+        /// is not null, <see cref="CKExceptionData.CreateFrom(Exception)"/> is automatically called.
+        /// </summary>
+        public CKExceptionData? ExceptionData
+        {
+            get
+            {
+                if( _exceptionData == null && Exception != null )
+                {
+                    _exceptionData = CKExceptionData.CreateFrom( Exception );
+                }
+                return _exceptionData;
+            }
+        }
+
+        /// <summary>
+        /// Gets whether the <see cref="Text"/> is actually the <see cref="P:Exception"/> message.
+        /// </summary>
+        public bool IsTextTheExceptionMessage => Exception != null && ReferenceEquals( Exception.Message, Text );
+
+        /// <summary>
+        /// Name of the source file that emitted the log.
+        /// </summary>
+        public readonly string? FileName;
+
+        /// <summary>
+        /// Line number in the source file that emitted the log. 
+        /// </summary>
+        public readonly int LineNumber;
+
         DateTimeStamp _logTime;
-        Exception? _exception;
-        CKExceptionData? _exceptionData;
+
+        /// <summary>
+        /// Gets the time of the log.
+        /// </summary>
+        public DateTimeStamp LogTime => _logTime;
 
         /// <summary>
         /// Log level. Can not be <see cref="LogLevel.None"/>.
@@ -53,14 +118,9 @@ namespace CK.Core
         public readonly LogLevel MaskedLevel;
 
         /// <summary>
-        /// Name of the source file that emitted the log. Can be null.
+        /// Gets whether this data has been handled by a monitor (<see cref="LogTime"/>'s <see cref="DateTimeStamp.IsKnown"/> is false).
         /// </summary>
-        public readonly string? FileName;
-
-        /// <summary>
-        /// Line number in the source file that emitted the log. 
-        /// </summary>
-        public readonly int LineNumber;
+        public bool IsLogged => _logTime.IsKnown;
 
         /// <summary>
         /// Gets whether this log data has been successfully filtered (otherwise it is an unfiltered log).
@@ -68,153 +128,21 @@ namespace CK.Core
         public bool IsFilteredLog => (Level & LogLevel.IsFiltered) != 0;
 
         /// <summary>
-        /// Tags (from <see cref="ActivityMonitor.Tags"/>) associated to the log. 
-        /// It will be union-ed with the current <see cref="IActivityMonitor.AutoTags"/>.
+        /// Explicitly sets the <see cref="LogTime"/>.
+        /// This should obviously be used with care.
         /// </summary>
-        public CKTrait Tags
-        {
-            get
-            {
-                if( _tags == null ) ActivityMonitor.ThrowOnGroupOrDataNotInitialized();
-                return _tags;
-            }
-        }
+        /// <param name="logTime"></param>
+        public void SetExplicitLogTime( DateTimeStamp logTime ) => _logTime = logTime;
 
         /// <summary>
-        /// Text of the log. Can not be null.
+        /// Explicitly sets the <see cref="Tags"/>.
+        /// This should obviously be used with care.
         /// </summary>
-        public string Text
-        {
-            get
-            {
-                if( _text == null ) ActivityMonitor.ThrowOnGroupOrDataNotInitialized();
-                return _text;
-            }
-        }
+        /// <param name="logTime"></param>
+        public void SetExplicitTags( CKTrait tags ) => Tags = tags;
 
-        /// <summary>
-        /// Gets the time of the log.
-        /// </summary>
-        public DateTimeStamp LogTime => _logTime;
 
-        /// <summary>
-        /// Exception of the log. Can be null.
-        /// </summary>
-        public Exception? Exception => _exception;
+        internal DateTimeStamp SetLogTime( DateTimeStamp logTime ) => _logTime = logTime;
 
-        /// <summary>
-        /// Gets the <see cref="CKExceptionData"/> that captures exception information 
-        /// if it exists.
-        /// If this log data has not been built on CKExceptionData and if <see cref="P:Exception"/>
-        /// is not null, <see cref="CKExceptionData.CreateFrom(Exception)"/> is automatically called.
-        /// </summary>
-        public CKExceptionData? ExceptionData
-        {
-            get
-            {
-                if( _exceptionData == null && _exception != null )
-                {
-                    _exceptionData = CKExceptionData.CreateFrom( _exception );
-                }
-                return _exceptionData;
-            }
-        }
-
-        /// <summary>
-        /// Gets whether the <see cref="Text"/> is actually the <see cref="P:Exception"/> message.
-        /// </summary>
-        public bool IsTextTheExceptionMessage => _exception != null && ReferenceEquals( _exception.Message, _text );
-
-        /// <summary>
-        /// Initializes a new <see cref="ActivityMonitorLogData"/>.
-        /// </summary>
-        /// <param name="level">Log level. Can not be <see cref="LogLevel.None"/>.</param>
-        /// <param name="exception">Exception of the log. Can be null.</param>
-        /// <param name="tags">Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. It will be union-ed with the current <see cref="IActivityMonitor.AutoTags"/>.</param>
-        /// <param name="text">Text of the log. Can be null or empty only if <paramref name="exception"/> is not null: the <see cref="T:Exception.Message"/> is the text.</param>
-        /// <param name="logTime">
-        /// Time of the log. 
-        /// You can use <see cref="DateTimeStamp.UtcNow"/> or <see cref="ActivityMonitorExtension.NextLogTime">IActivityMonitor.NextLogTime()</see> extension method.
-        /// </param>
-        /// <param name="fileName">Name of the source file that emitted the log. Can be null.</param>
-        /// <param name="lineNumber">Line number in the source file that emitted the log.</param>
-        public ActivityMonitorLogData( LogLevel level, Exception? exception, CKTrait? tags, string? text, DateTimeStamp logTime, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
-            : this( level, fileName, lineNumber )
-        {
-            if( MaskedLevel == LogLevel.None || MaskedLevel == LogLevel.Mask )
-            {
-                ThrowInvalidLogLevel();
-            }
-            Initialize( text, exception, tags, logTime );
-        }
-
-        [DoesNotReturn]
-        static void ThrowInvalidLogLevel()
-        {
-            throw new ArgumentException( Impl.ActivityMonitorResources.ActivityMonitorInvalidLogLevel, "level" );
-        }
-
-        /// <summary>
-        /// Preinitializes a new <see cref="ActivityMonitorLogData"/>: <see cref="Initialize"/> has yet to be called.
-        /// </summary>
-        /// <param name="level">Log level. Can be <see cref="LogLevel.None"/> (the log will be ignored).</param>
-        /// <param name="fileName">Name of the source file that emitted the log.</param>
-        /// <param name="lineNumber">Line number in the source file that emitted the log.</param>
-        public ActivityMonitorLogData( LogLevel level, string? fileName, int lineNumber )
-        {
-            Level = level;
-            MaskedLevel = level & LogLevel.Mask;
-            FileName = fileName;
-            LineNumber = lineNumber;
-        }
-
-        /// <summary>
-        /// Used only to initialize a ActivityMonitorGroupSender for rejected opened group.
-        /// </summary>
-        internal ActivityMonitorLogData()
-        {
-            Debug.Assert( Level == LogLevel.None );
-        }
-
-        /// <summary>
-        /// Initializes this data.
-        /// </summary>
-        /// <param name="text">
-        /// Text of the log. Can be null or empty: if <paramref name="exception"/> is not null, 
-        /// the <see cref="Exception.Message"/> becomes the text otherwise <see cref="ActivityMonitor.NoLogText"/> is used.
-        /// </param>
-        /// <param name="exception">Exception of the log. Can be null.</param>
-        /// <param name="tags">
-        /// Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. 
-        /// It will be union-ed with the current <see cref="IActivityMonitor.AutoTags"/>.</param>
-        /// <param name="logTime">
-        /// Time of the log. 
-        /// You can use <see cref="DateTimeStamp.UtcNow"/> or <see cref="ActivityMonitorExtension.NextLogTime">IActivityMonitor.NextLogTime()</see> extension method.
-        /// </param>
-        public void Initialize( string? text, Exception? exception, CKTrait? tags, DateTimeStamp logTime )
-        {
-            if( string.IsNullOrEmpty( _text = text ) )
-            {
-                _text = exception == null || exception.Message.Length == 0
-                        ? ActivityMonitor.NoLogText
-                        : exception.Message;
-            }
-            _exception = exception;
-            _tags = tags ?? ActivityMonitor.Tags.Empty;
-            _logTime = logTime;
-        }
-
-        internal void CombineTags( CKTrait tags )
-        {
-            if( Tags.IsEmpty ) _tags = tags;
-            else _tags = Tags.Union( tags );
-        }
-
-        internal DateTimeStamp CombineTagsAndAdjustLogTime( CKTrait tags, DateTimeStamp lastLogTime )
-        {
-            if( Tags.IsEmpty ) _tags = tags;
-            else _tags = Tags.Union( tags );
-            return _logTime = new DateTimeStamp( lastLogTime, _logTime.IsKnown ? _logTime : DateTimeStamp.UtcNow );
-        }
     }
 }

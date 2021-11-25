@@ -18,17 +18,23 @@ namespace CK.Core.Tests.Monitoring
                 _lastOne = data.LogTime;
             }
 
+            public void OnUnfilteredLog( ref ActivityMonitorLogData data )
+            {
+                if( data.LogTime <= _lastOne ) ++NbClash;
+                _lastOne = data.LogTime;
+            }
+
             public void OnOpenGroup( IActivityLogGroup group )
             {
-                if( group.LogTime <= _lastOne ) ++NbClash;
-                _lastOne = group.LogTime;
+                if( group.Data.LogTime <= _lastOne ) ++NbClash;
+                _lastOne = group.Data.LogTime;
             }
 
-            public void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
+            public void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions )
             {
             }
 
-            public void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+            public void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
             {
                 if( group.CloseLogTime <= _lastOne ) ++NbClash;
                 _lastOne = group.CloseLogTime;
@@ -51,7 +57,7 @@ namespace CK.Core.Tests.Monitoring
             m.Output.RegisterClient( detect );
             for( int i = 0; i < 10; ++i )
             {
-                m.UnfilteredLog( ActivityMonitor.Tags.Empty, LogLevel.Info, "This should clash!", DateTimeStamp.UtcNow, null );
+                m.UnfilteredLog( LogLevel.Info, null, "This should clash!", null );
             }
             for( int i = 0; i < 10; ++i )
             {
@@ -63,25 +69,6 @@ namespace CK.Core.Tests.Monitoring
                 {
                 }
             }
-             detect.NbClash.Should().Be( 0 );
-        }
-
-        [Test]
-        public void DateTimeStamp_collision_can_not_happen_even_when_artificially_forcing_them()
-        {
-            ActivityMonitor m = new ActivityMonitor( applyAutoConfigurations: false );
-            var detect = new DateTimeStampCollision();
-            m.Output.RegisterClient( detect );
-
-            DateTimeStamp now = DateTimeStamp.UtcNow;
-            m.UnfilteredLog( ActivityMonitor.Tags.Empty, LogLevel.Info, "This should clash!", now, null );
-            m.UnfilteredLog( ActivityMonitor.Tags.Empty, LogLevel.Info, "This should clash!", now, null );
-            m.UnfilteredLog( ActivityMonitor.Tags.Empty, LogLevel.Info, "This should clash!", new DateTimeStamp( now.TimeUtc.AddDays( -1 ) ), null );
-            m.UnfilteredOpenGroup( ActivityMonitor.Tags.Empty, LogLevel.Info, null, "This should clash!", now, null );
-            m.UnfilteredOpenGroup( ActivityMonitor.Tags.Empty, LogLevel.Info, null, "This should clash!", new DateTimeStamp( now.TimeUtc.AddTicks( -1 ) ), null );
-            m.CloseGroup( new DateTimeStamp( now.TimeUtc.AddTicks( -1 ) ) );
-            m.CloseGroup( now );
-
              detect.NbClash.Should().Be( 0 );
         }
     }

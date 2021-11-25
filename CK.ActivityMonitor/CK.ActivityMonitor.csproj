@@ -8,7 +8,13 @@
     <LangVersion>9</LangVersion>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0|AnyCPU'">
+    <LangVersion>10.0</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU'">
+    <LangVersion>10.0</LangVersion>
+  </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CK.Core" Version="0.0.0--03lin31-develop" />
+    <PackageReference Include="CK.Core" Version="0.0.0--03lk0lt-develop" />
   </ItemGroup>
 </Project>

@@ -5,14 +5,12 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using CK.Core.Impl;
+using Microsoft.Toolkit.Diagnostics;
 
 namespace CK.Core
 {
     /// <summary>
-    /// Holds centralized directory <see cref="RootLogPath"/> and by default handles
-    /// errors emitted by <see cref="ActivityMonitor.CriticalErrorCollector"/>.
-    /// Critical errors will be logged in <see cref="CriticalErrorsPath"/> only if <see cref="RootLogPath"/>
-    /// is set and <see cref="TrackActivityMonitorLoggingError"/> is true (that is the default).
+    /// Holds centralized directory <see cref="RootLogPath"/>.
     /// </summary>
     public static class LogFile
     {
@@ -30,8 +28,8 @@ namespace CK.Core
         /// When setting it, the path must be valid AND rooted.
         /// </para>
         /// <para>
-        /// The subordinate directory "CriticalErrors" is created (if not already here) and a test file is created (and deleted) inside it 
-        /// to ensure that (at least at configuration time), no security configuration prevents us to create log files: all errors files will be created in this sub directory.
+        /// At initialization, a test file is created (and deleted) inside it to ensure that (at least at configuration time), no security configuration prevents
+        /// us to create log files.
         /// </para>
         /// <para>
         /// It is recommended to use this directory to store all other logs and/or files related to activity tracking.
@@ -47,7 +45,7 @@ namespace CK.Core
             [MemberNotNull( nameof( _logPath ) )]
             set
             {
-                if( string.IsNullOrWhiteSpace( value ) ) throw new ArgumentNullException();
+                Guard.IsNotNullOrWhiteSpace( value, nameof( value ) );
                 value = FileUtil.NormalizePathSeparator( value, true );
                 if( _logPath != null && value != _logPath )
                 {

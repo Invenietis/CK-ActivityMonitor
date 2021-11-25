@@ -106,10 +106,10 @@ namespace CK.Core
         /// Writes all the information after having captured the log level.
         /// </summary>
         /// <param name="data">Log data.</param>
-        protected override void OnEnterLevel( ActivityMonitorLogData data )
+        protected override void OnEnterLevel( ref ActivityMonitorLogData data )
         {
             _currentLogLevel = data.MaskedLevel;
-            base.OnEnterLevel( data );
+            base.OnEnterLevel( ref data );
         }
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace CK.Core
         /// <param name="g">Group information.</param>
         protected override void OnGroupOpen( IActivityLogGroup g )
         {
-            _currentLogLevel = g.MaskedGroupLevel;
+            _currentLogLevel = g.Data.MaskedLevel;
             base.OnGroupOpen( g );
         }
 
@@ -129,7 +129,7 @@ namespace CK.Core
         /// <param name="conclusions">Conclusions for the group.</param>
         protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
-            _currentLogLevel = g.MaskedGroupLevel;
+            _currentLogLevel = g.Data.MaskedLevel;
             base.OnGroupClose( g, conclusions );
         }
 

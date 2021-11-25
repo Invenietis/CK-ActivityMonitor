@@ -27,7 +27,7 @@ namespace CK.Core.Tests.Monitoring
             ActivityMonitor.AutoConfiguration = null;
             ActivityMonitor.AutoConfiguration += m => m.Output.RegisterClient( c );
             int i = 0;
-            ActivityMonitor.AutoConfiguration += m => m.UnfilteredLog( null, LogLevel.Info, $"This monitors has been created at {DateTime.UtcNow:O}, n°{++i}", m.NextLogTime(), null );
+            ActivityMonitor.AutoConfiguration += m => m.UnfilteredLog( LogLevel.Info, null, $"This monitors has been created at {DateTime.UtcNow:O}, n°{++i}", null );
 
             ActivityMonitor monitor1 = new ActivityMonitor();
             ActivityMonitor monitor2 = new ActivityMonitor();
@@ -240,9 +240,9 @@ namespace CK.Core.Tests.Monitoring
             var c = m.Output.RegisterClient( new StupidStringClient() );
             m.Trace( "Trace1" );
             m.MinimalFilter = LogFilter.Off;
-            m.UnfilteredLog( ActivityMonitor.Tags.Empty, LogLevel.Fatal, "NOSHOW-1", m.NextLogTime(), null );
-            m.UnfilteredOpenGroup( ActivityMonitor.Tags.Empty, LogLevel.Fatal, null, "NOSHOW-2", m.NextLogTime(), null );
-            m.UnfilteredLog( ActivityMonitor.Tags.Empty, LogLevel.Error, "NOSHOW-3", m.NextLogTime(), null );
+            m.UnfilteredLog( LogLevel.Fatal, ActivityMonitor.Tags.Empty, "NOSHOW-1", null );
+            m.UnfilteredOpenGroup( LogLevel.Fatal, ActivityMonitor.Tags.Empty, "NOSHOW-2", null );
+            m.UnfilteredLog( LogLevel.Error, ActivityMonitor.Tags.Empty, "NOSHOW-3", null );
             // Off will be restored by the group closing.
             m.MinimalFilter = LogFilter.Trace;
             m.CloseGroup( "NOSHOW-4" );
@@ -260,12 +260,12 @@ namespace CK.Core.Tests.Monitoring
             var m = new ActivityMonitor( false );
             var c = m.Output.RegisterClient( new StupidStringClient() );
             m.Trace( "" );
-            m.UnfilteredLog( null, LogLevel.Error, null, m.NextLogTime(), null );
-            m.OpenTrace( (Exception?)null );
+            m.UnfilteredLog( LogLevel.Error, null, null, null );
+            m.OpenTrace( (Exception?)null! );
             m.OpenInfo( "" );
 
             c.Entries.Should().HaveCount( 4 );
-            c.Entries.All( e => e.Text == ActivityMonitor.NoLogText );
+            c.Entries.All( e => e.Data.Text == ActivityMonitor.NoLogText );
         }
 
         [Test]
@@ -285,11 +285,11 @@ namespace CK.Core.Tests.Monitoring
                 {
                     using( monitor.OpenTrace( "MainGroup" ).ConcludeWith( () => "EndMainGroup" ) )
                     {
-                        monitor.Trace( "First", tag1 );
+                        monitor.Trace( tag1, "First" );
                         using( monitor.TemporarilySetAutoTags( tag1 ) )
                         {
                             monitor.Trace( "Second" );
-                            monitor.Trace( "Third", tag3 );
+                            monitor.Trace( tag3, "Third" );
                             using( monitor.TemporarilySetAutoTags( tag2 ) )
                             {
                                 monitor.Info( "First" );
@@ -1045,10 +1045,10 @@ namespace CK.Core.Tests.Monitoring
         {
             protected override void OnOpenGroup( IActivityLogGroup group )
             {
-                (group.GroupLevel & LogLevel.IsFiltered).Should().NotBe( 0 );
+                (group.Data.Level & LogLevel.IsFiltered).Should().NotBe( 0 );
             }
 
-            protected override void OnUnfilteredLog( ActivityMonitorLogData data )
+            protected override void OnUnfilteredLog( ref ActivityMonitorLogData data )
             {
                 data.IsFilteredLog.Should().BeTrue();
             }

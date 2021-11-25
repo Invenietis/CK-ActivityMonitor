@@ -32,18 +32,6 @@ namespace CK.Core
 
             public bool Replaying => _replaying;
 
-            public class CloseGroupData
-            {
-                public readonly DateTimeStamp ClosingDate;
-                public readonly IReadOnlyList<ActivityLogGroupConclusion>? Conclusions;
-
-                public CloseGroupData( DateTimeStamp d, IReadOnlyList<ActivityLogGroupConclusion>? c )
-                {
-                    ClosingDate = d;
-                    Conclusions = c;
-                }
-            }
-
             public void OnStartReplay() => _replaying = true;
 
             public void OnStopReplay()
@@ -52,14 +40,14 @@ namespace CK.Core
                 History.Clear();
             }
 
-            void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorLogData data )
+            void IActivityMonitorClient.OnUnfilteredLog( ref ActivityMonitorLogData data )
             {
                 if( !_replaying ) History.Add( data );
             }
 
             void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group )
             {
-                if( !_replaying ) History.Add( group.InnerData );
+                if( !_replaying ) History.Add( Tuple.Create( group.Data ) );
             }
 
             void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions )
@@ -68,7 +56,7 @@ namespace CK.Core
 
             void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
             {
-                if( !_replaying ) History.Add( new CloseGroupData( group.CloseLogTime, conclusions ) );
+                if( !_replaying ) History.Add( Tuple.Create( group.CloseLogTime, conclusions ) );
             }
 
             void IActivityMonitorClient.OnTopicChanged( string newTopic, string? fileName, int lineNumber )
@@ -132,8 +120,8 @@ namespace CK.Core
             {
                 _internalMonitor = new InternalMonitor( this );
             }
-            var d = new ActivityMonitorLogData( LogLevel.Fatal, ex, null, $"Unhandled error in IActivityMonitorClient '{culprit.GetType().FullName}'.", DateTimeStamp.UtcNow );
-            _internalMonitor.UnfilteredLog( d );
+            var d = new ActivityMonitorLogData( LogLevel.Fatal, Tags.Empty, $"Unhandled error in IActivityMonitorClient '{culprit.GetType().FullName}'.", ex );
+            _internalMonitor.UnfilteredLog( ref d );
             return true;
         }
 
@@ -144,9 +132,9 @@ namespace CK.Core
                 var ex = _output.ForceRemoveCondemnedClient( l );
                 if( ex != null )
                 {
-                    var d = new ActivityMonitorLogData( LogLevel.Fatal, ex, null, $"IActivityMonitorBoundClient.SetMonitor '{l.GetType().FullName}' failure.", DateTimeStamp.UtcNow );
+                    var d = new ActivityMonitorLogData( LogLevel.Fatal, Tags.Empty, text: $"IActivityMonitorBoundClient.SetMonitor '{l.GetType().FullName}' failure.", ex );
                     if( _internalMonitor == null ) _internalMonitor = new InternalMonitor( this );
-                    _internalMonitor.UnfilteredLog( d );
+                    _internalMonitor.UnfilteredLog( ref d );
                 }
             }
             _clientFilter = HandleBoundClientsSignal();
@@ -156,7 +144,7 @@ namespace CK.Core
         void DoReplayInternalLogs()
         {
             Debug.Assert( _internalMonitor != null && _internalMonitor.Recorder.History.Count > 0 );
-            Debug.Assert( Thread.CurrentThread.ManagedThreadId == _enteredThreadId );
+            Debug.Assert( Environment.CurrentManagedThreadId == _enteredThreadId );
             CKTrait savedTags = _currentTag;
             string changedTopic = _topic;
             bool savedTrackStackTrace = _trackStackTrace;
@@ -168,13 +156,14 @@ namespace CK.Core
                 while( _internalMonitor.CloseGroup() ) ;
                 // Replay the history, trusting the existing data time.
                 _internalMonitor.Recorder.OnStartReplay();
-                _currentTag = _currentTag.Union( Tags.InternalMonitor );
                 foreach( var o in _internalMonitor.Recorder.History )
                 {
                     switch( o )
                     {
-                        case ActivityMonitorGroupData group:
-                            DoOpenGroup( group, true );
+                        case Tuple<ActivityMonitorLogData> group:
+                            var d = group.Item1;
+                            d.SetExplicitTags( d.Tags | Tags.InternalMonitor );
+                            DoOpenGroup( ref d );
                             ++balancedGroup;
                             break;
                         case ActivityMonitorLogData line:
@@ -182,18 +171,19 @@ namespace CK.Core
                             {
                                 changedTopic = line.Text.Substring( SetTopicPrefix.Length );
                             }
-                            DoUnfilteredLog( line, true );
+                            line.SetExplicitTags( line.Tags | Tags.InternalMonitor );
+                            DoUnfilteredLog( ref line );
                             break;
-                        case LogsRecorder.CloseGroupData close:
-                            DoCloseGroup( close.ClosingDate, close.Conclusions, true );
+                        case Tuple<DateTimeStamp, IReadOnlyList<ActivityLogGroupConclusion>?> close:
+                            DoCloseGroup( close.Item2, close.Item1 );
                             --balancedGroup;
                             break;
                     }
                 }
                 if( changedTopic != _topic )
                 {
-                    var d = new ActivityMonitorLogData( LogLevel.Info, null, Tags.Empty, ActivityMonitorResources.ReplayRestoreTopic, this.NextLogTime() );
-                    DoUnfilteredLog( d );
+                    var d = new ActivityMonitorLogData( LogLevel.Info, Tags.InternalMonitor, ActivityMonitorResources.ReplayRestoreTopic, null );
+                    DoUnfilteredLog( ref d );
                     SendTopicLogLine();
                 }
                 _internalMonitor.Recorder.OnStopReplay();
@@ -203,10 +193,10 @@ namespace CK.Core
                 // We first stop the replay: the history is cleared and the Recorder records.
                 _internalMonitor.Recorder.OnStopReplay();
                 // We close groups opened. If errors occur here they will be recorded.
-                while( balancedGroup > 0 ) DoCloseGroup( DateTimeStamp.UtcNow, ActivityMonitorResources.ErrorWhileReplayingInternalLogs );
+                while( balancedGroup > 0 ) DoCloseGroup( ActivityMonitorResources.ErrorWhileReplayingInternalLogs );
                 // This will be recorded and replayed by the next call to ReentrantAndConcurrentRelease().
-                var d = new ActivityMonitorLogData( LogLevel.Fatal, ex, null, ActivityMonitorResources.ErrorWhileReplayingInternalLogs, DateTimeStamp.UtcNow );
-                UnfilteredLog( d );
+                var d = new ActivityMonitorLogData( LogLevel.Fatal, Tags.InternalMonitor, ActivityMonitorResources.ErrorWhileReplayingInternalLogs, ex );
+                UnfilteredLog( ref d );
             }
             _currentTag = savedTags;
             _trackStackTrace = savedTrackStackTrace;

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.Toolkit.Diagnostics;
 
 namespace CK.Core
 {
@@ -135,12 +136,7 @@ namespace CK.Core
                     if( _defaultFilterLevel != value )
                     {
                         _defaultFilterLevel = value;
-                        var h = DefaultFilterLevelChanged;
-                        if( h != null )
-                        {
-                            // Let any exception bubble up.
-                            h( null, EventArgs.Empty );
-                        }
+                        DefaultFilterLevelChanged?.Invoke( null, EventArgs.Empty );
                     }
                 }
             }
@@ -148,7 +144,8 @@ namespace CK.Core
 
         /// <summary>
         /// The automatic configuration actions.
-        /// Registers actions via += (or <see cref="Delegate.Combine(Delegate,Delegate)"/> if you like pain), unregister with -= operator (or <see cref="Delegate.Remove"/>).
+        /// Registers actions via += (or <see cref="Delegate.Combine(Delegate,Delegate)"/> if you like pain), unregister with -= operator
+        /// (or <see cref="Delegate.Remove"/>).
         /// Simply sets it to null to clear all currently registered actions (this, of course, only from tests and not in real code).
         /// </summary>
         static public Action<IActivityMonitor>? AutoConfiguration;
@@ -233,11 +230,10 @@ namespace CK.Core
         /// <param name="uniqueId">This monitor unique identifier.</param>
         /// <param name="tags">Initial tags.</param>
         /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
-        protected ActivityMonitor(
-            DateTimeStampProvider stampProvider,
-            Guid uniqueId,
-            CKTrait tags,
-            bool applyAutoConfigurations )
+        protected ActivityMonitor( DateTimeStampProvider stampProvider,
+                                   Guid uniqueId,
+                                   CKTrait tags,
+                                   bool applyAutoConfigurations )
         {
             _uniqueId = uniqueId;
             _lastLogTime = new DateTimeStampProvider();
@@ -300,7 +296,7 @@ namespace CK.Core
 
         void DoSetTopic( string newTopic, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
-            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
+            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
             Debug.Assert( newTopic != null && _topic != newTopic );
             _topic = newTopic!;
             _output.BridgeTarget.TargetTopicChanged( newTopic!, fileName, lineNumber );
@@ -309,10 +305,16 @@ namespace CK.Core
             SendTopicLogLine( fileName, lineNumber );
         }
 
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
         void SendTopicLogLine( [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
-            _lastLogTime.Value = new DateTimeStamp( _lastLogTime.Value, DateTime.UtcNow );
-            DoUnfilteredLog( new ActivityMonitorLogData( LogLevel.Info, null, Tags.MonitorTopicChanged, SetTopicPrefix + _topic, _lastLogTime.Value, fileName, lineNumber ) );
+            var d = new ActivityMonitorLogData( LogLevel.Info,
+                                                _currentTag | Tags.MonitorTopicChanged,
+                                                SetTopicPrefix + _topic,
+                                                null,
+                                                fileName,
+                                                lineNumber );
+            DoUnfilteredLog( ref d );
         }
 
         /// <summary>
@@ -328,7 +330,7 @@ namespace CK.Core
             set
             {
                 if( value == null ) value = Tags.Empty;
-                else if( value.Context != Tags.Context ) throw new ArgumentException( ActivityMonitorResources.ActivityMonitorTagMustBeRegistered, "value" );
+                else if( value.Context != Tags.Context ) throw new ArgumentException( ActivityMonitorResources.ActivityMonitorTagMustBeRegistered, nameof( value ) );
                 if( _currentTag != value )
                 {
                     ReentrantAndConcurrentCheck();
@@ -346,7 +348,7 @@ namespace CK.Core
 
         void DoSetAutoTags( CKTrait newTags )
         {
-            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
+            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
             Debug.Assert( newTags != null && _currentTag != newTags && newTags.Context == Tags.Context );
             _currentTag = newTags!;
             _trackStackTrace = _currentTag.AtomicTraits.Contains( Tags.StackTrace );
@@ -434,7 +436,7 @@ namespace CK.Core
 
         internal void DoSetConfiguredFilter( LogFilter value )
         {
-            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
+            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
             Debug.Assert( _configuredFilter != value );
             _configuredFilter = value;
             UpdateActualFilter();
@@ -442,7 +444,7 @@ namespace CK.Core
 
         void UpdateActualFilter()
         {
-            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
+            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
             LogFilter newLevel = _configuredFilter.Combine( _clientFilter );
             if( newLevel != _actualFilter )
             {
@@ -453,7 +455,7 @@ namespace CK.Core
 
         LogFilter HandleBoundClientsSignal()
         {
-            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
+            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
 
             LogFilter minimal = LogFilter.Undefined;
             List<IActivityMonitorClient>? buggyClients = null;
@@ -552,13 +554,13 @@ namespace CK.Core
         /// If needed, the special text <see cref="ActivityMonitor.ParkLevel"/> ("PARK-LEVEL") breaks the current <see cref="LogLevel"/>
         /// and resets it: the next log, even with the same LogLevel, will be treated as if a different LogLevel is used.
         /// </remarks>
-        public void UnfilteredLog( ActivityMonitorLogData data )
+        public void UnfilteredLog( ref ActivityMonitorLogData data )
         {
-            if( data == null || data.MaskedLevel == LogLevel.None ) return;
+            if( data.MaskedLevel == LogLevel.None ) return;
             ReentrantAndConcurrentCheck();
             try
             {
-                DoUnfilteredLog( data );
+                DoUnfilteredLog( ref data );
             }
             finally
             {
@@ -566,9 +568,9 @@ namespace CK.Core
             }
         }
 
-        void DoUnfilteredLog( ActivityMonitorLogData data, bool trustDataTime = false )
+        void DoUnfilteredLog( ref ActivityMonitorLogData data )
         {
-            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
+            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
             Debug.Assert( data.Level != LogLevel.None );
             Debug.Assert( !String.IsNullOrEmpty( data.Text ) );
 
@@ -586,15 +588,17 @@ namespace CK.Core
                 }
             }
 
-            if( trustDataTime ) data.CombineTags( _currentTag );
-            else _lastLogTime.Value = data.CombineTagsAndAdjustLogTime( _currentTag, _lastLogTime.Value );
+            if( !data.LogTime.IsKnown )
+            {
+                _lastLogTime.Value = data.SetLogTime( new DateTimeStamp( _lastLogTime.Value, DateTime.UtcNow ) );
+            }
 
             List<IActivityMonitorClient>? buggyClients = null;
             foreach( var l in _output.Clients )
             {
                 try
                 {
-                    l.OnUnfilteredLog( data );
+                    l.OnUnfilteredLog( ref data );
                 }
                 catch( Exception exCall )
                 {
@@ -615,8 +619,8 @@ namespace CK.Core
         /// ignored).
         /// </summary>
         /// <param name="data">
-        /// Data that describes the log. When null or when <see cref="ActivityMonitorLogData.MaskedLevel"/> 
-        /// is <see cref="LogLevel.None"/> a rejected group is recorded and returned and must be closed.
+        /// Data that describes the log. When <see cref="ActivityMonitorLogData.MaskedLevel"/> 
+        /// is <see cref="LogLevel.None"/> a <see cref="IActivityLogGroup.IsRejectedGroup"/> is recorded and returned and must be closed.
         /// </param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
         /// <remarks>
@@ -633,12 +637,12 @@ namespace CK.Core
         /// Note that this automatic configuration restoration works even if the group has been filtered and rejected.
         /// </para>
         /// </remarks>
-        public virtual IDisposableGroup UnfilteredOpenGroup( ActivityMonitorGroupData? data )
+        public virtual IDisposableGroup UnfilteredOpenGroup( ref ActivityMonitorLogData data )
         {
             ReentrantAndConcurrentCheck();
             try
             {
-                return DoOpenGroup( data );
+                return DoOpenGroup( ref data );
             }
             finally
             {
@@ -646,9 +650,9 @@ namespace CK.Core
             }
         }
 
-        IDisposableGroup DoOpenGroup( ActivityMonitorGroupData? data, bool trustDataTime = false )
+        IDisposableGroup DoOpenGroup( ref ActivityMonitorLogData data )
         {
-            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
+            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
 
             int idxNext = _current != null ? _current.Index + 1 : 0;
             if( idxNext == _groups.Length )
@@ -657,7 +661,7 @@ namespace CK.Core
                 for( int i = idxNext; i < _groups.Length; ++i ) _groups[i] = new Group( this, i );
             }
             _current = _groups[idxNext];
-            if( data == null || data.MaskedLevel == LogLevel.None )
+            if( data.MaskedLevel == LogLevel.None )
             {
                 _current.InitializeRejectedGroup();
                 return _current;
@@ -676,32 +680,24 @@ namespace CK.Core
                     return _current;
                 }
             }
-            if( trustDataTime ) data.CombineTags( _currentTag );
-            else _lastLogTime.Value = data.CombineTagsAndAdjustLogTime( _currentTag, _lastLogTime.Value );
-            _current.Initialize( data );
+            if( !data.LogTime.IsKnown )
+            {
+                _lastLogTime.Value = data.SetLogTime( new DateTimeStamp( _lastLogTime.Value, DateTime.UtcNow ) );
+            }
+
+            _current.Initialize( ref data );
             _currentUnfiltered = _current;
             MonoParameterSafeCall( ( client, group ) => client.OnOpenGroup( group ), _current );
             return _current;
         }
 
-        /// <summary>
-        /// Closes the current <see cref="Group"/>. Optional parameter is polymorphic. It can be a string, a <see cref="ActivityLogGroupConclusion"/>, 
-        /// a <see cref="List{T}"/> or an <see cref="IEnumerable{T}"/> of ActivityLogGroupConclusion, or any object with an overridden <see cref="Object.ToString"/> method. 
-        /// See remarks (especially for List&lt;ActivityLogGroupConclusion&gt;).
-        /// </summary>
-        /// <param name="logTime">Time stamp of the group closing.</param>
-        /// <param name="userConclusion">Optional string, enumerable of <see cref="ActivityLogGroupConclusion"/>) or object to conclude the group. See remarks.</param>
-        /// <returns>True if a group has actually been closed, false if there is no more opened group.</returns>
-        /// <remarks>
-        /// An untyped object is used here to easily and efficiently accommodate both string and already existing ActivityLogGroupConclusion.
-        /// When a List&lt;ActivityLogGroupConclusion&gt; is used, it will be directly used to collect conclusion objects (new conclusions will be added to it). This is an optimization.
-        /// </remarks>
-        public virtual bool CloseGroup( DateTimeStamp logTime, object? userConclusion = null )
+        /// <inheritdoc />
+        public virtual bool CloseGroup( object? userConclusion = null )
         {
             bool isNoReentrant = ConcurrentOnlyCheck();
             try
             {
-                return DoCloseGroup( logTime, userConclusion );
+                return DoCloseGroup( userConclusion );
             }
             finally
             {
@@ -709,9 +705,9 @@ namespace CK.Core
             }
         }
 
-        bool DoCloseGroup( DateTimeStamp logTime, object? userConclusion, bool trustDataTime = false )
+        bool DoCloseGroup( object? userConclusion, DateTimeStamp logTime = default )
         {
-            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
+            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
             Group? g = _current;
             if( g == null ) return false;
             // Handles the rejected case first (easiest).
@@ -725,13 +721,14 @@ namespace CK.Core
             else
             {
                 #region Closing the group
-                if( trustDataTime )
+
+                if( logTime.IsKnown )
                 {
                     g.CloseLogTime = logTime;
                 }
                 else
                 {
-                    g.CloseLogTime = _lastLogTime.Value = new DateTimeStamp( _lastLogTime.Value, logTime.IsKnown ? logTime : DateTimeStamp.UtcNow );
+                    g.CloseLogTime = _lastLogTime.Value = new DateTimeStamp( _lastLogTime.Value, DateTime.UtcNow );
                 }
                 List<ActivityLogGroupConclusion>? conclusions = userConclusion as List<ActivityLogGroupConclusion>;
                 if( conclusions == null && userConclusion != null )
@@ -785,7 +782,7 @@ namespace CK.Core
                 _current = g.Index > 0 ? _groups[g.Index - 1] : null;
                 _currentUnfiltered = (Group?)g.Parent;
 
-                var sentConclusions = conclusions != null ? conclusions.ToArray() : Array.Empty<ActivityLogGroupConclusion>();
+                var sentConclusions = conclusions != null ? conclusions : (IReadOnlyList<ActivityLogGroupConclusion>)Array.Empty<ActivityLogGroupConclusion>();
                 foreach( var l in _output.Clients )
                 {
                     try
@@ -812,7 +809,7 @@ namespace CK.Core
         /// </summary>
         void MonoParameterSafeCall<T>( Action<IActivityMonitorClient, T> call, T arg )
         {
-            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
+            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
             List<IActivityMonitorClient>? buggyClients = null;
             foreach( var l in _output.Clients )
             {
@@ -862,14 +859,15 @@ namespace CK.Core
             return new RAndCChecker( this );
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void RentrantOnlyCheck()
         {
-            if( _enteredThreadId != Thread.CurrentThread.ManagedThreadId ) throw new InvalidOperationException( ActivityMonitorResources.ActivityMonitorReentrancyCallOnly );
+            if( _enteredThreadId != Environment.CurrentManagedThreadId ) ThrowHelper.ThrowInvalidOperationException( ActivityMonitorResources.ActivityMonitorReentrancyCallOnly );
         }
 
         void ReentrantAndConcurrentCheck()
         {
-            int currentThreadId = Thread.CurrentThread.ManagedThreadId;
+            int currentThreadId = Environment.CurrentManagedThreadId;
             int alreadyEnteredId;
             if( (alreadyEnteredId = Interlocked.CompareExchange( ref _enteredThreadId, currentThreadId, 0 )) != 0 )
             {
@@ -896,7 +894,7 @@ namespace CK.Core
         /// <returns>False for a reentrant call, true otherwise.</returns>
         bool ConcurrentOnlyCheck()
         {
-            int currentThreadId = Thread.CurrentThread.ManagedThreadId;
+            int currentThreadId = Environment.CurrentManagedThreadId;
             int alreadyEnteredId;
             if( (alreadyEnteredId = Interlocked.CompareExchange( ref _enteredThreadId, currentThreadId, 0 )) != 0 )
             {
@@ -916,7 +914,7 @@ namespace CK.Core
             return true;
         }
 
-        private void ThrowConcurrentThreadAccessException( string messageFormat, int alreadyEnteredId, int currentThreadId )
+        void ThrowConcurrentThreadAccessException( string messageFormat, int alreadyEnteredId, int currentThreadId )
         {
             StackTrace? t = _currentStackTrace;
             while( _trackStackTrace && t == null )
@@ -935,17 +933,17 @@ namespace CK.Core
             {
                 DoReplayInternalLogs();
             }
-            // Reset and check even in Release.
-            int currentThreadId = Thread.CurrentThread.ManagedThreadId;
-            int alreadyEnteredId = Interlocked.CompareExchange( ref _enteredThreadId, 0, currentThreadId );
-            if( alreadyEnteredId != currentThreadId )
-            {
-                ThrowConcurrentThreadAccessException( ActivityMonitorResources.ActivityMonitorReentrancyReleaseError, alreadyEnteredId, currentThreadId );
-            }
             _currentStackTrace = null;
+#if DEBUG
+            int currentThreadId = Environment.CurrentManagedThreadId;
+            int alreadyEnteredId = Interlocked.CompareExchange( ref _enteredThreadId, 0, currentThreadId );
+            Debug.Assert( alreadyEnteredId == currentThreadId, $"Internal error on Monitor '{_uniqueId}': Error during release reentrancy operation. Current Thread n°{alreadyEnteredId} is trying to exit it but Thread {currentThreadId} entered it." );
+#else
+            Interlocked.Exchange( ref _enteredThreadId, 0 );
+#endif
         }
 
-        string AddCurrentStackTrace( string msg, StackTrace trace )
+        static string AddCurrentStackTrace( string msg, StackTrace trace )
         {
             bool inLogs = false;
             StringBuilder b = new StringBuilder( msg );

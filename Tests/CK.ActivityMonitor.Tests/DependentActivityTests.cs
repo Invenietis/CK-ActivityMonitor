@@ -2,6 +2,7 @@ using FluentAssertions;
 using System;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using System.Diagnostics;
 
 namespace CK.Core.Tests.Monitoring
 {
@@ -104,11 +105,11 @@ namespace CK.Core.Tests.Monitoring
             else
             {
                 m.Trace( $"Generating time collision required {loopNeeded} loops." );
-                string launchMessage = cLaunch.Entries[loopNeeded].Text;
+                string launchMessage = cLaunch.Entries[loopNeeded].Data.Text;
                 {
                     bool launched;
                     bool launchWithTopic;
-                    string launchDependentTopic;
+                    string? launchDependentTopic;
                     ActivityMonitor.DependentToken.TryParseLaunchOrCreateMessage( launchMessage, out launched, out launchWithTopic, out launchDependentTopic )
                        .Should().BeTrue();
                     launched.Should().BeFalse( "We used CreateToken." );
@@ -120,17 +121,17 @@ namespace CK.Core.Tests.Monitoring
                 {
                     ActivityMonitor.DependentToken t2 = ActivityMonitor.DependentToken.Parse( tokenToString );
                     t2.OriginatorId.Should().Be( ((IUniqueId)m).UniqueId );
-                    t2.CreationDate.Should().Be( cLaunch.Entries[loopNeeded].LogTime, "CreationDate is the time of the log entry." );
+                    t2.CreationDate.Should().Be( cLaunch.Entries[loopNeeded].Data.LogTime, "CreationDate is the time of the log entry." );
                     t2.Topic.Should().Be( "Test..." );
                 }
                 StupidStringClient.Entry[] logs = RunDependentActivity( token );
                 {
-                    logs[0].Text.Should().Be( ActivityMonitor.SetTopicPrefix + "Test..." );
+                    logs[0].Data.Text.Should().Be( ActivityMonitor.SetTopicPrefix + "Test..." );
                     Guid id;
                     DateTimeStamp time;
-                    ActivityMonitor.DependentToken.TryParseStartMessage( logs[1].Text, out id, out time ).Should().BeTrue();
+                    ActivityMonitor.DependentToken.TryParseStartMessage( logs[1].Data.Text, out id, out time ).Should().BeTrue();
                     id.Should().Be( ((IUniqueId)m).UniqueId );
-                    time.Should().Be( cLaunch.Entries[loopNeeded].LogTime );
+                    time.Should().Be( cLaunch.Entries[loopNeeded].Data.LogTime );
                 }
             }
 
@@ -141,17 +142,17 @@ namespace CK.Core.Tests.Monitoring
         {
             ActivityMonitor m = new ActivityMonitor( applyAutoConfigurations: false );
             StupidStringClient cLaunch = m.Output.RegisterClient( new StupidStringClient() );
-            StupidStringClient.Entry[] dependentLogs = null;
+            StupidStringClient.Entry[]? dependentLogs = null;
 
             string dependentTopic = "A topic 'with' quotes '-\"..." + Environment.NewLine + " and multi-line";
             dependentLogs = LaunchAndRunDependentActivityWithTopic( m, dependentTopic );
 
-            string launchMessage = cLaunch.Entries[0].Text;
-            string topicSetMessage = dependentLogs[0].Text;
-            string startMessage = dependentLogs[1].Text;
+            string launchMessage = cLaunch.Entries[0].Data.Text;
+            string topicSetMessage = dependentLogs[0].Data.Text;
+            string startMessage = dependentLogs[1].Data.Text;
 
             topicSetMessage.Should().Be( ActivityMonitor.SetTopicPrefix + dependentTopic );
-            dependentLogs[2].Text.Should().Be( "Hello!" );
+            dependentLogs[2].Data.Text.Should().Be( "Hello!" );
 
             launchMessage.Should().StartWith( "Launching dependent activity" );
             bool launched;
@@ -167,21 +168,22 @@ namespace CK.Core.Tests.Monitoring
             DateTimeStamp time;
             ActivityMonitor.DependentToken.TryParseStartMessage( startMessage, out id, out time ).Should().BeTrue();
             id.Should().Be( ((IUniqueId)m).UniqueId );
-            time.Should().Be( cLaunch.Entries[0].LogTime );
+            time.Should().Be( cLaunch.Entries[0].Data.LogTime );
         }
 
         private static StupidStringClient.Entry[] LaunchAndRunDependentActivityWithTopic( ActivityMonitor m, string dependentTopic )
         {
-            StupidStringClient.Entry[] dependentLogs = null;
+            StupidStringClient.Entry[]? dependentLogs = null;
             m.DependentActivity().LaunchWithTopic( token => { dependentLogs = RunDependentActivity( token ); }, dependentTopic );
+            Debug.Assert( dependentLogs != null );
             return dependentLogs;
         }
 
         private static StupidStringClient.Entry[] RunDependentActivity( ActivityMonitor.DependentToken token )
         {
-            string depMonitorTopic = null;
-            StupidStringClient.Entry[] dependentLogs = null;
-            var task = Task.Factory.StartNew( t =>
+            string? depMonitorTopic = null;
+            StupidStringClient.Entry[]? dependentLogs = null;
+            var task = Task.Run( () =>
             {
                 StupidStringClient cStarted = new StupidStringClient();
                 var depMonitor = new ActivityMonitor();
@@ -192,7 +194,7 @@ namespace CK.Core.Tests.Monitoring
                     depMonitor.Trace( "Hello!" );
                 }
                 dependentLogs = cStarted.Entries.ToArray();
-            }, token );
+            } );
             task.Wait();
             depMonitorTopic.Should().Be( token.Topic );
             return dependentLogs;

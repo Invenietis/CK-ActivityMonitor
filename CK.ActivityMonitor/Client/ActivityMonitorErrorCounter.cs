@@ -246,7 +246,7 @@ namespace CK.Core
         /// Updates error counters.
         /// </summary>
         /// <param name="data">Log data. Never null.</param>
-        protected override void OnUnfilteredLog( ActivityMonitorLogData data )
+        protected override void OnUnfilteredLog( ref ActivityMonitorLogData data )
         {
             _current.CatchLevel( data.Level & LogLevel.Mask );
         }
@@ -258,7 +258,7 @@ namespace CK.Core
         protected override void OnOpenGroup( IActivityLogGroup group )
         {
             _current = new State( _current );
-            _current.CatchLevel( group.MaskedGroupLevel );
+            _current.CatchLevel( group.Data.MaskedLevel );
         }
 
         /// <summary>

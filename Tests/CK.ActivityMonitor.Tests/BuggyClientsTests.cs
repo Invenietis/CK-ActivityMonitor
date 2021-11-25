@@ -89,7 +89,7 @@ namespace CK.Core.Tests.Monitoring
                 ThrowOn( BugCall.OnGroupClosing );
             }
 
-            protected override void OnUnfilteredLog( ActivityMonitorLogData data )
+            protected override void OnUnfilteredLog( ref ActivityMonitorLogData data )
             {
                 ThrowOn( BugCall.OnUnfilteredLog );
             }

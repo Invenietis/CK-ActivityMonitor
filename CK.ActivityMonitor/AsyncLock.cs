@@ -258,9 +258,12 @@ namespace CK.Core
             }
         }
 
-        static bool ShouldLog( IActivityMonitor monitor ) => monitor.ShouldLogLine( LogLevel.Debug );
+        static bool ShouldLog( IActivityMonitor monitor ) => monitor.ShouldLogLine( LogLevel.Debug, null, out _ );
 
-        static void SendLine( IActivityMonitor monitor, string text ) => monitor.UnfilteredLog( null, LogLevel.Debug | LogLevel.IsFiltered, text, monitor.NextLogTime(), null );
+        static void SendLine( IActivityMonitor monitor, string text ) => monitor.UnfilteredLog( LogLevel.Debug | LogLevel.IsFiltered,
+                                                                                                ActivityMonitor.Tags.Empty,
+                                                                                                text,
+                                                                                                null );
 
         /// <summary>
         /// Overridden to return the name of this lock.

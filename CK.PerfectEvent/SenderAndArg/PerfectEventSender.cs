@@ -160,9 +160,9 @@ namespace CK.PerfectEvent
             }
             catch( Exception ex )
             {
-                if( monitor.ShouldLogLine( LogLevel.Error, fileName, lineNumber ) )
+                if( monitor.ShouldLogLine( LogLevel.Error, null, out var finalTags ) )
                 {
-                    monitor.UnfilteredLog( null, LogLevel.Error, $"While raising event '{e}'.", monitor.NextLogTime(), ex, fileName, lineNumber );
+                    monitor.UnfilteredLog( LogLevel.Error, finalTags, $"While raising event '{e}'.", ex, fileName, lineNumber );
                 }
                 return false;
             }

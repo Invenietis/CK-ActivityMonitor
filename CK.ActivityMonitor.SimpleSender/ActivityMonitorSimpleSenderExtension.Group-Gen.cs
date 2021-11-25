@@ -14,93 +14,61 @@ namespace CK.Core
 		/// <summary>
         /// Opens a <see cref="LogLevel.Debug"/> group with an exception. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityMonitor.AutoTags"/>),
+        /// it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenDebug( this IActivityMonitor @this, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static IDisposableGroup OpenDebug( this IActivityMonitor monitor, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Debug, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Debug | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, null, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Debug, null, out var finalTags )
+                                                ? new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                                : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Debug"/> group with a text message. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityMonitor.AutoTags"/>),
+        /// it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenDebug( this IActivityMonitor @this, string? text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static IDisposableGroup OpenDebug( this IActivityMonitor monitor, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Debug, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Debug | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text, @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Debug, null, out var finalTags )
+                                                ? new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                                : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Debug"/> group with a text message associated to an exception. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityMonitor.AutoTags"/>),
+        /// it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenDebug( this IActivityMonitor @this, string? text, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static IDisposableGroup OpenDebug( this IActivityMonitor monitor, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Debug, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Debug | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Debug"/> group with a text message built only if the group must be emitted. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenDebug( this IActivityMonitor @this, Func<string?>? text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Debug, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Debug | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text?.Invoke(), @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Debug"/> group with a text message built only if the group must be emitted and an exception. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="ex">The exception to log.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenDebug( this IActivityMonitor @this, Func<string?>? text, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Debug, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Debug | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text?.Invoke(), @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Debug, null, out var finalTags )
+                                                ? new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                                : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
         #region Debug with tags.
@@ -108,98 +76,63 @@ namespace CK.Core
 		/// <summary>
         /// Opens a <see cref="LogLevel.Debug"/> group with an exception and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and
+        /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="ex">The exception to log.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="tags">The tags for this log.</param>
+        /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenDebug( this IActivityMonitor @this, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IDisposableGroup OpenDebug( this IActivityMonitor monitor, CKTrait tags, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Debug, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Debug | LogLevel.IsFiltered, tags, null, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Debug, tags, out var finalTags )
+                                               ? new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                               : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Debug"/> group with a text message and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and
+        /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">The text to log.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="tags">The tags for this log.</param>
+        /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenDebug( this IActivityMonitor @this, string? text, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static IDisposableGroup OpenDebug( this IActivityMonitor monitor, CKTrait tags, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Debug, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Debug | LogLevel.IsFiltered, tags, text, @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Debug, tags, out var finalTags )
+                                               ? new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                               : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Debug"/> group with a text message associated to an exception and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and
+        /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="tags">The tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
-        /// <param name="tags">The tags for this log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenDebug( this IActivityMonitor @this, string? text, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static IDisposableGroup OpenDebug( this IActivityMonitor monitor, CKTrait tags, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Debug, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Debug | LogLevel.IsFiltered, tags, text, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Debug"/> group with a text message built only if the group must be emitted and tags. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="tags">The tags for this group.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenDebug( this IActivityMonitor @this, Func<string?>? text, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Debug, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Debug | LogLevel.IsFiltered, tags, text?.Invoke(), @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Debug"/> group with a text message built only if the group must be emitted, an exception and tags. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="ex">The exception to log.</param>
-        /// <param name="tags">The tags for this group.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenDebug( this IActivityMonitor @this, Func<string?>? text, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Debug, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Debug | LogLevel.IsFiltered, tags, text?.Invoke(), @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Debug, tags, out var finalTags )
+                                               ? new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                               : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
         #endregion
@@ -208,93 +141,61 @@ namespace CK.Core
 		/// <summary>
         /// Opens a <see cref="LogLevel.Trace"/> group with an exception. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityMonitor.AutoTags"/>),
+        /// it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenTrace( this IActivityMonitor @this, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static IDisposableGroup OpenTrace( this IActivityMonitor monitor, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Trace, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Trace | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, null, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Trace, null, out var finalTags )
+                                                ? new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                                : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Trace"/> group with a text message. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityMonitor.AutoTags"/>),
+        /// it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenTrace( this IActivityMonitor @this, string? text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static IDisposableGroup OpenTrace( this IActivityMonitor monitor, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Trace, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Trace | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text, @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Trace, null, out var finalTags )
+                                                ? new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                                : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Trace"/> group with a text message associated to an exception. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityMonitor.AutoTags"/>),
+        /// it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenTrace( this IActivityMonitor @this, string? text, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static IDisposableGroup OpenTrace( this IActivityMonitor monitor, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Trace, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Trace | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Trace"/> group with a text message built only if the group must be emitted. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenTrace( this IActivityMonitor @this, Func<string?>? text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Trace, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Trace | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text?.Invoke(), @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Trace"/> group with a text message built only if the group must be emitted and an exception. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="ex">The exception to log.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenTrace( this IActivityMonitor @this, Func<string?>? text, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Trace, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Trace | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text?.Invoke(), @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Trace, null, out var finalTags )
+                                                ? new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                                : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
         #region Trace with tags.
@@ -302,98 +203,63 @@ namespace CK.Core
 		/// <summary>
         /// Opens a <see cref="LogLevel.Trace"/> group with an exception and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and
+        /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="ex">The exception to log.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="tags">The tags for this log.</param>
+        /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenTrace( this IActivityMonitor @this, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IDisposableGroup OpenTrace( this IActivityMonitor monitor, CKTrait tags, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Trace, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Trace | LogLevel.IsFiltered, tags, null, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Trace, tags, out var finalTags )
+                                               ? new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                               : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Trace"/> group with a text message and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and
+        /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">The text to log.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="tags">The tags for this log.</param>
+        /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenTrace( this IActivityMonitor @this, string? text, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static IDisposableGroup OpenTrace( this IActivityMonitor monitor, CKTrait tags, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Trace, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Trace | LogLevel.IsFiltered, tags, text, @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Trace, tags, out var finalTags )
+                                               ? new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                               : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Trace"/> group with a text message associated to an exception and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and
+        /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="tags">The tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
-        /// <param name="tags">The tags for this log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenTrace( this IActivityMonitor @this, string? text, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static IDisposableGroup OpenTrace( this IActivityMonitor monitor, CKTrait tags, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Trace, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Trace | LogLevel.IsFiltered, tags, text, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Trace"/> group with a text message built only if the group must be emitted and tags. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="tags">The tags for this group.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenTrace( this IActivityMonitor @this, Func<string?>? text, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Trace, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Trace | LogLevel.IsFiltered, tags, text?.Invoke(), @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Trace"/> group with a text message built only if the group must be emitted, an exception and tags. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="ex">The exception to log.</param>
-        /// <param name="tags">The tags for this group.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenTrace( this IActivityMonitor @this, Func<string?>? text, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Trace, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Trace | LogLevel.IsFiltered, tags, text?.Invoke(), @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Trace, tags, out var finalTags )
+                                               ? new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                               : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
         #endregion
@@ -402,93 +268,61 @@ namespace CK.Core
 		/// <summary>
         /// Opens a <see cref="LogLevel.Info"/> group with an exception. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityMonitor.AutoTags"/>),
+        /// it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenInfo( this IActivityMonitor @this, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static IDisposableGroup OpenInfo( this IActivityMonitor monitor, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Info, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Info | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, null, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Info, null, out var finalTags )
+                                                ? new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                                : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Info"/> group with a text message. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityMonitor.AutoTags"/>),
+        /// it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenInfo( this IActivityMonitor @this, string? text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static IDisposableGroup OpenInfo( this IActivityMonitor monitor, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Info, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Info | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text, @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Info, null, out var finalTags )
+                                                ? new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                                : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Info"/> group with a text message associated to an exception. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityMonitor.AutoTags"/>),
+        /// it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenInfo( this IActivityMonitor @this, string? text, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static IDisposableGroup OpenInfo( this IActivityMonitor monitor, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Info, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Info | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Info"/> group with a text message built only if the group must be emitted. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenInfo( this IActivityMonitor @this, Func<string?>? text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Info, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Info | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text?.Invoke(), @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Info"/> group with a text message built only if the group must be emitted and an exception. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="ex">The exception to log.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenInfo( this IActivityMonitor @this, Func<string?>? text, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Info, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Info | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text?.Invoke(), @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Info, null, out var finalTags )
+                                                ? new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                                : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
         #region Info with tags.
@@ -496,98 +330,63 @@ namespace CK.Core
 		/// <summary>
         /// Opens a <see cref="LogLevel.Info"/> group with an exception and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and
+        /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="ex">The exception to log.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="tags">The tags for this log.</param>
+        /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenInfo( this IActivityMonitor @this, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IDisposableGroup OpenInfo( this IActivityMonitor monitor, CKTrait tags, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Info, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Info | LogLevel.IsFiltered, tags, null, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Info, tags, out var finalTags )
+                                               ? new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                               : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Info"/> group with a text message and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and
+        /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">The text to log.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="tags">The tags for this log.</param>
+        /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenInfo( this IActivityMonitor @this, string? text, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static IDisposableGroup OpenInfo( this IActivityMonitor monitor, CKTrait tags, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Info, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Info | LogLevel.IsFiltered, tags, text, @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Info, tags, out var finalTags )
+                                               ? new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                               : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Info"/> group with a text message associated to an exception and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and
+        /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="tags">The tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
-        /// <param name="tags">The tags for this log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenInfo( this IActivityMonitor @this, string? text, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static IDisposableGroup OpenInfo( this IActivityMonitor monitor, CKTrait tags, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Info, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Info | LogLevel.IsFiltered, tags, text, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Info"/> group with a text message built only if the group must be emitted and tags. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="tags">The tags for this group.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenInfo( this IActivityMonitor @this, Func<string?>? text, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Info, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Info | LogLevel.IsFiltered, tags, text?.Invoke(), @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Info"/> group with a text message built only if the group must be emitted, an exception and tags. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="ex">The exception to log.</param>
-        /// <param name="tags">The tags for this group.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenInfo( this IActivityMonitor @this, Func<string?>? text, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Info, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Info | LogLevel.IsFiltered, tags, text?.Invoke(), @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Info, tags, out var finalTags )
+                                               ? new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                               : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
         #endregion
@@ -596,93 +395,61 @@ namespace CK.Core
 		/// <summary>
         /// Opens a <see cref="LogLevel.Warn"/> group with an exception. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityMonitor.AutoTags"/>),
+        /// it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenWarn( this IActivityMonitor @this, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static IDisposableGroup OpenWarn( this IActivityMonitor monitor, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Warn, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Warn | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, null, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Warn, null, out var finalTags )
+                                                ? new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                                : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Warn"/> group with a text message. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityMonitor.AutoTags"/>),
+        /// it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenWarn( this IActivityMonitor @this, string? text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static IDisposableGroup OpenWarn( this IActivityMonitor monitor, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Warn, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Warn | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text, @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Warn, null, out var finalTags )
+                                                ? new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                                : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Warn"/> group with a text message associated to an exception. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityMonitor.AutoTags"/>),
+        /// it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenWarn( this IActivityMonitor @this, string? text, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static IDisposableGroup OpenWarn( this IActivityMonitor monitor, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Warn, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Warn | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Warn"/> group with a text message built only if the group must be emitted. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenWarn( this IActivityMonitor @this, Func<string?>? text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Warn, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Warn | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text?.Invoke(), @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Warn"/> group with a text message built only if the group must be emitted and an exception. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="ex">The exception to log.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenWarn( this IActivityMonitor @this, Func<string?>? text, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Warn, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Warn | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text?.Invoke(), @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Warn, null, out var finalTags )
+                                                ? new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                                : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
         #region Warn with tags.
@@ -690,98 +457,63 @@ namespace CK.Core
 		/// <summary>
         /// Opens a <see cref="LogLevel.Warn"/> group with an exception and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and
+        /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="ex">The exception to log.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="tags">The tags for this log.</param>
+        /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenWarn( this IActivityMonitor @this, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IDisposableGroup OpenWarn( this IActivityMonitor monitor, CKTrait tags, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Warn, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Warn | LogLevel.IsFiltered, tags, null, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Warn, tags, out var finalTags )
+                                               ? new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                               : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Warn"/> group with a text message and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and
+        /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">The text to log.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="tags">The tags for this log.</param>
+        /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenWarn( this IActivityMonitor @this, string? text, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static IDisposableGroup OpenWarn( this IActivityMonitor monitor, CKTrait tags, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Warn, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Warn | LogLevel.IsFiltered, tags, text, @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Warn, tags, out var finalTags )
+                                               ? new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                               : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Warn"/> group with a text message associated to an exception and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and
+        /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="tags">The tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
-        /// <param name="tags">The tags for this log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenWarn( this IActivityMonitor @this, string? text, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static IDisposableGroup OpenWarn( this IActivityMonitor monitor, CKTrait tags, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Warn, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Warn | LogLevel.IsFiltered, tags, text, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Warn"/> group with a text message built only if the group must be emitted and tags. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="tags">The tags for this group.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenWarn( this IActivityMonitor @this, Func<string?>? text, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Warn, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Warn | LogLevel.IsFiltered, tags, text?.Invoke(), @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Warn"/> group with a text message built only if the group must be emitted, an exception and tags. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="ex">The exception to log.</param>
-        /// <param name="tags">The tags for this group.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenWarn( this IActivityMonitor @this, Func<string?>? text, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Warn, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Warn | LogLevel.IsFiltered, tags, text?.Invoke(), @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Warn, tags, out var finalTags )
+                                               ? new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                               : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
         #endregion
@@ -790,93 +522,61 @@ namespace CK.Core
 		/// <summary>
         /// Opens a <see cref="LogLevel.Error"/> group with an exception. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityMonitor.AutoTags"/>),
+        /// it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenError( this IActivityMonitor @this, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static IDisposableGroup OpenError( this IActivityMonitor monitor, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Error, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Error | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, null, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Error, null, out var finalTags )
+                                                ? new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                                : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Error"/> group with a text message. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityMonitor.AutoTags"/>),
+        /// it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenError( this IActivityMonitor @this, string? text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static IDisposableGroup OpenError( this IActivityMonitor monitor, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Error, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Error | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text, @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Error, null, out var finalTags )
+                                                ? new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                                : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Error"/> group with a text message associated to an exception. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityMonitor.AutoTags"/>),
+        /// it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenError( this IActivityMonitor @this, string? text, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static IDisposableGroup OpenError( this IActivityMonitor monitor, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Error, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Error | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Error"/> group with a text message built only if the group must be emitted. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenError( this IActivityMonitor @this, Func<string?>? text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Error, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Error | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text?.Invoke(), @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Error"/> group with a text message built only if the group must be emitted and an exception. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="ex">The exception to log.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenError( this IActivityMonitor @this, Func<string?>? text, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Error, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Error | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text?.Invoke(), @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Error, null, out var finalTags )
+                                                ? new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                                : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
         #region Error with tags.
@@ -884,98 +584,63 @@ namespace CK.Core
 		/// <summary>
         /// Opens a <see cref="LogLevel.Error"/> group with an exception and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and
+        /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="ex">The exception to log.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="tags">The tags for this log.</param>
+        /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenError( this IActivityMonitor @this, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IDisposableGroup OpenError( this IActivityMonitor monitor, CKTrait tags, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Error, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Error | LogLevel.IsFiltered, tags, null, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Error, tags, out var finalTags )
+                                               ? new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                               : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Error"/> group with a text message and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and
+        /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">The text to log.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="tags">The tags for this log.</param>
+        /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenError( this IActivityMonitor @this, string? text, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static IDisposableGroup OpenError( this IActivityMonitor monitor, CKTrait tags, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Error, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Error | LogLevel.IsFiltered, tags, text, @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Error, tags, out var finalTags )
+                                               ? new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                               : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Error"/> group with a text message associated to an exception and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and
+        /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="tags">The tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
-        /// <param name="tags">The tags for this log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenError( this IActivityMonitor @this, string? text, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static IDisposableGroup OpenError( this IActivityMonitor monitor, CKTrait tags, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Error, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Error | LogLevel.IsFiltered, tags, text, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Error"/> group with a text message built only if the group must be emitted and tags. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="tags">The tags for this group.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenError( this IActivityMonitor @this, Func<string?>? text, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Error, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Error | LogLevel.IsFiltered, tags, text?.Invoke(), @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Error"/> group with a text message built only if the group must be emitted, an exception and tags. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="ex">The exception to log.</param>
-        /// <param name="tags">The tags for this group.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenError( this IActivityMonitor @this, Func<string?>? text, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Error, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Error | LogLevel.IsFiltered, tags, text?.Invoke(), @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Error, tags, out var finalTags )
+                                               ? new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                               : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
         #endregion
@@ -984,93 +649,61 @@ namespace CK.Core
 		/// <summary>
         /// Opens a <see cref="LogLevel.Fatal"/> group with an exception. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityMonitor.AutoTags"/>),
+        /// it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenFatal( this IActivityMonitor @this, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static IDisposableGroup OpenFatal( this IActivityMonitor monitor, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Fatal, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Fatal | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, null, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Fatal, null, out var finalTags )
+                                                ? new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                                : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Fatal"/> group with a text message. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityMonitor.AutoTags"/>),
+        /// it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenFatal( this IActivityMonitor @this, string? text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static IDisposableGroup OpenFatal( this IActivityMonitor monitor, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Fatal, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Fatal | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text, @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Fatal, null, out var finalTags )
+                                                ? new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                                : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Fatal"/> group with a text message associated to an exception. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityMonitor.AutoTags"/>),
+        /// it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenFatal( this IActivityMonitor @this, string? text, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static IDisposableGroup OpenFatal( this IActivityMonitor monitor, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Fatal, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Fatal | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Fatal"/> group with a text message built only if the group must be emitted. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenFatal( this IActivityMonitor @this, Func<string?>? text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Fatal, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Fatal | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text?.Invoke(), @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Fatal"/> group with a text message built only if the group must be emitted and an exception. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="ex">The exception to log.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenFatal( this IActivityMonitor @this, Func<string?>? text, Exception? ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Fatal, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Fatal | LogLevel.IsFiltered, ActivityMonitor.Tags.Empty, text?.Invoke(), @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Fatal, null, out var finalTags )
+                                                ? new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                                : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
         #region Fatal with tags.
@@ -1078,98 +711,63 @@ namespace CK.Core
 		/// <summary>
         /// Opens a <see cref="LogLevel.Fatal"/> group with an exception and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and
+        /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="ex">The exception to log.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="tags">The tags for this log.</param>
+        /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenFatal( this IActivityMonitor @this, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IDisposableGroup OpenFatal( this IActivityMonitor monitor, CKTrait tags, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Fatal, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Fatal | LogLevel.IsFiltered, tags, null, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Fatal, tags, out var finalTags )
+                                               ? new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                               : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Fatal"/> group with a text message and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and
+        /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">The text to log.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="tags">The tags for this log.</param>
+        /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenFatal( this IActivityMonitor @this, string? text, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static IDisposableGroup OpenFatal( this IActivityMonitor monitor, CKTrait tags, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Fatal, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Fatal | LogLevel.IsFiltered, tags, text, @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Fatal, tags, out var finalTags )
+                                               ? new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                               : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
 		/// <summary>
         /// Opens a <see cref="LogLevel.Fatal"/> group with a text message associated to an exception and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and
+        /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="tags">The tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
-        /// <param name="tags">The tags for this log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenFatal( this IActivityMonitor @this, string? text, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static IDisposableGroup OpenFatal( this IActivityMonitor monitor, CKTrait tags, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Fatal, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Fatal | LogLevel.IsFiltered, tags, text, @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Fatal"/> group with a text message built only if the group must be emitted and tags. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="tags">The tags for this group.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenFatal( this IActivityMonitor @this, Func<string?>? text, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Fatal, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Fatal | LogLevel.IsFiltered, tags, text?.Invoke(), @this.NextLogTime(), null, null, fileName, lineNumber )
-                                                : null );
-        }
-
-		/// <summary>
-        /// Opens a <see cref="LogLevel.Fatal"/> group with a text message built only if the group must be emitted, an exception and tags. 
-        /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="fileName"/> 
-        /// and <paramref name="lineNumber"/>), it must always be closed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="text">A function (that will be called only if required) that returns the text to log.</param>
-        /// <param name="ex">The exception to log.</param>
-        /// <param name="tags">The tags for this group.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup OpenFatal( this IActivityMonitor @this, Func<string?>? text, Exception? ex, CKTrait? tags, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
-        {
-            return @this.UnfilteredOpenGroup( @this.ShouldLogGroup( LogLevel.Fatal, fileName, lineNumber ) 
-                                                ? new ActivityMonitorGroupData( LogLevel.Fatal | LogLevel.IsFiltered, tags, text?.Invoke(), @this.NextLogTime(), ex, null, fileName, lineNumber )
-                                                : null );
+            var d = monitor.ShouldLogGroup( LogLevel.Fatal, tags, out var finalTags )
+                                               ? new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                               : default;
+            return monitor.UnfilteredOpenGroup( ref d );
         }
 
         #endregion
@@ -1177,3 +775,4 @@ namespace CK.Core
 		 
 	}
 }
+

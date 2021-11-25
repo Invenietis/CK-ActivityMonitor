@@ -145,7 +145,7 @@ namespace CK.Core
         /// and handles errors or warning.
         /// </summary>
         /// <param name="data">Log data. Never null.</param>
-        protected override void OnUnfilteredLog( ActivityMonitorLogData data )
+        protected override void OnUnfilteredLog( ref ActivityMonitorLogData data )
         {
             if( data.Text != ActivityMonitor.ParkLevel )
             {
@@ -177,9 +177,9 @@ namespace CK.Core
                 _path.Add( _current );
             }
             _currentIsGroup = true;
-            _current.Tags = group.GroupTags;
-            _current.MaskedLevel = group.MaskedGroupLevel;
-            _current.Text = group.GroupText;
+            _current.Tags = group.Data.Tags;
+            _current.MaskedLevel = group.Data.MaskedLevel;
+            _current.Text = group.Data.Text;
             CheckSnapshot();
         }
 

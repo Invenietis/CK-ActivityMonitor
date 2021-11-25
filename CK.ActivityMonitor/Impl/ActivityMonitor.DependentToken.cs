@@ -1,3 +1,4 @@
+using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -66,9 +67,7 @@ namespace CK.Core
             {
                 t = null;
                 StringMatcher m = new StringMatcher( s );
-                Guid id;
-                DateTimeStamp time;
-                if( MatchOriginatorAndTime( m, out id, out time ) && m.TryMatchText( " with" ) )
+                if( MatchOriginatorAndTime( m, out Guid id, out DateTimeStamp time ) && m.TryMatchText( " with" ) )
                 {
                     if( ExtractTopic( s, m.StartIndex, out string? topic ) )
                     {
@@ -87,8 +86,7 @@ namespace CK.Core
             /// <returns>The resulting dependent token.</returns>
             static public DependentToken Parse( string s )
             {
-                DependentToken? t;
-                if( !TryParse( s, out t ) ) throw new FormatException( "Invalid Dependent token string." );
+                if( !TryParse( s, out DependentToken? t ) ) ThrowHelper.ThrowFormatException( "Invalid Dependent token string." );
                 return t;
             }
 
@@ -102,7 +100,7 @@ namespace CK.Core
             /// <returns>True on success.</returns>
             public static bool TryParseLaunchOrCreateMessage( string message, out bool launched, out bool withTopic, out string? dependentTopic )
             {
-                if( message == null ) throw new ArgumentNullException();
+                Guard.IsNotNull( message, nameof(message) );
                 launched = false;
                 withTopic = false;
                 dependentTopic = null;
@@ -224,17 +222,17 @@ namespace CK.Core
                 return msg + '.';
             }
 
-            static internal IDisposable Start( ActivityMonitor.DependentToken token, IActivityMonitor monitor, string? fileName, int lineNumber )
+            static internal IDisposable Start( DependentToken token, IActivityMonitor monitor, string? fileName, int lineNumber )
             {
                 string msg = token.FormatStartMessage();
                 if( token.Topic != null )
                 {
                     string currentTopic = token.Topic;
                     monitor.SetTopic( token.Topic, fileName, lineNumber );
-                    var g = monitor.UnfilteredOpenGroup( Tags.StartDependentActivity, LogLevel.Info, null, msg, monitor.NextLogTime(), null, fileName, lineNumber );
+                    var g = monitor.UnfilteredOpenGroup( LogLevel.Info, Tags.StartDependentActivity, msg, null, fileName, lineNumber );
                     return Util.CreateDisposableAction( () => { g.Dispose(); monitor.SetTopic( currentTopic, fileName, lineNumber ); } );
                 }
-                return monitor.UnfilteredOpenGroup( Tags.StartDependentActivity, LogLevel.Info, null, msg, monitor.NextLogTime(), null, fileName, lineNumber );
+                return monitor.UnfilteredOpenGroup( LogLevel.Info, Tags.StartDependentActivity, msg, null, fileName, lineNumber );
             }
         }
     }

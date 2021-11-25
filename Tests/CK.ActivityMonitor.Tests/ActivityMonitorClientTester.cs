@@ -87,7 +87,7 @@ namespace CK.Core.Tests.Monitoring
             else _source = null;
         }
 
-        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorLogData data )
+        void IActivityMonitorClient.OnUnfilteredLog( ref ActivityMonitorLogData data )
         {
             data.FileName.Should().NotBeNullOrEmpty();
             Util.InterlockedAdd( ref _text, String.Format( "{0} {1} - {2} -[{3}]", new String( '>', _depth ), data.Level, data.Text, data.Tags ) );
@@ -95,9 +95,9 @@ namespace CK.Core.Tests.Monitoring
 
         void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group )
         {
-            group.FileName.Should().NotBeNullOrEmpty();
+            group.Data.FileName.Should().NotBeNullOrEmpty();
             int d = Interlocked.Increment( ref _depth );
-            Util.InterlockedAdd( ref _text, String.Format( "{0} {1} - {2} -[{3}]", new String( '>', d ), group.GroupLevel, group.GroupText, group.GroupTags ) );
+            Util.InterlockedAdd( ref _text, String.Format( "{0} {1} - {2} -[{3}]", new String( '>', d ), group.Data.Level, group.Data.Text, group.Data.Tags ) );
         }
 
         void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions )

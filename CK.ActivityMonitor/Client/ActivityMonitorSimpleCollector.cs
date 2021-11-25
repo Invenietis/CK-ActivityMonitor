@@ -140,28 +140,19 @@ namespace CK.Core
         /// </summary>
         public void Clear() => _entries.Clear();
 
+        void IActivityMonitorClient.OnUnfilteredLog( ref ActivityMonitorLogData data ) => OnLog( ref data );
+
+        void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group ) => OnLog( ref group.Data );
+
         /// <summary>
         /// Appends any log with level equal or above <see cref="MinimalFilter"/> to <see cref="Entries"/>.
         /// </summary>
         /// <param name="data">Log data. Never null.</param>
-        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorLogData data )
+        void OnLog( ref ActivityMonitorLogData data )
         {
-            var level = data.Level & LogLevel.Mask;
-            if( (int)level >= (int)_filter )
+            if( (int)data.MaskedLevel >= (int)_filter )
             {
-                _entries.Push( new Entry( data.Tags, level, data.Text, data.LogTime, data.Exception ) );
-            }
-        }
-
-        /// <summary>
-        /// Appends any group with level equal or above <see cref="MinimalFilter"/> to <see cref="Entries"/>.
-        /// </summary>
-        /// <param name="group">Log group description.</param>
-        void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group )
-        {
-            if( (int)group.MaskedGroupLevel >= (int)_filter )
-            {
-                _entries.Push( new Entry( group.GroupTags, group.MaskedGroupLevel, group.GroupText, group.LogTime, group.Exception ) );
+                _entries.Push( new Entry( data.Tags, data.MaskedLevel, data.Text, data.LogTime, data.Exception ) );
             }
         }
 
@@ -172,7 +163,6 @@ namespace CK.Core
         void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
         }
-
 
         void IActivityMonitorClient.OnTopicChanged( string newTopic, string? fileName, int lineNumber )
         {
