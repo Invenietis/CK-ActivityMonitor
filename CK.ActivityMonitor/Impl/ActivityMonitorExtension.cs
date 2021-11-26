@@ -46,20 +46,11 @@ namespace CK.Core
         /// <param name="tags">Optional tags on the line.</param>
         /// <param name="finalTags">Combined monitor's and line's tag.</param>
         /// <returns>True if the log should be emitted.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]  
         public static bool ShouldLogLine( this IActivityMonitor @this, LogLevel level, CKTrait? tags, out CKTrait finalTags )
         {
             finalTags = @this.AutoTags + tags;
-
-            //var h = ActivityMonitor.TagFilter.FilterTag;
-            //int combined = h == null ? 0 : (int)h( lineTags ).LineFilter;
-            //// Extract Override filter.
-            //int filter = (short)(combined >> 16);
-            //// If Override is undefined, combine the ActualFilter and Minimal source filter.
-            //if( filter <= 0 ) filter = (int)LogFilter.Combine( @this.ActualFilter.Line, (LogLevelFilter)(combined & 0xFFFF) );
-
-            int filter = (int)@this.ActualFilter.Line;
-            level &= LogLevel.Mask;
-            return filter <= 0 ? (int)ActivityMonitor.DefaultFilter.Line <= (int)level : filter <= (int)level;
+            return ActivityMonitor.TagFilter.ApplyForLine( finalTags, (int)@this.ActualFilter.Line, (int)level );
         }
 
         /// <summary>
@@ -71,20 +62,11 @@ namespace CK.Core
         /// <param name="tags">Optional tags on the group.</param>
         /// <param name="finalTags">Combined monitor's and group's tag.</param>
         /// <returns>True if the log should be emitted.</returns>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static bool ShouldLogGroup( this IActivityMonitor @this, LogLevel level, CKTrait? tags, out CKTrait finalTags )
         {
             finalTags = @this.AutoTags + tags;
-
-            //var h = ActivityMonitor.TagFilter.FilterTag;
-            //int combined = h == null ? 0 : (int)h( lineTags ).LineFilter;
-            //// Extract Override filter.
-            //int filter = (short)(combined >> 16);
-            //// If Override is undefined, combine the ActualFilter and Minimal source filter.
-            //if( filter <= 0 ) filter = (int)LogFilter.Combine( @this.ActualFilter.Line, (LogLevelFilter)(combined & 0xFFFF) );
-
-            int filter = (int)@this.ActualFilter.Line;
-            level &= LogLevel.Mask;
-            return filter <= 0 ? (int)ActivityMonitor.DefaultFilter.Line <= (int)level : filter <= (int)level;
+            return ActivityMonitor.TagFilter.ApplyForGroup( finalTags, (int)@this.ActualFilter.Group, (int)level );
         }
 
         /// <summary>

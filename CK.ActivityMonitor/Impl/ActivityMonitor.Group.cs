@@ -81,7 +81,7 @@ namespace CK.Core
                 _data = data;
 
                 SavedMonitorFilter = Monitor._configuredFilter;
-                SavedMonitorTags = Monitor._currentTag;
+                SavedMonitorTags = Monitor._autoTags;
                 SavedTrackStackTrace = Monitor._trackStackTrace;
                 if( (_unfilteredParent = Monitor._currentUnfiltered) != null ) _depth = _unfilteredParent._depth + 1;
                 else _depth = 1;
@@ -99,7 +99,7 @@ namespace CK.Core
             {
                 _data = default;
                 SavedMonitorFilter = Monitor._configuredFilter;
-                SavedMonitorTags = Monitor._currentTag;
+                SavedMonitorTags = Monitor._autoTags;
                 SavedTrackStackTrace = Monitor._trackStackTrace;
                 _unfilteredParent = Monitor._currentUnfiltered;
                 _depth = 0;

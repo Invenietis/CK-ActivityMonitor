@@ -116,29 +116,18 @@ namespace CK.Core
         static LogFilter _defaultFilterLevel;
 
         /// <summary>
-        /// Internal event used by ActivityMonitorBridgeTarget that have at least one ActivityMonitorBridge in another application domain.
-        /// </summary>
-        static internal event EventHandler? DefaultFilterLevelChanged;
-        static readonly object _lockDefaultFilterLevel;
-
-        /// <summary>
         /// Gets or sets the default filter that should be used when the <see cref="IActivityMonitor.ActualFilter"/> is <see cref="LogFilter.Undefined"/>.
         /// This configuration is per application domain (the backing field is static).
-        /// It defaults to <see cref="LogFilter.Trace"/>.
+        /// It defaults to <see cref="LogFilter.Trace"/> and must be fully defined: <see cref="LogFilter.Line"/> nor <see cref="LogFilter.Group"/>
+        /// can be <see cref="LogLevelFilter.None"/>.
         /// </summary>
         public static LogFilter DefaultFilter
         {
             get { return _defaultFilterLevel; }
             set
             {
-                lock( _lockDefaultFilterLevel )
-                {
-                    if( _defaultFilterLevel != value )
-                    {
-                        _defaultFilterLevel = value;
-                        DefaultFilterLevelChanged?.Invoke( null, EventArgs.Empty );
-                    }
-                }
+                if( value.Line == LogLevelFilter.None || value.Group == LogLevelFilter.None ) ThrowHelper.ThrowArgumentException( nameof( DefaultFilter ), "Line nor Group can be LogLevelFilter.None." );
+                _defaultFilterLevel = value;
             }
         }
 
@@ -159,22 +148,21 @@ namespace CK.Core
         {
             AutoConfiguration = null;
             _defaultFilterLevel = LogFilter.Trace;
-            _lockDefaultFilterLevel = new object();
         }
 
-        LogFilter _actualFilter;
-        LogFilter _configuredFilter;
-        LogFilter _clientFilter;
-        int _signalFlag;
         Group[] _groups;
         Group? _current;
         Group? _currentUnfiltered;
         readonly ActivityMonitorOutput _output;
-        CKTrait _currentTag;
-        int _enteredThreadId;
+        CKTrait _autoTags;
         string _topic;
         //
         volatile StackTrace? _currentStackTrace;
+        int _enteredThreadId;
+        int _signalFlag;
+        LogFilter _actualFilter;
+        LogFilter _configuredFilter;
+        LogFilter _clientFilter;
         bool _trackStackTrace;
 
         /// <summary>
@@ -239,8 +227,8 @@ namespace CK.Core
             _lastLogTime = new DateTimeStampProvider();
             _groups = new Group[8];
             for( int i = 0; i < _groups.Length; ++i ) _groups[i] = new Group( this, i );
-            _currentTag = tags ?? Tags.Empty;
-            _trackStackTrace = _currentTag.AtomicTraits.Contains( Tags.StackTrace );
+            _autoTags = tags ?? Tags.Empty;
+            _trackStackTrace = _autoTags.AtomicTraits.Contains( Tags.StackTrace );
             _topic = String.Empty;
             _output = new ActivityMonitorOutput( this );
             if( applyAutoConfigurations )
@@ -309,7 +297,7 @@ namespace CK.Core
         void SendTopicLogLine( [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
             var d = new ActivityMonitorLogData( LogLevel.Info,
-                                                _currentTag | Tags.MonitorTopicChanged,
+                                                _autoTags | Tags.MonitorTopicChanged,
                                                 SetTopicPrefix + _topic,
                                                 null,
                                                 fileName,
@@ -326,12 +314,12 @@ namespace CK.Core
         [AllowNull]
         public CKTrait AutoTags
         {
-            get { return _currentTag; }
+            get { return _autoTags; }
             set
             {
                 if( value == null ) value = Tags.Empty;
                 else if( value.Context != Tags.Context ) throw new ArgumentException( ActivityMonitorResources.ActivityMonitorTagMustBeRegistered, nameof( value ) );
-                if( _currentTag != value )
+                if( _autoTags != value )
                 {
                     ReentrantAndConcurrentCheck();
                     try
@@ -349,9 +337,9 @@ namespace CK.Core
         void DoSetAutoTags( CKTrait newTags )
         {
             Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
-            Debug.Assert( newTags != null && _currentTag != newTags && newTags.Context == Tags.Context );
-            _currentTag = newTags!;
-            _trackStackTrace = _currentTag.AtomicTraits.Contains( Tags.StackTrace );
+            Debug.Assert( newTags != null && _autoTags != newTags && newTags.Context == Tags.Context );
+            _autoTags = newTags!;
+            _trackStackTrace = _autoTags.AtomicTraits.Contains( Tags.StackTrace );
             _output.BridgeTarget.TargetAutoTagsChanged( newTags! );
             MonoParameterSafeCall( ( client, tags ) => client.OnAutoTagsChanged( tags! ), newTags );
         }
@@ -365,7 +353,7 @@ namespace CK.Core
         {
             RentrantOnlyCheck();
             if( newTopic != null && _topic != newTopic ) DoSetTopic( newTopic, fileName, lineNumber );
-            if( newTags != null && _currentTag != newTags ) DoSetAutoTags( newTags );
+            if( newTags != null && _autoTags != newTags ) DoSetAutoTags( newTags );
         }
 
         /// <summary>
@@ -714,7 +702,7 @@ namespace CK.Core
             if( g.IsRejectedGroup )
             {
                 if( g.SavedMonitorFilter != _configuredFilter ) DoSetConfiguredFilter( g.SavedMonitorFilter );
-                _currentTag = g.SavedMonitorTags;
+                _autoTags = g.SavedMonitorTags;
                 _trackStackTrace = g.SavedTrackStackTrace;
                 _current = g.Index > 0 ? _groups[g.Index - 1] : null;
             }
@@ -777,7 +765,7 @@ namespace CK.Core
                     buggyClients = null;
                 }
                 if( g.SavedMonitorFilter != _configuredFilter ) DoSetConfiguredFilter( g.SavedMonitorFilter );
-                _currentTag = g.SavedMonitorTags;
+                _autoTags = g.SavedMonitorTags;
                 _trackStackTrace = g.SavedTrackStackTrace;
                 _current = g.Index > 0 ? _groups[g.Index - 1] : null;
                 _currentUnfiltered = (Group?)g.Parent;

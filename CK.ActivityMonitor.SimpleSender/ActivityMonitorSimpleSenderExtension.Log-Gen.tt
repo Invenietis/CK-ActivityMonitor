@@ -210,8 +210,8 @@ namespace CK.Core
     namespace LogHandler
     {
        	<#
-			foreach( var level in new[]{ "Debug", "Trace", "Info", "Warn", "Error", "Fatal" } )
-			{
+		foreach( var level in new[]{ "Debug", "Trace", "Info", "Warn", "Error", "Fatal" } )
+		{
 		#> 
     /// <summary>
     /// Provides an interpolated string handler <#= level #> lines that only performs formatting if the log must be emitted.
@@ -291,7 +291,7 @@ namespace CK.Core
 
 
 		<#
-			}
+		}
 		#> 
     }
 }

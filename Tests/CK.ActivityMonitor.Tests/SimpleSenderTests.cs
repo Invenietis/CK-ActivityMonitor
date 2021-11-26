@@ -16,9 +16,9 @@ namespace CK.Core.Tests.Monitoring
             m.Log( LogLevel.Fatal, "Text1" );
             m.Log( LogLevel.Fatal, new Exception( "EX1" ) );
             m.Log( LogLevel.Fatal, "Text2", new Exception( "EX2" ) );
-            m.Log( LogLevel.Fatal, ActivityMonitor.Tags.Register( "Tag1" ), "Text3" );
-            m.Log( LogLevel.Fatal, ActivityMonitor.Tags.Register( "Tag2" ), "Text4", new Exception( "EX3" ) );
-            m.Log( LogLevel.Fatal, ActivityMonitor.Tags.Register( "Tag3" ), new Exception( "EX4" ) );
+            m.Log( LogLevel.Fatal, TestHelper.Tag1, "Text3" );
+            m.Log( LogLevel.Fatal, TestHelper.Tag2, "Text4", new Exception( "EX3" ) );
+            m.Log( LogLevel.Fatal, TestHelper.Tag3, new Exception( "EX4" ) );
             client.Entries.Where( e => e.Data.Level == (LogLevel.Fatal|LogLevel.IsFiltered) )
                             .Select( e => e.Data.Text + e.Data.Exception?.Message + e.Data.Tags )
                             .Concatenate()
@@ -33,10 +33,10 @@ namespace CK.Core.Tests.Monitoring
             m.Log( LogLevel.Fatal, $"Text1{hole}" );
             m.Log( LogLevel.Error, new Exception( "EX1" ) );
             m.Log( LogLevel.Warn, $"Text2{hole}", new Exception( "EX2" ) );
-            m.Log( LogLevel.Info, ActivityMonitor.Tags.Register( "Tag1" ), $"Text3{hole}" );
-            m.Log( LogLevel.Trace, ActivityMonitor.Tags.Register( "Tag2" ), $"Text4{hole}", new Exception( "EX3" ) );
+            m.Log( LogLevel.Info, TestHelper.Tag1, $"Text3{hole}" );
+            m.Log( LogLevel.Trace, TestHelper.Tag2, $"Text4{hole}", new Exception( "EX3" ) );
             // Filtered out (Trace level).
-            m.Log( LogLevel.Debug, ActivityMonitor.Tags.Register( "Tag3" ), new Exception( "EX4" ) );
+            m.Log( LogLevel.Debug, TestHelper.Tag3, new Exception( "EX4" ) );
             client.Entries.Select( e => e.Data.Text + e.Data.Exception?.Message + e.Data.Tags )
                           .Concatenate()
                 .Should().Be( $"Text1{hole}, EX1EX1, Text2{hole}EX2, Text3{hole}Tag1, Text4{hole}EX3Tag2" );
@@ -52,17 +52,17 @@ namespace CK.Core.Tests.Monitoring
             m.Info( "Text1" );
             m.Info( new Exception( "EX1" ) );
             m.Info( "Text2", new Exception( "EX2" ) );
-            m.Info( ActivityMonitor.Tags.Register( "Tag1" ), "Text3" );
-            m.Info( ActivityMonitor.Tags.Register( "Tag2" ), "Text4", new Exception( "EX3" ) );
-            m.Info( ActivityMonitor.Tags.Register( "Tag3" ), new Exception( "EX4" ) );
+            m.Info( TestHelper.Tag1, "Text3" );
+            m.Info( TestHelper.Tag2, "Text4", new Exception( "EX3" ) );
+            m.Info( TestHelper.Tag3, new Exception( "EX4" ) );
             m.Info( $"F1{hole}" );
             m.Info( $"F2{hole}", new Exception( "X2" ) );
-            m.Info( ActivityMonitor.Tags.Register( "T1" ), $"F3{hole}" );
-            m.Info( ActivityMonitor.Tags.Register( "T2" ), $"F4{hole}", new Exception( "X3" ) );
+            m.Info( TestHelper.Tag4, $"F3{hole}" );
+            m.Info( TestHelper.Tag5, $"F4{hole}", new Exception( "X3" ) );
             client.Entries.Where( e => e.Data.Level == (LogLevel.Info | LogLevel.IsFiltered) )
                             .Select( e => e.Data.Text + e.Data.Exception?.Message + e.Data.Tags )
                             .Concatenate()
-                .Should().Be( $"Text1, EX1EX1, Text2EX2, Text3Tag1, Text4EX3Tag2, EX4EX4Tag3, F1{hole}, F2{hole}X2, F3{hole}T1, F4{hole}X3T2" );
+                .Should().Be( $"Text1, EX1EX1, Text2EX2, Text3Tag1, Text4EX3Tag2, EX4EX4Tag3, F1{hole}, F2{hole}X2, F3{hole}Tag4, F4{hole}X3Tag5" );
 
         }
 
@@ -76,19 +76,19 @@ namespace CK.Core.Tests.Monitoring
             using( m.OpenInfo( "Text1" ).ConcludeWith( () => "/Text1" ) )
             using( m.OpenInfo( new Exception( "EX1" ) ) )
             using( m.OpenInfo( "Text2", new Exception( "EX2" ) ) )
-            using( m.OpenInfo( ActivityMonitor.Tags.Register( "Tag1" ), "Text3" ) )
-            using( m.OpenInfo( ActivityMonitor.Tags.Register( "Tag2" ), "Text4", new Exception( "EX3" ) ) )
-            using( m.OpenInfo( ActivityMonitor.Tags.Register( "Tag3" ), new Exception( "EX4" ) ) )
+            using( m.OpenInfo( TestHelper.Tag1, "Text3" ) )
+            using( m.OpenInfo( TestHelper.Tag2, "Text4", new Exception( "EX3" ) ) )
+            using( m.OpenInfo( TestHelper.Tag3, new Exception( "EX4" ) ) )
             using( m.OpenInfo( $"F1{hole}" ) )
             using( m.OpenInfo( $"F2{hole}", new Exception( "X2" ) ) )
-            using( m.OpenInfo( ActivityMonitor.Tags.Register( "T1" ), $"F3{hole}" ) )
-            using( m.OpenInfo( ActivityMonitor.Tags.Register( "T2" ), $"F4{hole}", new Exception( "X3" ) ) )
+            using( m.OpenInfo( TestHelper.Tag4, $"F3{hole}" ) )
+            using( m.OpenInfo( TestHelper.Tag5, $"F4{hole}", new Exception( "X3" ) ) )
             {
             }
             client.Entries.Where( e => e.Data.Level == (LogLevel.Info | LogLevel.IsFiltered) )
                             .Select( e => e.Data.Text + e.Data.Exception?.Message + e.Data.Tags + e.Conclusions!.ToStringGroupConclusion() )
                             .Concatenate()
-                .Should().Be( $"Text1/Text1, EX1EX1, Text2EX2, Text3Tag1, Text4EX3Tag2, EX4EX4Tag3, F1{hole}, F2{hole}X2, F3{hole}T1, F4{hole}X3T2" );
+                .Should().Be( $"Text1/Text1, EX1EX1, Text2EX2, Text3Tag1, Text4EX3Tag2, EX4EX4Tag3, F1{hole}, F2{hole}X2, F3{hole}Tag4, F4{hole}X3Tag5" );
 
             m.MinimalFilter = LogFilter.Release;
             // The text is never called.
@@ -109,15 +109,15 @@ namespace CK.Core.Tests.Monitoring
             using( m.OpenGroup( LogLevel.Fatal, "Text1" ) )
             using( m.OpenGroup( LogLevel.Fatal, new Exception( "EX1" ) ) )
             using( m.OpenGroup( LogLevel.Fatal, "Text2", new Exception( "EX2" ) ) )
-            using( m.OpenGroup( LogLevel.Fatal, ActivityMonitor.Tags.Register( "Tag1" ), "Text3" ).ConcludeWith( () => "/Text3" ) )
-            using( m.OpenGroup( LogLevel.Fatal, ActivityMonitor.Tags.Register( "Tag2" ), "Text4", new Exception( "EX3" ) ) )
-            using( m.OpenGroup( LogLevel.Fatal, ActivityMonitor.Tags.Register( "Tag3" ), new Exception( "EX4" ) ) )
+            using( m.OpenGroup( LogLevel.Fatal, TestHelper.Tag1, "Text3" ).ConcludeWith( () => "/Text3" ) )
+            using( m.OpenGroup( LogLevel.Fatal, TestHelper.Tag2, "Text4", new Exception( "EX3" ) ) )
+            using( m.OpenGroup( LogLevel.Fatal, TestHelper.Tag3, new Exception( "EX4" ) ) )
             using( m.OpenGroup( LogLevel.Info, $"Text1{hole}" ).ConcludeWith( () => "/Text1" ) )
             using( m.OpenGroup( LogLevel.Info, new Exception( "EX1" ) ) )
             using( m.OpenGroup( LogLevel.Info, $"Text2{hole}", new Exception( "EX2" ) ) )
-            using( m.OpenGroup( LogLevel.Info, ActivityMonitor.Tags.Register( "Tag1" ), $"Text3{hole}" ) )
-            using( m.OpenGroup( LogLevel.Info, ActivityMonitor.Tags.Register( "Tag2" ), $"Text4{hole}", ex: new Exception( "EX3" ) ) )
-            using( m.OpenGroup( LogLevel.Info, ActivityMonitor.Tags.Register( "Tag3" ), new Exception( "EX4" ) ) )
+            using( m.OpenGroup( LogLevel.Info, TestHelper.Tag1, $"Text3{hole}" ) )
+            using( m.OpenGroup( LogLevel.Info, TestHelper.Tag2, $"Text4{hole}", ex: new Exception( "EX3" ) ) )
+            using( m.OpenGroup( LogLevel.Info, TestHelper.Tag3, new Exception( "EX4" ) ) )
             {
             }
             client.Entries.Where( e => e.Data.Level == (LogLevel.Fatal | LogLevel.IsFiltered) )

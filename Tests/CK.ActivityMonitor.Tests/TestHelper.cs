@@ -20,6 +20,14 @@ namespace CK.Core.Tests
             _console = new ActivityMonitorConsoleClient();
         }
 
+        public static CKTrait Tag1 = ActivityMonitor.Tags.Register( "Tag1" );
+        public static CKTrait Tag2 = ActivityMonitor.Tags.Register( "Tag2" );
+        public static CKTrait Tag3 = ActivityMonitor.Tags.Register( "Tag3" );
+        public static CKTrait Tag4 = ActivityMonitor.Tags.Register( "Tag4" );
+        public static CKTrait Tag5 = ActivityMonitor.Tags.Register( "Tag5" );
+        public static CKTrait Tag6 = ActivityMonitor.Tags.Register( "Tag6" );
+
+
         public static IActivityMonitor Monitor => _monitor; 
 
         public static bool LogsToConsole

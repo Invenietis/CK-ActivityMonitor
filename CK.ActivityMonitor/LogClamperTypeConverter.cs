@@ -28,10 +28,10 @@ using System.Globalization;
 namespace CK.Core
 {
     /// <summary>
-    /// Minimal implementation of <see cref="LogFilter"/> conversion from and to <see cref="String"/>.
-    /// This allows LogFilter to appear in their text form in configuration files.
+    /// Minimal implementation of <see cref="LogClamper"/> conversion from and to <see cref="String"/>.
+    /// This allows LogClamper to appear in their text form in configuration files.
     /// </summary>
-    public class LogFilterTypeConverter : TypeConverter
+    public class LogClamperTypeConverter : TypeConverter
     {
         /// <summary>
         /// Only allows source type to be string.
@@ -46,7 +46,7 @@ namespace CK.Core
 
         /// <summary>
         /// Converts from a string.
-        /// This uses <see cref="LogFilter.TryParse(string, out LogFilter)"/> since exceptions are usually
+        /// This uses <see cref="LogClamper.LogClamper(string, out LogFilter)"/> since exceptions are usually
         /// swallowed by callers that fallback to the default value for the type (the rational behind is that
         /// conversion is not validation and that validator should be used if validation is required).
         /// </summary>
@@ -56,7 +56,7 @@ namespace CK.Core
         /// <returns>The LogFilter (can be <see cref="LogFilter.Undefined"/> on error).</returns>
         public override object ConvertFrom( ITypeDescriptorContext? context, CultureInfo? culture, object value )
         {
-            LogFilter.TryParse( (string)value, out var result );
+            LogClamper.TryParse( (string)value, out var result );
             return result;
         }
 
@@ -81,7 +81,7 @@ namespace CK.Core
         /// <returns>The <see cref="LogFilter.ToString"/> result.</returns>
         public override object ConvertTo( ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType )
         {
-            return value == null ? LogFilter.Undefined : ((LogFilter)value).ToString();
+            return value == null ? LogClamper.Undefined : ((LogClamper)value).ToString();
         }
     }
 

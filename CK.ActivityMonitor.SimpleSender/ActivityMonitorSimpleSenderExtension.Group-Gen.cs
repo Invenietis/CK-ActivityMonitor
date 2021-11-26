@@ -4,6 +4,7 @@
 //
 using System;
 using System.Runtime.CompilerServices;
+using System.ComponentModel;
 #nullable enable
 
 namespace CK.Core
@@ -51,6 +52,20 @@ namespace CK.Core
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
+        /// <inheritdoc cref="OpenDebug(IActivityMonitor, string, int, string?)"/>
+        public static IDisposableGroup OpenDebug( this IActivityMonitor monitor,
+                                                  [InterpolatedStringHandlerArgument( "monitor" )] LogHandler.GroupDebug text,
+                                                  [CallerLineNumber] int lineNumber = 0,
+                                                  [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
+
 		/// <summary>
         /// Opens a <see cref="LogLevel.Debug"/> group with a text message associated to an exception. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
@@ -68,6 +83,20 @@ namespace CK.Core
             var d = monitor.ShouldLogGroup( LogLevel.Debug, null, out var finalTags )
                                                 ? new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
                                                 : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
+        /// <inheritdoc cref="OpenDebug(IActivityMonitor, string, Exception, int, string?)"/>
+        public static IDisposableGroup OpenDebug( this IActivityMonitor monitor,
+                                                  [InterpolatedStringHandlerArgument( "monitor" )] LogHandler.GroupDebug text,
+                                                  Exception ex,
+                                                  [CallerLineNumber] int lineNumber = 0,
+                                                  [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber )
+                    : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
@@ -114,6 +143,20 @@ namespace CK.Core
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
+        /// <inheritdoc cref="OpenDebug(IActivityMonitor, CKTrait, string, int, string?)"/>
+        public static IDisposableGroup OpenDebug( this IActivityMonitor monitor,
+                                                    CKTrait tags,
+                                                    [InterpolatedStringHandlerArgument( "monitor", "tags" )] LogHandler.GroupDebugWithTags text,
+                                                    [CallerLineNumber] int lineNumber = 0,
+                                                    [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
 		/// <summary>
         /// Opens a <see cref="LogLevel.Debug"/> group with a text message associated to an exception and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
@@ -132,6 +175,22 @@ namespace CK.Core
             var d = monitor.ShouldLogGroup( LogLevel.Debug, tags, out var finalTags )
                                                ? new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
                                                : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
+        /// <inheritdoc cref="OpenDebug(IActivityMonitor, CKTrait, string, Exception, int, string?)"/>
+        public static IDisposableGroup OpenDebug( this IActivityMonitor monitor,
+                                                    LogLevel level,
+                                                    CKTrait tags,
+                                                    Exception ex,
+                                                    [InterpolatedStringHandlerArgument( "monitor", "tags" )] LogHandler.GroupDebugWithTags text,
+                                                    [CallerLineNumber] int lineNumber = 0,
+                                                    [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
@@ -178,6 +237,20 @@ namespace CK.Core
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
+        /// <inheritdoc cref="OpenTrace(IActivityMonitor, string, int, string?)"/>
+        public static IDisposableGroup OpenTrace( this IActivityMonitor monitor,
+                                                  [InterpolatedStringHandlerArgument( "monitor" )] LogHandler.GroupTrace text,
+                                                  [CallerLineNumber] int lineNumber = 0,
+                                                  [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
+
 		/// <summary>
         /// Opens a <see cref="LogLevel.Trace"/> group with a text message associated to an exception. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
@@ -195,6 +268,20 @@ namespace CK.Core
             var d = monitor.ShouldLogGroup( LogLevel.Trace, null, out var finalTags )
                                                 ? new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
                                                 : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
+        /// <inheritdoc cref="OpenTrace(IActivityMonitor, string, Exception, int, string?)"/>
+        public static IDisposableGroup OpenTrace( this IActivityMonitor monitor,
+                                                  [InterpolatedStringHandlerArgument( "monitor" )] LogHandler.GroupTrace text,
+                                                  Exception ex,
+                                                  [CallerLineNumber] int lineNumber = 0,
+                                                  [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber )
+                    : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
@@ -241,6 +328,20 @@ namespace CK.Core
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
+        /// <inheritdoc cref="OpenTrace(IActivityMonitor, CKTrait, string, int, string?)"/>
+        public static IDisposableGroup OpenTrace( this IActivityMonitor monitor,
+                                                    CKTrait tags,
+                                                    [InterpolatedStringHandlerArgument( "monitor", "tags" )] LogHandler.GroupTraceWithTags text,
+                                                    [CallerLineNumber] int lineNumber = 0,
+                                                    [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
 		/// <summary>
         /// Opens a <see cref="LogLevel.Trace"/> group with a text message associated to an exception and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
@@ -259,6 +360,22 @@ namespace CK.Core
             var d = monitor.ShouldLogGroup( LogLevel.Trace, tags, out var finalTags )
                                                ? new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
                                                : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
+        /// <inheritdoc cref="OpenTrace(IActivityMonitor, CKTrait, string, Exception, int, string?)"/>
+        public static IDisposableGroup OpenTrace( this IActivityMonitor monitor,
+                                                    LogLevel level,
+                                                    CKTrait tags,
+                                                    Exception ex,
+                                                    [InterpolatedStringHandlerArgument( "monitor", "tags" )] LogHandler.GroupTraceWithTags text,
+                                                    [CallerLineNumber] int lineNumber = 0,
+                                                    [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
@@ -305,6 +422,20 @@ namespace CK.Core
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
+        /// <inheritdoc cref="OpenInfo(IActivityMonitor, string, int, string?)"/>
+        public static IDisposableGroup OpenInfo( this IActivityMonitor monitor,
+                                                  [InterpolatedStringHandlerArgument( "monitor" )] LogHandler.GroupInfo text,
+                                                  [CallerLineNumber] int lineNumber = 0,
+                                                  [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
+
 		/// <summary>
         /// Opens a <see cref="LogLevel.Info"/> group with a text message associated to an exception. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
@@ -322,6 +453,20 @@ namespace CK.Core
             var d = monitor.ShouldLogGroup( LogLevel.Info, null, out var finalTags )
                                                 ? new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
                                                 : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
+        /// <inheritdoc cref="OpenInfo(IActivityMonitor, string, Exception, int, string?)"/>
+        public static IDisposableGroup OpenInfo( this IActivityMonitor monitor,
+                                                  [InterpolatedStringHandlerArgument( "monitor" )] LogHandler.GroupInfo text,
+                                                  Exception ex,
+                                                  [CallerLineNumber] int lineNumber = 0,
+                                                  [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber )
+                    : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
@@ -368,6 +513,20 @@ namespace CK.Core
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
+        /// <inheritdoc cref="OpenInfo(IActivityMonitor, CKTrait, string, int, string?)"/>
+        public static IDisposableGroup OpenInfo( this IActivityMonitor monitor,
+                                                    CKTrait tags,
+                                                    [InterpolatedStringHandlerArgument( "monitor", "tags" )] LogHandler.GroupInfoWithTags text,
+                                                    [CallerLineNumber] int lineNumber = 0,
+                                                    [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
 		/// <summary>
         /// Opens a <see cref="LogLevel.Info"/> group with a text message associated to an exception and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
@@ -386,6 +545,22 @@ namespace CK.Core
             var d = monitor.ShouldLogGroup( LogLevel.Info, tags, out var finalTags )
                                                ? new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
                                                : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
+        /// <inheritdoc cref="OpenInfo(IActivityMonitor, CKTrait, string, Exception, int, string?)"/>
+        public static IDisposableGroup OpenInfo( this IActivityMonitor monitor,
+                                                    LogLevel level,
+                                                    CKTrait tags,
+                                                    Exception ex,
+                                                    [InterpolatedStringHandlerArgument( "monitor", "tags" )] LogHandler.GroupInfoWithTags text,
+                                                    [CallerLineNumber] int lineNumber = 0,
+                                                    [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
@@ -432,6 +607,20 @@ namespace CK.Core
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
+        /// <inheritdoc cref="OpenWarn(IActivityMonitor, string, int, string?)"/>
+        public static IDisposableGroup OpenWarn( this IActivityMonitor monitor,
+                                                  [InterpolatedStringHandlerArgument( "monitor" )] LogHandler.GroupWarn text,
+                                                  [CallerLineNumber] int lineNumber = 0,
+                                                  [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
+
 		/// <summary>
         /// Opens a <see cref="LogLevel.Warn"/> group with a text message associated to an exception. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
@@ -449,6 +638,20 @@ namespace CK.Core
             var d = monitor.ShouldLogGroup( LogLevel.Warn, null, out var finalTags )
                                                 ? new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
                                                 : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
+        /// <inheritdoc cref="OpenWarn(IActivityMonitor, string, Exception, int, string?)"/>
+        public static IDisposableGroup OpenWarn( this IActivityMonitor monitor,
+                                                  [InterpolatedStringHandlerArgument( "monitor" )] LogHandler.GroupWarn text,
+                                                  Exception ex,
+                                                  [CallerLineNumber] int lineNumber = 0,
+                                                  [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber )
+                    : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
@@ -495,6 +698,20 @@ namespace CK.Core
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
+        /// <inheritdoc cref="OpenWarn(IActivityMonitor, CKTrait, string, int, string?)"/>
+        public static IDisposableGroup OpenWarn( this IActivityMonitor monitor,
+                                                    CKTrait tags,
+                                                    [InterpolatedStringHandlerArgument( "monitor", "tags" )] LogHandler.GroupWarnWithTags text,
+                                                    [CallerLineNumber] int lineNumber = 0,
+                                                    [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
 		/// <summary>
         /// Opens a <see cref="LogLevel.Warn"/> group with a text message associated to an exception and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
@@ -513,6 +730,22 @@ namespace CK.Core
             var d = monitor.ShouldLogGroup( LogLevel.Warn, tags, out var finalTags )
                                                ? new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
                                                : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
+        /// <inheritdoc cref="OpenWarn(IActivityMonitor, CKTrait, string, Exception, int, string?)"/>
+        public static IDisposableGroup OpenWarn( this IActivityMonitor monitor,
+                                                    LogLevel level,
+                                                    CKTrait tags,
+                                                    Exception ex,
+                                                    [InterpolatedStringHandlerArgument( "monitor", "tags" )] LogHandler.GroupWarnWithTags text,
+                                                    [CallerLineNumber] int lineNumber = 0,
+                                                    [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
@@ -559,6 +792,20 @@ namespace CK.Core
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
+        /// <inheritdoc cref="OpenError(IActivityMonitor, string, int, string?)"/>
+        public static IDisposableGroup OpenError( this IActivityMonitor monitor,
+                                                  [InterpolatedStringHandlerArgument( "monitor" )] LogHandler.GroupError text,
+                                                  [CallerLineNumber] int lineNumber = 0,
+                                                  [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
+
 		/// <summary>
         /// Opens a <see cref="LogLevel.Error"/> group with a text message associated to an exception. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
@@ -576,6 +823,20 @@ namespace CK.Core
             var d = monitor.ShouldLogGroup( LogLevel.Error, null, out var finalTags )
                                                 ? new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
                                                 : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
+        /// <inheritdoc cref="OpenError(IActivityMonitor, string, Exception, int, string?)"/>
+        public static IDisposableGroup OpenError( this IActivityMonitor monitor,
+                                                  [InterpolatedStringHandlerArgument( "monitor" )] LogHandler.GroupError text,
+                                                  Exception ex,
+                                                  [CallerLineNumber] int lineNumber = 0,
+                                                  [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber )
+                    : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
@@ -622,6 +883,20 @@ namespace CK.Core
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
+        /// <inheritdoc cref="OpenError(IActivityMonitor, CKTrait, string, int, string?)"/>
+        public static IDisposableGroup OpenError( this IActivityMonitor monitor,
+                                                    CKTrait tags,
+                                                    [InterpolatedStringHandlerArgument( "monitor", "tags" )] LogHandler.GroupErrorWithTags text,
+                                                    [CallerLineNumber] int lineNumber = 0,
+                                                    [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
 		/// <summary>
         /// Opens a <see cref="LogLevel.Error"/> group with a text message associated to an exception and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
@@ -640,6 +915,22 @@ namespace CK.Core
             var d = monitor.ShouldLogGroup( LogLevel.Error, tags, out var finalTags )
                                                ? new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
                                                : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
+        /// <inheritdoc cref="OpenError(IActivityMonitor, CKTrait, string, Exception, int, string?)"/>
+        public static IDisposableGroup OpenError( this IActivityMonitor monitor,
+                                                    LogLevel level,
+                                                    CKTrait tags,
+                                                    Exception ex,
+                                                    [InterpolatedStringHandlerArgument( "monitor", "tags" )] LogHandler.GroupErrorWithTags text,
+                                                    [CallerLineNumber] int lineNumber = 0,
+                                                    [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
@@ -686,6 +977,20 @@ namespace CK.Core
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
+        /// <inheritdoc cref="OpenFatal(IActivityMonitor, string, int, string?)"/>
+        public static IDisposableGroup OpenFatal( this IActivityMonitor monitor,
+                                                  [InterpolatedStringHandlerArgument( "monitor" )] LogHandler.GroupFatal text,
+                                                  [CallerLineNumber] int lineNumber = 0,
+                                                  [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
+
 		/// <summary>
         /// Opens a <see cref="LogLevel.Fatal"/> group with a text message associated to an exception. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
@@ -703,6 +1008,20 @@ namespace CK.Core
             var d = monitor.ShouldLogGroup( LogLevel.Fatal, null, out var finalTags )
                                                 ? new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
                                                 : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
+        /// <inheritdoc cref="OpenFatal(IActivityMonitor, string, Exception, int, string?)"/>
+        public static IDisposableGroup OpenFatal( this IActivityMonitor monitor,
+                                                  [InterpolatedStringHandlerArgument( "monitor" )] LogHandler.GroupFatal text,
+                                                  Exception ex,
+                                                  [CallerLineNumber] int lineNumber = 0,
+                                                  [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber )
+                    : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
@@ -749,6 +1068,20 @@ namespace CK.Core
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
+        /// <inheritdoc cref="OpenFatal(IActivityMonitor, CKTrait, string, int, string?)"/>
+        public static IDisposableGroup OpenFatal( this IActivityMonitor monitor,
+                                                    CKTrait tags,
+                                                    [InterpolatedStringHandlerArgument( "monitor", "tags" )] LogHandler.GroupFatalWithTags text,
+                                                    [CallerLineNumber] int lineNumber = 0,
+                                                    [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
 		/// <summary>
         /// Opens a <see cref="LogLevel.Fatal"/> group with a text message associated to an exception and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
@@ -770,9 +1103,499 @@ namespace CK.Core
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
+        /// <inheritdoc cref="OpenFatal(IActivityMonitor, CKTrait, string, Exception, int, string?)"/>
+        public static IDisposableGroup OpenFatal( this IActivityMonitor monitor,
+                                                    LogLevel level,
+                                                    CKTrait tags,
+                                                    Exception ex,
+                                                    [InterpolatedStringHandlerArgument( "monitor", "tags" )] LogHandler.GroupFatalWithTags text,
+                                                    [CallerLineNumber] int lineNumber = 0,
+                                                    [CallerFilePath] string? fileName = null )
+        {
+            var t = text._handler.ToStringAndClear();
+            var d = t != null
+                    ? new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    : default;
+            return monitor.UnfilteredOpenGroup( ref d );
+        }
+
         #endregion
 
+			}
+
+    namespace LogHandler
+    {
+       	 
+    /// <summary>
+    /// Provides an interpolated string handler Debug lines that only performs formatting if the log must be emitted.
+    /// This supports the logging framework and must not be used directly.
+    /// </summary>
+    [EditorBrowsable( EditorBrowsableState.Never )]
+    [InterpolatedStringHandler]
+    public ref struct GroupDebug
+    {
+        internal InternalHandler _handler;
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        public GroupDebug( int literalLength, int formattedCount, IActivityMonitor monitor, out bool shouldAppend )
+        {
+            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Debug, null, out shouldAppend );
+        }
+
+        public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
+
+        public void AppendFormatted<T>( T value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted<T>( T value, string? format ) => _handler.AppendFormatted( value, format );
+
+        public void AppendFormatted<T>( T value, int alignment ) => _handler.AppendFormatted( value, alignment );
+
+        public void AppendFormatted<T>( T value, int alignment, string? format ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( ReadOnlySpan<char> value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( ReadOnlySpan<char> value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( string? value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( string? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( object? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+    }
+
+    /// <summary>
+    /// Provides an interpolated string handler Debug lines that only performs formatting if the log must be emitted.
+    /// This supports the logging framework and must not be used directly.
+    /// </summary>
+    [EditorBrowsable( EditorBrowsableState.Never )]
+    [InterpolatedStringHandler]
+    public ref struct GroupDebugWithTags
+    {
+        internal InternalHandler _handler;
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        public GroupDebugWithTags( int literalLength, int formattedCount, IActivityMonitor monitor, CKTrait tags, out bool shouldAppend )
+        {
+            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Debug, tags, out shouldAppend );
+        }
+
+        public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
+
+        public void AppendFormatted<T>( T value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted<T>( T value, string? format ) => _handler.AppendFormatted( value, format );
+
+        public void AppendFormatted<T>( T value, int alignment ) => _handler.AppendFormatted( value, alignment );
+
+        public void AppendFormatted<T>( T value, int alignment, string? format ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( ReadOnlySpan<char> value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( ReadOnlySpan<char> value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( string? value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( string? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( object? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+    }
+
+
 		 
-	}
+    /// <summary>
+    /// Provides an interpolated string handler Trace lines that only performs formatting if the log must be emitted.
+    /// This supports the logging framework and must not be used directly.
+    /// </summary>
+    [EditorBrowsable( EditorBrowsableState.Never )]
+    [InterpolatedStringHandler]
+    public ref struct GroupTrace
+    {
+        internal InternalHandler _handler;
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        public GroupTrace( int literalLength, int formattedCount, IActivityMonitor monitor, out bool shouldAppend )
+        {
+            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Trace, null, out shouldAppend );
+        }
+
+        public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
+
+        public void AppendFormatted<T>( T value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted<T>( T value, string? format ) => _handler.AppendFormatted( value, format );
+
+        public void AppendFormatted<T>( T value, int alignment ) => _handler.AppendFormatted( value, alignment );
+
+        public void AppendFormatted<T>( T value, int alignment, string? format ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( ReadOnlySpan<char> value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( ReadOnlySpan<char> value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( string? value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( string? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( object? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+    }
+
+    /// <summary>
+    /// Provides an interpolated string handler Trace lines that only performs formatting if the log must be emitted.
+    /// This supports the logging framework and must not be used directly.
+    /// </summary>
+    [EditorBrowsable( EditorBrowsableState.Never )]
+    [InterpolatedStringHandler]
+    public ref struct GroupTraceWithTags
+    {
+        internal InternalHandler _handler;
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        public GroupTraceWithTags( int literalLength, int formattedCount, IActivityMonitor monitor, CKTrait tags, out bool shouldAppend )
+        {
+            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Trace, tags, out shouldAppend );
+        }
+
+        public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
+
+        public void AppendFormatted<T>( T value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted<T>( T value, string? format ) => _handler.AppendFormatted( value, format );
+
+        public void AppendFormatted<T>( T value, int alignment ) => _handler.AppendFormatted( value, alignment );
+
+        public void AppendFormatted<T>( T value, int alignment, string? format ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( ReadOnlySpan<char> value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( ReadOnlySpan<char> value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( string? value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( string? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( object? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+    }
+
+
+		 
+    /// <summary>
+    /// Provides an interpolated string handler Info lines that only performs formatting if the log must be emitted.
+    /// This supports the logging framework and must not be used directly.
+    /// </summary>
+    [EditorBrowsable( EditorBrowsableState.Never )]
+    [InterpolatedStringHandler]
+    public ref struct GroupInfo
+    {
+        internal InternalHandler _handler;
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        public GroupInfo( int literalLength, int formattedCount, IActivityMonitor monitor, out bool shouldAppend )
+        {
+            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Info, null, out shouldAppend );
+        }
+
+        public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
+
+        public void AppendFormatted<T>( T value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted<T>( T value, string? format ) => _handler.AppendFormatted( value, format );
+
+        public void AppendFormatted<T>( T value, int alignment ) => _handler.AppendFormatted( value, alignment );
+
+        public void AppendFormatted<T>( T value, int alignment, string? format ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( ReadOnlySpan<char> value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( ReadOnlySpan<char> value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( string? value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( string? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( object? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+    }
+
+    /// <summary>
+    /// Provides an interpolated string handler Info lines that only performs formatting if the log must be emitted.
+    /// This supports the logging framework and must not be used directly.
+    /// </summary>
+    [EditorBrowsable( EditorBrowsableState.Never )]
+    [InterpolatedStringHandler]
+    public ref struct GroupInfoWithTags
+    {
+        internal InternalHandler _handler;
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        public GroupInfoWithTags( int literalLength, int formattedCount, IActivityMonitor monitor, CKTrait tags, out bool shouldAppend )
+        {
+            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Info, tags, out shouldAppend );
+        }
+
+        public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
+
+        public void AppendFormatted<T>( T value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted<T>( T value, string? format ) => _handler.AppendFormatted( value, format );
+
+        public void AppendFormatted<T>( T value, int alignment ) => _handler.AppendFormatted( value, alignment );
+
+        public void AppendFormatted<T>( T value, int alignment, string? format ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( ReadOnlySpan<char> value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( ReadOnlySpan<char> value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( string? value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( string? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( object? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+    }
+
+
+		 
+    /// <summary>
+    /// Provides an interpolated string handler Warn lines that only performs formatting if the log must be emitted.
+    /// This supports the logging framework and must not be used directly.
+    /// </summary>
+    [EditorBrowsable( EditorBrowsableState.Never )]
+    [InterpolatedStringHandler]
+    public ref struct GroupWarn
+    {
+        internal InternalHandler _handler;
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        public GroupWarn( int literalLength, int formattedCount, IActivityMonitor monitor, out bool shouldAppend )
+        {
+            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Warn, null, out shouldAppend );
+        }
+
+        public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
+
+        public void AppendFormatted<T>( T value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted<T>( T value, string? format ) => _handler.AppendFormatted( value, format );
+
+        public void AppendFormatted<T>( T value, int alignment ) => _handler.AppendFormatted( value, alignment );
+
+        public void AppendFormatted<T>( T value, int alignment, string? format ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( ReadOnlySpan<char> value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( ReadOnlySpan<char> value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( string? value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( string? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( object? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+    }
+
+    /// <summary>
+    /// Provides an interpolated string handler Warn lines that only performs formatting if the log must be emitted.
+    /// This supports the logging framework and must not be used directly.
+    /// </summary>
+    [EditorBrowsable( EditorBrowsableState.Never )]
+    [InterpolatedStringHandler]
+    public ref struct GroupWarnWithTags
+    {
+        internal InternalHandler _handler;
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        public GroupWarnWithTags( int literalLength, int formattedCount, IActivityMonitor monitor, CKTrait tags, out bool shouldAppend )
+        {
+            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Warn, tags, out shouldAppend );
+        }
+
+        public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
+
+        public void AppendFormatted<T>( T value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted<T>( T value, string? format ) => _handler.AppendFormatted( value, format );
+
+        public void AppendFormatted<T>( T value, int alignment ) => _handler.AppendFormatted( value, alignment );
+
+        public void AppendFormatted<T>( T value, int alignment, string? format ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( ReadOnlySpan<char> value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( ReadOnlySpan<char> value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( string? value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( string? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( object? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+    }
+
+
+		 
+    /// <summary>
+    /// Provides an interpolated string handler Error lines that only performs formatting if the log must be emitted.
+    /// This supports the logging framework and must not be used directly.
+    /// </summary>
+    [EditorBrowsable( EditorBrowsableState.Never )]
+    [InterpolatedStringHandler]
+    public ref struct GroupError
+    {
+        internal InternalHandler _handler;
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        public GroupError( int literalLength, int formattedCount, IActivityMonitor monitor, out bool shouldAppend )
+        {
+            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Error, null, out shouldAppend );
+        }
+
+        public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
+
+        public void AppendFormatted<T>( T value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted<T>( T value, string? format ) => _handler.AppendFormatted( value, format );
+
+        public void AppendFormatted<T>( T value, int alignment ) => _handler.AppendFormatted( value, alignment );
+
+        public void AppendFormatted<T>( T value, int alignment, string? format ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( ReadOnlySpan<char> value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( ReadOnlySpan<char> value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( string? value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( string? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( object? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+    }
+
+    /// <summary>
+    /// Provides an interpolated string handler Error lines that only performs formatting if the log must be emitted.
+    /// This supports the logging framework and must not be used directly.
+    /// </summary>
+    [EditorBrowsable( EditorBrowsableState.Never )]
+    [InterpolatedStringHandler]
+    public ref struct GroupErrorWithTags
+    {
+        internal InternalHandler _handler;
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        public GroupErrorWithTags( int literalLength, int formattedCount, IActivityMonitor monitor, CKTrait tags, out bool shouldAppend )
+        {
+            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Error, tags, out shouldAppend );
+        }
+
+        public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
+
+        public void AppendFormatted<T>( T value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted<T>( T value, string? format ) => _handler.AppendFormatted( value, format );
+
+        public void AppendFormatted<T>( T value, int alignment ) => _handler.AppendFormatted( value, alignment );
+
+        public void AppendFormatted<T>( T value, int alignment, string? format ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( ReadOnlySpan<char> value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( ReadOnlySpan<char> value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( string? value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( string? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( object? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+    }
+
+
+		 
+    /// <summary>
+    /// Provides an interpolated string handler Fatal lines that only performs formatting if the log must be emitted.
+    /// This supports the logging framework and must not be used directly.
+    /// </summary>
+    [EditorBrowsable( EditorBrowsableState.Never )]
+    [InterpolatedStringHandler]
+    public ref struct GroupFatal
+    {
+        internal InternalHandler _handler;
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        public GroupFatal( int literalLength, int formattedCount, IActivityMonitor monitor, out bool shouldAppend )
+        {
+            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Fatal, null, out shouldAppend );
+        }
+
+        public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
+
+        public void AppendFormatted<T>( T value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted<T>( T value, string? format ) => _handler.AppendFormatted( value, format );
+
+        public void AppendFormatted<T>( T value, int alignment ) => _handler.AppendFormatted( value, alignment );
+
+        public void AppendFormatted<T>( T value, int alignment, string? format ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( ReadOnlySpan<char> value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( ReadOnlySpan<char> value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( string? value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( string? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( object? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+    }
+
+    /// <summary>
+    /// Provides an interpolated string handler Fatal lines that only performs formatting if the log must be emitted.
+    /// This supports the logging framework and must not be used directly.
+    /// </summary>
+    [EditorBrowsable( EditorBrowsableState.Never )]
+    [InterpolatedStringHandler]
+    public ref struct GroupFatalWithTags
+    {
+        internal InternalHandler _handler;
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        public GroupFatalWithTags( int literalLength, int formattedCount, IActivityMonitor monitor, CKTrait tags, out bool shouldAppend )
+        {
+            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Fatal, tags, out shouldAppend );
+        }
+
+        public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
+
+        public void AppendFormatted<T>( T value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted<T>( T value, string? format ) => _handler.AppendFormatted( value, format );
+
+        public void AppendFormatted<T>( T value, int alignment ) => _handler.AppendFormatted( value, alignment );
+
+        public void AppendFormatted<T>( T value, int alignment, string? format ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( ReadOnlySpan<char> value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( ReadOnlySpan<char> value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( string? value ) => _handler.AppendFormatted( value );
+
+        public void AppendFormatted( string? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+
+        public void AppendFormatted( object? value, int alignment = 0, string? format = null ) => _handler.AppendFormatted( value, alignment, format );
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+    }
+
+
+		 
+    }
+
+
 }
 

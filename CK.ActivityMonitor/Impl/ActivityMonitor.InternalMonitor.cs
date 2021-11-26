@@ -145,7 +145,7 @@ namespace CK.Core
         {
             Debug.Assert( _internalMonitor != null && _internalMonitor.Recorder.History.Count > 0 );
             Debug.Assert( Environment.CurrentManagedThreadId == _enteredThreadId );
-            CKTrait savedTags = _currentTag;
+            CKTrait savedTags = _autoTags;
             string changedTopic = _topic;
             bool savedTrackStackTrace = _trackStackTrace;
             _trackStackTrace = false;
@@ -198,7 +198,7 @@ namespace CK.Core
                 var d = new ActivityMonitorLogData( LogLevel.Fatal, Tags.InternalMonitor, ActivityMonitorResources.ErrorWhileReplayingInternalLogs, ex );
                 UnfilteredLog( ref d );
             }
-            _currentTag = savedTags;
+            _autoTags = savedTags;
             _trackStackTrace = savedTrackStackTrace;
         }
 
