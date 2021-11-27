@@ -3,18 +3,15 @@
   <PropertyGroup>
     <TargetFrameworks>net6.0</TargetFrameworks>
     <Description>
-      Hierarchical logger API and LogFile path centralization. Main types are: LogFile, IActivityMonitor, ActivityMonitor, ActivityMonitorClient and standard clients like ActivityMonitorTextWriterClient.
+      Hierarchical logger API. Main types are:
+      - LogFile with a central static RooLogPath property.
+      - IActivityMonitor and its implementation is a logger that must follow the code path.
+      - IActivityMonitorClient and standard clients like ActivityMonitorTextWriterClient are local log sinks.
+      - AsycLock with reentrancy management thanks to the IActivityMonitor.
     </Description>
-    <LangVersion>9</LangVersion>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0|AnyCPU'">
-    <LangVersion>10.0</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU'">
-    <LangVersion>10.0</LangVersion>
-  </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CK.Core" Version="0.0.0--03lk0lt-develop" />
+    <PackageReference Include="CK.Core" Version="0.0.0--03lr6zi-develop" />
   </ItemGroup>
 </Project>

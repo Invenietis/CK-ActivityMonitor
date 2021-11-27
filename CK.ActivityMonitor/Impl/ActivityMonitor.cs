@@ -144,6 +144,12 @@ namespace CK.Core
         /// </summary>
         static public readonly string NoLogText = "[no-log]";
 
+        /// <summary>
+        /// <see cref="IActivityMonitor.UniqueId"/> must be at least 4 characters long
+        /// and not contain any <see cref="Char.IsWhiteSpace(char)"/>.
+        /// </summary>
+        public const int MinMonitorUniqueIdLength = 4;
+
         static ActivityMonitor()
         {
             AutoConfiguration = null;
@@ -177,15 +183,17 @@ namespace CK.Core
         }
 
         readonly DateTimeStampProvider _lastLogTime;
-        readonly Guid _uniqueId;
+        readonly string _uniqueId;
         InternalMonitor? _internalMonitor;
+
+        static string CreateUniqueId() => Guid.NewGuid().ToString();
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitor"/> that applies all <see cref="AutoConfiguration"/>
         /// and has an empty <see cref="Topic"/> initially set.
         /// </summary>
         public ActivityMonitor()
-            : this( new DateTimeStampProvider(), Guid.NewGuid(), Tags.Empty, true )
+            : this( new DateTimeStampProvider(), CreateUniqueId(), Tags.Empty, true )
         {
         }
 
@@ -194,7 +202,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="topic">Initial topic (can be null).</param>
         public ActivityMonitor( string topic )
-            : this( new DateTimeStampProvider(), Guid.NewGuid(), Tags.Empty, true )
+            : this( new DateTimeStampProvider(), CreateUniqueId(), Tags.Empty, true )
         {
             if( topic != null ) SetTopic( topic );
         }
@@ -205,7 +213,7 @@ namespace CK.Core
         /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
         /// <param name="topic">Optional initial topic (can be null).</param>
         public ActivityMonitor( bool applyAutoConfigurations, string? topic = null )
-            : this( new DateTimeStampProvider(), Guid.NewGuid(), Tags.Empty, applyAutoConfigurations )
+            : this( new DateTimeStampProvider(), CreateUniqueId(), Tags.Empty, applyAutoConfigurations )
         {
             if( topic != null ) SetTopic( topic );
         }
@@ -219,10 +227,16 @@ namespace CK.Core
         /// <param name="tags">Initial tags.</param>
         /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
         protected ActivityMonitor( DateTimeStampProvider stampProvider,
-                                   Guid uniqueId,
+                                   string uniqueId,
                                    CKTrait tags,
                                    bool applyAutoConfigurations )
         {
+            if( uniqueId == null
+                || uniqueId.Length < MinMonitorUniqueIdLength
+                || uniqueId.Any( c => Char.IsWhiteSpace( c ) ) )
+            {
+                ThrowHelper.ThrowArgumentException( nameof( uniqueId ), $"Monitor UniqueId must be at least {MinMonitorUniqueIdLength} long and not contain any whitespace." );
+            }
             _uniqueId = uniqueId;
             _lastLogTime = new DateTimeStampProvider();
             _groups = new Group[8];
@@ -237,12 +251,10 @@ namespace CK.Core
             }
         }
 
-        Guid IUniqueId.UniqueId => _uniqueId;
-
         /// <summary>
         /// Gets the unique identifier for this monitor.
         /// </summary>
-        protected Guid UniqueId => _uniqueId;
+        public string UniqueId => _uniqueId;
 
         /// <summary>
         /// Gets the <see cref="IActivityMonitorOutput"/> for this monitor.

@@ -42,6 +42,11 @@ namespace CK.Core
     public interface IActivityMonitor
     {
         /// <summary>
+        /// Gets the unique identifier for this monitor.
+        /// </summary>
+        string UniqueId { get; }
+
+        /// <summary>
         /// Gets or sets the tags of this monitor: any subsequent logs will be tagged by these tags.
         /// The <see cref="CKTrait"/> must be registered in <see cref="ActivityMonitor.Tags"/>.
         /// Modifications to this property are scoped to the current Group since when a Group is closed, this

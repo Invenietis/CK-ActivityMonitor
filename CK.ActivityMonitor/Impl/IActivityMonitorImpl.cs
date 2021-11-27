@@ -30,7 +30,7 @@ namespace CK.Core.Impl
     /// Defines required aspects that an actual monitor implementation must support.
     /// This interface is available to any <see cref="IActivityMonitorBoundClient"/>.
     /// </summary>
-    public interface IActivityMonitorImpl : IActivityMonitor, IUniqueId
+    public interface IActivityMonitorImpl : IActivityMonitor
     {
         /// <summary>
         /// Gets the currently opened group.

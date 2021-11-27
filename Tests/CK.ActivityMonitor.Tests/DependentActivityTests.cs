@@ -120,17 +120,15 @@ namespace CK.Core.Tests.Monitoring
                 string tokenToString = token.ToString();
                 {
                     ActivityMonitor.DependentToken t2 = ActivityMonitor.DependentToken.Parse( tokenToString );
-                    t2.OriginatorId.Should().Be( ((IUniqueId)m).UniqueId );
+                    t2.OriginatorId.Should().Be( m.UniqueId );
                     t2.CreationDate.Should().Be( cLaunch.Entries[loopNeeded].Data.LogTime, "CreationDate is the time of the log entry." );
                     t2.Topic.Should().Be( "Test..." );
                 }
                 StupidStringClient.Entry[] logs = RunDependentActivity( token );
                 {
                     logs[0].Data.Text.Should().Be( ActivityMonitor.SetTopicPrefix + "Test..." );
-                    Guid id;
-                    DateTimeStamp time;
-                    ActivityMonitor.DependentToken.TryParseStartMessage( logs[1].Data.Text, out id, out time ).Should().BeTrue();
-                    id.Should().Be( ((IUniqueId)m).UniqueId );
+                    ActivityMonitor.DependentToken.TryParseStartMessage( logs[1].Data.Text, out var id, out var time ).Should().BeTrue();
+                    id.Should().Be( m.UniqueId );
                     time.Should().Be( cLaunch.Entries[loopNeeded].Data.LogTime );
                 }
             }
@@ -155,19 +153,17 @@ namespace CK.Core.Tests.Monitoring
             dependentLogs[2].Data.Text.Should().Be( "Hello!" );
 
             launchMessage.Should().StartWith( "Launching dependent activity" );
-            bool launched;
-            bool launchWithTopic;
-            string launchDependentTopic;
-            ActivityMonitor.DependentToken.TryParseLaunchOrCreateMessage( launchMessage, out launched, out launchWithTopic, out launchDependentTopic ).Should().BeTrue();
+            ActivityMonitor.DependentToken.TryParseLaunchOrCreateMessage( launchMessage,
+                                                                          out bool launched,
+                                                                          out bool launchWithTopic,
+                                                                          out string? launchDependentTopic ).Should().BeTrue();
             launched.Should().BeTrue();
             launchWithTopic.Should().BeTrue();
             launchDependentTopic.Should().Be( dependentTopic );
 
-            startMessage.Should().StartWith( "Starting dependent activity" );
-            Guid id;
-            DateTimeStamp time;
-            ActivityMonitor.DependentToken.TryParseStartMessage( startMessage, out id, out time ).Should().BeTrue();
-            id.Should().Be( ((IUniqueId)m).UniqueId );
+            startMessage.Should().StartWith( "Starting dependent activity issued by " );
+            ActivityMonitor.DependentToken.TryParseStartMessage( startMessage, out var id, out var time ).Should().BeTrue();
+            id.Should().Be( m.UniqueId );
             time.Should().Be( cLaunch.Entries[0].Data.LogTime );
         }
 

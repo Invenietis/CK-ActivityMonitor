@@ -17,13 +17,13 @@ namespace CK.Core
         [Serializable]
         public class DependentToken
         {
-            readonly Guid _originatorId;
+            readonly string _originatorId;
             readonly DateTimeStamp _creationDate;
             readonly string? _topic;
             [NonSerialized]
             string? _delayedLaunchMessage;
 
-            internal DependentToken( Guid monitorId, DateTimeStamp logTime, string? topic )
+            internal DependentToken( string monitorId, DateTimeStamp logTime, string? topic )
             {
                 _originatorId = monitorId;
                 _creationDate = logTime;
@@ -33,7 +33,7 @@ namespace CK.Core
             /// <summary>
             /// Unique identifier of the activity that created this dependent token.
             /// </summary>
-            public Guid OriginatorId => _originatorId;
+            public string OriginatorId => _originatorId;
 
             /// <summary>
             /// Gets the creation date. This is the log time of the unfiltered Info log that has 
@@ -54,7 +54,7 @@ namespace CK.Core
             /// <returns>A readable string.</returns>
             public override string ToString()
             {
-                return AppendTopic( $"{_originatorId:B} at {_creationDate} with", _topic );
+                return AppendTopic( $"{_originatorId} at {_creationDate} with", _topic );
             }
 
             /// <summary>
@@ -67,7 +67,7 @@ namespace CK.Core
             {
                 t = null;
                 StringMatcher m = new StringMatcher( s );
-                if( MatchOriginatorAndTime( m, out Guid id, out DateTimeStamp time ) && m.TryMatchText( " with" ) )
+                if( MatchOriginatorAndTime( m, out var id, out DateTimeStamp time ) && m.TryMatchText( " with" ) )
                 {
                     if( ExtractTopic( s, m.StartIndex, out string? topic ) )
                     {
@@ -168,29 +168,47 @@ namespace CK.Core
             /// <param name="id">The originator monitor identifier.</param>
             /// <param name="time">The creation time of the dependent activity.</param>
             /// <returns>True on success.</returns>
-            static public bool TryParseStartMessage( string startMessage, out Guid id, out DateTimeStamp time )
+            static public bool TryParseStartMessage( string startMessage, out string id, out DateTimeStamp time )
             {
-                int idx = startMessage.IndexOf( '{' );
-                if( idx <= 0 )
+                Debug.Assert( "Starting dependent activity issued by ".Length == 38 );
+
+                if( startMessage.Length < 38 + ActivityMonitor.MinMonitorUniqueIdLength + 4 + 27
+                    || !startMessage.StartsWith( "Starting dependent activity issued by " ) )
                 {
-                    id = Guid.Empty;
+                    id = string.Empty;
                     time = DateTimeStamp.MinValue;
                     return false;
                 }
-                return MatchOriginatorAndTime( new StringMatcher( startMessage, idx ), out id, out time );
+                return MatchOriginatorAndTime( new StringMatcher( startMessage, 38 ), out id, out time );
             }
 
-            static bool MatchOriginatorAndTime( StringMatcher m, out Guid id, out DateTimeStamp time )
+            static bool MatchOriginatorAndTime( StringMatcher m, out string id, out DateTimeStamp time )
             {
                 time = DateTimeStamp.MinValue;
-                if( !m.TryMatchGuid( out id ) ) return false;
+                id = string.Empty;
+
+                if( m.IsEnd ) return false;
+                int i = m.StartIndex;
+                int len = m.Length;
+                while( --len >= 0 )
+                {
+                    if( Char.IsWhiteSpace( m.Head ) ) break;
+                    m.UncheckedMove( 1 );
+                }
+                int lenMatch = m.StartIndex - i;
+                if( lenMatch < MinMonitorUniqueIdLength )
+                {
+                    m.UncheckedMove( -lenMatch );
+                    return false;
+                }
+                id = m.Text.Substring( i, lenMatch );
                 if( !m.TryMatchText( " at " ) ) return false;
                 return m.MatchDateTimeStamp( out time );
             }
 
             internal string FormatStartMessage()
             {
-                return string.Format( "Starting dependent activity issued by {0:B} at {1}.", _originatorId, _creationDate );
+                return string.Format( "Starting dependent activity issued by {0} at {1}.", _originatorId, _creationDate );
             }
 
             const string _prefixLaunch = "Launching dependent activity";
@@ -203,7 +221,7 @@ namespace CK.Core
             internal static DependentToken CreateWithMonitorTopic( IActivityMonitor m, bool launchActivity, out string msg )
             {
                 msg = launchActivity ? _prefixLaunch : _prefixCreate;
-                DependentToken t = new DependentToken( ((IUniqueId)m).UniqueId, m.NextLogTime(), m.Topic );
+                DependentToken t = new DependentToken( m.UniqueId, m.NextLogTime(), m.Topic );
                 msg += '.';
                 return t;
             }
@@ -211,7 +229,7 @@ namespace CK.Core
             internal static DependentToken CreateWithDependentTopic( IActivityMonitor m, bool launchActivity, string dependentTopic, out string msg )
             {
                 msg = AppendTopic( launchActivity ? _prefixLaunchWithTopic : _prefixCreateWithTopic, dependentTopic );
-                return new DependentToken( ((IUniqueId)m).UniqueId, m.NextLogTime(), dependentTopic );
+                return new DependentToken( m.UniqueId, m.NextLogTime(), dependentTopic );
             }
 
             static string AppendTopic( string msg, string? dependentTopic )
