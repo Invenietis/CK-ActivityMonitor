@@ -9,6 +9,7 @@ using System.Text;
 using System.Reflection;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Toolkit.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace CK.Core
 {
@@ -150,8 +151,20 @@ namespace CK.Core
         /// </summary>
         public const int MinMonitorUniqueIdLength = 4;
 
+        static long _nextMonitorId;
+
+        static string CreateUniqueId()
+        {
+            var x = Interlocked.Increment( ref _nextMonitorId );
+            var sx = MemoryMarshal.AsBytes( MemoryMarshal.CreateSpan( ref x, 1 ) );
+            sx.Reverse();
+            return Base64UrlHelper.ToBase64UrlString( sx );
+        }
+
         static ActivityMonitor()
         {
+            var bytes = MemoryMarshal.AsBytes( MemoryMarshal.CreateSpan( ref _nextMonitorId, 1 ) );
+            System.Security.Cryptography.RandomNumberGenerator.Fill( bytes );
             AutoConfiguration = null;
             _defaultFilterLevel = LogFilter.Trace;
         }
@@ -185,8 +198,6 @@ namespace CK.Core
         readonly DateTimeStampProvider _lastLogTime;
         readonly string _uniqueId;
         InternalMonitor? _internalMonitor;
-
-        static string CreateUniqueId() => Guid.NewGuid().ToString();
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitor"/> that applies all <see cref="AutoConfiguration"/>
@@ -238,7 +249,7 @@ namespace CK.Core
                 ThrowHelper.ThrowArgumentException( nameof( uniqueId ), $"Monitor UniqueId must be at least {MinMonitorUniqueIdLength} long and not contain any whitespace." );
             }
             _uniqueId = uniqueId;
-            _lastLogTime = new DateTimeStampProvider();
+            _lastLogTime = stampProvider;
             _groups = new Group[8];
             for( int i = 0; i < _groups.Length; ++i ) _groups[i] = new Group( this, i );
             _autoTags = tags ?? Tags.Empty;
