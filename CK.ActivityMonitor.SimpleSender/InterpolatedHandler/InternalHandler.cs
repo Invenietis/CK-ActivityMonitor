@@ -1,3 +1,4 @@
+using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Text;
 
@@ -37,7 +38,18 @@ namespace CK.Core.LogHandler
 
         public void AppendLiteral( string value ) => _stringBuilderHandler.AppendLiteral( value );
 
-        public void AppendFormatted<T>( T value ) => _stringBuilderHandler.AppendFormatted( value );
+        public void AppendFormatted<T>( T value )
+        {
+            if( value is Type type )
+            {
+                _stringBuilderHandler.AppendLiteral( type.ToTypeString() );
+            }
+            else
+            {
+                _stringBuilderHandler.AppendFormatted( value );
+
+            }
+        }
 
         public void AppendFormatted<T>( T value, string? format ) => _stringBuilderHandler.AppendFormatted( value, format );
 
@@ -53,7 +65,17 @@ namespace CK.Core.LogHandler
 
         public void AppendFormatted( string? value, int alignment = 0, string? format = null ) => _stringBuilderHandler.AppendFormatted( value, alignment, format );
 
-        public void AppendFormatted( object? value, int alignment = 0, string? format = null ) => _stringBuilderHandler.AppendFormatted( value, alignment, format );
+        public void AppendFormatted( object? value, int alignment = 0, string? format = null )
+        {
+            if( value is Type type )
+            {
+                _stringBuilderHandler.AppendLiteral( type.ToTypeString() );
+            }
+            else
+            {
+                _stringBuilderHandler.AppendFormatted( value, alignment, format );
+            }
+        }
     }
 
 }
