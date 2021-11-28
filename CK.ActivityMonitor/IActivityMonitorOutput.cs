@@ -23,8 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace CK.Core
 {
@@ -59,19 +57,20 @@ namespace CK.Core
         /// </summary>
         /// <param name="client">An <see cref="IActivityMonitorClient"/> implementation.</param>
         /// <returns>The unregistered client or null if it has not been found.</returns>
-        IActivityMonitorClient UnregisterClient( IActivityMonitorClient client );
+        IActivityMonitorClient? UnregisterClient( IActivityMonitorClient client );
 
         /// <summary>
         /// Registers a <see cref="IActivityMonitorClient"/> that must be unique in a sense.
         /// </summary>
-        /// <param name="tester">Predicate that must be satisfied for at least one registered client.</param>
+        /// <param name="tester">Predicate that checks for an already registered client.</param>
         /// <param name="factory">Factory that will be called if no existing client satisfies <paramref name="tester"/>.</param>
-        /// <returns>The found or newly created client.</returns>
+        /// <returns>The existing or newly created client or null if the factory returned null.</returns>
         /// <remarks>
-        /// The factory function MUST return a client that satisfies the tester function otherwise a <see cref="InvalidOperationException"/> is thrown.
-        /// The factory is called only when the no client satisfies the tester function: this makes the 'added' out parameter useless.
+        /// The factory function MUST return null OR a client that satisfies the tester function otherwise a <see cref="InvalidOperationException"/> is thrown.
+        /// When null is returned by the factory function, nothing is added and null is returned. 
+        /// The factory is called only when no client satisfy the tester function: this makes the 'added' out parameter useless.
         /// </remarks>
-        T RegisterUniqueClient<T>( Func<T, bool> tester, Func<T> factory ) where T : IActivityMonitorClient;
+        T? RegisterUniqueClient<T>( Func<T, bool> tester, Func<T?> factory ) where T : IActivityMonitorClient;
 
         /// <summary>
         /// Gets the list of registered <see cref="IActivityMonitorClient"/>.

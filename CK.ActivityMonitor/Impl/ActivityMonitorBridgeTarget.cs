@@ -1,13 +1,11 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 
 //#if NET451 || NET46
 //using System.Runtime.Remoting.Lifetime;
 //#endif
-using System.Threading;
 using CK.Core.Impl;
+using Microsoft.Toolkit.Diagnostics;
 
 namespace CK.Core
 {
@@ -31,10 +29,10 @@ namespace CK.Core
         /// </param>
         public ActivityMonitorBridgeTarget( IActivityMonitorImpl targetMonitor, bool honorMonitorFilter = true )
         {
-            if( targetMonitor == null ) throw new ArgumentNullException( "targetMonitor" );
+            Guard.IsNotNull( targetMonitor, nameof( targetMonitor ) );
             _monitor = targetMonitor;
             _honorTargetFilter = honorMonitorFilter;
-            _callbacks = Util.Array.Empty<IActivityMonitorBridgeCallback>();
+            _callbacks = Array.Empty<IActivityMonitorBridgeCallback>();
         }
 
         /// <summary>
@@ -72,7 +70,7 @@ namespace CK.Core
         /// </summary>
         internal void AddCallback( IActivityMonitorBridgeCallback callback )
         {
-            Debug.Assert( Array.IndexOf( _callbacks, callback ) < 0 );
+            Debug.Assert( _callbacks != null && Array.IndexOf( _callbacks, callback ) < 0 );
             Util.InterlockedAdd( ref _callbacks, callback );
         }
 
@@ -81,7 +79,7 @@ namespace CK.Core
         /// </summary>
         internal void RemoveCallback( IActivityMonitorBridgeCallback callback )
         {
-            Debug.Assert( Array.IndexOf( _callbacks, callback ) >= 0 );
+            Debug.Assert( _callbacks != null && Array.IndexOf( _callbacks, callback ) >= 0 );
             Util.InterlockedRemove( ref _callbacks, callback );
         }
 
@@ -108,7 +106,7 @@ namespace CK.Core
             }
         }
 
-        internal void TargetTopicChanged( string newTopic, string fileName, int lineNumber )
+        internal void TargetTopicChanged( string newTopic, string? fileName, int lineNumber )
         {
             foreach( var b in _callbacks )
             {
@@ -122,7 +120,7 @@ namespace CK.Core
             targetTags = _monitor.AutoTags;
         }
 
-        internal void SetTopic( string newTopic, string fileName, int lineNumber )
+        internal void SetTopic( string newTopic, string? fileName, int lineNumber )
         {
             _monitor.SetTopic( newTopic, fileName, lineNumber );
         }

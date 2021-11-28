@@ -1,11 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\Common\Shared.props" />
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <Description>Hierarchical logger API and LogFile path centralization. Main types are: LogFile, IActivityMonitor, ActivityMonitor, ActivityMonitorClient and standard clients like ActivityMonitorTextWriterClient.
+    <TargetFrameworks>net6.0</TargetFrameworks>
+    <Description>
+      Hierarchical logger API. Main types are:
+      - LogFile with a central static RooLogPath property.
+      - IActivityMonitor and its implementation is a logger that must follow the code path.
+      - IActivityMonitorClient and standard clients like ActivityMonitorTextWriterClient are local log sinks.
+      - AsycLock with reentrancy management thanks to the IActivityMonitor.
     </Description>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CK.Core" Version="0.0.0--02wpt35-local+v13.2.0" />
+    <PackageReference Include="CK.Core" Version="15.0.0-a" />
   </ItemGroup>
 </Project>

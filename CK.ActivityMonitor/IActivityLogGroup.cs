@@ -33,14 +33,9 @@ namespace CK.Core
     public interface IActivityLogGroup
     {
         /// <summary>
-        /// Gets the tags for the log group.
+        /// Gets the log data.
         /// </summary>
-        CKTrait GroupTags { get; }
-
-        /// <summary>
-        /// Gets the log time for the log.
-        /// </summary>
-        DateTimeStamp LogTime { get; }
+        ref ActivityMonitorLogData Data { get; }
 
         /// <summary>
         /// Gets the log time of the group closing.
@@ -51,7 +46,7 @@ namespace CK.Core
         /// <summary>
         /// Get the previous group in its origin monitor. Null if this group is a top level group.
         /// </summary>
-        IActivityLogGroup Parent { get; }
+        IActivityLogGroup? Parent { get; }
 
         /// <summary>
         /// Gets the depth of this group in its origin monitor. (1 for top level groups).
@@ -71,56 +66,10 @@ namespace CK.Core
         CKTrait SavedMonitorTags { get; }
 
         /// <summary>
-        /// Gets the level associated to this group.
-        /// The <see cref="LogLevel.IsFiltered"/> can be set here: use <see cref="MaskedGroupLevel"/> to get 
-        /// the actual level from <see cref="LogLevel.Trace"/> to <see cref="LogLevel.Fatal"/>.
+        /// Gets whether this group is rejected.
+        /// A rejected group has an empty data and can appear only in the <see cref="Parent"/> linked list.
         /// </summary>
-        LogLevel GroupLevel { get; }
+        bool IsRejectedGroup { get; }
 
-        /// <summary>
-        /// Gets the actual level (<see cref="LogLevel.Trace"/> to <see cref="LogLevel.Fatal"/>) associated to this group
-        /// without <see cref="LogLevel.IsFiltered"/> bit.
-        /// </summary>
-        LogLevel MaskedGroupLevel { get; }
-
-        /// <summary>
-        /// Gets the text associated to this group.
-        /// </summary>
-        string GroupText { get; }
-
-        /// <summary>
-        /// Gets the associated <see cref="Exception"/> if it exists.
-        /// </summary>
-        Exception Exception { get; }
-
-        /// <summary>
-        /// Gets the <see cref="CKExceptionData"/> that captures exception information 
-        /// if it exists. Returns null if no <see cref="P:Exception"/> exists.
-        /// </summary>
-        CKExceptionData ExceptionData { get; }
-
-
-        /// <summary>
-        /// Gets whether the <see cref="GroupText"/> is actually the <see cref="Exception"/> message.
-        /// </summary>
-        bool IsGroupTextTheExceptionMessage { get; }
-
-        /// <summary>
-        /// Gets the file name of the source code that issued the log.
-        /// </summary>
-        string FileName { get; }
-
-        /// <summary>
-        /// Gets the line number of the <see cref="FileName"/> that issued the log.
-        /// </summary>
-        int LineNumber { get; }
-
-        /// <summary>
-        /// Gets the group data itself. Its properties are exposed
-        /// on this <see cref="IActivityLogGroup"/> interface but this can be used
-        /// to capture the Group information (the <see cref="Impl.IActivityMonitorImpl.InternalMonitor"/>
-        /// uses this).
-        /// </summary>
-        ActivityMonitorGroupData InnerData { get; }
     }
 }

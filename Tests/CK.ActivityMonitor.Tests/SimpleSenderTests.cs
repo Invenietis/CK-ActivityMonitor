@@ -1,18 +1,7 @@
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
-using CK.Core;
 using NUnit.Framework;
 using FluentAssertions;
-using CK.Text;
 
 namespace CK.Core.Tests.Monitoring
 {
@@ -27,22 +16,11 @@ namespace CK.Core.Tests.Monitoring
             m.Log( LogLevel.Fatal, "Text1" );
             m.Log( LogLevel.Fatal, new Exception( "EX1" ) );
             m.Log( LogLevel.Fatal, "Text2", new Exception( "EX2" ) );
-            m.Log( LogLevel.Fatal, "Text3", ActivityMonitor.Tags.Register( "Tag1" ) );
-            m.Log( LogLevel.Fatal, "Text4", new Exception( "EX3" ), ActivityMonitor.Tags.Register( "Tag2" ) );
-            m.Log( LogLevel.Fatal, new Exception( "EX4" ), ActivityMonitor.Tags.Register( "Tag3" ) );
-            client.Entries.Where( e => e.Level == (LogLevel.Fatal|LogLevel.IsFiltered) )
-                            .Select( e => e.Text + e.Exception?.Message + e.Tags )
-                            .Concatenate()
-                .Should().Be( "Text1, EX1EX1, Text2EX2, Text3Tag1, Text4EX3Tag2, EX4EX4Tag3" );
-
-            m.Log( LogLevel.Info, () => "Text1" );
-            m.Log( LogLevel.Info, new Exception( "EX1" ) );
-            m.Log( LogLevel.Info, () => "Text2", new Exception( "EX2" ) );
-            m.Log( LogLevel.Info, () => "Text3", ActivityMonitor.Tags.Register( "Tag1" ) );
-            m.Log( LogLevel.Info, () => "Text4", new Exception( "EX3" ), ActivityMonitor.Tags.Register( "Tag2" ) );
-            m.Log( LogLevel.Info, new Exception( "EX4" ), ActivityMonitor.Tags.Register( "Tag3" ) );
-            client.Entries.Where( e => e.Level == (LogLevel.Fatal | LogLevel.IsFiltered) )
-                            .Select( e => e.Text + e.Exception?.Message + e.Tags )
+            m.Log( LogLevel.Fatal, TestHelper.Tag1, "Text3" );
+            m.Log( LogLevel.Fatal, TestHelper.Tag2, "Text4", new Exception( "EX3" ) );
+            m.Log( LogLevel.Fatal, TestHelper.Tag3, new Exception( "EX4" ) );
+            client.Entries.Where( e => e.Data.Level == (LogLevel.Fatal|LogLevel.IsFiltered) )
+                            .Select( e => e.Data.Text + e.Data.Exception?.Message + e.Data.Tags )
                             .Concatenate()
                 .Should().Be( "Text1, EX1EX1, Text2EX2, Text3Tag1, Text4EX3Tag2, EX4EX4Tag3" );
 
@@ -50,8 +28,18 @@ namespace CK.Core.Tests.Monitoring
             (m.ActualFilter.Line == LogLevelFilter.None && ActivityMonitor.DefaultFilter.Line > LogLevelFilter.Debug )
                 .Should().BeTrue( "The Default filter is set to Trace and should not be changed by this unit tests." );
 
-            // The text is never called.
-            m.Log( LogLevel.Debug, () => throw new Exception("Never called") );
+            client.Entries.Clear();
+            var hole = Environment.TickCount;
+            m.Log( LogLevel.Fatal, $"Text1{hole}" );
+            m.Log( LogLevel.Error, new Exception( "EX1" ) );
+            m.Log( LogLevel.Warn, $"Text2{hole}", new Exception( "EX2" ) );
+            m.Log( LogLevel.Info, TestHelper.Tag1, $"Text3{hole}" );
+            m.Log( LogLevel.Trace, TestHelper.Tag2, $"Text4{hole}", new Exception( "EX3" ) );
+            // Filtered out (Trace level).
+            m.Log( LogLevel.Debug, TestHelper.Tag3, new Exception( "EX4" ) );
+            client.Entries.Select( e => e.Data.Text + e.Data.Exception?.Message + e.Data.Tags )
+                          .Concatenate()
+                .Should().Be( $"Text1{hole}, EX1EX1, Text2{hole}EX2, Text3{hole}Tag1, Text4{hole}EX3Tag2" );
         }
 
         [Test]
@@ -60,24 +48,22 @@ namespace CK.Core.Tests.Monitoring
             var m = new ActivityMonitor( false );
             var client = m.Output.RegisterClient( new StupidStringClient() );
 
+            var hole = Environment.TickCount;
             m.Info( "Text1" );
             m.Info( new Exception( "EX1" ) );
             m.Info( "Text2", new Exception( "EX2" ) );
-            m.Info( "Text3", ActivityMonitor.Tags.Register( "Tag1" ) );
-            m.Info( "Text4", new Exception( "EX3" ), ActivityMonitor.Tags.Register( "Tag2" ) );
-            m.Info( new Exception( "EX4" ), ActivityMonitor.Tags.Register( "Tag3" ) );
-            m.Info( () => "F1" );
-            m.Info( () => "F2", new Exception( "X2" ) );
-            m.Info( () => "F3", ActivityMonitor.Tags.Register( "T1" ) );
-            m.Info( () => "F4", new Exception( "X3" ), ActivityMonitor.Tags.Register( "T2" ) );
-            client.Entries.Where( e => e.Level == (LogLevel.Info | LogLevel.IsFiltered) )
-                            .Select( e => e.Text + e.Exception?.Message + e.Tags )
+            m.Info( TestHelper.Tag1, "Text3" );
+            m.Info( TestHelper.Tag2, "Text4", new Exception( "EX3" ) );
+            m.Info( TestHelper.Tag3, new Exception( "EX4" ) );
+            m.Info( $"F1{hole}" );
+            m.Info( $"F2{hole}", new Exception( "X2" ) );
+            m.Info( TestHelper.Tag4, $"F3{hole}" );
+            m.Info( TestHelper.Tag5, $"F4{hole}", new Exception( "X3" ) );
+            client.Entries.Where( e => e.Data.Level == (LogLevel.Info | LogLevel.IsFiltered) )
+                            .Select( e => e.Data.Text + e.Data.Exception?.Message + e.Data.Tags )
                             .Concatenate()
-                .Should().Be( "Text1, EX1EX1, Text2EX2, Text3Tag1, Text4EX3Tag2, EX4EX4Tag3, F1, F2X2, F3T1, F4X3T2" );
+                .Should().Be( $"Text1, EX1EX1, Text2EX2, Text3Tag1, Text4EX3Tag2, EX4EX4Tag3, F1{hole}, F2{hole}X2, F3{hole}Tag4, F4{hole}X3Tag5" );
 
-            m.MinimalFilter = LogFilter.Monitor;
-            // The text is never called.
-            m.Info( () => throw new Exception( "Never called" ) );
         }
 
         [Test]
@@ -86,26 +72,27 @@ namespace CK.Core.Tests.Monitoring
             var m = new ActivityMonitor( false );
             var client = m.Output.RegisterClient( new StupidStringClient() );
 
+            var hole = Environment.TickCount;
             using( m.OpenInfo( "Text1" ).ConcludeWith( () => "/Text1" ) )
             using( m.OpenInfo( new Exception( "EX1" ) ) )
             using( m.OpenInfo( "Text2", new Exception( "EX2" ) ) )
-            using( m.OpenInfo( "Text3", ActivityMonitor.Tags.Register( "Tag1" ) ) )
-            using( m.OpenInfo( "Text4", new Exception( "EX3" ), ActivityMonitor.Tags.Register( "Tag2" ) ) )
-            using( m.OpenInfo( new Exception( "EX4" ), ActivityMonitor.Tags.Register( "Tag3" ) ) )
-            using( m.OpenInfo( () => "F1" ) )
-            using( m.OpenInfo( () => "F2", new Exception( "X2" ) ) )
-            using( m.OpenInfo( () => "F3", ActivityMonitor.Tags.Register( "T1" ) ) )
-            using( m.OpenInfo( () => "F4", new Exception( "X3" ), ActivityMonitor.Tags.Register( "T2" ) ) )
+            using( m.OpenInfo( TestHelper.Tag1, "Text3" ) )
+            using( m.OpenInfo( TestHelper.Tag2, "Text4", new Exception( "EX3" ) ) )
+            using( m.OpenInfo( TestHelper.Tag3, new Exception( "EX4" ) ) )
+            using( m.OpenInfo( $"F1{hole}" ) )
+            using( m.OpenInfo( $"F2{hole}", new Exception( "X2" ) ) )
+            using( m.OpenInfo( TestHelper.Tag4, $"F3{hole}" ) )
+            using( m.OpenInfo( TestHelper.Tag5, $"F4{hole}", new Exception( "X3" ) ) )
             {
             }
-            client.Entries.Where( e => e.Level == (LogLevel.Info | LogLevel.IsFiltered) )
-                            .Select( e => e.Text + e.Exception?.Message + e.Tags + e.Conclusions.ToStringGroupConclusion() )
+            client.Entries.Where( e => e.Data.Level == (LogLevel.Info | LogLevel.IsFiltered) )
+                            .Select( e => e.Data.Text + e.Data.Exception?.Message + e.Data.Tags + e.Conclusions!.ToStringGroupConclusion() )
                             .Concatenate()
-                .Should().Be( "Text1/Text1, EX1EX1, Text2EX2, Text3Tag1, Text4EX3Tag2, EX4EX4Tag3, F1, F2X2, F3T1, F4X3T2" );
+                .Should().Be( $"Text1/Text1, EX1EX1, Text2EX2, Text3Tag1, Text4EX3Tag2, EX4EX4Tag3, F1{hole}, F2{hole}X2, F3{hole}Tag4, F4{hole}X3Tag5" );
 
             m.MinimalFilter = LogFilter.Release;
             // The text is never called.
-            IDisposableGroup g = m.OpenInfo( () => throw new Exception( "Never called" ) );
+            IDisposableGroup g = m.OpenInfo( $"{(0 == 0 ? throw new Exception( "Never called" ) : "")}" );
             g.IsRejectedGroup.Should().BeTrue();
             // The conclude function is never called.
             IDisposable d = g.ConcludeWith( () => throw new Exception( "Never called" ) );
@@ -118,33 +105,34 @@ namespace CK.Core.Tests.Monitoring
             var m = new ActivityMonitor( false );
             var client = m.Output.RegisterClient( new StupidStringClient() );
 
+            var hole = Environment.TickCount;
             using( m.OpenGroup( LogLevel.Fatal, "Text1" ) )
             using( m.OpenGroup( LogLevel.Fatal, new Exception( "EX1" ) ) )
             using( m.OpenGroup( LogLevel.Fatal, "Text2", new Exception( "EX2" ) ) )
-            using( m.OpenGroup( LogLevel.Fatal, "Text3", ActivityMonitor.Tags.Register( "Tag1" ) ).ConcludeWith( () => "/Text3" ) )
-            using( m.OpenGroup( LogLevel.Fatal, "Text4", new Exception( "EX3" ), ActivityMonitor.Tags.Register( "Tag2" ) ) )
-            using( m.OpenGroup( LogLevel.Fatal, new Exception( "EX4" ), ActivityMonitor.Tags.Register( "Tag3" ) ) )
-            using( m.OpenGroup( LogLevel.Info, () => "Text1" ).ConcludeWith( () => "/Text1" ) )
+            using( m.OpenGroup( LogLevel.Fatal, TestHelper.Tag1, "Text3" ).ConcludeWith( () => "/Text3" ) )
+            using( m.OpenGroup( LogLevel.Fatal, TestHelper.Tag2, "Text4", new Exception( "EX3" ) ) )
+            using( m.OpenGroup( LogLevel.Fatal, TestHelper.Tag3, new Exception( "EX4" ) ) )
+            using( m.OpenGroup( LogLevel.Info, $"Text1{hole}" ).ConcludeWith( () => "/Text1" ) )
             using( m.OpenGroup( LogLevel.Info, new Exception( "EX1" ) ) )
-            using( m.OpenGroup( LogLevel.Info, () => "Text2", new Exception( "EX2" ) ) )
-            using( m.OpenGroup( LogLevel.Info, () => "Text3", ActivityMonitor.Tags.Register( "Tag1" ) ) )
-            using( m.OpenGroup( LogLevel.Info, () => "Text4", new Exception( "EX3" ), ActivityMonitor.Tags.Register( "Tag2" ) ) )
-            using( m.OpenGroup( LogLevel.Info, new Exception( "EX4" ), ActivityMonitor.Tags.Register( "Tag3" ) ) )
+            using( m.OpenGroup( LogLevel.Info, $"Text2{hole}", new Exception( "EX2" ) ) )
+            using( m.OpenGroup( LogLevel.Info, TestHelper.Tag1, $"Text3{hole}" ) )
+            using( m.OpenGroup( LogLevel.Info, TestHelper.Tag2, $"Text4{hole}", ex: new Exception( "EX3" ) ) )
+            using( m.OpenGroup( LogLevel.Info, TestHelper.Tag3, new Exception( "EX4" ) ) )
             {
             }
-            client.Entries.Where( e => e.Level == (LogLevel.Fatal | LogLevel.IsFiltered) )
-                            .Select( e => e.Text + e.Exception?.Message + e.Tags + e.Conclusions.ToStringGroupConclusion() )
+            client.Entries.Where( e => e.Data.Level == (LogLevel.Fatal | LogLevel.IsFiltered) )
+                            .Select( e => e.Data.Text + e.Data.Exception?.Message + e.Data.Tags + e.Conclusions!.ToStringGroupConclusion() )
                             .Concatenate()
-                .Should().Be( "Text1, EX1EX1, Text2EX2, Text3Tag1/Text3, Text4EX3Tag2, EX4EX4Tag3" );
+                .Should().Be( $"Text1, EX1EX1, Text2EX2, Text3Tag1/Text3, Text4EX3Tag2, EX4EX4Tag3" );
 
-            client.Entries.Where( e => e.Level == (LogLevel.Info | LogLevel.IsFiltered) )
-                            .Select( e => e.Text + e.Exception?.Message + e.Tags + e.Conclusions.ToStringGroupConclusion() )
+            client.Entries.Where( e => e.Data.Level == (LogLevel.Info | LogLevel.IsFiltered) )
+                            .Select( e => e.Data.Text + e.Data.Exception?.Message + e.Data.Tags + e.Conclusions!.ToStringGroupConclusion() )
                             .Concatenate()
-                .Should().Be( "Text1/Text1, EX1EX1, Text2EX2, Text3Tag1, Text4EX3Tag2, EX4EX4Tag3" );
+                .Should().Be( $"Text1{hole}/Text1, EX1EX1, Text2{hole}EX2, Text3{hole}Tag1, Text4{hole}EX3Tag2, EX4EX4Tag3" );
 
             m.MinimalFilter = LogFilter.Release;
             // The text is never called.
-            IDisposableGroup g = m.OpenGroup( LogLevel.Info, () => throw new Exception( "Never called" ) );
+            IDisposableGroup g = m.OpenGroup( LogLevel.Info, $"Bug {( 1 == 1 ? throw new Exception( "Never called" ) : 0)}" );
             g.IsRejectedGroup.Should().BeTrue();
             // The conclude function is never called.
             IDisposable d = g.ConcludeWith( () => throw new Exception( "Never called" ) );

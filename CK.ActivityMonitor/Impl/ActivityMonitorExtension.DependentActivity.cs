@@ -1,8 +1,5 @@
-﻿using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Text;
-using System.Diagnostics;
+using Microsoft.Toolkit.Diagnostics;
+using System;
 using System.Runtime.CompilerServices;
 
 namespace CK.Core
@@ -18,10 +15,10 @@ namespace CK.Core
         public struct DependentSender
         {
             readonly IActivityMonitor _monitor;
-            readonly string _fileName;
+            readonly string? _fileName;
             readonly int _lineNumber;
 
-            internal DependentSender( IActivityMonitor m, string f, int n )
+            internal DependentSender( IActivityMonitor m, string? f, int n )
             {
                 _monitor = m;
                 _fileName = f;
@@ -46,10 +43,9 @@ namespace CK.Core
             /// <returns>A dependent token.</returns>
             public ActivityMonitor.DependentToken CreateToken( bool delayedLaunch = false )
             {
-                string msg;
-                var t = ActivityMonitor.DependentToken.CreateWithMonitorTopic( _monitor, delayedLaunch, out msg );
+                var t = ActivityMonitor.DependentToken.CreateWithMonitorTopic( _monitor, delayedLaunch, out string msg );
                 if( delayedLaunch ) t.DelayedLaunchMessage = msg;
-                else _monitor.UnfilteredLog( ActivityMonitor.Tags.CreateDependentActivity, LogLevel.Info, msg, t.CreationDate, null, _fileName, _lineNumber );
+                else _monitor.UnfilteredLog( LogLevel.Info, ActivityMonitor.Tags.CreateDependentActivity, msg, null, _fileName, _lineNumber );
                 return t;
             }
 
@@ -73,10 +69,14 @@ namespace CK.Core
             /// <returns>A dependent token.</returns>
             public ActivityMonitor.DependentToken CreateTokenWithTopic( string dependentTopic, bool delayedLaunch = false )
             {
-                string msg;
-                var t = ActivityMonitor.DependentToken.CreateWithDependentTopic( _monitor, delayedLaunch, dependentTopic, out msg );
+                var t = ActivityMonitor.DependentToken.CreateWithDependentTopic( _monitor, delayedLaunch, dependentTopic, out string msg );
                 if( delayedLaunch ) t.DelayedLaunchMessage = msg;
-                else _monitor.UnfilteredLog( ActivityMonitor.Tags.CreateDependentActivity, LogLevel.Info, msg, t.CreationDate, null, _fileName, _lineNumber );
+                else
+                {
+                    var d = new ActivityMonitorLogData( LogLevel.Info, _monitor.AutoTags | ActivityMonitor.Tags.CreateDependentActivity, msg, null, _fileName, _lineNumber );
+                    d.SetExplicitLogTime( t.CreationDate );
+                    _monitor.UnfilteredLog( ref d );
+                }
                 return t;
             }
 
@@ -89,7 +89,7 @@ namespace CK.Core
             public void Launch( ActivityMonitor.DependentToken token )
             {
                 if( token.DelayedLaunchMessage == null ) throw new InvalidOperationException( Impl.ActivityMonitorResources.ActivityMonitorDependentTokenMustBeDelayedLaunch );
-                _monitor.UnfilteredLog( ActivityMonitor.Tags.CreateDependentActivity, LogLevel.Info, token.DelayedLaunchMessage, _monitor.NextLogTime(), null, _fileName, _lineNumber );
+                _monitor.UnfilteredLog( LogLevel.Info, ActivityMonitor.Tags.CreateDependentActivity, token.DelayedLaunchMessage, null, _fileName, _lineNumber );
             }
 
             /// <summary>
@@ -100,13 +100,14 @@ namespace CK.Core
             /// <returns>A dependent token.</returns>
             public void Launch( Action<ActivityMonitor.DependentToken> dependentLauncher )
             {
-                if( dependentLauncher == null ) throw new ArgumentNullException( nameof( dependentLauncher ) );
-                string msg;
-                var t = ActivityMonitor.DependentToken.CreateWithMonitorTopic( _monitor, true, out msg );
-                using( _monitor.UnfilteredOpenGroup( ActivityMonitor.Tags.CreateDependentActivity, LogLevel.Info, null, msg, t.CreationDate, null, _fileName, _lineNumber ) )
+                Guard.IsNotNull( dependentLauncher, nameof( dependentLauncher ) );
+                var t = ActivityMonitor.DependentToken.CreateWithMonitorTopic( _monitor, true, out string msg );
+                var d = new ActivityMonitorLogData( LogLevel.Info, _monitor.AutoTags | ActivityMonitor.Tags.CreateDependentActivity, msg, null, _fileName, _lineNumber );
+                d.SetExplicitLogTime( t.CreationDate );
+                using( _monitor.UnfilteredOpenGroup( ref d ) )
                 {
                     dependentLauncher( t );
-                    _monitor.CloseGroup( _monitor.NextLogTime(), "Success." );
+                    _monitor.CloseGroup( "Success." );
                 }
             }
 
@@ -116,16 +117,17 @@ namespace CK.Core
             /// This creates a new <see cref="ActivityMonitor.DependentToken"/> and opens a group that wraps the execution of the <paramref name="dependentLauncher"/>.
             /// </summary>
             /// <param name="dependentLauncher">Must create and launch dependent activities that should use the created token.</param>
-            /// <param name="dependentTopic">Topic for the dependent activity. When null, the dependent monitor's topic is not changed.</param>
+            /// <param name="dependentTopic">Topic for the dependent activity: the receiver's monitor will set this topic .</param>
             public void LaunchWithTopic( Action<ActivityMonitor.DependentToken> dependentLauncher, string dependentTopic )
             {
-                if( dependentLauncher == null ) throw new ArgumentNullException( nameof(dependentLauncher) );
-                string msg;
-                var t = ActivityMonitor.DependentToken.CreateWithDependentTopic( _monitor, true, dependentTopic, out msg );
-                using( _monitor.UnfilteredOpenGroup( ActivityMonitor.Tags.CreateDependentActivity, LogLevel.Info, null, msg, t.CreationDate, null, _fileName, _lineNumber ) )
+                Guard.IsNotNull( dependentLauncher, nameof(dependentLauncher) );
+                var t = ActivityMonitor.DependentToken.CreateWithDependentTopic( _monitor, true, dependentTopic, out string msg );
+                var d = new ActivityMonitorLogData( LogLevel.Info, _monitor.AutoTags | ActivityMonitor.Tags.CreateDependentActivity, msg, null, _fileName, _lineNumber );
+                d.SetExplicitLogTime( t.CreationDate );
+                using( _monitor.UnfilteredOpenGroup( ref d ) )
                 {
                     dependentLauncher( t );
-                    _monitor.CloseGroup( _monitor.NextLogTime(), "Success." );
+                    _monitor.CloseGroup( "Success." );
                 }
             }
         }
@@ -139,7 +141,7 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
         /// <returns>Sender object.</returns>
-        static public DependentSender DependentActivity( this IActivityMonitor @this, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        static public DependentSender DependentActivity( this IActivityMonitor @this, [CallerFilePath]string? fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
             return new DependentSender( @this, fileName, lineNumber );
         }
@@ -153,9 +155,9 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
         /// <returns>A disposable object. It must be disposed at the end of the activity.</returns>
-        static public IDisposable StartDependentActivity( this IActivityMonitor @this, ActivityMonitor.DependentToken token, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        static public IDisposable StartDependentActivity( this IActivityMonitor @this, ActivityMonitor.DependentToken token, [CallerFilePath]string? fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
-            if( token == null ) throw new ArgumentNullException( "token" );
+            Guard.IsNotNull( token, nameof( token ) );
             return ActivityMonitor.DependentToken.Start( token, @this, fileName, lineNumber );
         }
 

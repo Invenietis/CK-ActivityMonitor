@@ -1,13 +1,11 @@
-using CK.Core;
 using FluentAssertions;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
+
+#nullable enable
 
 namespace CK.Core.Tests.Monitoring
 {
@@ -21,10 +19,10 @@ namespace CK.Core.Tests.Monitoring
                 _monitor = monitor;
             }
 
-            protected override void OnUnfilteredLog( ActivityMonitorLogData data )
+            protected override void OnUnfilteredLog( ref ActivityMonitorLogData data )
             {
-                _monitor.Info().Send( "I'm buggy: I'm logging back in my monitor!" );
-                base.OnUnfilteredLog( data );
+                _monitor.Info( "I'm buggy: I'm logging back in my monitor!" );
+                base.OnUnfilteredLog( ref data );
             }
         }
 
@@ -36,7 +34,7 @@ namespace CK.Core.Tests.Monitoring
                 _number = number;
             }
 
-            protected override void OnUnfilteredLog( ActivityMonitorLogData data )
+            protected override void OnUnfilteredLog( ref ActivityMonitorLogData data )
             {
                 if( TestHelper.LogsToConsole ) Console.WriteLine( "NotBuggyActivityMonitorClient.OnUnfilteredLog n°{0}: {1}", _number, data.Text );
             }
@@ -50,7 +48,7 @@ namespace CK.Core.Tests.Monitoring
                 _action = log;
             }
 
-            protected override void OnUnfilteredLog( ActivityMonitorLogData data )
+            protected override void OnUnfilteredLog( ref ActivityMonitorLogData data )
             {
                 _action();
             }
@@ -64,7 +62,7 @@ namespace CK.Core.Tests.Monitoring
             readonly object _outLocker = new object();
             bool _outDone = false;
 
-            protected override void OnUnfilteredLog( ActivityMonitorLogData data )
+            protected override void OnUnfilteredLog( ref ActivityMonitorLogData data )
             {
                 lock( _locker )
                 {
@@ -116,13 +114,13 @@ namespace CK.Core.Tests.Monitoring
             {
                 Task.Factory.StartNew( () =>
                  {
-                     monitor.Info().Send( "Test must work in task" );
+                     monitor.Info( "Test must work in task" );
                  } );
 
                 client.WaitForOnUnfilteredLog();
 
                 var expectedMessage = Impl.ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess.Replace( "{0}", "*" ).Replace( "{1}", "*" ).Replace( "{2}", "*" );
-                monitor.Invoking( sut => sut.Info().Send( "Test must fail" ) )
+                monitor.Invoking( sut => sut.Info( "Test must fail" ) )
                        .Should().Throw<CKException>()
                        .WithMessage( expectedMessage );
 
@@ -134,26 +132,26 @@ namespace CK.Core.Tests.Monitoring
             }
 
             Thread.Sleep( 50 );
-            monitor.Info().Send( "Test must work after task" );
+            monitor.Info( "Test must work after task" );
 
             ++clientCount;
             monitor.Output.RegisterClient( new ActionActivityMonitorClient( () =>
               {
-                  monitor.Invoking( sut => sut.Info().Send( "Test must fail reentrant client" ) )
+                  monitor.Invoking( sut => sut.Info( "Test must fail reentrant client" ) )
                          .Should().Throw<CKException>()
                          .WithMessage( Impl.ActivityMonitorResources.ActivityMonitorReentrancyError.Replace( "{0}", "*" ) );
               } ) );
 
-            monitor.Info().Send( "Test must work after reentrant client" );
+            monitor.Info( "Test must work after reentrant client" );
             monitor.Output.Clients.Should().HaveCount( clientCount, "The RegisterClient action above is ok: it checks that it triggered a reentrant call." );
 
             ++clientCount;
             monitor.Output.RegisterClient( new ActionActivityMonitorClient( () =>
               {
-                  monitor.Info().Send( "Test must fail reentrant client" );
+                  monitor.Info( "Test must fail reentrant client" );
               } ) );
 
-            monitor.Info().Send( "Test must work after reentrant client" );
+            monitor.Info( "Test must work after reentrant client" );
             monitor.Output.Clients.Should().HaveCount( clientCount - 1, "The BUGGY RegisterClient action above is NOT ok: it triggers a reentrant call exception => We have removed it." );
         }
 
@@ -169,11 +167,10 @@ namespace CK.Core.Tests.Monitoring
                 BuggyActivityMonitorClient client = new BuggyActivityMonitorClient( monitor );
                 monitor.Output.RegisterClient( client );
                 monitor.Output.Clients.Should().HaveCount( clientCount + 1 );
-                monitor.Info().Send( "Test" );
-                ActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
+                monitor.Info( "Test" );
                 monitor.Output.Clients.Should().HaveCount( clientCount );
 
-                monitor.Info().Send( "Test" );
+                monitor.Info( "Test" );
             }
         }
 
@@ -183,15 +180,15 @@ namespace CK.Core.Tests.Monitoring
             IActivityMonitor monitor = new ActivityMonitor();
             if( TestHelper.LogsToConsole ) monitor.Output.RegisterClient( new ActivityMonitorConsoleClient() );
 
-            // Artficially slows down logging to ensure that concurrent access occurs.
+            // Artificially slows down logging to ensure that concurrent access occurs.
             monitor.Output.RegisterClient( new ActionActivityMonitorClient( () => Thread.Sleep( 50 ) ) );
-            AggregateException ex = ConcurrentThrow( monitor );
+            AggregateException? ex = ConcurrentThrow( monitor );
             ex.Should().NotBeNull();
 
-            monitor.Info().Send( "Test" );
+            monitor.Info( "Test" );
         }
 
-        static AggregateException ConcurrentThrow( IActivityMonitor monitor )
+        static AggregateException? ConcurrentThrow( IActivityMonitor monitor )
         {
             object lockTasks = new object();
             object lockRunner = new object();
@@ -210,9 +207,9 @@ namespace CK.Core.Tests.Monitoring
 
             Task[] tasks = new Task[]
             {
-                new Task( () => { getLock(); monitor.Info().Send( "Test T1" ); } ),
-                new Task( () => { getLock(); monitor.Info().Send( new Exception(), "Test T2" ); } ),
-                new Task( () => { getLock(); monitor.Info().Send( "Test T3" ); } )
+                new Task( () => { getLock(); monitor.Info( "Test T1" ); } ),
+                new Task( () => { getLock(); monitor.Info( "Test T2", new Exception() ); } ),
+                new Task( () => { getLock(); monitor.Info( "Test T3" ); } )
             };
 
             try
@@ -231,7 +228,7 @@ namespace CK.Core.Tests.Monitoring
             catch( AggregateException ex )
             {
                 tasks.Where( x => x.IsFaulted )
-                     .SelectMany( x => x.Exception.Flatten().InnerExceptions )
+                     .SelectMany( x => x.Exception!.Flatten().InnerExceptions )
                      .Should().AllBeOfType<CKException>();
                 return ex;
             }
@@ -242,7 +239,7 @@ namespace CK.Core.Tests.Monitoring
         public void StackTrace_is_available_on_concurrent_errors_thanks_to_the_StackTrace_tag()
         {
             IActivityMonitor monitor = new ActivityMonitor();
-            // Artficially slows down logging to ensure that concurrent access occurs.
+            // Artificially slows down logging to ensure that concurrent access occurs.
             monitor.Output.RegisterClient( new ActionActivityMonitorClient( () => Thread.Sleep( 80 ) ) );
             // Use a temporary bridge to redirect the logs to the TestHelper.Monitor.
             //using( monitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
@@ -270,11 +267,11 @@ namespace CK.Core.Tests.Monitoring
                 CheckConccurrentException( monitor, false );
             }
 
-            static void CheckConccurrentException( IActivityMonitor  m, bool mustHaveCallStack )
+            static void CheckConccurrentException( IActivityMonitor m, bool mustHaveCallStack )
             {
-                AggregateException ex = ConcurrentThrow( m );
+                AggregateException? ex = ConcurrentThrow( m );
                 ex.Should().NotBeNull();
-                CKException one = ex.Flatten().InnerExceptions.OfType<CKException>().First();
+                CKException one = ex!.Flatten().InnerExceptions.OfType<CKException>().First();
                 if( mustHaveCallStack )
                 {
                     one.Message.Should().Contain( "-- Other Monitor's StackTrace" );

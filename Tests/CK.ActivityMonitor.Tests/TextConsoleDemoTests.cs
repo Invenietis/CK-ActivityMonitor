@@ -1,13 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Xml.Linq;
-using CK.Core;
 using NUnit.Framework;
-using System.Threading.Tasks;
-using FluentAssertions;
-using System.Threading;
 
 namespace CK.Core.Tests.Monitoring
 {

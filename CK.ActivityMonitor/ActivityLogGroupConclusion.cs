@@ -1,15 +1,14 @@
+using Microsoft.Toolkit.Diagnostics;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Diagnostics;
 
 namespace CK.Core
 {
     /// <summary>
-    /// Describes the conclusion of a group. Conclusions are simply <see cref="Text"/> <see cref="Tag"/>ged with a <see cref="CKTrait"/>.
+    /// Describes the conclusion of a group.
+    /// Conclusions are simply <see cref="Text"/> <see cref="Tag"/>ged with a <see cref="CKTrait"/>.
     /// </summary>
-    public struct ActivityLogGroupConclusion
+    public readonly struct ActivityLogGroupConclusion
     {
         /// <summary>
         /// The tag (never null).
@@ -28,11 +27,11 @@ namespace CK.Core
         /// </summary>
         /// <param name="conclusion">Must not be null (may be empty).</param>
         /// <param name="tag">Must be null or be registered in <see cref="ActivityMonitor.Tags"/>.</param>
-        public ActivityLogGroupConclusion( string conclusion, CKTrait tag = null )
+        public ActivityLogGroupConclusion( string conclusion, CKTrait? tag = null )
         {
-            if( conclusion == null ) throw new ArgumentNullException( "conclusion" );
+            Guard.IsNotNull( conclusion, nameof( conclusion ) );
             if( tag == null ) tag = ActivityMonitor.Tags.Empty;
-            else if( tag.Context != ActivityMonitor.Tags.Context ) throw new ArgumentException( Impl.ActivityMonitorResources.ActivityMonitorTagMustBeRegistered, "tag" );
+            else if( tag.Context != ActivityMonitor.Tags.Context ) throw new ArgumentException( Impl.ActivityMonitorResources.ActivityMonitorTagMustBeRegistered, nameof( tag ) );
             Tag = tag;
             Text = conclusion;
         }
@@ -41,8 +40,8 @@ namespace CK.Core
         {
             Debug.Assert( t != null && t.Context == ActivityMonitor.Tags.Context );
             Debug.Assert( conclusion != null );
-            Tag = t;
-            Text = conclusion;
+            Tag = t!;
+            Text = conclusion!;
         }
 
         /// <summary>
@@ -50,11 +49,10 @@ namespace CK.Core
         /// </summary>
         /// <param name="obj">Object to test.</param>
         /// <returns>True when equal.</returns>
-        public override bool Equals( object obj )
+        public override bool Equals( object? obj )
         {
-            if( obj is ActivityLogGroupConclusion )
+            if( obj is ActivityLogGroupConclusion c )
             {
-                ActivityLogGroupConclusion c = (ActivityLogGroupConclusion)obj;
                 return c.Tag == Tag && c.Text == Text;
             }
             return false;
@@ -92,13 +90,11 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Overriden to return <see cref="Text"/>.
+        /// Overridden to return <see cref="Text"/>.
         /// </summary>
         /// <returns>Text field.</returns>
-        public override string ToString()
-        {
-            return Text;
-        }
+        public override string ToString() => Text;
+
     }
 
 }

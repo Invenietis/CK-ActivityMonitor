@@ -1,4 +1,4 @@
-﻿#region LGPL License
+#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (Tests\CK.Core.Tests\Monitoring\StupidStringClient.cs) is part of CiviKey. 
 *  
@@ -23,11 +23,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Xml;
-using CK.Core;
 
 namespace CK.Core.Tests.Monitoring
 {
@@ -35,32 +32,22 @@ namespace CK.Core.Tests.Monitoring
     {
         public class Entry
         {
-            public readonly LogLevel Level;
-            public readonly CKTrait Tags;
-            public readonly string Text;
-            public readonly Exception Exception;
-            public readonly DateTimeStamp LogTime;
-            public readonly IActivityLogGroup GroupForConclusions;
-            public IReadOnlyList<ActivityLogGroupConclusion> Conclusions;
+            public readonly ActivityMonitorLogData Data;
+            public readonly IActivityLogGroup? GroupForConclusions;
+            public IReadOnlyList<ActivityLogGroupConclusion>? Conclusions;
 
-            public Entry( ActivityMonitorLogData d )
+            public Entry( ref ActivityMonitorLogData d )
             {
-                Level = d.Level;
-                Tags = d.Tags;
-                Text = d.Text;
-                Exception = d.Exception;
-                LogTime = d.LogTime;
+                Data = d;
             }
-            
+                        
             public Entry( IActivityLogGroup d )
+                : this( ref d.Data)
             {
                 GroupForConclusions = d;
-                Level = d.GroupLevel;
-                Tags = d.GroupTags;
-                Text = d.GroupText;
-                Exception = d.Exception;
-                LogTime = d.LogTime;
             }
+
+            public override string ToString() => $"{Data.MaskedLevel} - {Data.Text}";
         }
         public readonly List<Entry> Entries;
         public StringWriter Writer { get; private set; }
@@ -81,7 +68,7 @@ namespace CK.Core.Tests.Monitoring
 
         #region IActivityMonitorClient members
 
-        void IActivityMonitorClient.OnTopicChanged( string newTopic, string fileName, int lineNumber )
+        void IActivityMonitorClient.OnTopicChanged( string newTopic, string? fileName, int lineNumber )
         {
         }
 
@@ -89,7 +76,7 @@ namespace CK.Core.Tests.Monitoring
         {
         }
 
-        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorLogData data )
+        void IActivityMonitorClient.OnUnfilteredLog( ref ActivityMonitorLogData data )
         {
             var level = data.Level & LogLevel.Mask;
 
@@ -105,7 +92,7 @@ namespace CK.Core.Tests.Monitoring
             {
                 if( _curLevel == (int)level )
                 {
-                    OnContinueOnSameLevel( data );
+                    OnContinueOnSameLevel( ref data );
                 }
                 else
                 {
@@ -113,7 +100,7 @@ namespace CK.Core.Tests.Monitoring
                     {
                         OnLeaveLevel( (LogLevel)_curLevel );
                     }
-                    OnEnterLevel( data );
+                    OnEnterLevel( ref data );
                     _curLevel = (int)level;
                 }
             }
@@ -130,11 +117,11 @@ namespace CK.Core.Tests.Monitoring
             OnGroupOpen( group );
         }
 
-        void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
+        void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions )
         {
         }
 
-        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
             if( _curLevel != -1 )
             {
@@ -147,18 +134,18 @@ namespace CK.Core.Tests.Monitoring
 
         #endregion IActivityMonitorClient members
 
-        void OnEnterLevel( ActivityMonitorLogData data )
+        void OnEnterLevel( ref ActivityMonitorLogData data )
         {
-            Entries.Add( new Entry( data ) );
+            Entries.Add( new Entry( ref data ) );
             Writer.WriteLine();
             Writer.Write( data.MaskedLevel.ToString() + ": " + data.Text );
             if( WriteTags ) Writer.Write( "-[{0}]", data.Tags.ToString() );
             if( data.Exception != null ) Writer.Write( "Exception: " + data.Exception.Message );
         }
 
-        void OnContinueOnSameLevel( ActivityMonitorLogData data )
+        void OnContinueOnSameLevel( ref ActivityMonitorLogData data )
         {
-            Entries.Add( new Entry( data ) );
+            Entries.Add( new Entry( ref data ) );
             Writer.Write( data.Text );
             if( WriteTags ) Writer.Write( "-[{0}]", data.Tags.ToString() );
             if( data.Exception != null ) Writer.Write( "Exception: " + data.Exception.Message );
@@ -174,23 +161,26 @@ namespace CK.Core.Tests.Monitoring
             Entries.Add( new Entry( g ) );
             Writer.WriteLine();
             Writer.Write( new String( '+', g.Depth ) );
-            Writer.Write( "{1} ({0})", g.MaskedGroupLevel, g.GroupText );
-            if( g.Exception != null ) Writer.Write( "Exception: " + g.Exception.Message );
-            if( WriteTags ) Writer.Write( "-[{0}]", g.GroupTags.ToString() );
+            Writer.Write( "{1} ({0})", g.Data.MaskedLevel, g.Data.Text );
+            if( g.Data.Exception != null ) Writer.Write( "Exception: " + g.Data.Exception.Message );
+            if( WriteTags ) Writer.Write( "-[{0}]", g.Data.Tags.ToString() );
         }
 
-        void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
             Entries.Last( e => e.GroupForConclusions == g ).Conclusions = conclusions;
             Writer.WriteLine();
             Writer.Write( new String( '-', g.Depth ) );
-            if( WriteConclusionTraits )
+            if( conclusions != null )
             {
-                Writer.Write( String.Join( ", ", conclusions.Select( c => c.Text + "-/[/"+ c.Tag.ToString() +"/]/" ) ) );
-            }
-            else
-            {
-                Writer.Write( String.Join( ", ", conclusions.Select( c => c.Text ) ) );
+                if( WriteConclusionTraits )
+                {
+                    Writer.Write( String.Join( ", ", conclusions.Select( c => c.Text + "-/[/" + c.Tag.ToString() + "/]/" ) ) );
+                }
+                else
+                {
+                    Writer.Write( String.Join( ", ", conclusions.Select( c => c.Text ) ) );
+                }
             }
         }
 

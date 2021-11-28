@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using System.Diagnostics;
-using CK.Text;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core
 {
@@ -19,8 +19,6 @@ namespace CK.Core
         string _prefix;
         string _prefixLevel;
         CKTrait _currentTags;
-
-        static readonly Action<string> _none = _ => { };
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitorTextWriterClient"/> bound to a 
@@ -60,8 +58,9 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Initialize a new <see cref="ActivityMonitorTextWriterClient"/> that is not bound to any <see cref="Writer"/>.
-        /// Unless explictly initialized, this will not write anything anywhere.
+        /// Initialize a new <see cref="ActivityMonitorTextWriterClient"/> with a 
+        /// <see cref="Writer"/> sets to <see cref="Util.ActionVoid{T}"/>.
+        /// Unless explicitly initialized, this will not write anything anywhere.
         /// The depth padding is using white spaces.
         /// </summary>
         /// <param name="filter">Filter to apply.</param>
@@ -72,12 +71,13 @@ namespace CK.Core
             _buffer = new StringBuilder();
             _prefixLevel = _prefix = String.Empty;
             _currentTags = ActivityMonitor.Tags.Empty;
-            Writer = _none;
+            _writer = Util.ActionVoid<string>;
         }
 
         /// <summary>
-        /// Initialize a new <see cref="ActivityMonitorTextWriterClient"/> that is not bound to any <see cref="Writer"/>.
-        /// Unless explictly initialized, this will not write anything anywhere.
+        /// Initialize a new <see cref="ActivityMonitorTextWriterClient"/> with a 
+        /// <see cref="Writer"/> sets to <see cref="Util.ActionVoid{T}"/>.
+        /// Unless explicitly initialized, this will not write anything anywhere.
         /// The depth padding is using white spaces.
         /// </summary>
         public ActivityMonitorTextWriterClient()
@@ -87,14 +87,16 @@ namespace CK.Core
 
         /// <summary>
         /// Gets or sets the actual writer function.
+        /// When set to null, the empty <see cref="Util.ActionVoid{T}"/> is set.
         /// </summary>
-        protected Action<string> Writer { get => _writer; set => _writer = value ?? _none; }
+        [AllowNull]
+        protected Action<string> Writer { get => _writer; set => _writer = value ?? Util.ActionVoid<string>; }
 
         /// <summary>
         /// Writes all the information.
         /// </summary>
         /// <param name="data">Log data.</param>
-        protected override void OnEnterLevel( ActivityMonitorLogData data )
+        protected override void OnEnterLevel( ref ActivityMonitorLogData data )
         {
             var w = _buffer.Clear();
             _prefixLevel = _prefix + new string( ' ', data.MaskedLevel.ToString().Length + 4 );
@@ -122,7 +124,7 @@ namespace CK.Core
         /// Writes all information.
         /// </summary>
         /// <param name="data">Log data.</param>
-        protected override void OnContinueOnSameLevel( ActivityMonitorLogData data )
+        protected override void OnContinueOnSameLevel( ref ActivityMonitorLogData data )
         {
             var w = _buffer.Clear();
             w.AppendMultiLine( _prefixLevel, data.Text, true );
@@ -157,22 +159,22 @@ namespace CK.Core
         protected override void OnGroupOpen( IActivityLogGroup g )
         {
             var w = _buffer.Clear();
-            string levelLabel = g.MaskedGroupLevel.ToString();
+            string levelLabel = g.Data.MaskedLevel.ToString();
             string start = string.Format( "{0}> {1}: ", _prefix, levelLabel );
             _prefix += _depthPadding;
             _prefixLevel = _prefix;
             string prefixLabel = _prefixLevel + new string( ' ', levelLabel.Length + 1 );
 
-            w.Append( start ).AppendMultiLine( prefixLabel, g.GroupText, false );
-            if( _currentTags != g.GroupTags )
+            w.Append( start ).AppendMultiLine( prefixLabel, g.Data.Text, false );
+            if( _currentTags != g.Data.Tags )
             {
-                w.Append( " -[" ).Append( g.GroupTags ).Append( ']' );
-                _currentTags = g.GroupTags;
+                w.Append( " -[" ).Append( g.Data.Tags ).Append( ']' );
+                _currentTags = g.Data.Tags;
             }
             w.AppendLine();
-            if( g.Exception != null )
+            if( g.Data.Exception != null )
             {
-                DumpException( w, _prefix, !g.IsGroupTextTheExceptionMessage, g.Exception );
+                DumpException( w, _prefix, !g.Data.IsTextTheExceptionMessage, g.Data.Exception );
             }
             Writer( _buffer.ToString() );
         }
@@ -182,13 +184,13 @@ namespace CK.Core
         /// </summary>
         /// <param name="g">Group that must be closed.</param>
         /// <param name="conclusions">Conclusions for the group.</param>
-        protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
             _prefixLevel = _prefix = _prefix.Remove( _prefix.Length - 3 );
-            if( conclusions.Count == 0 ) return;
+            if( conclusions is null || conclusions.Count == 0 ) return;
             var w = _buffer.Clear();
             bool one = false;
-            List<ActivityLogGroupConclusion> withMultiLines = null;
+            List<ActivityLogGroupConclusion>? withMultiLines = null;
             foreach( var c in conclusions )
             {
                 if( c.Text.Contains( '\n' ) )
@@ -286,22 +288,20 @@ namespace CK.Core
                     {
                         w.AppendLine( localPrefix + " ┌──────────────────────────■ [Loader Exceptions] ■──────────────────────────" );
                         p = localPrefix + " | ";
-                        foreach( var item in typeLoadEx.LoaderExceptions )
+                        for( int i = 0; i < typeLoadEx.Types.Length; i++ )
                         {
-                            DumpException( w, p, true, item );
+                            // apparently, Types/LoaderExceptions are parallel array.
+                            // A null in Types[i] mean there is an exception in LoaderException[i]
+                            // https://docs.microsoft.com/en-us/dotnet/api/system.reflection.reflectiontypeloadexception.loaderexceptions?view=netstandard-2.0#property-value
+                            if( typeLoadEx.Types[i] != null ) 
+                            {
+                                Debug.Assert( typeLoadEx.LoaderExceptions[i] == null );
+                                continue;
+                            }
+                            DumpException( w, p, true, typeLoadEx.LoaderExceptions[i]! );
                         }
                         w.AppendLine( localPrefix + " └─────────────────────────────────────────────────────────────────────────" );
                     }
-#if NET461
-                    else
-                    {
-                        var configEx = ex as System.Configuration.ConfigurationException;
-                        if( configEx != null )
-                        {
-                            if( !String.IsNullOrEmpty( configEx.Filename ) ) w.AppendLine( localPrefix + "FileName: " + configEx.Filename );
-                        }
-                    }
-#endif
                 }
             }
             // The InnerException of an aggregated exception is the same as the first of it InnerExceptionS.

@@ -21,15 +21,11 @@
 *-----------------------------------------------------------------------------*/
 #endregion
 
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
-using CK.Core;
 
 namespace CK.Core.Tests.Monitoring
 {
@@ -55,13 +51,13 @@ namespace CK.Core.Tests.Monitoring
             }
         }
 
-        protected override void OnEnterLevel( ActivityMonitorLogData data )
+        protected override void OnEnterLevel( ref ActivityMonitorLogData data )
         {
             XmlWriter.WriteStartElement( data.MaskedLevel.ToString() );
             XmlWriter.WriteString( data.Text );
         }
 
-        protected override void OnContinueOnSameLevel( ActivityMonitorLogData data )
+        protected override void OnContinueOnSameLevel( ref ActivityMonitorLogData data )
         {
             XmlWriter.WriteString( data.Text );
         }
@@ -73,13 +69,13 @@ namespace CK.Core.Tests.Monitoring
 
         protected override void OnGroupOpen( IActivityLogGroup g )
         {
-            XmlWriter.WriteStartElement( g.MaskedGroupLevel.ToString() + "s" );
+            XmlWriter.WriteStartElement( g.Data.MaskedLevel.ToString() + "s" );
             XmlWriter.WriteAttributeString( "Depth", g.Depth.ToString() );
-            XmlWriter.WriteAttributeString( "Level", g.GroupLevel.ToString() );
-            XmlWriter.WriteAttributeString( "Text", g.GroupText.ToString() );
+            XmlWriter.WriteAttributeString( "Level", g.Data.Level.ToString() );
+            XmlWriter.WriteAttributeString( "Text", g.Data.Text );
         }
 
-        protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
             XmlWriter.WriteEndElement();
             XmlWriter.Flush();
@@ -87,7 +83,7 @@ namespace CK.Core.Tests.Monitoring
 
         public override string ToString()
         {
-            return InnerWriter.ToString();
+            return InnerWriter.ToString()!;
         }
     }
 

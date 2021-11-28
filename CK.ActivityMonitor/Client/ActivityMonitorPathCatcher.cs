@@ -24,9 +24,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using CK.Core.Impl;
 
 namespace CK.Core
@@ -47,7 +45,7 @@ namespace CK.Core
             /// <summary>
             /// Gets the tags of the log entry.
             /// </summary>
-            public CKTrait Tags { get; internal set; }
+            public CKTrait Tags { get; internal set; } = null!; // Never null after late init.
             /// <summary>
             /// Gets the log level of the log entry.
             /// </summary>
@@ -55,28 +53,25 @@ namespace CK.Core
             /// <summary>
             /// Gets the text of the log entry.
             /// </summary>
-            public string Text { get; internal set; }
+            public string Text { get; internal set; } = null!; // Never null after late init.
             /// <summary>
             /// Gets the conclusions associated to a group. Null if this element does not correspond to a group.
             /// </summary>
-            public IReadOnlyList<ActivityLogGroupConclusion> GroupConclusion { get; internal set; }
+            public IReadOnlyList<ActivityLogGroupConclusion>? GroupConclusion { get; internal set; }
 
             /// <summary>
             /// Overridden to return the <see cref="Text"/> of this element.
             /// </summary>
             /// <returns>This <see cref="Text"/> property.</returns>
-            public override string ToString()
-            {
-                return Text;
-            }
+            public override string ToString() => Text;
         }
 
         IReadOnlyList<PathElement> _errorSnaphot;
         IReadOnlyList<PathElement> _warnSnaphot;
 
         readonly List<PathElement> _path;
-        PathElement _current;
-        IActivityMonitor _source;
+        PathElement? _current;
+        IActivityMonitor? _source;
         bool _currentIsGroup;
         bool _currentIsGroupClosed;
         bool _locked;
@@ -87,9 +82,11 @@ namespace CK.Core
         public ActivityMonitorPathCatcher()
         {
             _path = new List<PathElement>();
+            _errorSnaphot = Array.Empty<PathElement>();
+            _warnSnaphot = Array.Empty<PathElement>();  
         }
 
-        void IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove )
+        void IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl? source, bool forceBuggyRemove )
         {
             if( !forceBuggyRemove )
             {
@@ -116,7 +113,7 @@ namespace CK.Core
 
         /// <summary>
         /// Gets the last <see cref="DynamicPath"/> where an <see cref="LogLevel.Error"/> or a <see cref="LogLevel.Fatal"/> occurred.
-        /// Null if no error nor fatal occurred.
+        /// Empty if no error nor fatal occurred.
         /// Use the extension method <see cref="ActivityMonitorExtension.ToStringPath"/> to easily format this path.
         /// </summary>
         public IReadOnlyList<PathElement> LastErrorPath => _errorSnaphot;
@@ -124,11 +121,11 @@ namespace CK.Core
         /// <summary>
         /// Clears current <see cref="LastErrorPath"/> (sets it to null).
         /// </summary>
-        public void ClearLastErrorPath() => _errorSnaphot = null;
+        public void ClearLastErrorPath() => _errorSnaphot = Array.Empty<PathElement>();
 
         /// <summary>
         /// Gets the last path with a <see cref="LogLevel.Fatal"/>, <see cref="LogLevel.Error"/> or a <see cref="LogLevel.Warn"/>.
-        /// Null if no error, fatal nor warn occurred.
+        /// Empty if no error, fatal nor warn occurred.
         /// Use the extension method <see cref="ActivityMonitorExtension.ToStringPath"/> to easily format this path.
         /// </summary>
         public IReadOnlyList<PathElement> LastWarnOrErrorPath => _warnSnaphot; 
@@ -139,8 +136,8 @@ namespace CK.Core
         /// </summary>
         public void ClearLastWarnPath( bool clearLastErrorPath = false )
         {
-            _warnSnaphot = null;
-            if( clearLastErrorPath ) _errorSnaphot = null;
+            _warnSnaphot = Array.Empty<PathElement>();
+            if( clearLastErrorPath ) _errorSnaphot = Array.Empty<PathElement>();
         }
 
         /// <summary>
@@ -148,7 +145,7 @@ namespace CK.Core
         /// and handles errors or warning.
         /// </summary>
         /// <param name="data">Log data. Never null.</param>
-        protected override void OnUnfilteredLog( ActivityMonitorLogData data )
+        protected override void OnUnfilteredLog( ref ActivityMonitorLogData data )
         {
             if( data.Text != ActivityMonitor.ParkLevel )
             {
@@ -180,9 +177,9 @@ namespace CK.Core
                 _path.Add( _current );
             }
             _currentIsGroup = true;
-            _current.Tags = group.GroupTags;
-            _current.MaskedLevel = group.MaskedGroupLevel;
-            _current.Text = group.GroupText;
+            _current.Tags = group.Data.Tags;
+            _current.MaskedLevel = group.Data.MaskedLevel;
+            _current.Text = group.Data.Text;
             CheckSnapshot();
         }
 
@@ -191,7 +188,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="group">The closed group.</param>
         /// <param name="conclusions">Texts that conclude the group. Never null but can be empty.</param>
-        protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
             if( _currentIsGroupClosed ) HandleCurrentGroupIsClosed();
             if( _path.Count > 0 )

@@ -21,20 +21,15 @@
 *-----------------------------------------------------------------------------*/
 #endregion
 
-using CK.Text;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CK.Core
 {
     /// <summary>
     /// Minimal implementation of <see cref="LogFilter"/> conversion from and to <see cref="String"/>.
-    /// This allows LoFilter to appear in their text form in configuration files.
+    /// This allows LogFilter to appear in their text form in configuration files.
     /// </summary>
     public class LogFilterTypeConverter : TypeConverter
     {
@@ -44,7 +39,7 @@ namespace CK.Core
         /// <param name="context">Unused.</param>
         /// <param name="sourceType">Source type (must be <see cref="String"/>).</param>
         /// <returns>True on success, false otherwise.</returns>
-        public override bool CanConvertFrom( ITypeDescriptorContext context, Type sourceType )
+        public override bool CanConvertFrom( ITypeDescriptorContext? context, Type? sourceType )
         {
             return sourceType == typeof( string );
         }
@@ -52,14 +47,14 @@ namespace CK.Core
         /// <summary>
         /// Converts from a string.
         /// This uses <see cref="LogFilter.TryParse(string, out LogFilter)"/> since exceptions are usually
-        /// swallowed by callers that fallback to the default value for the type (the rational behind being that
-        /// conversion is not validation and that validator souhld be used if validation is required).
+        /// swallowed by callers that fallback to the default value for the type (the rational behind is that
+        /// conversion is not validation and that validator should be used if validation is required).
         /// </summary>
         /// <param name="context">Unused.</param>
         /// <param name="culture">Unused.</param>
-        /// <param name="value">Must be as string (see <see cref="LogFilter.Parse(string)"/>).</param>
+        /// <param name="value">Must be a string (see <see cref="LogFilter.Parse(string)"/>).</param>
         /// <returns>The LogFilter (can be <see cref="LogFilter.Undefined"/> on error).</returns>
-        public override object ConvertFrom( ITypeDescriptorContext context, CultureInfo culture, object value )
+        public override object ConvertFrom( ITypeDescriptorContext? context, CultureInfo? culture, object value )
         {
             LogFilter.TryParse( (string)value, out var result );
             return result;
@@ -71,7 +66,7 @@ namespace CK.Core
         /// <param name="context">Unused.</param>
         /// <param name="destinationType">Destination type (must be <see cref="String"/>).</param>
         /// <returns>True on success, false otherwise.</returns>
-        public override bool CanConvertTo( ITypeDescriptorContext context, Type destinationType )
+        public override bool CanConvertTo( ITypeDescriptorContext? context, Type? destinationType )
         {
             return destinationType == typeof( string );
         }
@@ -84,9 +79,9 @@ namespace CK.Core
         /// <param name="value">Must be a <see cref="LogFilter"/> instance.</param>
         /// <param name="destinationType">Destination type (must be <see cref="String"/>).</param>
         /// <returns>The <see cref="LogFilter.ToString"/> result.</returns>
-        public override object ConvertTo( ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType )
+        public override object ConvertTo( ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType )
         {
-            return ((LogFilter)value).ToString();
+            return value == null ? LogFilter.Undefined : ((LogFilter)value).ToString();
         }
     }
 

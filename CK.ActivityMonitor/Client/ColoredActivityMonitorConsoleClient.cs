@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace CK.Core
 {
@@ -62,7 +61,9 @@ namespace CK.Core
         /// <param name="logLevel">Current log level.</param>
         protected virtual void SetColor( LogLevel logLevel )
         {
-            DefaultSetColor( _backgroundColor, logLevel );
+            (ConsoleColor background, ConsoleColor foreground) = DefaultColorTheme( _backgroundColor, logLevel );
+            Console.BackgroundColor = background;
+            Console.ForegroundColor = foreground;
         }
 
         /// <summary>
@@ -70,34 +71,24 @@ namespace CK.Core
         /// </summary>
         /// <param name="backgroundColor">Background color to set.</param>
         /// <param name="logLevel">Current log level.</param>
-        public static void DefaultSetColor(ConsoleColor backgroundColor, LogLevel logLevel )
+        public static (ConsoleColor background, ConsoleColor foreground) DefaultColorTheme( ConsoleColor backgroundColor, LogLevel logLevel )
         {
             switch( logLevel )
             {
                 case LogLevel.Fatal:
-                    Console.BackgroundColor = ConsoleColor.DarkRed;
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    break;
+                    return (ConsoleColor.DarkRed, ConsoleColor.Yellow);
                 case LogLevel.Error:
-                    Console.BackgroundColor = backgroundColor;
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    break;
+                    return (backgroundColor, ConsoleColor.Red);
                 case LogLevel.Warn:
-                    Console.BackgroundColor = backgroundColor;
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    break;
+                    return (backgroundColor, ConsoleColor.Yellow);
                 case LogLevel.Info:
-                    Console.BackgroundColor = backgroundColor;
-                    Console.ForegroundColor = ConsoleColor.Cyan;
-                    break;
+                    return (backgroundColor, ConsoleColor.Cyan);
                 case LogLevel.Trace:
-                    Console.BackgroundColor = backgroundColor;
-                    Console.ForegroundColor = ConsoleColor.Gray;
-                    break;
+                    return (backgroundColor, ConsoleColor.Gray);
                 case LogLevel.Debug:
-                    Console.BackgroundColor = backgroundColor;
-                    Console.ForegroundColor = ConsoleColor.DarkGray;
-                    break;
+                    return (backgroundColor, ConsoleColor.DarkGray);
+                default:
+                    return (ConsoleColor.Red, ConsoleColor.Green);//awful so people may think "something is not right"
             }
         }
 
@@ -115,10 +106,10 @@ namespace CK.Core
         /// Writes all the information after having captured the log level.
         /// </summary>
         /// <param name="data">Log data.</param>
-        protected override void OnEnterLevel( ActivityMonitorLogData data )
+        protected override void OnEnterLevel( ref ActivityMonitorLogData data )
         {
             _currentLogLevel = data.MaskedLevel;
-            base.OnEnterLevel( data );
+            base.OnEnterLevel( ref data );
         }
 
         /// <summary>
@@ -127,7 +118,7 @@ namespace CK.Core
         /// <param name="g">Group information.</param>
         protected override void OnGroupOpen( IActivityLogGroup g )
         {
-            _currentLogLevel = g.MaskedGroupLevel;
+            _currentLogLevel = g.Data.MaskedLevel;
             base.OnGroupOpen( g );
         }
 
@@ -136,9 +127,9 @@ namespace CK.Core
         /// </summary>
         /// <param name="g">Group that must be closed.</param>
         /// <param name="conclusions">Conclusions for the group.</param>
-        protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
-            _currentLogLevel = g.MaskedGroupLevel;
+            _currentLogLevel = g.Data.MaskedLevel;
             base.OnGroupClose( g, conclusions );
         }
 

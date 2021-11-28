@@ -16,14 +16,17 @@ namespace CK.Core
         {
             if( monitor == null ) throw new ArgumentNullException( nameof( monitor ) );
             Monitor = monitor;
-        }        
-        
+        }
+
         /// <summary>
         /// Initializes a new <see cref="EventMonitoredArgs"/> with no monitor.
+        /// The <see cref="Monitor"/> must be set by the specialization.
         /// </summary>
+#pragma warning disable CS8618 // Monitor must be set by specialization.
         protected EventMonitoredArgs()
         {
         }
+#pragma warning restore CS8618
 
         /// <summary>
         /// Gets the monitor that should be used while processing the event.

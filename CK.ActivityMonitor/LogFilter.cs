@@ -1,28 +1,6 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Core\ActivityMonitor\LogFilter.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
+using Microsoft.Toolkit.Diagnostics;
 using System;
-using CK.Text;
+using System.Runtime.CompilerServices;
 
 namespace CK.Core
 {
@@ -30,26 +8,29 @@ namespace CK.Core
     /// Immutable capture of a double <see cref="LogLevelFilter"/>. One for <see cref="Line"/> and one for <see cref="Group"/>.
     /// This value type exposes predefined configured couples: <see cref="Debug"/>, <see cref="Trace"/> (full trace), <see cref="Verbose"/>, <see cref="Monitor"/>, 
     /// <see cref="Terse"/>, <see cref="Release"/> and <see cref="Off"/> (no log at all).
+    /// <para>
+    /// Combining two filters <see cref="Combine(LogFilter)"/> lowers it so that both can be satisfied. 
+    /// </para>
     /// </summary>
     [System.ComponentModel.TypeConverter( typeof( LogFilterTypeConverter ) )]
     [Serializable]
-    public readonly struct LogFilter
+    public readonly struct LogFilter : IEquatable<LogFilter>
     {
         /// <summary>
         /// Undefined filter is <see cref="LogLevelFilter.None"/> for both <see cref="Line"/> and <see cref="Group"/>.
         /// This is the same as using the default constructor for this structure (it is exposed here for clarity).
         /// </summary>
-        static public readonly LogFilter Undefined = new LogFilter( LogLevelFilter.None, LogLevelFilter.None );
+        static public readonly LogFilter Undefined = default;
 
         /// <summary>
-        /// Debug filter enables full <see cref="LogLevelFilter.Debug"/> for both <see cref="Line"/> and <see cref="Group"/>.
+        /// Debug filter enables full <see cref="LogLevelFilter.Debug"/> for both <see cref="Group"/> and <see cref="Line"/>.
         /// </summary>
-        static public readonly LogFilter Debug = new LogFilter(LogLevelFilter.Debug, LogLevelFilter.Debug);
+        static public readonly LogFilter Debug = new LogFilter( LogLevelFilter.Debug, LogLevelFilter.Debug );
 
         /// <summary>
-        /// Trace filter enables full <see cref="LogLevelFilter.Trace"/> for both <see cref="Line"/> and <see cref="Group"/>.
+        /// Trace filter enables full <see cref="LogLevelFilter.Trace"/> for both <see cref="Group"/> and <see cref="Line"/>.
         /// </summary>
-        static public readonly LogFilter Trace = new LogFilter(LogLevelFilter.Trace, LogLevelFilter.Trace);
+        static public readonly LogFilter Trace = new LogFilter( LogLevelFilter.Trace, LogLevelFilter.Trace );
 
         /// <summary>
         /// Verbose <see cref="LogLevelFilter.Trace"/> all <see cref="Group"/>s but limits <see cref="Line"/> to <see cref="LogLevelFilter.Info"/> level.
@@ -57,17 +38,18 @@ namespace CK.Core
         static public readonly LogFilter Verbose = new LogFilter( LogLevelFilter.Trace, LogLevelFilter.Info );
 
         /// <summary>
-        /// While monitoring, only errors and warnings are captured (Warn), whereas all <see cref="Group"/>s appear (Trace) to get the detailed structure of the activity.
+        /// While monitoring all <see cref="Group"/>s appear (Trace) to get the detailed structure of the activity but for <see cref="Line"/> only
+        /// errors and warnings are captured.
         /// </summary>
         static public readonly LogFilter Monitor = new LogFilter( LogLevelFilter.Trace, LogLevelFilter.Warn );
 
         /// <summary>
-        /// Terse filter captures only errors for <see cref="Line"/> and limits <see cref="Group"/>s to <see cref="LogLevelFilter.Info"/> level.
+        /// Terse filter limits <see cref="Group"/>s to <see cref="LogLevelFilter.Info"/> and captures only errors for <see cref="Line"/>.
         /// </summary>
         static public readonly LogFilter Terse = new LogFilter( LogLevelFilter.Info, LogLevelFilter.Error );
-        
+
         /// <summary>
-        /// Release filter captures only <see cref="LogLevelFilter.Error"/>s for both <see cref="Line"/> and <see cref="Group"/>.
+        /// Release filter captures only <see cref="LogLevelFilter.Error"/>s for both <see cref="Group"/> and <see cref="Line"/>.
         /// </summary>
         static public readonly LogFilter Release = new LogFilter( LogLevelFilter.Error, LogLevelFilter.Error );
 
@@ -150,9 +132,10 @@ namespace CK.Core
         /// </summary>
         /// <param name="x">The other filter.</param>
         /// <returns>True if combining this filter and <paramref name="x"/> will change x.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HasImpactOn( LogFilter x )
         {
-            return (Line != LogLevelFilter.None && Line < x.Line) || (Group != LogLevelFilter.None && Group < x.Group); 
+            return (Line != LogLevelFilter.None && Line < x.Line) || (Group != LogLevelFilter.None && Group < x.Group);
         }
 
         /// <summary>
@@ -164,6 +147,7 @@ namespace CK.Core
         /// <param name="x">First filter level.</param>
         /// <param name="y">Second filter level.</param>
         /// <returns>The resulting level.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static public LogLevelFilter Combine( LogLevelFilter x, LogLevelFilter y )
         {
             if( x <= 0 ) return y;
@@ -177,24 +161,20 @@ namespace CK.Core
         /// </summary>
         /// <param name="obj">Other object.</param>
         /// <returns>True if Line and Group are equal.</returns>
-        public override bool Equals( object obj )
-        {
-            if( obj is LogFilter )
-            {
-                LogFilter x = (LogFilter)obj;
-                return x.Line == Line && x.Group == Group;
-            }
-            return false;
-        }
+        public override bool Equals( object? obj ) => obj is LogFilter filter && Equals( filter );
+
+        /// <summary>
+        /// <see cref="Line"/> and <see cref="Group"/> must be the same.
+        /// </summary>
+        /// <param name="x">Other filter.</param>
+        /// <returns>True if Line and Group are equal.</returns>
+        public bool Equals( LogFilter x ) => x.Line == Line && x.Group == Group;
 
         /// <summary>
         /// Overridden to compute hash based on <see cref="Line"/> and <see cref="Group"/> values.
         /// </summary>
         /// <returns>The hash code.</returns>
-        public override int GetHashCode()
-        {
-            return ((int)Line) << 16 + (int)Group;
-        }
+        public override int GetHashCode() => ((int)Line) << 16 + (int)Group;
 
         /// <summary>
         /// Overridden to show the group and the line level.
@@ -202,15 +182,15 @@ namespace CK.Core
         /// <returns>A {group,line} string.</returns>
         public override string ToString()
         {
-            if (this == LogFilter.Undefined) return "Undefined";
-            if (this == LogFilter.Debug) return "Debug";
-            if (this == LogFilter.Trace) return "Trace";
-            if (this == LogFilter.Verbose) return "Verbose";
-            if (this == LogFilter.Monitor) return "Monitor";
-            if (this == LogFilter.Terse) return "Terse";
-            if (this == LogFilter.Release) return "Release";
-            if (this == LogFilter.Off) return "Off";
-            if (this == LogFilter.Invalid) return "Invalid";
+            if( this == LogFilter.Undefined ) return "Undefined";
+            if( this == LogFilter.Debug ) return "Debug";
+            if( this == LogFilter.Trace ) return "Trace";
+            if( this == LogFilter.Verbose ) return "Verbose";
+            if( this == LogFilter.Monitor ) return "Monitor";
+            if( this == LogFilter.Terse ) return "Terse";
+            if( this == LogFilter.Release ) return "Release";
+            if( this == LogFilter.Off ) return "Off";
+            if( this == LogFilter.Invalid ) return "Invalid";
             return $"{{{Group},{Line}}}";
         }
 
@@ -240,16 +220,14 @@ namespace CK.Core
         /// Parses the filter: it can be a predefined filter as ("Undefined", "Debug", "Trace", "Verbose", etc.) 
         /// or as {GroupLogLevelFilter,LineLogLevelFilter} pairs like "{None,None}", "{Error,Debug}".
         /// </summary>
-        /// <param name="filter">
-        /// Predefined filter as (Undefined, Debug, Verbose, etc.) or as {LineLogLevelFilter,GroupLogLevelFilter} like {None,None}, {Error,Trace}.
+        /// <param name="s">
+        /// Predefined filter as (Undefined, Debug, Verbose, etc.) or as {GroupLogLevelFilter,LineLogLevelFilter} like {None,None}, {Error,Trace}.
         /// Must not be null.
         /// </param>
         /// <returns>The filter.</returns>
-        public static LogFilter Parse( string filter )
+        public static LogFilter Parse( string s )
         {
-            if( filter == null ) throw new ArgumentNullException( filter );
-            LogFilter f;
-            if( !TryParse( filter, out f ) ) throw new ArgumentException( $"Invalid LogFilter: '{filter}'.", nameof(filter) );
+            if( !TryParse( s, out var f ) ) ThrowHelper.ThrowArgumentException( $"Invalid LogFilter: '{s}'.", nameof( s ) );
             return f;
         }
 
@@ -257,13 +235,12 @@ namespace CK.Core
         /// Tries to parse a <see cref="LogFilter"/>: it can be a predefined filter as ("Undefined", "Debug", "Verbose", etc.)  
         /// or as {GroupLogLevelFilter,LineLogLevelFilter} pairs like "{None,None}", "{Error,Trace}".
         /// </summary>
-        /// <param name="s">Filter to parse. Can be null.</param>
+        /// <param name="s">The string to parse.</param>
         /// <param name="f">Resulting filter.</param>
         /// <returns>True on success, false on error.</returns>
         public static bool TryParse( string s, out LogFilter f )
         {
-            f = Undefined;
-            if( s == null ) return false;
+            Guard.IsNotNull( s, nameof( s ) );
             var m = new StringMatcher( s );
             return m.MatchLogFilter( out f ) && m.IsEnd;
         }

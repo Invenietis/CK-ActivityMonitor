@@ -22,11 +22,7 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CK.Core.Impl
 {
@@ -34,13 +30,13 @@ namespace CK.Core.Impl
     /// Defines required aspects that an actual monitor implementation must support.
     /// This interface is available to any <see cref="IActivityMonitorBoundClient"/>.
     /// </summary>
-    public interface IActivityMonitorImpl : IActivityMonitor, IUniqueId
+    public interface IActivityMonitorImpl : IActivityMonitor
     {
         /// <summary>
         /// Gets the currently opened group.
         /// Null when no group is currently opened.
         /// </summary>
-        IActivityLogGroup CurrentGroup { get; }
+        IActivityLogGroup? CurrentGroup { get; }
 
         /// <summary>
         /// Gets a disposable object that checks for reentrant and concurrent calls.
@@ -90,7 +86,7 @@ namespace CK.Core.Impl
         /// <param name="newTags">new tags to set. When null, it is ignored.</param>
         /// <param name="fileName">Source file name of the caller. Do not set it: the attribute will do the job.</param>
         /// <param name="lineNumber">Line number in the source file. Do not set it: the attribute will do the job.</param>
-        void InitializeTopicAndAutoTags( string newTopic, CKTrait newTags, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 );
+        void InitializeTopicAndAutoTags( string newTopic, CKTrait newTags, [CallerFilePath]string? fileName = null, [CallerLineNumber]int lineNumber = 0 );
 
     }
 }

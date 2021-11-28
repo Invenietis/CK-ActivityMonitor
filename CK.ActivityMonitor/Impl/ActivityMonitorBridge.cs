@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -14,7 +13,7 @@ namespace CK.Core
     {
         readonly ActivityMonitorBridgeTarget _bridgeTarget;
         readonly IActivityMonitor _targetMonitor;
-        IActivityMonitorImpl _source;
+        IActivityMonitorImpl? _source;
         // I'm missing a BitList in the framework...
         readonly List<bool> _openedGroups;
         LogFilter _targetActualFilter;
@@ -79,20 +78,22 @@ namespace CK.Core
             if( s != null ) s.SignalChange();
         }
 
-        void IActivityMonitorBridgeCallback.OnTargetTopicChanged( string newTopic, string fileName, int lineNumber )
+        void IActivityMonitorBridgeCallback.OnTargetTopicChanged( string newTopic, string? fileName, int lineNumber )
         {
+            if( _source == null ) throw new InvalidOperationException(nameof( IActivityMonitorBoundClient.SetMonitor ) + " should be called before calling this method." );
             _source.SetTopic( newTopic, fileName, lineNumber );
         }
 
         void IActivityMonitorBridgeCallback.OnTargetAutoTagsChanged( CKTrait newTags )
         {
+            if( _source == null ) throw new InvalidOperationException( nameof( IActivityMonitorBoundClient.SetMonitor ) + " should be called before calling this method." );
             _source.AutoTags = newTags;
         }
 
         /// <summary>
         /// forceBuggyRemove is not used here since this client is not lockable.
         /// </summary>
-        void IActivityMonitorBoundClient.SetMonitor( Impl.IActivityMonitorImpl source, bool forceBuggyRemove )
+        void IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl? source, bool forceBuggyRemove )
         {
             if( source != null && _source != null ) throw ActivityMonitorClient.CreateMultipleRegisterOnBoundClientException( this );
             if( _source != null )
@@ -108,15 +109,14 @@ namespace CK.Core
                 }
                 _openedGroups.Clear();
             }
-            else
+            if( source != null )
             {
                 _bridgeTarget.AddCallback( this );
                 _targetActualFilter = _bridgeTarget.TargetFinalFilter;
                 if( _pullTargetTopicAndAutoTagsFromTarget )
                 {
-                    source.InitializeTopicAndAutoTags( this._targetMonitor.Topic, _targetMonitor.AutoTags );
+                    source.InitializeTopicAndAutoTags( _targetMonitor.Topic, _targetMonitor.AutoTags );
                 }
-
             }
             _source = source;
             Interlocked.MemoryBarrier();
@@ -147,7 +147,7 @@ namespace CK.Core
             return f;
         }
 
-        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorLogData data )
+        void IActivityMonitorClient.OnUnfilteredLog( ref ActivityMonitorLogData data )
         {
             // If the level is above the actual target filter, we always send the message.
             // If the level is lower: if the log has not been filtered (UnfilteredLog has been called and not an extension method) we must
@@ -155,13 +155,13 @@ namespace CK.Core
             var level = data.Level;
             if( ((level & LogLevel.IsFiltered) == 0 && !_applyTargetFilterToUnfilteredLogs) || (int)GetActualTargetFilter().Line <= (int)(level & LogLevel.Mask) )
             {
-                _targetMonitor.UnfilteredLog( data );
+                _targetMonitor.UnfilteredLog( ref data );
             }
         }
 
         void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group )
         {
-            Debug.Assert( group.GroupLevel != LogLevel.None, "A client never sees a rejected group." );
+            Debug.Assert( group.Data.Level != LogLevel.None, "A client never sees a rejected group." );
             Debug.Assert( group.Depth > 0, "Depth is 1-based." );
             // Make sure the index is available.
             // This handles the case where this ClientBridge has been added to the Monitor.Output
@@ -173,22 +173,22 @@ namespace CK.Core
             // solicitation (and marshaling when crossing application domains).
             // Note: If the group has already been filtered out by extension methods (group.GroupLevel == LogLevel.None),
             // we do not see it here. Checking the LogLevelFilter is ok.
-            if( ((group.GroupLevel & LogLevel.IsFiltered) == 0 && !_applyTargetFilterToUnfilteredLogs) || (int)GetActualTargetFilter().Group <= (int)group.MaskedGroupLevel )
+            if( ((group.Data.Level & LogLevel.IsFiltered) == 0 && !_applyTargetFilterToUnfilteredLogs) || (int)GetActualTargetFilter().Group <= (int)group.Data.MaskedLevel )
             {
-                _targetMonitor.UnfilteredOpenGroup( group.GroupTags, group.GroupLevel, null, group.GroupText, group.LogTime, group.Exception, group.FileName, group.LineNumber );
+                _targetMonitor.UnfilteredOpenGroup( ref group.Data );
                 _openedGroups[idx - 1] = true;
             }
             else _openedGroups[idx - 1] = false;
         }
 
-        void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
+        void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions )
         {
             // Does nothing.
             // The Clients of the target do not see the "Closing" of a Group here: it will receive it as part of the CloseGroup issued by 
             // OnGroupClosed method below.
         }
 
-        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
             if( _openedGroups[group.Depth - 1] )
             {
@@ -197,7 +197,7 @@ namespace CK.Core
             }
         }
 
-        void IActivityMonitorClient.OnTopicChanged( string newTopic, string fileName, int lineNumber )
+        void IActivityMonitorClient.OnTopicChanged( string newTopic, string? fileName, int lineNumber )
         {
             if( _pushTopicAndAutoTagsToTarget ) _bridgeTarget.SetTopic( newTopic, fileName, lineNumber );
         }

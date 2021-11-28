@@ -1,15 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using CK.Core;
-using FluentAssertions;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using CK.Text;
 
 namespace CK.Core.Tests
 {
@@ -27,6 +19,14 @@ namespace CK.Core.Tests
             // Do not pollute the console by default... LogsToConsole does the job.
             _console = new ActivityMonitorConsoleClient();
         }
+
+        public static CKTrait Tag1 = ActivityMonitor.Tags.Register( "Tag1" );
+        public static CKTrait Tag2 = ActivityMonitor.Tags.Register( "Tag2" );
+        public static CKTrait Tag3 = ActivityMonitor.Tags.Register( "Tag3" );
+        public static CKTrait Tag4 = ActivityMonitor.Tags.Register( "Tag4" );
+        public static CKTrait Tag5 = ActivityMonitor.Tags.Register( "Tag5" );
+        public static CKTrait Tag6 = ActivityMonitor.Tags.Register( "Tag6" );
+
 
         public static IActivityMonitor Monitor => _monitor; 
 
@@ -82,7 +82,7 @@ namespace CK.Core.Tests
                 catch( Exception ex )
                 {
                     if( ++tryCount == 20 ) throw;
-                    Monitor.Info().Send( ex, "While cleaning up test directory. Retrying." );
+                    Monitor.Info( "While cleaning up test directory. Retrying.", ex );
                     System.Threading.Thread.Sleep( 100 );
                 }
             }
@@ -100,7 +100,7 @@ namespace CK.Core.Tests
             LogFile.RootLogPath = Path.Combine( _testFolder, "Logs" );
             Console.WriteLine($"SolutionFolder is: {_solutionFolder}.");
             Console.WriteLine($"TestFolder is: {_testFolder}.");
-            Console.WriteLine($"Core path: {typeof(string).GetTypeInfo().Assembly.CodeBase}.");
+            Console.WriteLine($"Core path: {typeof(string).GetTypeInfo().Assembly.Location}.");
         }
 
     }

@@ -1,4 +1,4 @@
-﻿#region LGPL License
+#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\Client\ActivityMonitorErrorCounter.cs) is part of CiviKey. 
 *  
@@ -24,9 +24,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
 using CK.Core.Impl;
 
 namespace CK.Core
@@ -57,9 +55,9 @@ namespace CK.Core
         /// </summary>
         public class State
         {
-            internal readonly State Parent;
+            internal readonly State? Parent;
 
-            internal State( State parent )
+            internal State( State? parent )
             {
                 MaxLogLevel = LogLevel.None;
                 Parent = parent;
@@ -88,18 +86,12 @@ namespace CK.Core
             /// <summary>
             /// Gets whether an error or a fatal occurred.
             /// </summary>
-            public bool HasError
-            {
-                get { return MaxLogLevel >= LogLevel.Error; }
-            }
+            public bool HasError => MaxLogLevel >= LogLevel.Error;
 
             /// <summary>
             /// Gets whether a fatal, an error or a warn occurred.
             /// </summary>
-            public bool HasWarnOrError
-            {
-                get { return MaxLogLevel >= LogLevel.Warn; }
-            }
+            public bool HasWarnOrError => MaxLogLevel >= LogLevel.Warn;
 
             /// <summary>
             /// Resets <see cref="FatalCount"/> and <see cref="ErrorCount"/>.
@@ -127,7 +119,7 @@ namespace CK.Core
             /// Gets the current message if <see cref="HasWarnOrError"/> is true, otherwise null.
             /// </summary>
             /// <returns>Formatted message or null if no error nor warning occurred.</returns>
-            public override string ToString()
+            public override string? ToString()
             {
                 if( HasWarnOrError )
                 {
@@ -158,7 +150,7 @@ namespace CK.Core
                 {
                     case LogLevel.Fatal:
                         {
-                            State s = this;
+                            State? s = this;
                             do
                             {
                                 s.FatalCount = s.FatalCount + 1;
@@ -169,7 +161,7 @@ namespace CK.Core
                         }
                     case LogLevel.Error:
                         {
-                            State s = this;
+                            State? s = this;
                             do
                             {
                                 s.ErrorCount = s.ErrorCount + 1;
@@ -180,7 +172,7 @@ namespace CK.Core
                         }
                     case LogLevel.Warn:
                         {
-                            State s = this;
+                            State? s = this;
                             do
                             {
                                 s.WarnCount = s.WarnCount + 1;
@@ -191,7 +183,7 @@ namespace CK.Core
                         }
                     default:
                         {
-                            State s = this;
+                            State? s = this;
                             do
                             {
                                 if( s.MaxLogLevel < level ) s.MaxLogLevel = level;
@@ -205,7 +197,7 @@ namespace CK.Core
 
         State _root;
         State _current;
-        IActivityMonitor _source;
+        IActivityMonitor? _source;
 
         /// <summary>
         /// Initializes a new error counter with <see cref="GenerateConclusion"/> sets to false.
@@ -217,7 +209,7 @@ namespace CK.Core
             GenerateConclusion = generateConclusion;
         }
 
-        void IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove )
+        void IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl? source, bool forceBuggyRemove )
         {
             if( !forceBuggyRemove )
             {
@@ -231,17 +223,17 @@ namespace CK.Core
         /// <summary>
         /// Gets the root <see cref="State"/>.
         /// </summary>
-        public State Root 
-        { 
-            get { return _root; } 
+        public State Root
+        {
+            get { return _root; }
         }
 
         /// <summary>
         /// Gets the current <see cref="State"/>.
         /// </summary>
-        public State Current 
-        { 
-            get { return _current; } 
+        public State Current
+        {
+            get { return _current; }
         }
 
         /// <summary>
@@ -254,9 +246,9 @@ namespace CK.Core
         /// Updates error counters.
         /// </summary>
         /// <param name="data">Log data. Never null.</param>
-        protected override void OnUnfilteredLog( ActivityMonitorLogData data )
+        protected override void OnUnfilteredLog( ref ActivityMonitorLogData data )
         {
-            _current.CatchLevel( data.Level&LogLevel.Mask );
+            _current.CatchLevel( data.Level & LogLevel.Mask );
         }
 
         /// <summary>
@@ -266,7 +258,7 @@ namespace CK.Core
         protected override void OnOpenGroup( IActivityLogGroup group )
         {
             _current = new State( _current );
-            _current.CatchLevel( group.MaskedGroupLevel );
+            _current.CatchLevel( group.Data.MaskedLevel );
         }
 
         /// <summary>
@@ -278,15 +270,15 @@ namespace CK.Core
         /// This can be null if no conclusions have been added yet. 
         /// It is up to the first client that wants to add a conclusion to instantiate a new List object to carry the conclusions.
         /// </param>
-        protected override void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
+        protected override void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions )
         {
-            if( GenerateConclusion 
-                && _current != _root 
-                && _current.HasWarnOrError 
+            if( GenerateConclusion
+                && _current != _root
+                && _current.HasWarnOrError
                 && (conclusions == null || !conclusions.Any( c => c.Tag == TagErrorCounter )) )
             {
                 if( conclusions == null ) conclusions = new List<ActivityLogGroupConclusion>();
-                conclusions.Add( new ActivityLogGroupConclusion( TagErrorCounter, _current.ToString() ) );
+                conclusions.Add( new ActivityLogGroupConclusion( TagErrorCounter, _current.ToString()! ) );
             }
         }
 
@@ -295,7 +287,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="group">The log group.</param>
         /// <param name="conclusions">Texts that conclude the group.</param>
-        protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
             if( _current.Parent != null ) _current = _current.Parent;
         }

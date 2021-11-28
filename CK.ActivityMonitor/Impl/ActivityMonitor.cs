@@ -6,6 +6,10 @@ using System.Threading;
 using CK.Core.Impl;
 using System.Linq;
 using System.Text;
+using System.Reflection;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Toolkit.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace CK.Core
 {
@@ -104,93 +108,80 @@ namespace CK.Core
                 MonitorTopicChanged = Context.FindOrCreate( "MonitorTopicChanged" );
                 CreateDependentActivity = Context.FindOrCreate( "dep:CreateActivity" );
                 StartDependentActivity = Context.FindOrCreate( "dep:StartActivity" );
-                MonitorEnd = Context.FindOrCreate("MonitorEnd");
+                MonitorEnd = Context.FindOrCreate( "MonitorEnd" );
                 InternalMonitor = Context.FindOrCreate( "m:Internal" );
                 StackTrace = Context.FindOrCreate( "StackTrace" );
             }
         }
 
-        /// <summary>
-        /// The monitoring error collector. 
-        /// Any error that occurs while dispatching logs to <see cref="IActivityMonitorClient"/>
-        /// are collected and the culprit is removed from <see cref="Output"/>.
-        /// See <see cref="T:CriticalErrorCollector"/>.
-        /// </summary>
-        public static readonly CriticalErrorCollector CriticalErrorCollector;
-
         static LogFilter _defaultFilterLevel;
-        
-        /// <summary>
-        /// Internal event used by ActivityMonitorBridgeTarget that have at least one ActivityMonitorBridge in another application domain.
-        /// </summary>
-        static internal event EventHandler DefaultFilterLevelChanged;
-        static object _lockDefaultFilterLevel;
 
         /// <summary>
         /// Gets or sets the default filter that should be used when the <see cref="IActivityMonitor.ActualFilter"/> is <see cref="LogFilter.Undefined"/>.
         /// This configuration is per application domain (the backing field is static).
-        /// It defaults to <see cref="LogFilter.Trace"/>.
+        /// It defaults to <see cref="LogFilter.Trace"/> and must be fully defined: <see cref="LogFilter.Line"/> nor <see cref="LogFilter.Group"/>
+        /// can be <see cref="LogLevelFilter.None"/>.
         /// </summary>
         public static LogFilter DefaultFilter
         {
             get { return _defaultFilterLevel; }
-            set 
+            set
             {
-                lock( _lockDefaultFilterLevel )
-                {
-                    if( _defaultFilterLevel != value )
-                    {
-                        _defaultFilterLevel = value;
-                        var h = DefaultFilterLevelChanged;
-                        if( h != null )
-                        {
-                            try
-                            {
-                                h( null, EventArgs.Empty );
-                            }
-                            catch( Exception ex )
-                            {
-                                CriticalErrorCollector.Add( ex, "DefaultFilter changed." );
-                            }
-                        }
-                    }
-                }
-            } 
+                if( value.Line == LogLevelFilter.None || value.Group == LogLevelFilter.None ) ThrowHelper.ThrowArgumentException( nameof( DefaultFilter ), "Line nor Group can be LogLevelFilter.None." );
+                _defaultFilterLevel = value;
+            }
         }
 
         /// <summary>
         /// The automatic configuration actions.
-        /// Registers actions via += (or <see cref="Delegate.Combine(Delegate,Delegate)"/> if you like pain), unregister with -= operator (or <see cref="Delegate.Remove"/>).
+        /// Registers actions via += (or <see cref="Delegate.Combine(Delegate,Delegate)"/> if you like pain), unregister with -= operator
+        /// (or <see cref="Delegate.Remove"/>).
         /// Simply sets it to null to clear all currently registered actions (this, of course, only from tests and not in real code).
         /// </summary>
-        static public Action<IActivityMonitor> AutoConfiguration;
+        static public Action<IActivityMonitor>? AutoConfiguration;
 
         /// <summary>
         /// The no-log text replaces any null or empty log text.
         /// </summary>
         static public readonly string NoLogText = "[no-log]";
 
-        static ActivityMonitor()
+        /// <summary>
+        /// <see cref="IActivityMonitor.UniqueId"/> must be at least 4 characters long
+        /// and not contain any <see cref="Char.IsWhiteSpace(char)"/>.
+        /// </summary>
+        public const int MinMonitorUniqueIdLength = 4;
+
+        static long _nextMonitorId;
+
+        static string CreateUniqueId()
         {
-            CriticalErrorCollector = new CriticalErrorCollector();
-            AutoConfiguration = null;
-            _defaultFilterLevel = LogFilter.Trace;
-            _lockDefaultFilterLevel = new object();
+            var x = Interlocked.Increment( ref _nextMonitorId );
+            var sx = MemoryMarshal.AsBytes( MemoryMarshal.CreateSpan( ref x, 1 ) );
+            sx.Reverse();
+            return Base64UrlHelper.ToBase64UrlString( sx );
         }
 
+        static ActivityMonitor()
+        {
+            var bytes = MemoryMarshal.AsBytes( MemoryMarshal.CreateSpan( ref _nextMonitorId, 1 ) );
+            System.Security.Cryptography.RandomNumberGenerator.Fill( bytes );
+            AutoConfiguration = null;
+            _defaultFilterLevel = LogFilter.Trace;
+        }
+
+        Group[] _groups;
+        Group? _current;
+        Group? _currentUnfiltered;
+        readonly ActivityMonitorOutput _output;
+        CKTrait _autoTags;
+        string _topic;
+        //
+        volatile StackTrace? _currentStackTrace;
+        int _enteredThreadId;
+        int _signalFlag;
         LogFilter _actualFilter;
         LogFilter _configuredFilter;
         LogFilter _clientFilter;
-        int _signalFlag;
-        Group[] _groups;
-        Group _current;
-        Group _currentUnfiltered;
-        readonly ActivityMonitorOutput _output;
-        CKTrait _currentTag;
-        int _enteredThreadId;
-        string _topic;
-        //
-        volatile StackTrace _currentStackTrace;
         bool _trackStackTrace;
 
         /// <summary>
@@ -203,16 +194,17 @@ namespace CK.Core
             /// </summary>
             public DateTimeStamp Value = DateTimeStamp.MinValue;
         }
-        DateTimeStampProvider _lastLogTime;
-        readonly Guid _uniqueId;
-        InternalMonitor _internalMonitor;
+
+        readonly DateTimeStampProvider _lastLogTime;
+        readonly string _uniqueId;
+        InternalMonitor? _internalMonitor;
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitor"/> that applies all <see cref="AutoConfiguration"/>
         /// and has an empty <see cref="Topic"/> initially set.
         /// </summary>
         public ActivityMonitor()
-            : this( new DateTimeStampProvider(), Guid.NewGuid(), Tags.Empty, true )
+            : this( new DateTimeStampProvider(), CreateUniqueId(), Tags.Empty, true )
         {
         }
 
@@ -221,7 +213,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="topic">Initial topic (can be null).</param>
         public ActivityMonitor( string topic )
-            : this( new DateTimeStampProvider(), Guid.NewGuid(), Tags.Empty, true )
+            : this( new DateTimeStampProvider(), CreateUniqueId(), Tags.Empty, true )
         {
             if( topic != null ) SetTopic( topic );
         }
@@ -231,8 +223,8 @@ namespace CK.Core
         /// </summary>
         /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
         /// <param name="topic">Optional initial topic (can be null).</param>
-        public ActivityMonitor( bool applyAutoConfigurations, string topic = null )
-            : this( new DateTimeStampProvider(), Guid.NewGuid(), Tags.Empty, applyAutoConfigurations )
+        public ActivityMonitor( bool applyAutoConfigurations, string? topic = null )
+            : this( new DateTimeStampProvider(), CreateUniqueId(), Tags.Empty, applyAutoConfigurations )
         {
             if( topic != null ) SetTopic( topic );
         }
@@ -245,18 +237,23 @@ namespace CK.Core
         /// <param name="uniqueId">This monitor unique identifier.</param>
         /// <param name="tags">Initial tags.</param>
         /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
-        protected ActivityMonitor(
-            DateTimeStampProvider stampProvider,
-            Guid uniqueId,
-            CKTrait tags,
-            bool applyAutoConfigurations )
+        protected ActivityMonitor( DateTimeStampProvider stampProvider,
+                                   string uniqueId,
+                                   CKTrait tags,
+                                   bool applyAutoConfigurations )
         {
+            if( uniqueId == null
+                || uniqueId.Length < MinMonitorUniqueIdLength
+                || uniqueId.Any( c => Char.IsWhiteSpace( c ) ) )
+            {
+                ThrowHelper.ThrowArgumentException( nameof( uniqueId ), $"Monitor UniqueId must be at least {MinMonitorUniqueIdLength} long and not contain any whitespace." );
+            }
             _uniqueId = uniqueId;
-            _lastLogTime = new DateTimeStampProvider();
+            _lastLogTime = stampProvider;
             _groups = new Group[8];
             for( int i = 0; i < _groups.Length; ++i ) _groups[i] = new Group( this, i );
-            _currentTag = tags ?? Tags.Empty;
-            _trackStackTrace = _currentTag.AtomicTraits.Contains( Tags.StackTrace );
+            _autoTags = tags ?? Tags.Empty;
+            _trackStackTrace = _autoTags.AtomicTraits.Contains( Tags.StackTrace );
             _topic = String.Empty;
             _output = new ActivityMonitorOutput( this );
             if( applyAutoConfigurations )
@@ -265,35 +262,33 @@ namespace CK.Core
             }
         }
 
-        Guid IUniqueId.UniqueId => _uniqueId; 
-
         /// <summary>
         /// Gets the unique identifier for this monitor.
         /// </summary>
-        protected Guid UniqueId => _uniqueId; 
+        public string UniqueId => _uniqueId;
 
         /// <summary>
         /// Gets the <see cref="IActivityMonitorOutput"/> for this monitor.
         /// </summary>
-        public IActivityMonitorOutput Output => _output; 
+        public IActivityMonitorOutput Output => _output;
 
         /// <summary>
         /// Gets the last <see cref="DateTimeStamp"/> for this monitor.
         /// </summary>
-        public DateTimeStamp LastLogTime  => _lastLogTime.Value; 
-        
+        public DateTimeStamp LastLogTime => _lastLogTime.Value;
+
         /// <summary>
         /// Gets the current topic for this monitor. This can be any non null string (null topic is mapped to the empty string) that describes
         /// the current activity. It must be set with <see cref="SetTopic"/> and unlike <see cref="MinimalFilter"/> and <see cref="AutoTags"/>, 
         /// the topic is not reseted when groups are closed.
         /// </summary>
-        public string Topic  => _topic; 
+        public string Topic => _topic;
 
         /// <summary>
         /// Sets the current topic for this monitor. This can be any non null string (null topic is mapped to the empty string) that describes
         /// the current activity.
         /// </summary>
-        public void SetTopic( string newTopic, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        public void SetTopic( string newTopic, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
             if( newTopic == null ) newTopic = String.Empty;
             if( _topic != newTopic )
@@ -310,21 +305,27 @@ namespace CK.Core
             }
         }
 
-        void DoSetTopic( string newTopic, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        void DoSetTopic( string newTopic, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
-            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
+            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
             Debug.Assert( newTopic != null && _topic != newTopic );
-            _topic = newTopic;
-            _output.BridgeTarget.TargetTopicChanged( newTopic, fileName, lineNumber );
-            MonoParameterSafeCall( ( client, topic ) => client.OnTopicChanged( topic, fileName, lineNumber ), newTopic );
+            _topic = newTopic!;
+            _output.BridgeTarget.TargetTopicChanged( newTopic!, fileName, lineNumber );
+            MonoParameterSafeCall( ( client, topic ) => client.OnTopicChanged( topic!, fileName, lineNumber ), newTopic );
             if( Interlocked.Exchange( ref _signalFlag, 0 ) == 1 ) DoResyncActualFilter();
             SendTopicLogLine( fileName, lineNumber );
         }
 
-        void SendTopicLogLine( [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0)
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        void SendTopicLogLine( [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
-            _lastLogTime.Value = new DateTimeStamp( _lastLogTime.Value, DateTime.UtcNow );
-            DoUnfilteredLog( new ActivityMonitorLogData( LogLevel.Info, null, Tags.MonitorTopicChanged, SetTopicPrefix + _topic, _lastLogTime.Value, fileName, lineNumber ) );
+            var d = new ActivityMonitorLogData( LogLevel.Info,
+                                                _autoTags | Tags.MonitorTopicChanged,
+                                                SetTopicPrefix + _topic,
+                                                null,
+                                                fileName,
+                                                lineNumber );
+            DoUnfilteredLog( ref d );
         }
 
         /// <summary>
@@ -333,14 +334,15 @@ namespace CK.Core
         /// Modifications to this property are scoped to the current Group since when a Group is closed, this
         /// property (like <see cref="MinimalFilter"/>) is automatically restored to its original value (captured when the Group was opened).
         /// </summary>
-        public CKTrait AutoTags 
+        [AllowNull]
+        public CKTrait AutoTags
         {
-            get { return _currentTag; }
+            get { return _autoTags; }
             set
             {
                 if( value == null ) value = Tags.Empty;
-                else if( value.Context != Tags.Context ) throw new ArgumentException( ActivityMonitorResources.ActivityMonitorTagMustBeRegistered, "value" );
-                if( _currentTag != value )
+                else if( value.Context != Tags.Context ) throw new ArgumentException( ActivityMonitorResources.ActivityMonitorTagMustBeRegistered, nameof( value ) );
+                if( _autoTags != value )
                 {
                     ReentrantAndConcurrentCheck();
                     try
@@ -357,12 +359,12 @@ namespace CK.Core
 
         void DoSetAutoTags( CKTrait newTags )
         {
-            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
-            Debug.Assert( newTags != null && _currentTag != newTags && newTags.Context == Tags.Context );
-            _currentTag = newTags;
-            _trackStackTrace = _currentTag.AtomicTraits.Contains( Tags.StackTrace );
-            _output.BridgeTarget.TargetAutoTagsChanged( newTags );
-            MonoParameterSafeCall( ( client, tags ) => client.OnAutoTagsChanged( tags ), newTags );
+            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
+            Debug.Assert( newTags != null && _autoTags != newTags && newTags.Context == Tags.Context );
+            _autoTags = newTags!;
+            _trackStackTrace = _autoTags.AtomicTraits.Contains( Tags.StackTrace );
+            _output.BridgeTarget.TargetAutoTagsChanged( newTags! );
+            MonoParameterSafeCall( ( client, tags ) => client.OnAutoTagsChanged( tags! ), newTags );
         }
 
         /// <summary>
@@ -370,11 +372,11 @@ namespace CK.Core
         /// inside their SetMonitor or any other methods provided that a reentrant and concurrent lock 
         /// has been obtained (otherwise an InvalidOperationException is thrown).
         /// </summary>
-        void IActivityMonitorImpl.InitializeTopicAndAutoTags( string newTopic, CKTrait newTags, string fileName, int lineNumber )
+        void IActivityMonitorImpl.InitializeTopicAndAutoTags( string newTopic, CKTrait newTags, string? fileName, int lineNumber )
         {
             RentrantOnlyCheck();
             if( newTopic != null && _topic != newTopic ) DoSetTopic( newTopic, fileName, lineNumber );
-            if( newTags != null && _currentTag != newTags ) DoSetAutoTags( newTags );
+            if( newTags != null && _autoTags != newTags ) DoSetAutoTags( newTags );
         }
 
         /// <summary>
@@ -411,13 +413,13 @@ namespace CK.Core
         /// This global default must be used if this ActualFilter is <see cref="LogFilter.Undefined"/> for <see cref="LogFilter.Line"/> or <see cref="LogFilter.Group"/>: 
         /// the <see cref="ActivityMonitorExtension.ShouldLogLine">ShouldLog</see> extension method takes it into account.
         /// </remarks>
-        public LogFilter ActualFilter 
+        public LogFilter ActualFilter
         {
-            get 
+            get
             {
                 if( Interlocked.Exchange( ref _signalFlag, 0 ) == 1 ) ResyncActualFilter();
-                return _actualFilter; 
-            } 
+                return _actualFilter;
+            }
         }
 
         void ResyncActualFilter()
@@ -445,7 +447,7 @@ namespace CK.Core
 
         internal void DoSetConfiguredFilter( LogFilter value )
         {
-            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
+            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
             Debug.Assert( _configuredFilter != value );
             _configuredFilter = value;
             UpdateActualFilter();
@@ -453,7 +455,7 @@ namespace CK.Core
 
         void UpdateActualFilter()
         {
-            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
+            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
             LogFilter newLevel = _configuredFilter.Combine( _clientFilter );
             if( newLevel != _actualFilter )
             {
@@ -464,21 +466,20 @@ namespace CK.Core
 
         LogFilter HandleBoundClientsSignal()
         {
-            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
-            
+            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
+
             LogFilter minimal = LogFilter.Undefined;
-            List<IActivityMonitorClient> clientsToRemove = null;
+            List<IActivityMonitorClient>? buggyClients = null;
             foreach( var l in _output.Clients )
             {
-                IActivityMonitorBoundClient bound = l as IActivityMonitorBoundClient;
-                if( bound != null )
+                if( l is IActivityMonitorBoundClient bound )
                 {
                     try
                     {
                         if( bound.IsDead )
                         {
-                            if( clientsToRemove == null ) clientsToRemove = new List<IActivityMonitorClient>();
-                            clientsToRemove.Add( l );
+                            if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
+                            buggyClients.Add( l );
                         }
                         else
                         {
@@ -487,15 +488,13 @@ namespace CK.Core
                     }
                     catch( Exception exCall )
                     {
-                        CriticalErrorCollector.Add( exCall, l.GetType().FullName );
-                        if( clientsToRemove == null ) clientsToRemove = new List<IActivityMonitorClient>();
-                        clientsToRemove.Add( l );
+                        if( !InternalLogUnhandledClientError( exCall, l, ref buggyClients ) ) throw;
                     }
                 }
             }
-            if( clientsToRemove != null )
+            if( buggyClients != null )
             {
-                foreach( var l in clientsToRemove ) _output.ForceRemoveCondemnedClient( l );
+                HandleBuggyClients( buggyClients );
             }
             return minimal;
         }
@@ -523,8 +522,8 @@ namespace CK.Core
                 {
                     // Optimization for some cases: if we can be sure that the oldLevel has no impact on the current 
                     // client filter, we can conclude without processing all the minimal filters.
-                    if( !dirty 
-                        && ((oldLevel.Line == LogLevelFilter.None || oldLevel.Line > _clientFilter.Line) 
+                    if( !dirty
+                        && ((oldLevel.Line == LogLevelFilter.None || oldLevel.Line > _clientFilter.Line)
                         && (oldLevel.Group == LogLevelFilter.None || oldLevel.Group > _clientFilter.Group)) )
                     {
                         // This Client had no impact on the current final client filter (and no signal has been received): 
@@ -566,13 +565,13 @@ namespace CK.Core
         /// If needed, the special text <see cref="ActivityMonitor.ParkLevel"/> ("PARK-LEVEL") breaks the current <see cref="LogLevel"/>
         /// and resets it: the next log, even with the same LogLevel, will be treated as if a different LogLevel is used.
         /// </remarks>
-        public void UnfilteredLog( ActivityMonitorLogData data )
+        public void UnfilteredLog( ref ActivityMonitorLogData data )
         {
-            if( data == null || data.MaskedLevel == LogLevel.None ) return;
+            if( data.MaskedLevel == LogLevel.None ) return;
             ReentrantAndConcurrentCheck();
             try
             {
-                DoUnfilteredLog( data );
+                DoUnfilteredLog( ref data );
             }
             finally
             {
@@ -580,9 +579,9 @@ namespace CK.Core
             }
         }
 
-        void DoUnfilteredLog( ActivityMonitorLogData data, bool trustDataTime = false )
+        void DoUnfilteredLog( ref ActivityMonitorLogData data )
         {
-            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
+            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
             Debug.Assert( data.Level != LogLevel.None );
             Debug.Assert( !String.IsNullOrEmpty( data.Text ) );
 
@@ -600,28 +599,26 @@ namespace CK.Core
                 }
             }
 
-            if( trustDataTime ) data.CombineTags( _currentTag );
-            else _lastLogTime.Value = data.CombineTagsAndAdjustLogTime( _currentTag, _lastLogTime.Value );
+            if( !data.LogTime.IsKnown )
+            {
+                _lastLogTime.Value = data.SetLogTime( new DateTimeStamp( _lastLogTime.Value, DateTime.UtcNow ) );
+            }
 
-            List<IActivityMonitorClient> buggyClients = null;
+            List<IActivityMonitorClient>? buggyClients = null;
             foreach( var l in _output.Clients )
             {
                 try
                 {
-                    l.OnUnfilteredLog( data );
+                    l.OnUnfilteredLog( ref data );
                 }
                 catch( Exception exCall )
                 {
-                    CriticalErrorCollector.Add( exCall, l.GetType().FullName );
-                    if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
-                    buggyClients.Add( l );
+                    if( !InternalLogUnhandledClientError( exCall, l, ref buggyClients ) ) throw;
                 }
             }
             if( buggyClients != null )
             {
-                foreach( var l in buggyClients ) _output.ForceRemoveCondemnedClient( l );
-                _clientFilter = HandleBoundClientsSignal();
-                UpdateActualFilter();
+                HandleBuggyClients( buggyClients );
             }
         }
 
@@ -633,8 +630,8 @@ namespace CK.Core
         /// ignored).
         /// </summary>
         /// <param name="data">
-        /// Data that describes the log. When null or when <see cref="ActivityMonitorLogData.MaskedLevel"/> 
-        /// is <see cref="LogLevel.None"/> a rejected group is recorded and returned and must be closed.
+        /// Data that describes the log. When <see cref="ActivityMonitorLogData.MaskedLevel"/> 
+        /// is <see cref="LogLevel.None"/> a <see cref="IActivityLogGroup.IsRejectedGroup"/> is recorded and returned and must be closed.
         /// </param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
         /// <remarks>
@@ -651,12 +648,12 @@ namespace CK.Core
         /// Note that this automatic configuration restoration works even if the group has been filtered and rejected.
         /// </para>
         /// </remarks>
-        public virtual IDisposableGroup UnfilteredOpenGroup( ActivityMonitorGroupData data )
+        public virtual IDisposableGroup UnfilteredOpenGroup( ref ActivityMonitorLogData data )
         {
             ReentrantAndConcurrentCheck();
             try
             {
-                return DoOpenGroup( data );
+                return DoOpenGroup( ref data );
             }
             finally
             {
@@ -664,9 +661,9 @@ namespace CK.Core
             }
         }
 
-        IDisposableGroup DoOpenGroup( ActivityMonitorGroupData data, bool trustDataTime = false )
+        IDisposableGroup DoOpenGroup( ref ActivityMonitorLogData data )
         {
-            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
+            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
 
             int idxNext = _current != null ? _current.Index + 1 : 0;
             if( idxNext == _groups.Length )
@@ -675,7 +672,7 @@ namespace CK.Core
                 for( int i = idxNext; i < _groups.Length; ++i ) _groups[i] = new Group( this, i );
             }
             _current = _groups[idxNext];
-            if( data == null || data.MaskedLevel == LogLevel.None )
+            if( data.MaskedLevel == LogLevel.None )
             {
                 _current.InitializeRejectedGroup();
                 return _current;
@@ -694,64 +691,57 @@ namespace CK.Core
                     return _current;
                 }
             }
-            if( trustDataTime ) data.CombineTags( _currentTag );
-            else _lastLogTime.Value = data.CombineTagsAndAdjustLogTime( _currentTag, _lastLogTime.Value );
-            _current.Initialize( data );
+            if( !data.LogTime.IsKnown )
+            {
+                _lastLogTime.Value = data.SetLogTime( new DateTimeStamp( _lastLogTime.Value, DateTime.UtcNow ) );
+            }
+
+            _current.Initialize( ref data );
             _currentUnfiltered = _current;
-            MonoParameterSafeCall( ( client, group ) => client.OnOpenGroup( group ), _current ); 
+            MonoParameterSafeCall( ( client, group ) => client.OnOpenGroup( group ), _current );
             return _current;
         }
 
-        /// <summary>
-        /// Closes the current <see cref="Group"/>. Optional parameter is polymorphic. It can be a string, a <see cref="ActivityLogGroupConclusion"/>, 
-        /// a <see cref="List{T}"/> or an <see cref="IEnumerable{T}"/> of ActivityLogGroupConclusion, or any object with an overridden <see cref="Object.ToString"/> method. 
-        /// See remarks (especially for List&lt;ActivityLogGroupConclusion&gt;).
-        /// </summary>
-        /// <param name="logTime">Timestamp of the group closing.</param>
-        /// <param name="userConclusion">Optional string, enumerable of <see cref="ActivityLogGroupConclusion"/>) or object to conclude the group. See remarks.</param>
-        /// <returns>True if a group has actually been closed, false if there is no more opened group.</returns>
-        /// <remarks>
-        /// An untyped object is used here to easily and efficiently accommodate both string and already existing ActivityLogGroupConclusion.
-        /// When a List&lt;ActivityLogGroupConclusion&gt; is used, it will be directly used to collect conclusion objects (new conclusions will be added to it). This is an optimization.
-        /// </remarks>
-        public virtual bool CloseGroup( DateTimeStamp logTime, object userConclusion = null )
+        /// <inheritdoc />
+        public virtual bool CloseGroup( object? userConclusion = null, DateTimeStamp explicitLogTime = default )
         {
-            ReentrantAndConcurrentCheck();
+            bool isNoReentrant = ConcurrentOnlyCheck();
             try
             {
-                return DoCloseGroup( logTime, userConclusion );
+                return DoCloseGroup( userConclusion, explicitLogTime );
             }
             finally
             {
-                ReentrantAndConcurrentRelease();
+                if( isNoReentrant ) ReentrantAndConcurrentRelease();
             }
         }
 
-        bool DoCloseGroup( DateTimeStamp logTime, object userConclusion, bool trustDataTime = false )
+        bool DoCloseGroup( object? userConclusion, DateTimeStamp logTime = default )
         {
-            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
-            Group g = _current;
+            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
+            Group? g = _current;
             if( g == null ) return false;
             // Handles the rejected case first (easiest).
             if( g.IsRejectedGroup )
             {
                 if( g.SavedMonitorFilter != _configuredFilter ) DoSetConfiguredFilter( g.SavedMonitorFilter );
-                _currentTag = g.SavedMonitorTags;
+                _autoTags = g.SavedMonitorTags;
                 _trackStackTrace = g.SavedTrackStackTrace;
                 _current = g.Index > 0 ? _groups[g.Index - 1] : null;
             }
             else
             {
                 #region Closing the group
-                if( trustDataTime )
+
+                if( logTime.IsKnown )
                 {
                     g.CloseLogTime = logTime;
                 }
                 else
                 {
-                    g.CloseLogTime = _lastLogTime.Value = new DateTimeStamp( _lastLogTime.Value, logTime.IsKnown ? logTime : DateTimeStamp.UtcNow );
+                    g.CloseLogTime = _lastLogTime.Value = new DateTimeStamp( _lastLogTime.Value, DateTime.UtcNow );
                 }
-                var conclusions = userConclusion as List<ActivityLogGroupConclusion>;
+                List<ActivityLogGroupConclusion>? conclusions = userConclusion as List<ActivityLogGroupConclusion>;
                 if( conclusions == null && userConclusion != null )
                 {
                     conclusions = new List<ActivityLogGroupConclusion>();
@@ -761,22 +751,26 @@ namespace CK.Core
                     }
                     else
                     {
-                        if( userConclusion is ActivityLogGroupConclusion )
+                        if( userConclusion is ActivityLogGroupConclusion c )
                         {
-                            conclusions.Add( (ActivityLogGroupConclusion)userConclusion );
+                            conclusions.Add( c );
                         }
                         else
                         {
-                            IEnumerable<ActivityLogGroupConclusion> multi = userConclusion as IEnumerable<ActivityLogGroupConclusion>;
-                            if( multi != null ) conclusions.AddRange( multi );
-                            else conclusions.Add( new ActivityLogGroupConclusion( Tags.UserConclusion, userConclusion.ToString() ) );
+                            if( userConclusion is IEnumerable<ActivityLogGroupConclusion> multi )
+                            {
+                                conclusions.AddRange( multi );
+                            }
+                            else
+                            {
+                                conclusions.Add( new ActivityLogGroupConclusion( Tags.UserConclusion, userConclusion.ToString() ?? String.Empty ) );
+                            }
                         }
                     }
                 }
                 g.GroupClosing( ref conclusions );
 
-                bool hasBuggyClients = false;
-                List<IActivityMonitorClient> buggyClients = null;
+                List<IActivityMonitorClient>? buggyClients = null;
                 foreach( var l in _output.Clients )
                 {
                     try
@@ -785,24 +779,21 @@ namespace CK.Core
                     }
                     catch( Exception exCall )
                     {
-                        CriticalErrorCollector.Add( exCall, l.GetType().FullName );
-                        if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
-                        buggyClients.Add( l );
+                        if( !InternalLogUnhandledClientError( exCall, l, ref buggyClients ) ) throw;
                     }
                 }
                 if( buggyClients != null )
                 {
-                    foreach( var l in buggyClients ) _output.ForceRemoveCondemnedClient( l );
-                    buggyClients.Clear();
-                    hasBuggyClients = true;
+                    HandleBuggyClients( buggyClients );
+                    buggyClients = null;
                 }
                 if( g.SavedMonitorFilter != _configuredFilter ) DoSetConfiguredFilter( g.SavedMonitorFilter );
-                _currentTag = g.SavedMonitorTags;
+                _autoTags = g.SavedMonitorTags;
                 _trackStackTrace = g.SavedTrackStackTrace;
                 _current = g.Index > 0 ? _groups[g.Index - 1] : null;
-                _currentUnfiltered = (Group)g.Parent;
+                _currentUnfiltered = (Group?)g.Parent;
 
-                var sentConclusions = conclusions != null ? conclusions.ToArray() : Util.Array.Empty<ActivityLogGroupConclusion>();
+                var sentConclusions = conclusions != null ? conclusions : (IReadOnlyList<ActivityLogGroupConclusion>)Array.Empty<ActivityLogGroupConclusion>();
                 foreach( var l in _output.Clients )
                 {
                     try
@@ -811,20 +802,12 @@ namespace CK.Core
                     }
                     catch( Exception exCall )
                     {
-                        CriticalErrorCollector.Add( exCall, l.GetType().FullName );
-                        if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
-                        buggyClients.Add( l );
+                        if( !InternalLogUnhandledClientError( exCall, l, ref buggyClients ) ) throw;
                     }
                 }
                 if( buggyClients != null )
                 {
-                    foreach( var l in buggyClients ) _output.ForceRemoveCondemnedClient( l );
-                    hasBuggyClients = true;
-                }
-                if( hasBuggyClients )
-                {
-                    _clientFilter = HandleBoundClientsSignal();
-                    UpdateActualFilter();
+                    HandleBuggyClients( buggyClients );
                 }
                 #endregion
             }
@@ -837,8 +820,8 @@ namespace CK.Core
         /// </summary>
         void MonoParameterSafeCall<T>( Action<IActivityMonitorClient, T> call, T arg )
         {
-            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
-            List<IActivityMonitorClient> buggyClients = null;
+            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
+            List<IActivityMonitorClient>? buggyClients = null;
             foreach( var l in _output.Clients )
             {
                 try
@@ -847,16 +830,12 @@ namespace CK.Core
                 }
                 catch( Exception exCall )
                 {
-                    CriticalErrorCollector.Add( exCall, l.GetType().FullName );
-                    if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
-                    buggyClients.Add( l );
+                    if( !InternalLogUnhandledClientError( exCall, l, ref buggyClients ) ) throw;
                 }
             }
             if( buggyClients != null )
             {
-                foreach( var l in buggyClients ) _output.ForceRemoveCondemnedClient( l );
-                _clientFilter = HandleBoundClientsSignal();
-                UpdateActualFilter();
+                HandleBuggyClients( buggyClients );
             }
         }
 
@@ -891,14 +870,15 @@ namespace CK.Core
             return new RAndCChecker( this );
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void RentrantOnlyCheck()
         {
-            if( _enteredThreadId != Thread.CurrentThread.ManagedThreadId ) throw new InvalidOperationException( ActivityMonitorResources.ActivityMonitorReentrancyCallOnly );
+            if( _enteredThreadId != Environment.CurrentManagedThreadId ) ThrowHelper.ThrowInvalidOperationException( ActivityMonitorResources.ActivityMonitorReentrancyCallOnly );
         }
 
         void ReentrantAndConcurrentCheck()
         {
-            int currentThreadId = Thread.CurrentThread.ManagedThreadId;
+            int currentThreadId = Environment.CurrentManagedThreadId;
             int alreadyEnteredId;
             if( (alreadyEnteredId = Interlocked.CompareExchange( ref _enteredThreadId, currentThreadId, 0 )) != 0 )
             {
@@ -908,7 +888,7 @@ namespace CK.Core
                 }
                 else
                 {
-                    ThrowConcurrentThreadAccessException( ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess, currentThreadId );
+                    ThrowConcurrentThreadAccessException( ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess, alreadyEnteredId, currentThreadId );
                 }
             }
             if( _trackStackTrace )
@@ -920,12 +900,12 @@ namespace CK.Core
         /// <summary>
         /// Checks only for concurrency issues. 
         /// False if a call already exists (reentrant call): when true is returned, ReentrantAndConcurrentRelease must be called
-        /// to cleanup the concurency detection internal state.
+        /// to cleanup the concurrency detection internal state.
         /// </summary>
         /// <returns>False for a reentrant call, true otherwise.</returns>
         bool ConcurrentOnlyCheck()
         {
-            int currentThreadId = Thread.CurrentThread.ManagedThreadId;
+            int currentThreadId = Environment.CurrentManagedThreadId;
             int alreadyEnteredId;
             if( (alreadyEnteredId = Interlocked.CompareExchange( ref _enteredThreadId, currentThreadId, 0 )) != 0 )
             {
@@ -935,7 +915,7 @@ namespace CK.Core
                 }
                 else
                 {
-                    ThrowConcurrentThreadAccessException( ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess, currentThreadId );
+                    ThrowConcurrentThreadAccessException( ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess, alreadyEnteredId, currentThreadId );
                 }
             }
             if( _trackStackTrace )
@@ -945,14 +925,16 @@ namespace CK.Core
             return true;
         }
 
-        private void ThrowConcurrentThreadAccessException( string messageFormat, int currentThreadId )
+        void ThrowConcurrentThreadAccessException( string messageFormat, int alreadyEnteredId, int currentThreadId )
         {
-            while( _trackStackTrace && _currentStackTrace == null )
+            StackTrace? t = _currentStackTrace;
+            while( _trackStackTrace && t == null )
             {
                 Thread.Yield();
+                t = _currentStackTrace;
             }
-            var msg = String.Format( messageFormat, _uniqueId, currentThreadId, _enteredThreadId );
-            if( _trackStackTrace ) msg = AddCurrentStackTrace( msg );
+            var msg = String.Format( messageFormat, _uniqueId, currentThreadId, alreadyEnteredId );
+            if( t != null ) msg = AddCurrentStackTrace( msg, t );
             throw new CKException( msg );
         }
 
@@ -962,35 +944,44 @@ namespace CK.Core
             {
                 DoReplayInternalLogs();
             }
-            // Reset and check even in Release.
-            int currentThreadId = Thread.CurrentThread.ManagedThreadId;
-            if( Interlocked.CompareExchange( ref _enteredThreadId, 0, currentThreadId ) != currentThreadId )
-            {
-                ThrowConcurrentThreadAccessException( ActivityMonitorResources.ActivityMonitorReentrancyReleaseError, currentThreadId );
-            }
-           _currentStackTrace = null;
+            _currentStackTrace = null;
+#if DEBUG
+            int currentThreadId = Environment.CurrentManagedThreadId;
+            int alreadyEnteredId = Interlocked.CompareExchange( ref _enteredThreadId, 0, currentThreadId );
+            Debug.Assert( alreadyEnteredId == currentThreadId, $"Internal error on Monitor '{_uniqueId}': Error during release reentrancy operation. Current Thread n°{alreadyEnteredId} is trying to exit it but Thread {currentThreadId} entered it." );
+#else
+            Interlocked.Exchange( ref _enteredThreadId, 0 );
+#endif
         }
 
-        string AddCurrentStackTrace( string msg )
+        static string AddCurrentStackTrace( string msg, StackTrace trace )
         {
             bool inLogs = false;
             StringBuilder b = new StringBuilder( msg );
-            for( int i = 0; i < _currentStackTrace.FrameCount; ++i )
+            StackFrame[] frames = trace.GetFrames();
+            for( int i = 0; i < frames.Length; ++i )
             {
-                var f = _currentStackTrace.GetFrame( i );
-                var m = f.GetMethod();
-                var t = m.DeclaringType;
-                if( inLogs || t.Assembly != typeof(ActivityMonitor).Assembly )
+                StackFrame f = frames[i];
+                MethodBase m = f.GetMethod()!;
+                Type t = m.DeclaringType!;
+                if( inLogs || t.Assembly != typeof( ActivityMonitor ).Assembly )
                 {
-                    if( !inLogs ) b.AppendLine().Append( "-- Other Monitor's StackTrace (" ).Append( _currentStackTrace.FrameCount - i ).Append( " frames):" ).AppendLine();
+                    if( !inLogs ) b.AppendLine().Append( "-- Other Monitor's StackTrace (" ).Append( trace.FrameCount - i ).Append( " frames):" ).AppendLine();
                     inLogs = true;
                     b.Append( t.FullName ).Append( '.' ).Append( m.Name )
                      .Append( " at " )
-                     .Append( f.GetFileName() ).Append( " (" ).Append( f.GetFileLineNumber() ).Append(',').Append( f.GetFileColumnNumber() ).Append(')')
+                     .Append( f.GetFileName() ).Append( " (" ).Append( f.GetFileLineNumber() ).Append( ',' ).Append( f.GetFileColumnNumber() ).Append( ')' )
                      .AppendLine();
                 }
             }
             return b.ToString();
         }
+
+        [DoesNotReturn]
+        internal static void ThrowOnGroupOrDataNotInitialized()
+        {
+            throw new InvalidOperationException( $"Group or Data not initialized, please call Initialize." );
+        }
+
     }
 }

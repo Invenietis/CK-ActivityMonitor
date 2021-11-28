@@ -24,8 +24,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using CK.Core.Impl;
+using Microsoft.Toolkit.Diagnostics;
 
 namespace CK.Core
 {
@@ -37,8 +37,8 @@ namespace CK.Core
     {
         int _curLevel;
         LogFilter _filter;
-        Stack<bool> _openGroups;
-        IActivityMonitorImpl _source;
+        readonly Stack<bool> _openGroups;
+        IActivityMonitorImpl? _source;
         static string[] _prefixGroupDepthCache;
         const string _emptyLinePrefix = "| ";
 
@@ -60,7 +60,7 @@ namespace CK.Core
         /// <returns>The string to display the indented group.</returns>
         public static string GetMultilinePrefixWithDepth( int depth )
         {
-            if( depth < 0 && depth >= 1024 ) throw new ArgumentException();
+            Guard.IsInRange( depth, 0, 1024, nameof( depth ) );
             if( _prefixGroupDepthCache.Length < depth + 1 )
             {
                 string previousPrefix = GetMultilinePrefixWithDepth( depth - 1 );
@@ -87,7 +87,7 @@ namespace CK.Core
         {
         }
 
-        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorLogData data )
+        void IActivityMonitorClient.OnUnfilteredLog( ref ActivityMonitorLogData data )
         {
             var level = data.MaskedLevel;
 
@@ -108,7 +108,7 @@ namespace CK.Core
             {
                 if( _curLevel == (int)level )
                 {
-                    OnContinueOnSameLevel( data );
+                    OnContinueOnSameLevel( ref data );
                 }
                 else
                 {
@@ -116,7 +116,7 @@ namespace CK.Core
                     {
                         OnLeaveLevel( (LogLevel)_curLevel );
                     }
-                    OnEnterLevel( data );
+                    OnEnterLevel( ref data );
                     _curLevel = (int)level;
                 }
             }
@@ -129,7 +129,7 @@ namespace CK.Core
                 OnLeaveLevel( (LogLevel)_curLevel );
                 _curLevel = -1;
             }
-            if( !CanOutputGroup( group.MaskedGroupLevel ) )
+            if( !CanOutputGroup( group.Data.MaskedLevel ) )
             {
                 _openGroups.Push( false );
                 return;
@@ -138,11 +138,11 @@ namespace CK.Core
             OnGroupOpen( group );
         }
 
-        void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
+        void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions )
         {
         }
 
-        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
             if( _curLevel != -1 )
             {
@@ -157,13 +157,13 @@ namespace CK.Core
         /// Called for the first text of a <see cref="LogLevel"/>.
         /// </summary>
         /// <param name="data">Log data.</param>
-        protected abstract void OnEnterLevel( ActivityMonitorLogData data );
+        protected abstract void OnEnterLevel( ref ActivityMonitorLogData data );
 
         /// <summary>
         /// Called for text with the same <see cref="LogLevel"/> as the previous ones.
         /// </summary>
         /// <param name="data">Log data.</param>
-        protected abstract void OnContinueOnSameLevel( ActivityMonitorLogData data );
+        protected abstract void OnContinueOnSameLevel( ref ActivityMonitorLogData data );
 
         /// <summary>
         /// Called when current log level changes.
@@ -182,19 +182,16 @@ namespace CK.Core
         /// </summary>
         /// <param name="group">The closing group.</param>
         /// <param name="conclusions">Texts that concludes the group. Never null but can be empty.</param>
-        protected abstract void OnGroupClose( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions );
+        protected abstract void OnGroupClose( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions );
 
 
-        void IActivityMonitorClient.OnTopicChanged( string newTopic, string fileName, int lineNumber )
+        void IActivityMonitorClient.OnTopicChanged( string newTopic, string? fileName, int lineNumber )
         {
         }
 
         void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )
         {
         }
-
-        [Obsolete("Use MinimalFilter property instead.")]
-        public LogFilter Filter { get => _filter; set => MinimalFilter = value; }
 
         /// <summary>
         /// Gets or sets the filter for this client.
@@ -228,7 +225,7 @@ namespace CK.Core
 
         LogFilter IActivityMonitorBoundClient.MinimalFilter => _filter;
 
-        void IActivityMonitorBoundClient.SetMonitor( Impl.IActivityMonitorImpl source, bool forceBuggyRemove )
+        void IActivityMonitorBoundClient.SetMonitor( Impl.IActivityMonitorImpl? source, bool forceBuggyRemove )
         {
             if( !forceBuggyRemove )
             {
