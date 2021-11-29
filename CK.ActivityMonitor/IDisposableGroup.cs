@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace CK.Core
 {
@@ -9,7 +9,8 @@ namespace CK.Core
     {
         /// <summary>
         /// Gets whether the groups has been filtered. 
-        /// It must be closed as usual but it's opening and closing will not be recorded.
+        /// It must be closed as usual but it's opening and closing will not be recorded
+        /// (this is the equivalent of the boolean returned by line logging methods).
         /// </summary>
         bool IsRejectedGroup { get; }
 
