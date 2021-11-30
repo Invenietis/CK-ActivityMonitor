@@ -2,6 +2,9 @@ using System;
 using System.IO;
 using NUnit.Framework;
 using FluentAssertions;
+using System.Collections.Generic;
+using System.Linq;
+using CK.Core.LogHandler;
 
 namespace CK.Core.Tests.Monitoring
 {
@@ -86,6 +89,27 @@ namespace CK.Core.Tests.Monitoring
             }
         }
 
+        class Product { public bool IsAlive; }
+
+        void DemoHandler( IActivityMonitor m )
+        {
+            var products = new List<Product>();
+            m.Debug( $"There is { products.Where( p => p.IsAlive ).Count() } live products( out of { products.Count})." );
+
+            // Rewritten as:
+            bool shouldAppend;
+            LineDebug text = new LineDebug( 34, 2, m, out shouldAppend );
+            if( shouldAppend )
+            {
+                text.AppendLiteral( "There is " );
+                text.AppendFormatted( products.Where( ( Product p ) => p.IsAlive ).Count() );
+                text.AppendLiteral( " live products( out of " );
+                text.AppendFormatted( products.Count );
+                text.AppendLiteral( ")." );
+            }
+            m.Debug( text, 96, "C:\\Dev\\CK\\CK-Core-Projects\\CK-ActivityMonitor\\Tests\\CK.ActivityMonitor.Tests\\DocumentationCodeSnippets.cs" );
+        }
+
         void DemoOpenGroupWithDynamicConclusion( IActivityMonitor m )
         {
             int nbProcessed = 0;
@@ -98,6 +122,8 @@ namespace CK.Core.Tests.Monitoring
                 // The user Group conclusion is: "Success. - 21 files." (the two conclusions are concatenated).
             }
         }
+
+        
 
         void DemoLogs( IActivityMonitor m, FileInfo f, Exception ex )
         {
