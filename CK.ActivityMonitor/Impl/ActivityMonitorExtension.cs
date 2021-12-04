@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Runtime.CompilerServices;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.Toolkit.Diagnostics;
 
 namespace CK.Core
 {
@@ -224,7 +223,7 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
         public static IDisposable CollectEntries( this IActivityMonitor @this, Action<IReadOnlyList<ActivityMonitorSimpleCollector.Entry>> errorHandler, LogLevelFilter level = LogLevelFilter.Error, int capacity = 50 )
         {
-            Guard.IsNotNull( errorHandler, nameof( errorHandler ) );
+            Throw.OnNullArgument( errorHandler );
             ActivityMonitorSimpleCollector errorTracker = new ActivityMonitorSimpleCollector() { MinimalFilter = level, Capacity = capacity };
             @this.Output.RegisterClient( errorTracker );
             return Util.CreateDisposableAction( () =>
@@ -303,7 +302,7 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
         public static IDisposable OnError( this IActivityMonitor @this, Action onFatalOrError )
         {
-            Guard.IsNotNull( onFatalOrError, nameof( onFatalOrError ) );
+            Throw.OnNullArgument( onFatalOrError );
             ErrorTracker tracker = new ErrorTracker( onFatalOrError, onFatalOrError );
             @this.Output.RegisterClient( tracker );
             return Util.CreateDisposableAction( () => @this.Output.UnregisterClient( tracker ) );

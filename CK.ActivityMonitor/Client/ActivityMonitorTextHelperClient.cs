@@ -2,13 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using CK.Core.Impl;
-using Microsoft.Toolkit.Diagnostics;
 
 namespace CK.Core
 {
     /// <summary>
     /// Base class for <see cref="IActivityMonitorClient"/> that tracks groups and level changes in order
-    /// to ease text-based renderer.
+    /// to ease text-based renderer implementations.
     /// </summary>
     public abstract class ActivityMonitorTextHelperClient : IActivityMonitorFilteredClient
     {
@@ -37,7 +36,7 @@ namespace CK.Core
         /// <returns>The string to display the indented group.</returns>
         public static string GetMultilinePrefixWithDepth( int depth )
         {
-            Guard.IsInRange( depth, 0, 1024, nameof( depth ) );
+            Throw.CheckArgument( depth >= 0 && depth <= 1024 );
             if( _prefixGroupDepthCache.Length < depth + 1 )
             {
                 string previousPrefix = GetMultilinePrefixWithDepth( depth - 1 );

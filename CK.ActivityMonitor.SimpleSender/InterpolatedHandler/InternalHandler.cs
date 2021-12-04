@@ -1,4 +1,3 @@
-using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Text;
 
@@ -42,7 +41,7 @@ namespace CK.Core.LogHandler
         {
             if( value is Type type )
             {
-                _stringBuilderHandler.AppendLiteral( type.ToTypeString() );
+                _stringBuilderHandler.AppendLiteral( type.ToCSharpName( withNamespace: false ) );
             }
             else
             {
@@ -69,7 +68,7 @@ namespace CK.Core.LogHandler
         {
             if( value is Type type )
             {
-                _stringBuilderHandler.AppendLiteral( type.ToTypeString() );
+                _stringBuilderHandler.AppendLiteral( type.ToCSharpName( withNamespace: false ) );
             }
             else
             {

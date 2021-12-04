@@ -5,7 +5,6 @@ using System.Diagnostics;
 //using System.Runtime.Remoting.Lifetime;
 //#endif
 using CK.Core.Impl;
-using Microsoft.Toolkit.Diagnostics;
 
 namespace CK.Core
 {
@@ -29,7 +28,7 @@ namespace CK.Core
         /// </param>
         public ActivityMonitorBridgeTarget( IActivityMonitorImpl targetMonitor, bool honorMonitorFilter = true )
         {
-            Guard.IsNotNull( targetMonitor, nameof( targetMonitor ) );
+            Throw.OnNullArgument( targetMonitor );
             _monitor = targetMonitor;
             _honorTargetFilter = honorMonitorFilter;
             _callbacks = Array.Empty<IActivityMonitorBridgeCallback>();

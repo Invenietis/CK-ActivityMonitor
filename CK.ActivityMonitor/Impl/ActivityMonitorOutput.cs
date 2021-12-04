@@ -1,4 +1,3 @@
-using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -21,7 +20,7 @@ namespace CK.Core.Impl
         /// <param name="monitor"></param>
         public ActivityMonitorOutput( IActivityMonitorImpl monitor )
         {
-            Guard.IsNotNull( monitor, nameof( monitor ) );
+            Throw.OnNullArgument( monitor );
             _monitor = monitor;
             _clients = new List<IActivityMonitorClient>();
             _externalInput = new ActivityMonitorBridgeTarget( monitor, true );
@@ -42,7 +41,7 @@ namespace CK.Core.Impl
         /// <returns>The registered client.</returns>
         public IActivityMonitorClient RegisterClient( IActivityMonitorClient client, out bool added )
         {
-            Guard.IsNotNull( client, nameof( client ) );
+            Throw.OnNullArgument( client );
             using( _monitor.ReentrancyAndConcurrencyLock() )
             {
                 added = false;
@@ -96,8 +95,8 @@ namespace CK.Core.Impl
         /// </remarks>
         public T? RegisterUniqueClient<T>( Func<T, bool> tester, Func<T?> factory ) where T : IActivityMonitorClient
         {
-            Guard.IsNotNull( tester, nameof( tester ) );
-            Guard.IsNotNull( factory, nameof( factory ) );
+            Throw.OnNullArgument( tester );
+            Throw.OnNullArgument( factory );
             using( _monitor.ReentrancyAndConcurrencyLock() )
             {
                 T? e = _clients.OfType<T>().FirstOrDefault( tester );
@@ -122,7 +121,7 @@ namespace CK.Core.Impl
         /// <returns>The unregistered client or null if it has not been found.</returns>
         public IActivityMonitorClient? UnregisterClient( IActivityMonitorClient client )
         {
-            Guard.IsNotNull( client, nameof( client ) );
+            Throw.OnNullArgument( client );
             using( _monitor.ReentrancyAndConcurrencyLock() )
             {
                 int idx;

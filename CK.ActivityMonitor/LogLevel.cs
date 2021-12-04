@@ -65,4 +65,24 @@ namespace CK.Core
         NumberOfBits = 7
     }
 
+    /// <summary>
+    /// Extends <see cref="LogFilter"/>.
+    /// </summary>
+    public static class LogLevelExtensions
+    {
+        /// <summary>
+        /// Returns 'F', 'E', 'W', 'i', 't' or 'd'. 
+        /// </summary>
+        /// <param name="l">This log level.</param>
+        /// <returns>The char.</returns>
+        public static char ToChar( this LogLevel l ) => (l & LogLevel.Mask) switch
+                                                        {
+                                                            LogLevel.Fatal => 'F',
+                                                            LogLevel.Error => 'E',
+                                                            LogLevel.Warn => 'W',
+                                                            LogLevel.Info => 'i',
+                                                            LogLevel.Trace => 't',
+                                                            _ => 'd',
+                                                        };
+    }
 }

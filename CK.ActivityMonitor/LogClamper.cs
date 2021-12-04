@@ -1,4 +1,3 @@
-using Microsoft.Toolkit.Diagnostics;
 using System;
 
 namespace CK.Core
@@ -85,7 +84,7 @@ namespace CK.Core
         /// <returns>The filter.</returns>
         public static LogClamper Parse( string s )
         {
-            if( !TryParse( s, out var c ) ) ThrowHelper.ThrowArgumentException( $"Invalid LogClamper: '{s}'.", nameof( s ) );
+            if( !TryParse( s, out var c ) ) Throw.ArgumentException( nameof( s ), $"Invalid LogClamper: '{s}'." );
             return c;
         }
 
@@ -100,7 +99,7 @@ namespace CK.Core
         /// <returns>True on success, false on error.</returns>
         public static bool TryParse( string s, out LogClamper c )
         {
-            Guard.IsNotNull( s, nameof( s ) );
+            Throw.OnNullArgument( s );
             var m = new StringMatcher( s );
             return m.MatchLogClamper( out c ) && m.IsEnd;
         }

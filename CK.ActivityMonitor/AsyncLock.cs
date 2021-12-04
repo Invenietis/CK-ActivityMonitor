@@ -1,8 +1,5 @@
-using CK.Core;
-using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -122,7 +119,7 @@ namespace CK.Core
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public bool IsEnteredBy( IActivityMonitor monitor )
         {
-            Guard.IsNotNull( monitor, nameof( monitor ) );
+            Throw.OnNullArgument( monitor );
             return _current == monitor.Output;
         }
 
@@ -161,7 +158,7 @@ namespace CK.Core
         /// <exception cref="LockRecursionException">Recursion detected and <see cref="LockRecursionPolicy.NoRecursion"/> has been configured.</exception>
         public async Task<bool> EnterAsync( IActivityMonitor monitor, int millisecondsTimeout, CancellationToken cancellationToken )
         {
-            Guard.IsNotNull( monitor, nameof(monitor) );
+            Throw.OnNullArgument( monitor );
             if( _current == monitor.Output )
             {
                 if( _policy == LockRecursionPolicy.NoRecursion ) throw new LockRecursionException( Name );
@@ -206,7 +203,7 @@ namespace CK.Core
         /// <exception cref="LockRecursionException">Recursion detected and <see cref="LockRecursionPolicy.NoRecursion"/> has been configured.</exception>
         public bool Enter( IActivityMonitor monitor, int millisecondsTimeout, CancellationToken cancellationToken )
         {
-            Guard.IsNotNull( monitor, nameof( monitor ) );
+            Throw.OnNullArgument( monitor );
             if( _current == monitor.Output )
             {
                 if( _policy == LockRecursionPolicy.NoRecursion ) throw new LockRecursionException( Name );
@@ -238,7 +235,7 @@ namespace CK.Core
         /// <param name="monitor">The monitor that currently holds this lock.</param>
         public void Leave( IActivityMonitor monitor )
         {
-            Guard.IsNotNull( monitor, nameof( monitor ) );
+            Throw.OnNullArgument( monitor );
             if( _current != monitor.Output )
             {
                 var msg = $"Attempt to Release AsyncLock '{_name}' that has {(_current == null ? "never been acquired" : $"been aquired by another monitor")}.";

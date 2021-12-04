@@ -8,7 +8,6 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.Toolkit.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace CK.Core
@@ -127,7 +126,7 @@ namespace CK.Core
             get { return _defaultFilterLevel; }
             set
             {
-                if( value.Line == LogLevelFilter.None || value.Group == LogLevelFilter.None ) ThrowHelper.ThrowArgumentException( nameof( DefaultFilter ), "Line nor Group can be LogLevelFilter.None." );
+                Throw.CheckArgument( value.Line != LogLevelFilter.None && value.Group != LogLevelFilter.None );
                 _defaultFilterLevel = value;
             }
         }
@@ -246,7 +245,7 @@ namespace CK.Core
                 || uniqueId.Length < MinMonitorUniqueIdLength
                 || uniqueId.Any( c => Char.IsWhiteSpace( c ) ) )
             {
-                ThrowHelper.ThrowArgumentException( nameof( uniqueId ), $"Monitor UniqueId must be at least {MinMonitorUniqueIdLength} long and not contain any whitespace." );
+                Throw.ArgumentException( nameof( uniqueId ), $"Monitor UniqueId must be at least {MinMonitorUniqueIdLength} long and not contain any whitespace." );
             }
             _uniqueId = uniqueId;
             _lastLogTime = stampProvider;
@@ -873,7 +872,7 @@ namespace CK.Core
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void RentrantOnlyCheck()
         {
-            if( _enteredThreadId != Environment.CurrentManagedThreadId ) ThrowHelper.ThrowInvalidOperationException( ActivityMonitorResources.ActivityMonitorReentrancyCallOnly );
+            if( _enteredThreadId != Environment.CurrentManagedThreadId ) Throw.InvalidOperationException( ActivityMonitorResources.ActivityMonitorReentrancyCallOnly );
         }
 
         void ReentrantAndConcurrentCheck()

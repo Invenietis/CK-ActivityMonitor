@@ -5,7 +5,6 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using CK.Core.Impl;
-using Microsoft.Toolkit.Diagnostics;
 
 namespace CK.Core
 {
@@ -45,15 +44,15 @@ namespace CK.Core
             [MemberNotNull( nameof( _logPath ) )]
             set
             {
-                Guard.IsNotNullOrWhiteSpace( value, nameof( value ) );
+                Throw.OnNullOrWhiteSpaceArgument( value );
                 value = FileUtil.NormalizePathSeparator( value, true );
                 if( _logPath != null && value != _logPath )
                 {
-                    throw new InvalidOperationException( ActivityMonitorResources.LogFileRootLogPathSetOnlyOnce );
+                    Throw.InvalidOperationException( ActivityMonitorResources.LogFileRootLogPathSetOnlyOnce );
                 }
                 if( !Path.IsPathRooted( value ) )
                 {
-                    throw new ArgumentException( ActivityMonitorResources.InvalidRootLogPath );
+                    Throw.ArgumentException( nameof( value ), ActivityMonitorResources.InvalidRootLogPath ); ;
                 }
                 try
                 {
@@ -76,7 +75,7 @@ namespace CK.Core
         [MemberNotNull( nameof( RootLogPath ), nameof( _logPath ) )]
         public static void AssertRootLogPathIsSet()
         {
-            if( RootLogPath == null ) throw new Exception( ActivityMonitorResources.RootLogPathMustBeSet );
+            if( RootLogPath == null ) Throw.Exception( ActivityMonitorResources.RootLogPathMustBeSet );
             Debug.Assert( _logPath != null );
         }
 
