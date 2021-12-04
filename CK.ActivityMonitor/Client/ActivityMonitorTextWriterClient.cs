@@ -17,8 +17,6 @@ namespace CK.Core
         readonly StringBuilder _buffer;
         Action<string> _writer;
         string _prefix;
-        string _prefixLevel;
-        CKTrait _currentTags;
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitorTextWriterClient"/> bound to a 
@@ -42,8 +40,9 @@ namespace CK.Core
         public ActivityMonitorTextWriterClient( Action<string> writer, LogFilter filter, char depthInitial )
             : this( filter )
         {
+            Throw.OnNullArgument( writer );
             if( depthInitial != ' ' ) _depthPadding = depthInitial + _depthPadding.Substring( 1 );
-            Writer = writer ?? throw new ArgumentNullException( "writer" );
+            Writer = writer;
         }
 
         /// <summary>
@@ -69,8 +68,7 @@ namespace CK.Core
         {
             _depthPadding = "   ";
             _buffer = new StringBuilder();
-            _prefixLevel = _prefix = String.Empty;
-            _currentTags = ActivityMonitor.Tags.Empty;
+            _prefix = String.Empty;
             _writer = Util.ActionVoid<string>;
         }
 
@@ -99,20 +97,12 @@ namespace CK.Core
         protected override void OnEnterLevel( ref ActivityMonitorLogData data )
         {
             var w = _buffer.Clear();
-            _prefixLevel = _prefix + new string( ' ', data.MaskedLevel.ToString().Length + 4 );
-
             w.Append( _prefix )
-                .Append( "- " )
-                .Append( data.MaskedLevel.ToString() )
-                .Append( ": " )
-                .AppendMultiLine( _prefixLevel, data.Text, false );
-
-            if( _currentTags != data.Tags )
-            {
-                w.Append( " -[" ).Append( data.Tags ).Append( ']' );
-                _currentTags = data.Tags;
-            }
-            w.AppendLine();
+                .Append( " " )
+                .Append( data.Level.ToChar() )
+                .Append( " [" ).Append( data.Tags ).Append( "] " )
+                .AppendMultiLine( _prefix + "   ", data.Text, false )
+                .AppendLine();
             if( data.Exception != null )
             {
                 DumpException( w, _prefix, !data.IsTextTheExceptionMessage, data.Exception );
@@ -127,29 +117,18 @@ namespace CK.Core
         protected override void OnContinueOnSameLevel( ref ActivityMonitorLogData data )
         {
             var w = _buffer.Clear();
-            w.AppendMultiLine( _prefixLevel, data.Text, true );
-            if( _currentTags != data.Tags )
-            {
-                w.Append( " -[" ).Append( data.Tags ).Append( ']' );
-                _currentTags = data.Tags;
-            }
-            w.AppendLine();
+            w.Append( _prefix ).Append( "   [" ).Append( data.Tags ).Append( "] " )
+             .AppendMultiLine( _prefix + "   ", data.Text, false )
+             .AppendLine();
             if( data.Exception != null )
             {
                 DumpException( w, _prefix, !data.IsTextTheExceptionMessage, data.Exception );
             }
-
             Writer( _buffer.ToString() );
         }
 
-        /// <summary>
-        /// Updates the internally maintained prefix for lines.
-        /// </summary>
-        /// <param name="level">Previous level.</param>
         protected override void OnLeaveLevel( LogLevel level )
         {
-            Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
-            _prefixLevel = _prefix;
         }
 
         /// <summary>
@@ -159,19 +138,13 @@ namespace CK.Core
         protected override void OnGroupOpen( IActivityLogGroup g )
         {
             var w = _buffer.Clear();
-            string levelLabel = g.Data.MaskedLevel.ToString();
-            string start = string.Format( "{0}> {1}: ", _prefix, levelLabel );
+            string start = string.Format( "{0}> {1} ", _prefix, g.Data.Level.ToChar() );
             _prefix += _depthPadding;
-            _prefixLevel = _prefix;
-            string prefixLabel = _prefixLevel + new string( ' ', levelLabel.Length + 1 );
 
-            w.Append( start ).AppendMultiLine( prefixLabel, g.Data.Text, false );
-            if( _currentTags != g.Data.Tags )
-            {
-                w.Append( " -[" ).Append( g.Data.Tags ).Append( ']' );
-                _currentTags = g.Data.Tags;
-            }
-            w.AppendLine();
+            w.Append( start )
+             .Append( '[' ).Append( g.Data.Tags ).Append( "] " )
+             .AppendMultiLine( _prefix + " ", g.Data.Text, false )
+             .AppendLine();
             if( g.Data.Exception != null )
             {
                 DumpException( w, _prefix, !g.Data.IsTextTheExceptionMessage, g.Data.Exception );
@@ -186,7 +159,7 @@ namespace CK.Core
         /// <param name="conclusions">Conclusions for the group.</param>
         protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
-            _prefixLevel = _prefix = _prefix.Remove( _prefix.Length - 3 );
+            _prefix = _prefix.Remove( _prefix.Length - 3 );
             if( conclusions is null || conclusions.Count == 0 ) return;
             var w = _buffer.Clear();
             bool one = false;
@@ -202,14 +175,13 @@ namespace CK.Core
                 {
                     if( !one )
                     {
-                        w.Append( _prefixLevel ).Append( "< " );
+                        w.Append( _prefix ).Append( "< " );
                         one = true;
                     }
                     else
                     {
                         w.Append( " - " );
                     }
-
                     w.Append( c.Text );
                 }
             }
@@ -218,8 +190,8 @@ namespace CK.Core
             {
                 foreach( var c in withMultiLines )
                 {
-                    w.Append( _prefixLevel ).Append( "< " );
-                    w.AppendMultiLine( _prefixLevel + "  ", c.Text, false );
+                    w.Append( _prefix ).Append( "- " );
+                    w.AppendMultiLine( _prefix + "  ", c.Text, false );
                     w.AppendLine();
                 }
             }
