@@ -1,5 +1,3 @@
-using Microsoft.Toolkit.Diagnostics;
-using System;
 using System.Diagnostics;
 
 namespace CK.Core
@@ -29,9 +27,9 @@ namespace CK.Core
         /// <param name="tag">Must be null or be registered in <see cref="ActivityMonitor.Tags"/>.</param>
         public ActivityLogGroupConclusion( string conclusion, CKTrait? tag = null )
         {
-            Guard.IsNotNull( conclusion, nameof( conclusion ) );
+            Throw.OnNullArgument( conclusion );
             if( tag == null ) tag = ActivityMonitor.Tags.Empty;
-            else if( tag.Context != ActivityMonitor.Tags.Context ) throw new ArgumentException( Impl.ActivityMonitorResources.ActivityMonitorTagMustBeRegistered, nameof( tag ) );
+            else if( tag.Context != ActivityMonitor.Tags.Context ) Throw.ArgumentException( nameof( tag ), Impl.ActivityMonitorResources.ActivityMonitorTagMustBeRegistered );
             Tag = tag;
             Text = conclusion;
         }

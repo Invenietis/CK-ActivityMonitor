@@ -1,27 +1,3 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Core\ActivityMonitor\SourceLogFilter.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
-using Microsoft.Toolkit.Diagnostics;
 using System;
 
 namespace CK.Core
@@ -108,7 +84,7 @@ namespace CK.Core
         /// <returns>The filter.</returns>
         public static LogClamper Parse( string s )
         {
-            if( !TryParse( s, out var c ) ) ThrowHelper.ThrowArgumentException( $"Invalid LogClamper: '{s}'.", nameof( s ) );
+            if( !TryParse( s, out var c ) ) Throw.ArgumentException( nameof( s ), $"Invalid LogClamper: '{s}'." );
             return c;
         }
 
@@ -123,7 +99,7 @@ namespace CK.Core
         /// <returns>True on success, false on error.</returns>
         public static bool TryParse( string s, out LogClamper c )
         {
-            Guard.IsNotNull( s, nameof( s ) );
+            Throw.OnNullArgument( s );
             var m = new StringMatcher( s );
             return m.MatchLogClamper( out c ) && m.IsEnd;
         }

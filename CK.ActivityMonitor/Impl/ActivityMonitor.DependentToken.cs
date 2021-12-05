@@ -1,4 +1,3 @@
-using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -86,7 +85,7 @@ namespace CK.Core
             /// <returns>The resulting dependent token.</returns>
             static public DependentToken Parse( string s )
             {
-                if( !TryParse( s, out DependentToken? t ) ) ThrowHelper.ThrowFormatException( "Invalid Dependent token string." );
+                if( !TryParse( s, out DependentToken? t ) ) Throw.FormatException( $"Invalid Dependent token string: '{s}'." );
                 return t;
             }
 
@@ -100,7 +99,7 @@ namespace CK.Core
             /// <returns>True on success.</returns>
             public static bool TryParseLaunchOrCreateMessage( string message, out bool launched, out bool withTopic, out string? dependentTopic )
             {
-                Guard.IsNotNull( message, nameof(message) );
+                Throw.OnNullArgument( message );
                 launched = false;
                 withTopic = false;
                 dependentTopic = null;

@@ -1,27 +1,3 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Core\ActivityMonitor\Impl\ActivityMonitorOutput.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
-using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -44,7 +20,7 @@ namespace CK.Core.Impl
         /// <param name="monitor"></param>
         public ActivityMonitorOutput( IActivityMonitorImpl monitor )
         {
-            Guard.IsNotNull( monitor, nameof( monitor ) );
+            Throw.OnNullArgument( monitor );
             _monitor = monitor;
             _clients = new List<IActivityMonitorClient>();
             _externalInput = new ActivityMonitorBridgeTarget( monitor, true );
@@ -65,7 +41,7 @@ namespace CK.Core.Impl
         /// <returns>The registered client.</returns>
         public IActivityMonitorClient RegisterClient( IActivityMonitorClient client, out bool added )
         {
-            Guard.IsNotNull( client, nameof( client ) );
+            Throw.OnNullArgument( client );
             using( _monitor.ReentrancyAndConcurrencyLock() )
             {
                 added = false;
@@ -119,8 +95,8 @@ namespace CK.Core.Impl
         /// </remarks>
         public T? RegisterUniqueClient<T>( Func<T, bool> tester, Func<T?> factory ) where T : IActivityMonitorClient
         {
-            Guard.IsNotNull( tester, nameof( tester ) );
-            Guard.IsNotNull( factory, nameof( factory ) );
+            Throw.OnNullArgument( tester );
+            Throw.OnNullArgument( factory );
             using( _monitor.ReentrancyAndConcurrencyLock() )
             {
                 T? e = _clients.OfType<T>().FirstOrDefault( tester );
@@ -145,7 +121,7 @@ namespace CK.Core.Impl
         /// <returns>The unregistered client or null if it has not been found.</returns>
         public IActivityMonitorClient? UnregisterClient( IActivityMonitorClient client )
         {
-            Guard.IsNotNull( client, nameof( client ) );
+            Throw.OnNullArgument( client );
             using( _monitor.ReentrancyAndConcurrencyLock() )
             {
                 int idx;

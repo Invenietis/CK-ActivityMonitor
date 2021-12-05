@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Microsoft.Toolkit.Diagnostics;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -39,12 +38,12 @@ namespace CK.Core.Tests.Monitoring
             var o = new Gen<Guid>();
             var m = new ActivityMonitor( false );
 
-            var expected = o.Prop.GetType().ToTypeString();
+            var expected = o.Prop.GetType().ToCSharpName( withNamespace: false );
             CheckWithAllTextHandlers( m, o.Prop.GetType(), expected );
             CheckWithAllTextHandlers( m, (object)o.Prop.GetType(), expected );
 
             var oG = new Gen<Guid>.Sub<string>();
-            expected = oG.GetType().ToTypeString();
+            expected = oG.GetType().ToCSharpName( withNamespace: false );
             CheckWithAllTextHandlers( m, oG.GetType(), expected );
             CheckWithAllTextHandlers( m, oG.GetType(), expected );
             CheckWithAllTextHandlers( m, typeof( Gen<Guid>.Sub<string> ), expected );

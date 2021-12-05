@@ -4,7 +4,7 @@
 [![Nuget](https://img.shields.io/nuget/vpre/CK.ActivityMonitor.svg)](https://www.nuget.org/packages/CK.ActivityMonitor/)
 [![Licence](https://img.shields.io/github/license/Invenietis/CK-ActivityMonitor.svg)](https://github.com/Invenietis/CK-ActivityMonitor/blob/develop/LICENSE)
 
-This repository contains `IActivityMonitor` defifinition and its primary implementation along with helpers.  
+This repository contains `IActivityMonitor` definition and its primary implementation along with helpers.  
 See [CK-Monitoring](https://github.com/Invenietis/CK-Monitoring) for integration and use as a logging solution in .Net projects.
 
 ---
