@@ -152,17 +152,17 @@ namespace CK.Core.Tests.Monitoring
             // Group -> Talk: OnOpenGroup
             diffs[0].Should().BeGreaterOrEqualTo( beforeTalk ).And.BeLessThan( beforeLogs );
             // Talk: OnOpenGroup -> SleepTime: 00:00:00.1000000.
-            diffs[1].Should().BeCloseTo( TimeSpan.Zero );
+            diffs[1].Should().BeCloseTo( TimeSpan.Zero, TimeSpan.FromMilliseconds( 5 ) );
             // SleepTime: 00:00:00.1000000. -> Line
             diffs[2].Should().BeGreaterThan( beforeLogs );
             // Line -> Talk: OnUnfilteredLog
             diffs[3].Should().BeGreaterOrEqualTo( beforeTalk ).And.BeLessThan( beforeLogs );
             // Talk: OnUnfilteredLog -> SleepTime: 00:00:00.1000000.
-            diffs[4].Should().BeCloseTo( TimeSpan.Zero );
+            diffs[4].Should().BeCloseTo( TimeSpan.Zero, TimeSpan.FromMilliseconds( 5 ) );
             // SleepTime: 00:00:00.1000000. -> Talk: Hello from outside.
             diffs[5].Should().BeGreaterThan( beforeLogs + beforeTalk );
             // Talk: Hello from outside. -> SleepTime: 00:00:00.1000000.
-            diffs[6].Should().BeCloseTo( TimeSpan.Zero );
+            diffs[6].Should().BeCloseTo( TimeSpan.Zero, TimeSpan.FromMilliseconds( 5 ) );
         }
 
         static void GetTextAndTimes( TimeSpan beforeLogs, TimeSpan beforeTalk, out string[] texts, out DateTime[] times )

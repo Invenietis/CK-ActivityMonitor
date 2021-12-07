@@ -111,13 +111,13 @@ namespace CK.Core.Tests.Monitoring
                    .Should().Throw<InvalidOperationException>();
             monitor.Output.UnbridgeTo( TestHelper.Monitor.Output.BridgeTarget );
 
-            IActivityMonitorOutput output = null;
-            output.Invoking( sut => sut.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
+            IActivityMonitorOutput output = null!;
+            FluentActions.Invoking( () => output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
                   .Should().Throw<NullReferenceException>();
-            output.Invoking( sut => sut.UnbridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
+            FluentActions.Invoking( () => output.UnbridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
                   .Should().Throw<NullReferenceException>();
 
-            Action fail = () => new ActivityMonitorBridge( null, false, false );
+            Action fail = () => new ActivityMonitorBridge( null!, false, false );
             fail.Should().Throw<ArgumentNullException>( "Null guards." );
         }
 
