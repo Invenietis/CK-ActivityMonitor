@@ -1,4 +1,4 @@
-using Cake.Common.Diagnostics;
+
 using Cake.Common.IO;
 using Cake.Common.Tools.DotNetCore;
 using Cake.Common.Tools.DotNetCore.Publish;
