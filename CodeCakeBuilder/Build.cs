@@ -137,9 +137,9 @@ namespace CodeCake
             Task( "Push-Artifacts" )
                 .IsDependentOn( "Create-NuGet-Packages" )
                 .WithCriteria( () => globalInfo.IsValid )
-                .Does( () =>
+                .Does( async () =>
                 {
-                    /* Please add async on the Does: .Does( async() => ...) above.*/await globalInfo.PushArtifactsAsync();
+                    await globalInfo.PushArtifactsAsync();
                 } );
 
             // The Default task for this script can be set here.
