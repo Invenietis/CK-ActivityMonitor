@@ -154,7 +154,7 @@ namespace CK.Core.Tests.Monitoring
             using( l.Lock( m ) )
             {
                 l.IsEnteredBy( m ).Should().BeTrue();
-                l.Awaiting( x => x.LockAsync( m ) ).Should().Throw<LockRecursionException>();
+                await l.Awaiting( x => x.LockAsync( m ) ).Should().ThrowAsync<LockRecursionException>();
             }
 
             l.IsEnteredBy( m ).Should().BeFalse();
