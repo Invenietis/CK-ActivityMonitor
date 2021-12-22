@@ -40,7 +40,7 @@ namespace CK.Core
         public ActivityMonitorTextWriterClient( Action<string> writer, LogFilter filter, char depthInitial )
             : this( filter )
         {
-            Throw.OnNullArgument( writer );
+            Throw.CheckNotNullArgument( writer );
             if( depthInitial != ' ' ) _depthPadding = depthInitial + _depthPadding.Substring( 1 );
             Writer = writer;
         }

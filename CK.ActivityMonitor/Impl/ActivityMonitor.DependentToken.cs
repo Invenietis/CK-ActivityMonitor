@@ -48,7 +48,7 @@ namespace CK.Core
 
             /// <summary>
             /// Overridden to give a readable description of this token that can be <see cref="Parse"/>d (or <see cref="TryParse"/>) back:
-            /// The format is "{<see cref="OriginatorId"/>} at <see cref="CreationDate"/> (with topic '...'|without topic).".
+            /// The format is "<see cref="OriginatorId"/> at <see cref="CreationDate"/> (with topic '...'|without topic).".
             /// </summary>
             /// <returns>A readable string.</returns>
             public override string ToString()
@@ -65,10 +65,10 @@ namespace CK.Core
             static public bool TryParse( string s, [MaybeNullWhen( false )] out DependentToken t )
             {
                 t = null;
-                StringMatcher m = new StringMatcher( s );
-                if( MatchOriginatorAndTime( m, out var id, out DateTimeStamp time ) && m.TryMatchText( " with" ) )
+                var m = new ROSpanCharMatcher( s ) { SingleExpectationMode = true };
+                if( MatchOriginatorAndTime( ref m, out var id, out DateTimeStamp time ) && m.TryMatch( " with" ) )
                 {
-                    if( ExtractTopic( s, m.StartIndex, out string? topic ) )
+                    if( TryExtractTopic( m.Head, out string? topic ) )
                     {
                         t = new DependentToken( id, time, topic );
                         return true;
@@ -99,7 +99,7 @@ namespace CK.Core
             /// <returns>True on success.</returns>
             public static bool TryParseLaunchOrCreateMessage( string message, out bool launched, out bool withTopic, out string? dependentTopic )
             {
-                Throw.OnNullArgument( message );
+                Throw.CheckNotNullArgument( message );
                 launched = false;
                 withTopic = false;
                 dependentTopic = null;
@@ -110,13 +110,13 @@ namespace CK.Core
                     launched = true;
                     withTopic = true;
                     Debug.Assert( _prefixLaunchWithTopic.Length == 33 );
-                    if( !ExtractTopic( message, 33, out dependentTopic ) ) return false;
+                    if( !TryExtractTopic( message.AsSpan( 33 ), out dependentTopic ) ) return false;
                 }
                 else if( message.StartsWith( _prefixCreateWithTopic ) )
                 {
                     withTopic = true;
                     Debug.Assert( _prefixCreateWithTopic.Length == 37 );
-                    if( !ExtractTopic( message, 37, out dependentTopic ) ) return false;
+                    if( !TryExtractTopic( message.AsSpan( 37 ), out dependentTopic ) ) return false;
                 }
                 else if( message.StartsWith( _prefixLaunch ) )
                 {
@@ -135,24 +135,22 @@ namespace CK.Core
                 set { _delayedLaunchMessage = value; }
             }
 
-            private static bool ExtractTopic( string message, int start, out string? dependentTopic )
+            static bool TryExtractTopic( ReadOnlySpan<char> message, out string? dependentTopic )
             {
                 Debug.Assert( _suffixWithoutTopic.Length == 9 );
                 Debug.Assert( _suffixWithTopic.Length == 8 );
 
                 dependentTopic = null;
 
-                if( message.Length < start + 8 + 1 ) return false;
-                if( string.CompareOrdinal( message, start, _suffixWithTopic, 0, 8 ) == 0 )
+                if( message.Length < 8 + 1 ) return false;
+                if( message.TryMatch( _suffixWithTopic ) )
                 {
                     int idxEndQuote = message.LastIndexOf( '\'' );
-                    if( idxEndQuote < start ) return false;
-                    start += 8;
-                    dependentTopic = message.Substring( start, idxEndQuote - start );
+                    if( idxEndQuote < 0 ) return false;
+                    dependentTopic = new string( message.Slice( 0, idxEndQuote ) );
                     return true;
                 }
-                if( message.Length < start + 9 + 1 ) return false;
-                if( string.CompareOrdinal( message, start, _suffixWithoutTopic, 0, 8 ) == 0 )
+                if( message.StartsWith( _suffixWithoutTopic ) )
                 {
                     // We exit with true and a null dependentTopic since there is no topic.
                     return true; 
@@ -178,31 +176,27 @@ namespace CK.Core
                     time = DateTimeStamp.MinValue;
                     return false;
                 }
-                return MatchOriginatorAndTime( new StringMatcher( startMessage, 38 ), out id, out time );
+                var m = new ROSpanCharMatcher( startMessage.AsSpan( 38 ) ) { SingleExpectationMode = true };
+                return MatchOriginatorAndTime( ref m, out id, out time );
             }
 
-            static bool MatchOriginatorAndTime( StringMatcher m, out string id, out DateTimeStamp time )
+            static bool MatchOriginatorAndTime( ref ROSpanCharMatcher m, out string id, out DateTimeStamp time )
             {
                 time = DateTimeStamp.MinValue;
                 id = string.Empty;
-
-                if( m.IsEnd ) return false;
-                int i = m.StartIndex;
-                int len = m.Length;
+                int i = 0;
+                int len = m.Head.Length;
                 while( --len >= 0 )
                 {
-                    if( Char.IsWhiteSpace( m.Head ) ) break;
-                    m.UncheckedMove( 1 );
+                    char c = m.Head[i];
+                    if( char.IsWhiteSpace( c ) ) break;
+                    ++i;
                 }
-                int lenMatch = m.StartIndex - i;
-                if( lenMatch < MinMonitorUniqueIdLength )
-                {
-                    m.UncheckedMove( -lenMatch );
-                    return false;
-                }
-                id = m.Text.Substring( i, lenMatch );
-                if( !m.TryMatchText( " at " ) ) return false;
-                return m.MatchDateTimeStamp( out time );
+                if( i < MinMonitorUniqueIdLength ) return m.AddExpectation( "Monitor Id" );
+                id = new string( m.Head.Slice( 0, i ) );
+                m.Head = m.Head.Slice( i );
+                if( !m.TryMatch( " at " ) ) return false;
+                return m.TryMatchDateTimeStamp( out time );
             }
 
             internal string FormatStartMessage()

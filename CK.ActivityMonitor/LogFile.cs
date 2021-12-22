@@ -44,7 +44,7 @@ namespace CK.Core
             [MemberNotNull( nameof( _logPath ) )]
             set
             {
-                Throw.OnNullOrWhiteSpaceArgument( value );
+                Throw.CheckNotNullOrWhiteSpaceArgument( value );
                 value = FileUtil.NormalizePathSeparator( value, true );
                 if( _logPath != null && value != _logPath )
                 {

@@ -99,7 +99,7 @@ namespace CK.Core
             /// <returns>A dependent token.</returns>
             public void Launch( Action<ActivityMonitor.DependentToken> dependentLauncher )
             {
-                Throw.OnNullArgument( dependentLauncher );
+                Throw.CheckNotNullArgument( dependentLauncher );
                 var t = ActivityMonitor.DependentToken.CreateWithMonitorTopic( _monitor, true, out string msg );
                 var d = new ActivityMonitorLogData( LogLevel.Info, _monitor.AutoTags | ActivityMonitor.Tags.CreateDependentActivity, msg, null, _fileName, _lineNumber );
                 d.SetExplicitLogTime( t.CreationDate );
@@ -119,7 +119,7 @@ namespace CK.Core
             /// <param name="dependentTopic">Topic for the dependent activity: the receiver's monitor will set this topic .</param>
             public void LaunchWithTopic( Action<ActivityMonitor.DependentToken> dependentLauncher, string dependentTopic )
             {
-                Throw.OnNullArgument( dependentLauncher );
+                Throw.CheckNotNullArgument( dependentLauncher );
                 var t = ActivityMonitor.DependentToken.CreateWithDependentTopic( _monitor, true, dependentTopic, out string msg );
                 var d = new ActivityMonitorLogData( LogLevel.Info, _monitor.AutoTags | ActivityMonitor.Tags.CreateDependentActivity, msg, null, _fileName, _lineNumber );
                 d.SetExplicitLogTime( t.CreationDate );
@@ -156,7 +156,7 @@ namespace CK.Core
         /// <returns>A disposable object. It must be disposed at the end of the activity.</returns>
         static public IDisposable StartDependentActivity( this IActivityMonitor @this, ActivityMonitor.DependentToken token, [CallerFilePath]string? fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
-            Throw.OnNullArgument( token );
+            Throw.CheckNotNullArgument( token );
             return ActivityMonitor.DependentToken.Start( token, @this, fileName, lineNumber );
         }
 
