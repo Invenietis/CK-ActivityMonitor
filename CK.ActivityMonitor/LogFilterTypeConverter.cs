@@ -33,7 +33,7 @@ namespace CK.Core
         /// <returns>The LogFilter (can be <see cref="LogFilter.Undefined"/> on error).</returns>
         public override object ConvertFrom( ITypeDescriptorContext? context, CultureInfo? culture, object value )
         {
-            LogFilter.TryParse( (string)value, out var result );
+            _ = LogFilter.TryParse( (string)value, out var result );
             return result;
         }
 

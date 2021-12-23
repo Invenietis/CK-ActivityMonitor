@@ -98,7 +98,7 @@ namespace CK.Core
         {
             var w = _buffer.Clear();
             w.Append( _prefix )
-                .Append( " " )
+                .Append( ' ' )
                 .Append( data.Level.ToChar() )
                 .Append( " [" ).Append( data.Tags ).Append( "] " )
                 .AppendMultiLine( _prefix + "   ", data.Text, false )
@@ -127,6 +127,10 @@ namespace CK.Core
             Writer( _buffer.ToString() );
         }
 
+        /// <summary>
+        /// Does nothing.
+        /// </summary>
+        /// <param name="level">The previous log level (without <see cref="LogLevel.IsFiltered"/>).</param>
         protected override void OnLeaveLevel( LogLevel level )
         {
         }
@@ -229,8 +233,7 @@ namespace CK.Core
                 w.AppendMultiLine( localPrefix + "       ", ex.StackTrace, false );
                 w.AppendLine();
             }
-            var fileNFEx = ex as System.IO.FileNotFoundException;
-            if( fileNFEx != null )
+            if( ex is System.IO.FileNotFoundException fileNFEx )
             {
                 if( !String.IsNullOrEmpty( fileNFEx.FileName ) ) w.AppendLine( localPrefix + "FileName: " + fileNFEx.FileName );
                 if( fileNFEx.FusionLog != null )
@@ -242,8 +245,7 @@ namespace CK.Core
             }
             else
             {
-                var loadFileEx = ex as System.IO.FileLoadException;
-                if( loadFileEx != null )
+                if( ex is System.IO.FileLoadException loadFileEx )
                 {
                     if( !String.IsNullOrEmpty( loadFileEx.FileName ) ) w.AppendLine( localPrefix + "FileName: " + loadFileEx.FileName );
                     if( loadFileEx.FusionLog != null )
@@ -265,7 +267,7 @@ namespace CK.Core
                             // apparently, Types/LoaderExceptions are parallel array.
                             // A null in Types[i] mean there is an exception in LoaderException[i]
                             // https://docs.microsoft.com/en-us/dotnet/api/system.reflection.reflectiontypeloadexception.loaderexceptions?view=netstandard-2.0#property-value
-                            if( typeLoadEx.Types[i] != null ) 
+                            if( typeLoadEx.Types[i] != null )
                             {
                                 Debug.Assert( typeLoadEx.LoaderExceptions[i] == null );
                                 continue;
