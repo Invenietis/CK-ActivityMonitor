@@ -64,22 +64,13 @@ namespace CK.Core
         /// </summary>
         public const int MinMonitorUniqueIdLength = 4;
 
-        static long _nextMonitorId;
-
-        static string CreateUniqueId()
-        {
-            var x = Interlocked.Increment( ref _nextMonitorId );
-            var sx = MemoryMarshal.AsBytes( MemoryMarshal.CreateSpan( ref x, 1 ) );
-            sx.Reverse();
-            return Base64UrlHelper.ToBase64UrlString( sx );
-        }
+        static readonly FastUniqueIdGenerator _generatorId;
 
         static ActivityMonitor()
         {
-            var bytes = MemoryMarshal.AsBytes( MemoryMarshal.CreateSpan( ref _nextMonitorId, 1 ) );
-            System.Security.Cryptography.RandomNumberGenerator.Fill( bytes );
             AutoConfiguration = null;
             _defaultFilterLevel = LogFilter.Trace;
+            _generatorId = new FastUniqueIdGenerator();
         }
 
         Group[] _groups;
@@ -117,7 +108,7 @@ namespace CK.Core
         /// and has an empty <see cref="Topic"/> initially set.
         /// </summary>
         public ActivityMonitor()
-            : this( new DateTimeStampProvider(), CreateUniqueId(), Tags.Empty, true )
+            : this( new DateTimeStampProvider(), _generatorId.GetNextString(), Tags.Empty, true )
         {
         }
 
@@ -126,7 +117,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="topic">Initial topic (can be null).</param>
         public ActivityMonitor( string topic )
-            : this( new DateTimeStampProvider(), CreateUniqueId(), Tags.Empty, true )
+            : this( new DateTimeStampProvider(), _generatorId.GetNextString(), Tags.Empty, true )
         {
             if( topic != null ) SetTopic( topic );
         }
@@ -137,7 +128,7 @@ namespace CK.Core
         /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
         /// <param name="topic">Optional initial topic (can be null).</param>
         public ActivityMonitor( bool applyAutoConfigurations, string? topic = null )
-            : this( new DateTimeStampProvider(), CreateUniqueId(), Tags.Empty, applyAutoConfigurations )
+            : this( new DateTimeStampProvider(), _generatorId.GetNextString(), Tags.Empty, applyAutoConfigurations )
         {
             if( topic != null ) SetTopic( topic );
         }

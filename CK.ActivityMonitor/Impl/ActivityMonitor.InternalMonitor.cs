@@ -81,7 +81,7 @@ namespace CK.Core
             public readonly LogsRecorder Recorder;
 
             public InternalMonitor( ActivityMonitor main )
-                : base( main._lastLogTime, CreateUniqueId(), Tags.Empty, false )
+                : base( main._lastLogTime, _generatorId.GetNextString(), Tags.Empty, false )
             {
                 Recorder = Output.RegisterClient( new LogsRecorder( this ) );
             }
