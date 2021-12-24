@@ -49,7 +49,7 @@ namespace CK.Core
         public static bool ShouldLogLine( this IActivityMonitor @this, LogLevel level, CKTrait? tags, out CKTrait finalTags )
         {
             finalTags = @this.AutoTags + tags;
-            return ActivityMonitor.TagFilter.ApplyForLine( finalTags, (int)@this.ActualFilter.Line, (int)level );
+            return ActivityMonitor.Tags.ApplyForLine( finalTags, (int)@this.ActualFilter.Line, (int)level );
         }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace CK.Core
         public static bool ShouldLogGroup( this IActivityMonitor @this, LogLevel level, CKTrait? tags, out CKTrait finalTags )
         {
             finalTags = @this.AutoTags + tags;
-            return ActivityMonitor.TagFilter.ApplyForGroup( finalTags, (int)@this.ActualFilter.Group, (int)level );
+            return ActivityMonitor.Tags.ApplyForGroup( finalTags, (int)@this.ActualFilter.Group, (int)level );
         }
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace CK.Core
 
         /// <summary>
         /// Opens a group regardless of <see cref="IActivityMonitor.ActualFilter">ActualFilter</see> level. 
-        /// <see cref="CloseGroup"/> must be called in order to close the group, and/or the returned object must be disposed (both safely can be called: 
+        /// <see cref="IActivityMonitor.CloseGroup"/> must be called in order to close the group, and/or the returned object must be disposed (both safely can be called: 
         /// the group is closed on the first action, the second one is ignored).
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
@@ -157,7 +157,7 @@ namespace CK.Core
         /// <returns>The existing <see cref="ActivityMonitorBridge"/> or null if no such bridge exists.</returns>
         public static ActivityMonitorBridge? FindBridgeTo( this IActivityMonitorOutput @this, ActivityMonitorBridgeTarget targetBridge )
         {
-            if( targetBridge == null ) throw new ArgumentNullException( "targetBridge" );
+            Throw.CheckNotNullArgument( targetBridge );
             return @this.Clients.OfType<ActivityMonitorBridge>().FirstOrDefault( b => b.BridgeTarget == targetBridge );
         }
 
@@ -171,7 +171,7 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object that can be disposed to automatically call <see cref="UnbridgeTo"/>.</returns>
         public static IDisposable CreateBridgeTo( this IActivityMonitorOutput @this, ActivityMonitorBridgeTarget targetBridge )
         {
-            if( targetBridge == null ) throw new ArgumentNullException( "targetBridge" );
+            Throw.CheckNotNullArgument( targetBridge );
             if( @this.Clients.OfType<ActivityMonitorBridge>().Any( b => b.BridgeTarget == targetBridge ) ) throw new InvalidOperationException();
             var created = @this.RegisterClient( new ActivityMonitorBridge( targetBridge, false, false ) );
             return Util.CreateDisposableAction( () => @this.UnregisterClient( created ) );
@@ -189,7 +189,7 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object that can be disposed to automatically call <see cref="UnbridgeTo"/>.</returns>
         public static IDisposable CreateStrongBridgeTo( this IActivityMonitorOutput @this, ActivityMonitorBridgeTarget targetBridge )
         {
-            if( targetBridge == null ) throw new ArgumentNullException( "targetBridge" );
+            Throw.CheckNotNullArgument( targetBridge );
             if( @this.Clients.OfType<ActivityMonitorBridge>().Any( b => b.BridgeTarget == targetBridge ) ) throw new InvalidOperationException();
             var created = @this.RegisterClient( new ActivityMonitorBridge( targetBridge, true, true ) );
             return Util.CreateDisposableAction( () => @this.UnregisterClient( created ) );
@@ -203,7 +203,7 @@ namespace CK.Core
         /// <returns>The unregistered <see cref="ActivityMonitorBridge"/> if found, null otherwise.</returns>
         public static ActivityMonitorBridge? UnbridgeTo( this IActivityMonitorOutput @this, ActivityMonitorBridgeTarget targetBridge )
         {
-            if( targetBridge == null ) throw new ArgumentNullException( "targetBridge" );
+            Throw.CheckNotNullArgument( targetBridge );
             return UnregisterClient<ActivityMonitorBridge>( @this, b => b.BridgeTarget == targetBridge );
         }
 
@@ -223,7 +223,7 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
         public static IDisposable CollectEntries( this IActivityMonitor @this, Action<IReadOnlyList<ActivityMonitorSimpleCollector.Entry>> errorHandler, LogLevelFilter level = LogLevelFilter.Error, int capacity = 50 )
         {
-            Throw.OnNullArgument( errorHandler );
+            Throw.CheckNotNullArgument( errorHandler );
             ActivityMonitorSimpleCollector errorTracker = new ActivityMonitorSimpleCollector() { MinimalFilter = level, Capacity = capacity };
             @this.Output.RegisterClient( errorTracker );
             return Util.CreateDisposableAction( () =>
@@ -302,7 +302,7 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
         public static IDisposable OnError( this IActivityMonitor @this, Action onFatalOrError )
         {
-            Throw.OnNullArgument( onFatalOrError );
+            Throw.CheckNotNullArgument( onFatalOrError );
             ErrorTracker tracker = new ErrorTracker( onFatalOrError, onFatalOrError );
             @this.Output.RegisterClient( tracker );
             return Util.CreateDisposableAction( () => @this.Output.UnregisterClient( tracker ) );
@@ -317,7 +317,7 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
         public static IDisposable OnError( this IActivityMonitor @this, Action onFatal, Action onError )
         {
-            if( onFatal == null || onError == null ) throw new ArgumentNullException();
+            Throw.CheckArgument( onFatal != null && onError != null );
             ErrorTracker tracker = new ErrorTracker( onFatal, onError );
             @this.Output.RegisterClient( tracker );
             return Util.CreateDisposableAction( () => @this.Output.UnregisterClient( tracker ) );
@@ -491,7 +491,7 @@ namespace CK.Core
         /// <returns>The unregistered client, or null if no client has been found.</returns>
         public static T? UnregisterClient<T>( this IActivityMonitorOutput @this, Func<T, bool> predicate ) where T : IActivityMonitorClient
         {
-            if( predicate == null ) throw new ArgumentNullException( "predicate" );
+            Throw.CheckNotNullArgument( predicate );
             T? c = @this.Clients.OfType<T>().Where( predicate ).FirstOrDefault();
             if( c != null ) @this.UnregisterClient( c );
             return c;

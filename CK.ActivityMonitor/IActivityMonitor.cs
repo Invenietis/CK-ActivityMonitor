@@ -30,7 +30,7 @@ namespace CK.Core
         /// property (and <see cref="MinimalFilter"/>) is automatically restored to its original value (captured when the Group was opened).
         /// <para>
         /// This property can be set with overloaded operators += (same as |= to call <see cref="CKTrait.Union(CKTrait)"/>), -= (<see cref="CKTrait.Except(CKTrait)"/>),
-        /// &= (<see cref="CKTrait.Intersect(CKTrait)"/>) or ^= (<see cref="CKTrait.SymmetricExcept(CKTrait)"/>).
+        /// &amp;= (<see cref="CKTrait.Intersect(CKTrait)"/>) or ^= (<see cref="CKTrait.SymmetricExcept(CKTrait)"/>).
         /// </para>
         /// </summary>
         [AllowNull]

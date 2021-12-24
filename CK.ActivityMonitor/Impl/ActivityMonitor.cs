@@ -27,92 +27,6 @@ namespace CK.Core
         /// </summary>
         static public readonly string ParkLevel = "PARK-LEVEL";
 
-
-        /// <summary>
-        /// Thread-safe context for tags used to categorize log entries (and group conclusions).
-        /// All tags used in monitoring must be <see cref="Register"/>ed here.
-        /// </summary>
-        /// <remarks>
-        /// Tags used for conclusions should start with "c:".
-        /// </remarks>
-        public static class Tags
-        {
-            /// <summary>
-            /// The central, unique, context of all monitoring related tags used in the application domain.
-            /// </summary>
-            public static readonly CKTraitContext Context;
-
-            /// <summary>
-            /// Shortcut to <see cref="CKTraitContext.EmptyTrait">Context.EmptyTrait</see>.
-            /// </summary>
-            static public readonly CKTrait Empty;
-
-            /// <summary>
-            /// Creation of dependent activities are marked with "dep:CreateActivity".
-            /// </summary>
-            static public readonly CKTrait CreateDependentActivity;
-
-            /// <summary>
-            /// Start of dependent activities are marked with "dep:StartActivity".
-            /// </summary>
-            static public readonly CKTrait StartDependentActivity;
-
-            /// <summary>
-            /// Conclusions provided to IActivityMonitor.Close(string) are marked with "c:User".
-            /// </summary>
-            static public readonly CKTrait UserConclusion;
-
-            /// <summary>
-            /// Conclusions returned by the optional function when a group is opened (see <see cref="IActivityMonitor.UnfilteredOpenGroup"/>) are marked with "c:GetText".
-            /// </summary>
-            static public readonly CKTrait GetTextConclusion;
-
-            /// <summary>
-            /// Whenever <see cref="Topic"/> changed, a <see cref="LogLevel.Info"/> is emitted marked with "MonitorTopicChanged".
-            /// </summary>
-            static public readonly CKTrait MonitorTopicChanged;
-
-            /// <summary>
-            /// A "MonitorEnd" tag is emitted by <see cref="ActivityMonitorExtension.MonitorEnd"/>.
-            /// This indicates the logical end of life of the monitor. It should not be used anymore (but technically can
-            /// be used).
-            /// </summary>
-            static public readonly CKTrait MonitorEnd;
-
-            /// <summary>
-            /// A "m:Internal" tag is used while replaying <see cref="IActivityMonitorImpl.InternalMonitor"/>
-            /// logs.
-            /// </summary>
-            static public readonly CKTrait InternalMonitor;
-
-            /// <summary>
-            /// A "StackTrace" tag activates stack trace tracking and dumping when a concurrent access is detected.
-            /// logs.
-            /// </summary>
-            static public readonly CKTrait StackTrace;
-
-            /// <summary>
-            /// Simple shortcut to <see cref="CKTraitContext.FindOrCreate(string)"/>.
-            /// </summary>
-            /// <param name="tags">Atomic tag or multiple tags separated by pipes (|).</param>
-            /// <returns>Registered tags.</returns>
-            static public CKTrait Register( string tags ) => Context.FindOrCreate( tags );
-
-            static Tags()
-            {
-                Context = CKTraitContext.Create( "ActivityMonitor" );
-                Empty = Context.EmptyTrait;
-                UserConclusion = Context.FindOrCreate( "c:User" );
-                GetTextConclusion = Context.FindOrCreate( "c:GetText" );
-                MonitorTopicChanged = Context.FindOrCreate( "MonitorTopicChanged" );
-                CreateDependentActivity = Context.FindOrCreate( "dep:CreateActivity" );
-                StartDependentActivity = Context.FindOrCreate( "dep:StartActivity" );
-                MonitorEnd = Context.FindOrCreate( "MonitorEnd" );
-                InternalMonitor = Context.FindOrCreate( "m:Internal" );
-                StackTrace = Context.FindOrCreate( "StackTrace" );
-            }
-        }
-
         static LogFilter _defaultFilterLevel;
 
         /// <summary>
@@ -150,22 +64,13 @@ namespace CK.Core
         /// </summary>
         public const int MinMonitorUniqueIdLength = 4;
 
-        static long _nextMonitorId;
-
-        static string CreateUniqueId()
-        {
-            var x = Interlocked.Increment( ref _nextMonitorId );
-            var sx = MemoryMarshal.AsBytes( MemoryMarshal.CreateSpan( ref x, 1 ) );
-            sx.Reverse();
-            return Base64UrlHelper.ToBase64UrlString( sx );
-        }
+        static readonly FastUniqueIdGenerator _generatorId;
 
         static ActivityMonitor()
         {
-            var bytes = MemoryMarshal.AsBytes( MemoryMarshal.CreateSpan( ref _nextMonitorId, 1 ) );
-            System.Security.Cryptography.RandomNumberGenerator.Fill( bytes );
             AutoConfiguration = null;
             _defaultFilterLevel = LogFilter.Trace;
+            _generatorId = new FastUniqueIdGenerator();
         }
 
         Group[] _groups;
@@ -203,7 +108,7 @@ namespace CK.Core
         /// and has an empty <see cref="Topic"/> initially set.
         /// </summary>
         public ActivityMonitor()
-            : this( new DateTimeStampProvider(), CreateUniqueId(), Tags.Empty, true )
+            : this( new DateTimeStampProvider(), _generatorId.GetNextString(), Tags.Empty, true )
         {
         }
 
@@ -212,7 +117,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="topic">Initial topic (can be null).</param>
         public ActivityMonitor( string topic )
-            : this( new DateTimeStampProvider(), CreateUniqueId(), Tags.Empty, true )
+            : this( new DateTimeStampProvider(), _generatorId.GetNextString(), Tags.Empty, true )
         {
             if( topic != null ) SetTopic( topic );
         }
@@ -223,7 +128,7 @@ namespace CK.Core
         /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
         /// <param name="topic">Optional initial topic (can be null).</param>
         public ActivityMonitor( bool applyAutoConfigurations, string? topic = null )
-            : this( new DateTimeStampProvider(), CreateUniqueId(), Tags.Empty, applyAutoConfigurations )
+            : this( new DateTimeStampProvider(), _generatorId.GetNextString(), Tags.Empty, applyAutoConfigurations )
         {
             if( topic != null ) SetTopic( topic );
         }
@@ -792,7 +697,7 @@ namespace CK.Core
                 _current = g.Index > 0 ? _groups[g.Index - 1] : null;
                 _currentUnfiltered = (Group?)g.Parent;
 
-                var sentConclusions = conclusions != null ? conclusions : (IReadOnlyList<ActivityLogGroupConclusion>)Array.Empty<ActivityLogGroupConclusion>();
+                var sentConclusions = conclusions ?? (IReadOnlyList<ActivityLogGroupConclusion>)Array.Empty<ActivityLogGroupConclusion>();
                 foreach( var l in _output.Clients )
                 {
                     try

@@ -32,7 +32,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="bridge">The target bridge.</param>
         /// <param name="pullTargetTopicAndAutoTagsFromTarget">
-        /// When true, the <see cref="IActivityMonitor.Topic"/> and <see cref="IActivityMonitor.AutoTags"/> are automaticaly updated whenever they change on the target monitor.
+        /// When true, the <see cref="IActivityMonitor.Topic"/> and <see cref="IActivityMonitor.AutoTags"/> are automatically updated whenever they change on the target monitor.
         /// </param>
         /// <param name="pushTopicAndAutoTagsToTarget">
         /// When true, any change to <see cref="IActivityMonitor.Topic"/> or <see cref="IActivityMonitor.AutoTags"/> are applied to the target monitor.
@@ -44,7 +44,7 @@ namespace CK.Core
         /// </param>
         public ActivityMonitorBridge( ActivityMonitorBridgeTarget bridge, bool pullTargetTopicAndAutoTagsFromTarget, bool pushTopicAndAutoTagsToTarget, bool applyTargetFilterToUnfilteredLogs = false )
         {
-            if( bridge == null ) throw new ArgumentNullException( "bridge" );
+            Throw.CheckNotNullArgument( bridge );
             _bridgeTarget = bridge;
             _pullTargetTopicAndAutoTagsFromTarget = pullTargetTopicAndAutoTagsFromTarget;
             _pushTopicAndAutoTagsToTarget = pushTopicAndAutoTagsToTarget;

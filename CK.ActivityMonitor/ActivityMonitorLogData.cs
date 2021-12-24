@@ -138,7 +138,6 @@ namespace CK.Core
         /// Explicitly sets the <see cref="Tags"/>.
         /// This should obviously be used with care.
         /// </summary>
-        /// <param name="logTime"></param>
         public void SetExplicitTags( CKTrait tags ) => Tags = tags;
 
 

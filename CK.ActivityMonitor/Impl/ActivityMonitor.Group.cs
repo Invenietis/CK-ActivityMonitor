@@ -34,7 +34,6 @@ namespace CK.Core
             Group? _unfilteredParent;
             int _depth;
             DateTimeStamp _closeLogTime;
-            DateTimeStamp _logTime;
             bool _isOpen;
             ActivityMonitorLogData _data;
 

@@ -22,7 +22,7 @@ namespace CK.Core.Tests.Monitoring
             m.OpenTrace( "OTrace1" );
 
             // For logs with Tag1, Release {Error, Error} is applied.
-            ActivityMonitor.TagFilter.SetFilters( new[] { (TestHelper.Tag1, LogClamper.Parse( "Release!" )) } );
+            ActivityMonitor.Tags.SetFilters( new[] { (TestHelper.Tag1, LogClamper.Parse( "Release!" )) } );
 
             m.Trace( TestHelper.Tag1, "NOSHOW" );
             m.OpenTrace( TestHelper.Tag1, "NOSHOW" );
@@ -33,7 +33,7 @@ namespace CK.Core.Tests.Monitoring
             m.OpenWarn( TestHelper.Tag1 | TestHelper.Tag2, $"NOSHOW{Environment.TickCount}" );
             m.OpenTrace( "OTrace2" );
 
-            ActivityMonitor.TagFilter.ClearAll();
+            ActivityMonitor.Tags.ClearAll();
 
             c.Entries.Select( e => e.Data.Text ).ToArray().Should().BeEquivalentTo( new[] { "Trace1", "OTrace1", "Trace2", "OTrace2" }, o => o.WithStrictOrdering() );
         }
@@ -55,7 +55,7 @@ namespace CK.Core.Tests.Monitoring
             m.Trace( "NOSHOW" );
             m.OpenTrace( "NOSHOW" );
 
-            ActivityMonitor.TagFilter.SetFilters( new[]
+            ActivityMonitor.Tags.SetFilters( new[]
             {
                     // Tag2 => Debug is the top priority here (Clamping or not a Debug filter doesn't matter).
                     (TestHelper.Tag2, LogClamper.Parse( "Debug" )),
@@ -85,7 +85,7 @@ namespace CK.Core.Tests.Monitoring
             m.Debug( TestHelper.Tag1 | TestHelper.Tag2, "Combined" );
             m.Debug( TestHelper.Tag1 | TestHelper.Tag2, $"Combined{hole}" );
 
-            ActivityMonitor.TagFilter.ClearAll();
+            ActivityMonitor.Tags.ClearAll();
             m.Trace( "NOSHOW" );
             m.OpenTrace( "NOSHOW" );
 

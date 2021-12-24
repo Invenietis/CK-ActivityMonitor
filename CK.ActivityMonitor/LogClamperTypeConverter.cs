@@ -23,7 +23,7 @@ namespace CK.Core
 
         /// <summary>
         /// Converts from a string.
-        /// This uses <see cref="LogClamper.LogClamper(string, out LogFilter)"/> since exceptions are usually
+        /// This uses <see cref="LogClamper.TryParse(string, out LogClamper)"/> since exceptions are usually
         /// swallowed by callers that fallback to the default value for the type (the rational behind is that
         /// conversion is not validation and that validator should be used if validation is required).
         /// </summary>
@@ -33,7 +33,7 @@ namespace CK.Core
         /// <returns>The LogFilter (can be <see cref="LogFilter.Undefined"/> on error).</returns>
         public override object ConvertFrom( ITypeDescriptorContext? context, CultureInfo? culture, object value )
         {
-            LogClamper.TryParse( (string)value, out var result );
+            _ = LogClamper.TryParse( (string)value, out var result );
             return result;
         }
 

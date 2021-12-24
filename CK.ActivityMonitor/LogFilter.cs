@@ -239,9 +239,9 @@ namespace CK.Core
         /// <returns>True on success, false on error.</returns>
         public static bool TryParse( string s, out LogFilter f )
         {
-            Throw.OnNullArgument( s );
-            var m = new StringMatcher( s );
-            return m.MatchLogFilter( out f ) && m.IsEnd;
+            Throw.CheckNotNullArgument( s );
+            var m = new ROSpanCharMatcher( s ) {  SingleExpectationMode = true };
+            return m.TryMatchLogFilter( out f ) && m.Head.IsEmpty;
         }
 
     }

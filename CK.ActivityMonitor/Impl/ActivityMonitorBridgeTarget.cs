@@ -28,7 +28,7 @@ namespace CK.Core
         /// </param>
         public ActivityMonitorBridgeTarget( IActivityMonitorImpl targetMonitor, bool honorMonitorFilter = true )
         {
-            Throw.OnNullArgument( targetMonitor );
+            Throw.CheckNotNullArgument( targetMonitor );
             _monitor = targetMonitor;
             _honorTargetFilter = honorMonitorFilter;
             _callbacks = Array.Empty<IActivityMonitorBridgeCallback>();

@@ -27,7 +27,7 @@ namespace CK.Core
         /// <param name="tag">Must be null or be registered in <see cref="ActivityMonitor.Tags"/>.</param>
         public ActivityLogGroupConclusion( string conclusion, CKTrait? tag = null )
         {
-            Throw.OnNullArgument( conclusion );
+            Throw.CheckNotNullArgument( conclusion );
             if( tag == null ) tag = ActivityMonitor.Tags.Empty;
             else if( tag.Context != ActivityMonitor.Tags.Context ) Throw.ArgumentException( nameof( tag ), Impl.ActivityMonitorResources.ActivityMonitorTagMustBeRegistered );
             Tag = tag;
