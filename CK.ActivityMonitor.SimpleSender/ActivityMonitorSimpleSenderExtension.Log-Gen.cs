@@ -85,7 +85,11 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Debug( this IActivityMonitor monitor, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Debug( this IActivityMonitor monitor,
+                                         string? text,
+                                         Exception? ex,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Debug, null, out var finalTags ) )
             {
@@ -99,7 +103,7 @@ namespace CK.Core
         /// <inheritdoc cref="Debug(IActivityMonitor,string,Exception,int,string?)"/>
         public static bool Debug( this IActivityMonitor monitor,
                                 [InterpolatedStringHandlerArgument( "monitor" )] LogHandler.LineDebug text,
-                                Exception ex,
+                                Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
         {
@@ -126,7 +130,11 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
        [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Debug( this IActivityMonitor monitor, CKTrait tags, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Debug( this IActivityMonitor monitor,
+                                         CKTrait tags,
+                                         Exception ex,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Debug, tags, out var finalTags ) )
             {
@@ -148,7 +156,11 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Debug( this IActivityMonitor monitor, CKTrait tags, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Debug( this IActivityMonitor monitor,
+                                         CKTrait tags,
+                                         string text,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Debug, tags, out var finalTags ) )
             {
@@ -188,7 +200,12 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
-        public static bool Debug( this IActivityMonitor monitor, CKTrait tags, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Debug( this IActivityMonitor monitor,
+                                         CKTrait tags,
+                                         string? text,
+                                         Exception? ex,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Debug, tags, out var finalTags ) )
             {
@@ -203,7 +220,7 @@ namespace CK.Core
         public static bool Debug( this IActivityMonitor monitor,
                                 CKTrait tags,
                                 [InterpolatedStringHandlerArgument( "monitor", "tags" )] LogHandler.LineDebugWithTags text,
-                                Exception ex,
+                                Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
         {
@@ -290,7 +307,11 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Trace( this IActivityMonitor monitor, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Trace( this IActivityMonitor monitor,
+                                         string? text,
+                                         Exception? ex,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Trace, null, out var finalTags ) )
             {
@@ -304,7 +325,7 @@ namespace CK.Core
         /// <inheritdoc cref="Trace(IActivityMonitor,string,Exception,int,string?)"/>
         public static bool Trace( this IActivityMonitor monitor,
                                 [InterpolatedStringHandlerArgument( "monitor" )] LogHandler.LineTrace text,
-                                Exception ex,
+                                Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
         {
@@ -331,7 +352,11 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
        [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Trace( this IActivityMonitor monitor, CKTrait tags, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Trace( this IActivityMonitor monitor,
+                                         CKTrait tags,
+                                         Exception ex,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Trace, tags, out var finalTags ) )
             {
@@ -353,7 +378,11 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Trace( this IActivityMonitor monitor, CKTrait tags, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Trace( this IActivityMonitor monitor,
+                                         CKTrait tags,
+                                         string text,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Trace, tags, out var finalTags ) )
             {
@@ -393,7 +422,12 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
-        public static bool Trace( this IActivityMonitor monitor, CKTrait tags, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Trace( this IActivityMonitor monitor,
+                                         CKTrait tags,
+                                         string? text,
+                                         Exception? ex,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Trace, tags, out var finalTags ) )
             {
@@ -408,7 +442,7 @@ namespace CK.Core
         public static bool Trace( this IActivityMonitor monitor,
                                 CKTrait tags,
                                 [InterpolatedStringHandlerArgument( "monitor", "tags" )] LogHandler.LineTraceWithTags text,
-                                Exception ex,
+                                Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
         {
@@ -495,7 +529,11 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Info( this IActivityMonitor monitor, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Info( this IActivityMonitor monitor,
+                                         string? text,
+                                         Exception? ex,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Info, null, out var finalTags ) )
             {
@@ -509,7 +547,7 @@ namespace CK.Core
         /// <inheritdoc cref="Info(IActivityMonitor,string,Exception,int,string?)"/>
         public static bool Info( this IActivityMonitor monitor,
                                 [InterpolatedStringHandlerArgument( "monitor" )] LogHandler.LineInfo text,
-                                Exception ex,
+                                Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
         {
@@ -536,7 +574,11 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
        [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Info( this IActivityMonitor monitor, CKTrait tags, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Info( this IActivityMonitor monitor,
+                                         CKTrait tags,
+                                         Exception ex,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Info, tags, out var finalTags ) )
             {
@@ -558,7 +600,11 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Info( this IActivityMonitor monitor, CKTrait tags, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Info( this IActivityMonitor monitor,
+                                         CKTrait tags,
+                                         string text,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Info, tags, out var finalTags ) )
             {
@@ -598,7 +644,12 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
-        public static bool Info( this IActivityMonitor monitor, CKTrait tags, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Info( this IActivityMonitor monitor,
+                                         CKTrait tags,
+                                         string? text,
+                                         Exception? ex,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Info, tags, out var finalTags ) )
             {
@@ -613,7 +664,7 @@ namespace CK.Core
         public static bool Info( this IActivityMonitor monitor,
                                 CKTrait tags,
                                 [InterpolatedStringHandlerArgument( "monitor", "tags" )] LogHandler.LineInfoWithTags text,
-                                Exception ex,
+                                Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
         {
@@ -700,7 +751,11 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Warn( this IActivityMonitor monitor, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Warn( this IActivityMonitor monitor,
+                                         string? text,
+                                         Exception? ex,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Warn, null, out var finalTags ) )
             {
@@ -714,7 +769,7 @@ namespace CK.Core
         /// <inheritdoc cref="Warn(IActivityMonitor,string,Exception,int,string?)"/>
         public static bool Warn( this IActivityMonitor monitor,
                                 [InterpolatedStringHandlerArgument( "monitor" )] LogHandler.LineWarn text,
-                                Exception ex,
+                                Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
         {
@@ -741,7 +796,11 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
        [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Warn( this IActivityMonitor monitor, CKTrait tags, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Warn( this IActivityMonitor monitor,
+                                         CKTrait tags,
+                                         Exception ex,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Warn, tags, out var finalTags ) )
             {
@@ -763,7 +822,11 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Warn( this IActivityMonitor monitor, CKTrait tags, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Warn( this IActivityMonitor monitor,
+                                         CKTrait tags,
+                                         string text,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Warn, tags, out var finalTags ) )
             {
@@ -803,7 +866,12 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
-        public static bool Warn( this IActivityMonitor monitor, CKTrait tags, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Warn( this IActivityMonitor monitor,
+                                         CKTrait tags,
+                                         string? text,
+                                         Exception? ex,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Warn, tags, out var finalTags ) )
             {
@@ -818,7 +886,7 @@ namespace CK.Core
         public static bool Warn( this IActivityMonitor monitor,
                                 CKTrait tags,
                                 [InterpolatedStringHandlerArgument( "monitor", "tags" )] LogHandler.LineWarnWithTags text,
-                                Exception ex,
+                                Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
         {
@@ -905,7 +973,11 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Error( this IActivityMonitor monitor, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Error( this IActivityMonitor monitor,
+                                         string? text,
+                                         Exception? ex,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Error, null, out var finalTags ) )
             {
@@ -919,7 +991,7 @@ namespace CK.Core
         /// <inheritdoc cref="Error(IActivityMonitor,string,Exception,int,string?)"/>
         public static bool Error( this IActivityMonitor monitor,
                                 [InterpolatedStringHandlerArgument( "monitor" )] LogHandler.LineError text,
-                                Exception ex,
+                                Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
         {
@@ -946,7 +1018,11 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
        [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Error( this IActivityMonitor monitor, CKTrait tags, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Error( this IActivityMonitor monitor,
+                                         CKTrait tags,
+                                         Exception ex,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Error, tags, out var finalTags ) )
             {
@@ -968,7 +1044,11 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Error( this IActivityMonitor monitor, CKTrait tags, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Error( this IActivityMonitor monitor,
+                                         CKTrait tags,
+                                         string text,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Error, tags, out var finalTags ) )
             {
@@ -1008,7 +1088,12 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
-        public static bool Error( this IActivityMonitor monitor, CKTrait tags, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Error( this IActivityMonitor monitor,
+                                         CKTrait tags,
+                                         string? text,
+                                         Exception? ex,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Error, tags, out var finalTags ) )
             {
@@ -1023,7 +1108,7 @@ namespace CK.Core
         public static bool Error( this IActivityMonitor monitor,
                                 CKTrait tags,
                                 [InterpolatedStringHandlerArgument( "monitor", "tags" )] LogHandler.LineErrorWithTags text,
-                                Exception ex,
+                                Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
         {
@@ -1110,7 +1195,11 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Fatal( this IActivityMonitor monitor, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Fatal( this IActivityMonitor monitor,
+                                         string? text,
+                                         Exception? ex,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Fatal, null, out var finalTags ) )
             {
@@ -1124,7 +1213,7 @@ namespace CK.Core
         /// <inheritdoc cref="Fatal(IActivityMonitor,string,Exception,int,string?)"/>
         public static bool Fatal( this IActivityMonitor monitor,
                                 [InterpolatedStringHandlerArgument( "monitor" )] LogHandler.LineFatal text,
-                                Exception ex,
+                                Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
         {
@@ -1151,7 +1240,11 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
        [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Fatal( this IActivityMonitor monitor, CKTrait tags, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Fatal( this IActivityMonitor monitor,
+                                         CKTrait tags,
+                                         Exception ex,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Fatal, tags, out var finalTags ) )
             {
@@ -1173,7 +1266,11 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Fatal( this IActivityMonitor monitor, CKTrait tags, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Fatal( this IActivityMonitor monitor,
+                                         CKTrait tags,
+                                         string text,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Fatal, tags, out var finalTags ) )
             {
@@ -1213,7 +1310,12 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
-        public static bool Fatal( this IActivityMonitor monitor, CKTrait tags, string text, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Fatal( this IActivityMonitor monitor,
+                                         CKTrait tags,
+                                         string? text,
+                                         Exception? ex,
+                                         [CallerLineNumber]int lineNumber = 0,
+                                         [CallerFilePath]string? fileName = null )
         {
             if( monitor.ShouldLogLine( LogLevel.Fatal, tags, out var finalTags ) )
             {
@@ -1228,7 +1330,7 @@ namespace CK.Core
         public static bool Fatal( this IActivityMonitor monitor,
                                 CKTrait tags,
                                 [InterpolatedStringHandlerArgument( "monitor", "tags" )] LogHandler.LineFatalWithTags text,
-                                Exception ex,
+                                Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
         {

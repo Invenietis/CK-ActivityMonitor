@@ -7,7 +7,8 @@ namespace CK.Core
     /// Simple abstraction of a worker with its own monitor that
     /// can execute synchronous or asynchronous actions and offers
     /// simple log methods (more complex logging can be done via
-    /// the <see cref="Execute(Action{IActivityMonitor})"/> method).
+    /// the <see cref="Execute(Action{IActivityMonitor})"/> or
+    /// <see cref="Execute(Func{IActivityMonitor, Task})"/> methods).
     /// <para>
     /// Note that the simple log methods here don't open/close groups and this
     /// is normal: the worker is free to interleave any workload between consecutive

@@ -18,7 +18,11 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static IDisposableGroup OpenGroup( this IActivityMonitor monitor, LogLevel level, Exception ex, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string? fileName = null )
+        public static IDisposableGroup OpenGroup( this IActivityMonitor monitor,
+                                                  LogLevel level,
+                                                  Exception ex,
+                                                  [CallerLineNumber] int lineNumber = 0,
+                                                  [CallerFilePath] string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( level, null, out var finalTags )
                                                 ? new ActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
@@ -39,7 +43,11 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static IDisposableGroup OpenGroup( this IActivityMonitor monitor, LogLevel level, string text, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string? fileName = null )
+        public static IDisposableGroup OpenGroup( this IActivityMonitor monitor,
+                                                  LogLevel level,
+                                                  string text,
+                                                  [CallerLineNumber] int lineNumber = 0,
+                                                  [CallerFilePath] string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( level, null, out var finalTags )
                                                 ? new ActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
@@ -76,7 +84,12 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static IDisposableGroup OpenGroup( this IActivityMonitor monitor, LogLevel level, string text, Exception ex, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string? fileName = null )
+        public static IDisposableGroup OpenGroup( this IActivityMonitor monitor,
+                                                  LogLevel level,
+                                                  string? text,
+                                                  Exception? ex,
+                                                  [CallerLineNumber] int lineNumber = 0,
+                                                  [CallerFilePath] string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( level, null, out var finalTags )
                                                 ? new ActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
@@ -88,7 +101,7 @@ namespace CK.Core
         public static IDisposableGroup OpenGroup( this IActivityMonitor monitor,
                                                   LogLevel level,
                                                   [InterpolatedStringHandlerArgument( "monitor", "level" )] LogHandler.GroupLog text,
-                                                  Exception ex,
+                                                  Exception? ex,
                                                   [CallerLineNumber] int lineNumber = 0,
                                                   [CallerFilePath] string? fileName = null )
         {
@@ -115,7 +128,12 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IDisposableGroup OpenGroup( this IActivityMonitor monitor, LogLevel level, CKTrait tags, Exception ex, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string? fileName = null )
+        public static IDisposableGroup OpenGroup( this IActivityMonitor monitor,
+                                                  LogLevel level,
+                                                  CKTrait tags,
+                                                  Exception ex,
+                                                  [CallerLineNumber] int lineNumber = 0,
+                                                  [CallerFilePath] string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( level, tags, out var finalTags )
                                                ? new ActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
@@ -137,7 +155,12 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static IDisposableGroup OpenGroup( this IActivityMonitor monitor, LogLevel level, CKTrait tags, string text, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string? fileName = null )
+        public static IDisposableGroup OpenGroup( this IActivityMonitor monitor,
+                                                  LogLevel level,
+                                                  CKTrait tags,
+                                                  string text,
+                                                  [CallerLineNumber] int lineNumber = 0,
+                                                  [CallerFilePath] string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( level, tags, out var finalTags )
                                                ? new ActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
@@ -175,7 +198,13 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static IDisposableGroup OpenGroup( this IActivityMonitor monitor, LogLevel level, CKTrait tags, string text, Exception ex, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string? fileName = null )
+        public static IDisposableGroup OpenGroup( this IActivityMonitor monitor,
+                                                  LogLevel level,
+                                                  CKTrait tags,
+                                                  string? text,
+                                                  Exception? ex,
+                                                  [CallerLineNumber] int lineNumber = 0,
+                                                  [CallerFilePath] string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( level, tags, out var finalTags )
                                                ? new ActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
@@ -188,7 +217,7 @@ namespace CK.Core
                                                   LogLevel level,
                                                   CKTrait tags,
                                                   [InterpolatedStringHandlerArgument( "monitor", "level", "tags" )] LogHandler.GroupLogWithTags text,
-                                                  Exception ex,
+                                                  Exception? ex,
                                                   [CallerLineNumber] int lineNumber = 0,
                                                   [CallerFilePath] string? fileName = null )
         {
