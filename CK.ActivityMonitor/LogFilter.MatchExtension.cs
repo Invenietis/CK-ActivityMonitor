@@ -92,7 +92,7 @@ namespace CK.Core
                         }
                     }
                 }
-                return m.ClearExpectations();
+                return m.SetSuccess();
             }
         }
 
@@ -104,7 +104,7 @@ namespace CK.Core
         /// <returns>True on success, false on error.</returns>
         public static bool TryMatchLogLevelFilter( this ref ROSpanCharMatcher m, out LogLevelFilter level )
             => m.Head.TryMatchLogLevelFilter( out level )
-                ? m.ClearExpectations()
+                ? m.SetSuccess()
                 : m.AddExpectation( "LogLevelFilter" );
 
         /// <summary>
