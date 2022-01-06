@@ -11,7 +11,7 @@ namespace CK.Core
         /// <summary>
         /// Offers dependent token creation and launching.
         /// </summary>
-        public struct DependentSender
+        public readonly struct DependentSender
         {
             readonly IActivityMonitor _monitor;
             readonly string? _fileName;
@@ -30,12 +30,13 @@ namespace CK.Core
             /// </para>
             /// <para>
             /// By default (when <paramref name="delayedLaunch"/> is false), a line with <see cref="ActivityMonitor.Tags.CreateDependentActivity"/> is 
-            /// logged that describes the creation of the token.
+            /// logged that describes the creation of the token. If <paramref name="delayedLaunch"/> is true, the actual launch of the dependent
+            /// activity must be signaled thanks to <see cref="Launch(ActivityMonitor.DependentToken)"/> (otherwise there will 
+            /// be no way to bind the two activities). 
             /// </para>
             /// <para>
-            /// If <paramref name="delayedLaunch"/> is true, the actual launch of the dependent activity must be 
-            /// signaled thanks to <see cref="Launch(ActivityMonitor.DependentToken)"/> (otherwise there will 
-            /// be no way to bind the two activities). 
+            /// The extension method <see cref="ActivityMonitorExtension.StartDependentActivity(IActivityMonitor, ActivityMonitor.DependentToken, string?, int)">StartDependentActivity( token )</see>
+            /// must be used on the target monitor to signal the activity.
             /// </para>
             /// </summary>
             /// <param name="delayedLaunch">True to use <see cref="Launch(ActivityMonitor.DependentToken)"/> later to indicate the actual launch of the dependent activity.</param>
@@ -63,10 +64,10 @@ namespace CK.Core
             /// be no way to bind the two activities). 
             /// </para>
             /// </summary>
-            /// <param name="dependentTopic">Topic for the dependent activity. Use null to not change the dependent monitor's topic.</param>
+            /// <param name="dependentTopic">Topic for the dependent activity. Use null to not change the target monitor's topic.</param>
             /// <param name="delayedLaunch">True to use <see cref="Launch(ActivityMonitor.DependentToken)"/> later to indicate the actual launch of the dependent activity.</param>
             /// <returns>A dependent token.</returns>
-            public ActivityMonitor.DependentToken CreateTokenWithTopic( string dependentTopic, bool delayedLaunch = false )
+            public ActivityMonitor.DependentToken CreateTokenWithTopic( string? dependentTopic, bool delayedLaunch = false )
             {
                 var t = ActivityMonitor.DependentToken.CreateWithDependentTopic( _monitor, delayedLaunch, dependentTopic, out string msg );
                 if( delayedLaunch ) t.DelayedLaunchMessage = msg;
@@ -146,8 +147,8 @@ namespace CK.Core
         }
         
         /// <summary>
-        /// Starts a dependent activity. This sets the <see cref="ActivityMonitor.DependentToken.Topic"/> if it is not null and opens a group
-        /// tagged with <see cref="ActivityMonitor.Tags.StartDependentActivity"/> with a message that can be parsed back thanks to <see cref="ActivityMonitor.DependentToken.TryParseStartMessage"/>.
+        /// Starts a dependent activity. This temporarily sets the <see cref="ActivityMonitor.DependentToken.Topic"/> if it is not null and opens a group
+        /// tagged with <see cref="ActivityMonitor.Tags.StartDependentActivity"/> and a message that can be parsed back thanks to <see cref="ActivityMonitor.DependentToken.TryParseStartMessage"/>.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="token">Token that describes the origin of the activity.</param>

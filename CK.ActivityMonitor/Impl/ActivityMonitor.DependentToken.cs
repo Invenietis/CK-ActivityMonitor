@@ -219,7 +219,7 @@ namespace CK.Core
                 return t;
             }
 
-            internal static DependentToken CreateWithDependentTopic( IActivityMonitor m, bool launchActivity, string dependentTopic, out string msg )
+            internal static DependentToken CreateWithDependentTopic( IActivityMonitor m, bool launchActivity, string? dependentTopic, out string msg )
             {
                 msg = AppendTopic( launchActivity ? _prefixLaunchWithTopic : _prefixCreateWithTopic, dependentTopic );
                 return new DependentToken( m.UniqueId, m.NextLogTime(), dependentTopic );

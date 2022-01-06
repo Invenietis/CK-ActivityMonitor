@@ -56,7 +56,7 @@ namespace CK.Core
         /// Tags (from <see cref="ActivityMonitor.Tags"/> context) of the log line combined
         /// with the current <see cref="IActivityMonitor.AutoTags"/>.
         /// </summary>
-        public CKTrait Tags { get; private set; }
+        public CKTrait Tags { readonly get; private set; }
 
         /// <summary>
         /// Exception of the log.
@@ -86,7 +86,7 @@ namespace CK.Core
         /// <summary>
         /// Gets whether the <see cref="Text"/> is actually the <see cref="P:Exception"/> message.
         /// </summary>
-        public bool IsTextTheExceptionMessage => Exception != null && ReferenceEquals( Exception.Message, Text );
+        public readonly bool IsTextTheExceptionMessage => Exception != null && ReferenceEquals( Exception.Message, Text );
 
         /// <summary>
         /// Name of the source file that emitted the log.
@@ -103,7 +103,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the time of the log.
         /// </summary>
-        public DateTimeStamp LogTime => _logTime;
+        public readonly DateTimeStamp LogTime => _logTime;
 
         /// <summary>
         /// Log level. Can not be <see cref="LogLevel.None"/>.
@@ -120,24 +120,25 @@ namespace CK.Core
         /// <summary>
         /// Gets whether this data has been handled by a monitor (<see cref="LogTime"/>'s <see cref="DateTimeStamp.IsKnown"/> is false).
         /// </summary>
-        public bool IsLogged => _logTime.IsKnown;
+        public readonly bool IsLogged => _logTime.IsKnown;
 
         /// <summary>
         /// Gets whether this log data has been successfully filtered (otherwise it is an unfiltered log).
         /// </summary>
-        public bool IsFilteredLog => (Level & LogLevel.IsFiltered) != 0;
+        public readonly bool IsFilteredLog => (Level & LogLevel.IsFiltered) != 0;
 
         /// <summary>
         /// Explicitly sets the <see cref="LogTime"/>.
         /// This should obviously be used with care.
         /// </summary>
-        /// <param name="logTime"></param>
+        /// <param name="logTime">The time log.</param>
         public void SetExplicitLogTime( DateTimeStamp logTime ) => _logTime = logTime;
 
         /// <summary>
         /// Explicitly sets the <see cref="Tags"/>.
         /// This should obviously be used with care.
         /// </summary>
+        /// <param name="tags">The tags.</param>
         public void SetExplicitTags( CKTrait tags ) => Tags = tags;
 
 
