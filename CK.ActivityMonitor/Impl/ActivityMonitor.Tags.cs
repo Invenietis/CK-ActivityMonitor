@@ -33,7 +33,7 @@ namespace CK.Core
             /// <summary>
             /// Creation of dependent activities are marked with "dep:CreateActivity".
             /// </summary>
-            static public readonly CKTrait CreateDependentActivity;
+            static public readonly CKTrait CreateDependentToken;
 
             /// <summary>
             /// Start of dependent activities are marked with "dep:StartActivity".
@@ -88,7 +88,7 @@ namespace CK.Core
                 UserConclusion = Context.FindOrCreate( "c:User" );
                 GetTextConclusion = Context.FindOrCreate( "c:GetText" );
                 MonitorTopicChanged = Context.FindOrCreate( "MonitorTopicChanged" );
-                CreateDependentActivity = Context.FindOrCreate( "dep:CreateActivity" );
+                CreateDependentToken = Context.FindOrCreate( "dep:CreateActivity" );
                 StartDependentActivity = Context.FindOrCreate( "dep:StartActivity" );
                 MonitorEnd = Context.FindOrCreate( "MonitorEnd" );
                 InternalMonitor = Context.FindOrCreate( "m:Internal" );

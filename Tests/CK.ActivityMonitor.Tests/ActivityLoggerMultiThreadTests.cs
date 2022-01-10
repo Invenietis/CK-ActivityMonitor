@@ -112,10 +112,7 @@ namespace CK.Core.Tests.Monitoring
 
             try
             {
-                Task.Factory.StartNew( () =>
-                 {
-                     monitor.Info( "Test must work in task" );
-                 } );
+                _ = Task.Factory.StartNew( () => monitor.Info( "Test must work in task" ) );
 
                 client.WaitForOnUnfilteredLog();
 

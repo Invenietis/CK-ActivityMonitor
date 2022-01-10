@@ -21,7 +21,7 @@ namespace CK.PerfectEvent
     /// This cannot be implemented as a struct because the <see cref="operator+"/> and <see cref="operator-"/> must
     /// return the instance and a value type wouldn't correctly handle the null/single/array reference.
     /// </remarks>
-    public class SequentialEventHandlerAsyncSender<TEvent>
+    public sealed class SequentialEventHandlerAsyncSender<TEvent>
     {
         object? _handler;
 

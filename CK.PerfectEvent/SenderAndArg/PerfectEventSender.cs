@@ -17,7 +17,7 @@ namespace CK.PerfectEvent
     /// </summary>
     /// <typeparam name="TSender">The type of the event sender.</typeparam>
     /// <typeparam name="TArg">The type of the event argument.</typeparam>
-    public class PerfectEventSender<TSender, TArg>
+    public sealed class PerfectEventSender<TSender, TArg>
     {
         readonly SequentialEventHandlerSender<TSender, TArg> _seq;
         readonly SequentialEventHandlerAsyncSender<TSender, TArg> _seqAsync;

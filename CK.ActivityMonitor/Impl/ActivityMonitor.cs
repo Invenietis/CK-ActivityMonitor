@@ -56,7 +56,7 @@ namespace CK.Core
         /// <summary>
         /// The no-log text replaces any null or empty log text.
         /// </summary>
-        static public readonly string NoLogText = "[no-log]";
+        public const string NoLogText = "[no-log]";
 
         /// <summary>
         /// <see cref="IActivityMonitor.UniqueId"/> must be at least 4 characters long
