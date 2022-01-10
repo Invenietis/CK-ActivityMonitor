@@ -7,18 +7,18 @@ namespace CK.Core
     public partial class ActivityMonitor
     {
         /// <summary>
-        /// Describes the origin of a dependent activity: it is created by <see cref="ActivityMonitorExtension.DependentActivity">IActivityMonitor.DependentActivity</see> 
-        /// (extension methods).
+        /// Describes the origin of a dependent activity: it is created by <see cref="ActivityMonitorExtension.CreateDependentToken(IActivityMonitor, string, string?, string?, int)">IActivityMonitor.CreateDependentToken</see> 
+        /// (extension method).
         /// </summary>
         public sealed class DependentToken : ICKSimpleBinarySerializable
         {
             readonly string _originatorId;
             readonly DateTimeStamp _creationDate;
-            readonly string _message;
+            readonly string? _message;
             readonly string? _topic;
             readonly bool _isMonitorTopic;
 
-            internal DependentToken( string monitorId, DateTimeStamp logTime, string message, string? topic, bool isMonitorTopic )
+            internal DependentToken( string monitorId, DateTimeStamp logTime, string? message, string? topic, bool isMonitorTopic )
             {
                 _originatorId = monitorId;
                 _creationDate = logTime;
@@ -36,7 +36,7 @@ namespace CK.Core
                 r.ReadByte();
                 _originatorId = r.ReadString();
                 _creationDate = new DateTimeStamp( r );
-                _message = r.ReadString();
+                _message = r.ReadNullableString();
                 _topic = r.ReadNullableString();
                 _isMonitorTopic = r.ReadBoolean();
             }
@@ -50,7 +50,7 @@ namespace CK.Core
                 w.Write( (byte)0 );
                 w.Write( _originatorId );
                 _creationDate.Write( w );
-                w.Write( _message );
+                w.WriteNullableString( _message );
                 w.WriteNullableString( _topic );
                 w.Write( _isMonitorTopic );
             }
@@ -69,7 +69,7 @@ namespace CK.Core
             /// <summary>
             /// Gets the token creation message.
             /// </summary>
-            public string Message => _message;
+            public string? Message => _message;
 
             /// <summary>
             /// Gets the topic that must be set on the dependent activity.
@@ -135,12 +135,12 @@ namespace CK.Core
             /// Tries to parse a create message. 
             /// </summary>
             /// <param name="s">The string to parse.</param>
-            /// <param name="message">The token creation message.</param>
+            /// <param name="message">The optional token creation message.</param>
             /// <param name="topic">The topic to set on the target monitor.</param>
             /// <param name="isMonitorTopic">True the topic is the one of the originating monitor.</param>
             /// <returns>True on success, false otherwise.</returns>
             public static bool TryParseCreateMessage( ReadOnlySpan<char> s,
-                                                      [NotNullWhen( true )] out string? message,
+                                                      out string? message,
                                                       out string? topic,
                                                       out bool isMonitorTopic )
             {
@@ -154,7 +154,7 @@ namespace CK.Core
                     else if( (idx = s.IndexOf( " (With topic '", StringComparison.Ordinal )) < 0 ) return false;
                     Debug.Assert( " (With monitor's topic '".Length == 24 );
                     Debug.Assert( " (With topic '".Length == 14 );
-                    message = s.Slice( 0, idx ).ToString();
+                    if( idx > 0 ) message = s.Slice( 0, idx ).ToString();
                     idx += isMonitorTopic ? 24 : 14;
                     topic = s.Slice( idx, s.Length - idx - 3 ).ToString();
                     return true;
@@ -162,7 +162,8 @@ namespace CK.Core
                 if( s.EndsWith( " (Without topic.)", StringComparison.Ordinal ) )
                 {
                     Debug.Assert( " (Without topic.)".Length == 17 );
-                    message = s.Slice( 0, s.Length - 17 ).ToString();
+                    int len = s.Length - 17;
+                    if( len > 0 ) message = s.Slice( 0, len ).ToString();
                     return true;
                 }
                 return false;
