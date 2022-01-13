@@ -64,6 +64,11 @@ namespace CK.Core
         /// </summary>
         public const int MinMonitorUniqueIdLength = 4;
 
+        /// <summary>
+        /// The name of the fake monitor for external logs.
+        /// </summary>
+        public const string ExternalLogMonitorUniqueId = "§ext";
+
         static readonly FastUniqueIdGenerator _generatorId;
 
         static ActivityMonitor()
