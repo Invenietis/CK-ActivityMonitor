@@ -105,6 +105,10 @@ namespace CK.Core
             var g = Group == LogLevelFilter.None ? other.Group : Group;
             return new LogFilter( g, l );
         }
+        /// <summary>
+        /// Gets whether this filter is None or Debug for both line and group.
+        /// </summary>
+        public bool IsNoneOrDebug => (int)Line <= 1 && (int)Group <= 1;
 
         /// <summary>
         /// Returns a <see cref="LogFilter"/> with a given <see cref="LogLevelFilter"/> for the <see cref="Line"/>.
