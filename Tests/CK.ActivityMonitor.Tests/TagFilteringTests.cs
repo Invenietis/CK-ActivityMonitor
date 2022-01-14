@@ -44,7 +44,7 @@ namespace CK.Core.Tests.Monitoring
             var m = new ActivityMonitor( applyAutoConfigurations: false );
             var c = m.Output.RegisterClient( new StupidStringClient() );
 
-            int hole = Environment.TickCount;
+            int hole = Environment.TickCount % 10;
 
             ActivityMonitor.DefaultFilter.Should().Be( LogFilter.Trace );
 
@@ -80,7 +80,15 @@ namespace CK.Core.Tests.Monitoring
             m.Log( LogLevel.Debug, TestHelper.Tag2, "Log" );
             m.Log( LogLevel.Debug, TestHelper.Tag2, $"Log{hole}" );
 
-            m.OpenTrace( TestHelper.Tag3, "OTrace1" );
+            using( m.OpenTrace( TestHelper.Tag3, "OTrace1" ) )
+            {
+                m.MinimalFilter = LogFilter.Trace;
+                m.Trace( "TraceNoTag" );
+                m.Trace( $"TraceNoTag{hole}" );
+            }
+            m.MinimalFilter.Should().Be( LogFilter.Terse );
+            m.ActualFilter.Should().Be( LogFilter.Terse );
+
             m.Error( TestHelper.Tag3, "NOSHOW" );
             m.Error( TestHelper.Tag3, $"NOSHOW{hole}" );
 
@@ -96,7 +104,7 @@ namespace CK.Core.Tests.Monitoring
             m.OpenTrace( "NOSHOW" );
 
             c.Entries.Select( e => e.Data.Text ).Concatenate()
-                .Should().Be( $"Trace1, Trace1{hole}, Trace2, Trace{hole}, Log, Log{hole}, OTrace1, Combined, Combined{hole}, WarnInTerse" );
+                .Should().Be( $"Trace1, Trace1{hole}, Trace2, Trace{hole}, Log, Log{hole}, OTrace1, TraceNoTag, TraceNoTag{hole}, Combined, Combined{hole}, WarnInTerse" );
         }
 
         [Test]
