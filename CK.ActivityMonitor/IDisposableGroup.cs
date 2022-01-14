@@ -16,11 +16,11 @@ namespace CK.Core
 
         /// <summary>
         /// Sets a function that will be called on group closing to generate a conclusion.
-        /// When <see cref="IsRejectedGroup"/> is true, this function does nothing.
+        /// When <see cref="IsRejectedGroup"/> is true, this function is not called.
         /// </summary>
         /// <param name="getConclusionText">Function that generates a group conclusion.</param>
         /// <returns>A disposable object that can be used to close the group.</returns>
-        IDisposable ConcludeWith( Func<string> getConclusionText );
+        IDisposable ConcludeWith( Func<string?> getConclusionText );
 
     }
 }

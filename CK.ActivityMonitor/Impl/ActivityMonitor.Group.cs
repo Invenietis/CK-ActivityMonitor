@@ -26,9 +26,7 @@ namespace CK.Core
             /// </summary>
             public readonly int Index;
 
-
-            Func<string>? _getConclusion;
-
+            Func<string?>? _getConclusion;
 
             CKTrait _savedMonitorTags;
             Group? _unfilteredParent;
@@ -134,7 +132,7 @@ namespace CK.Core
                 private set => _savedMonitorTags = value;
             }
 
-            IDisposable IDisposableGroup.ConcludeWith( Func<string> getConclusionText )
+            IDisposable IDisposableGroup.ConcludeWith( Func<string?> getConclusionText )
             {
                 bool isNotReentrant = Monitor.ConcurrentOnlyCheck();
                 try
