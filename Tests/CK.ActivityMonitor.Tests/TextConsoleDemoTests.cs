@@ -35,10 +35,10 @@ namespace CK.Core.Tests.Monitoring
 
         static Exception ThrowLoaderException()
         {
-            Exception e = null;
+            Exception? e = null;
             try { Type.GetType( "A.Type, An.Unexisting.Assembly", true ); }
             catch( Exception ex ) { e = ex; }
-            return e;
+            return e!;
         }
         #endregion
 
@@ -103,7 +103,7 @@ This MUST be correctly indented!" ) )
                     m.CloseGroup( "Everything is in place." );
                 }
             }
-            m.SetTopic( null );
+            m.SetTopic( null! );
             using( m.OpenTrace( "A group with multiple conclusions." ) )
             {
                 using( m.OpenTrace( "A group with no conclusion." ) )

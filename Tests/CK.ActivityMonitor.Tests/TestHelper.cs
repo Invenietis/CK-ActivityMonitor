@@ -1,7 +1,10 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
 namespace CK.Core.Tests
 {
@@ -9,7 +12,7 @@ namespace CK.Core.Tests
     {
         static string _testFolder;
         static string _solutionFolder;
-        
+
         static IActivityMonitor _monitor;
         static ActivityMonitorConsoleClient _console;
 
@@ -28,7 +31,7 @@ namespace CK.Core.Tests
         public static CKTrait Tag6 = ActivityMonitor.Tags.Register( "Tag6" );
 
 
-        public static IActivityMonitor Monitor => _monitor; 
+        public static IActivityMonitor Monitor => _monitor;
 
         public static bool LogsToConsole
         {
@@ -48,7 +51,7 @@ namespace CK.Core.Tests
             get
             {
                 if( _testFolder == null ) InitializePaths();
-                return _testFolder;
+                return _testFolder!;
             }
         }
 
@@ -57,19 +60,19 @@ namespace CK.Core.Tests
             get
             {
                 if( _solutionFolder == null ) InitializePaths();
-                return _solutionFolder;
+                return _solutionFolder!;
             }
         }
 
         public static void CleanupTestFolder()
         {
-            CleanupFolder(TestFolder);
+            CleanupFolder( TestFolder );
         }
 
         public static void CleanupFolder( string folder )
         {
             int tryCount = 0;
-            for( ; ; )
+            for(; ; )
             {
                 try
                 {

@@ -13,7 +13,7 @@ namespace CK.Core.Tests.Monitoring
     {
         internal class BuggyActivityMonitorClient : ActivityMonitorClient
         {
-            private IActivityMonitor _monitor;
+            readonly IActivityMonitor _monitor;
             internal BuggyActivityMonitorClient( IActivityMonitor monitor )
             {
                 _monitor = monitor;
@@ -28,7 +28,7 @@ namespace CK.Core.Tests.Monitoring
 
         internal class NotBuggyActivityMonitorClient : ActivityMonitorClient
         {
-            private int _number;
+            readonly int _number;
             internal NotBuggyActivityMonitorClient( int number )
             {
                 _number = number;
@@ -42,7 +42,7 @@ namespace CK.Core.Tests.Monitoring
 
         internal class ActionActivityMonitorClient : ActivityMonitorClient
         {
-            Action _action;
+            readonly Action _action;
             internal ActionActivityMonitorClient( Action log )
             {
                 _action = log;
@@ -112,7 +112,7 @@ namespace CK.Core.Tests.Monitoring
 
             try
             {
-                _ = Task.Factory.StartNew( () => monitor.Info( "Test must work in task" ) );
+                _ = Task.Run( () => monitor.Info( "Test must work in task" ) );
 
                 client.WaitForOnUnfilteredLog();
 
@@ -191,7 +191,7 @@ namespace CK.Core.Tests.Monitoring
             object lockRunner = new object();
             int enteredThread = 0;
 
-            Action getLock = () =>
+            void GetLock()
             {
                 lock( lockTasks )
                 {
@@ -200,13 +200,13 @@ namespace CK.Core.Tests.Monitoring
                         Monitor.Pulse( lockRunner );
                     Monitor.Wait( lockTasks );
                 }
-            };
+            }
 
             Task[] tasks = new Task[]
             {
-                new Task( () => { getLock(); monitor.Info( "Test T1" ); } ),
-                new Task( () => { getLock(); monitor.Info( "Test T2", new Exception() ); } ),
-                new Task( () => { getLock(); monitor.Info( "Test T3" ); } )
+                new Task( () => { GetLock(); monitor.Info( "Test T1" ); } ),
+                new Task( () => { GetLock(); monitor.Info( "Test T2", new Exception() ); } ),
+                new Task( () => { GetLock(); monitor.Info( "Test T3" ); } )
             };
 
             try

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -17,7 +18,7 @@ namespace CK.Core
         /// Direct with no check constructor except that if <paramref name="text"/> is null or empty
         /// the text is set to the exception's message or to <see cref="ActivityMonitor.NoLogText"/>.
         /// </summary>
-        /// <param name="level"></param>
+        /// <param name="level">The log level that may be flagged with <see cref="LogLevel.IsFiltered"/> or not.</param>
         /// <param name="finalTags">The final tags (combines the monitors and the line's ones).</param>
         /// <param name="text">The text.</param>
         /// <param name="exception">Optional exception.</param>
@@ -43,6 +44,8 @@ namespace CK.Core
             FileName = fileName;
             LineNumber = lineNumber;
             _logTime = default;
+            Debug.Assert( (int)LogLevel.NumberOfBits == 7 );
+            level &= (LogLevel)0b1111111;
             Level = level;
             MaskedLevel = level & LogLevel.Mask;
         }
