@@ -1,9 +1,5 @@
 using System;
 using System.Diagnostics;
-
-//#if NET451 || NET46
-//using System.Runtime.Remoting.Lifetime;
-//#endif
 using CK.Core.Impl;
 
 namespace CK.Core

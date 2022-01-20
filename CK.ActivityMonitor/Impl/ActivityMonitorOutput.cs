@@ -57,7 +57,7 @@ namespace CK.Core.Impl
                 if( bound != null )
                 {
                     // Calling SetMonitor before adding it to the client first:
-                    // - Enables the monitor to initialize itself before being sollicited.
+                    // - Enables the monitor to initialize itself before being solicited.
                     // - If SetMonitor method calls InitializeTopicAndAutoTags, it does not
                     //   receive a "stupid" OnTopic/AutoTagsChanged.
                     // - Any exceptions like the ones created by CreateMultipleRegisterOnBoundClientException or

@@ -4,7 +4,7 @@ namespace CK.Core
     /// Defines filters for <see cref="LogLevel"/>.
     /// </summary>
     /// <remarks>
-    /// <see cref="LogFilter"/> capture two levels: one for lines and one for groups.
+    /// This enumeration applies to a line or a group level: the <see cref="LogFilter"/> struct capture two levels, one for lines and one for groups.
     /// </remarks>
     public enum LogLevelFilter : short
     {

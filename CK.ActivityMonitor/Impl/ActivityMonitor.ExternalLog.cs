@@ -60,14 +60,14 @@ namespace CK.Core
             /// this should be avoided as much as possible.
             /// </para>
             /// </summary>
-            /// <param name="level">The log level that may be flagged with <see cref="LogLevel.IsFiltered"/> or not.</param>
+            /// <param name="level">The log level that may be flagged with <see cref="LogLevel.IsFiltered"/> to skip any subsequent filtering.</param>
             /// <param name="text">The text of the log.</param>
             /// <param name="ex">Optional associated exception.</param>
             /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
             /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
             static public void UnfilteredLog( LogLevel level,
                                               string text,
-                                              Exception? ex,
+                                              Exception? ex = null,
                                               [CallerFilePath] string? fileName = null,
                                               [CallerLineNumber] int lineNumber = 0 )
             {
@@ -82,7 +82,7 @@ namespace CK.Core
             /// this should be avoided as much as possible.
             /// </para>
             /// </summary>
-            /// <param name="level">The log level that may be flagged with <see cref="LogLevel.IsFiltered"/> or not.</param>
+            /// <param name="level">The log level that may be flagged with <see cref="LogLevel.IsFiltered"/> to skip any subsequent filtering.</param>
             /// <param name="tags">Optional tags.</param>
             /// <param name="text">The text of the log.</param>
             /// <param name="ex">Optional associated exception.</param>
@@ -91,7 +91,7 @@ namespace CK.Core
             static public void UnfilteredLog( LogLevel level,
                                               CKTrait? tags,
                                               string text,
-                                              Exception? ex,
+                                              Exception? ex = null,
                                               [CallerFilePath] string? fileName = null,
                                               [CallerLineNumber] int lineNumber = 0 )
             {
