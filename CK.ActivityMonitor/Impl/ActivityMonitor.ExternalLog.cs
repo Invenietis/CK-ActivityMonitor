@@ -63,13 +63,13 @@ namespace CK.Core
             /// <param name="level">The log level that may be flagged with <see cref="LogLevel.IsFiltered"/> or not.</param>
             /// <param name="text">The text of the log.</param>
             /// <param name="ex">Optional associated exception.</param>
-            /// <param name="fileName">The source code file name from which the group is opened.</param>
-            /// <param name="lineNumber">The line number in the source from which the group is opened.</param>
+            /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
+            /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
             static public void UnfilteredLog( LogLevel level,
-                                    string text,
-                                    Exception? ex,
-                                    [CallerFilePath] string? fileName = null,
-                                    [CallerLineNumber] int lineNumber = 0 )
+                                              string text,
+                                              Exception? ex,
+                                              [CallerFilePath] string? fileName = null,
+                                              [CallerLineNumber] int lineNumber = 0 )
             {
                 var d = new ActivityMonitorLogData( level, Tags.Empty, text, ex, fileName, lineNumber );
                 SendData( ref d );
@@ -86,14 +86,14 @@ namespace CK.Core
             /// <param name="tags">Optional tags.</param>
             /// <param name="text">The text of the log.</param>
             /// <param name="ex">Optional associated exception.</param>
-            /// <param name="fileName">The source code file name from which the group is opened.</param>
-            /// <param name="lineNumber">The line number in the source from which the group is opened.</param>
+            /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
+            /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
             static public void UnfilteredLog( LogLevel level,
-                                    CKTrait? tags,
-                                    string text,
-                                    Exception? ex,
-                                    [CallerFilePath] string? fileName = null,
-                                    [CallerLineNumber] int lineNumber = 0 )
+                                              CKTrait? tags,
+                                              string text,
+                                              Exception? ex,
+                                              [CallerFilePath] string? fileName = null,
+                                              [CallerLineNumber] int lineNumber = 0 )
             {
                 var d = new ActivityMonitorLogData( level, tags ?? Tags.Empty, text, ex, fileName, lineNumber );
                 SendData( ref d );
