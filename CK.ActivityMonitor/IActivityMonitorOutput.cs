@@ -54,11 +54,6 @@ namespace CK.Core
         /// </summary>
         IReadOnlyList<IActivityMonitorClient> Clients { get; }
 
-        /// <summary>
-        /// Gets an entry point for other monitors: by registering <see cref="ActivityMonitorBridge"/> in other <see cref="IActivityMonitor.Output"/>
-        /// bound to this <see cref="ActivityMonitorBridgeTarget"/>, log streams can easily be merged.
-        /// </summary>
-        ActivityMonitorBridgeTarget BridgeTarget { get; }
     }
 
 }

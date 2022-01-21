@@ -12,7 +12,6 @@ namespace CK.Core.Impl
     {
         readonly List<IActivityMonitorClient> _clients;
         readonly IActivityMonitorImpl _monitor;
-        readonly ActivityMonitorBridgeTarget _externalInput;
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitorOutput"/> bound to a <see cref="IActivityMonitor"/>.
@@ -23,14 +22,7 @@ namespace CK.Core.Impl
             Throw.CheckNotNullArgument( monitor );
             _monitor = monitor;
             _clients = new List<IActivityMonitorClient>();
-            _externalInput = new ActivityMonitorBridgeTarget( monitor, true );
         }
-
-        /// <summary>
-        /// Gets an entry point for other monitors: by registering <see cref="ActivityMonitorBridge"/> in other <see cref="IActivityMonitor.Output"/>
-        /// bound to this <see cref="ActivityMonitorBridgeTarget"/>, log streams can easily be merged.
-        /// </summary>
-        public ActivityMonitorBridgeTarget BridgeTarget => _externalInput; 
 
         /// <summary>
         /// Registers an <see cref="IActivityMonitorClient"/> to the <see cref="Clients"/> list.

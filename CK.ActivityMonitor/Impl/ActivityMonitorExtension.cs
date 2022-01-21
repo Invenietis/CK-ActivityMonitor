@@ -147,69 +147,6 @@ namespace CK.Core
             return @this.UnfilteredOpenGroup( ref d );
         }
         
-        #region Bridge: FindBridgeTo, CreateBridgeTo and UnbridgeTo.
-
-        /// <summary>
-        /// Finds an existing bridge to another monitor.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>
-        /// <param name="targetBridge">The target bridge that receives our logs.</param>
-        /// <returns>The existing <see cref="ActivityMonitorBridge"/> or null if no such bridge exists.</returns>
-        public static ActivityMonitorBridge? FindBridgeTo( this IActivityMonitorOutput @this, ActivityMonitorBridgeTarget targetBridge )
-        {
-            Throw.CheckNotNullArgument( targetBridge );
-            return @this.Clients.OfType<ActivityMonitorBridge>().FirstOrDefault( b => b.BridgeTarget == targetBridge );
-        }
-
-        /// <summary>
-        /// Creates a bridge to another monitor's <see cref="ActivityMonitorBridgeTarget"/>. Only one bridge to the same monitor can exist at a time: if <see cref="FindBridgeTo"/> is not null, 
-        /// this throws a <see cref="InvalidOperationException"/>.
-        /// This bridge does not synchronize <see cref="IActivityMonitor.AutoTags"/> and <see cref="IActivityMonitor.Topic"/> (see <see cref="CreateStrongBridgeTo"/>). 
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>
-        /// <param name="targetBridge">The target bridge that will receive our logs.</param>
-        /// <returns>A <see cref="IDisposable"/> object that can be disposed to automatically call <see cref="UnbridgeTo"/>.</returns>
-        public static IDisposable CreateBridgeTo( this IActivityMonitorOutput @this, ActivityMonitorBridgeTarget targetBridge )
-        {
-            Throw.CheckNotNullArgument( targetBridge );
-            if( @this.Clients.OfType<ActivityMonitorBridge>().Any( b => b.BridgeTarget == targetBridge ) ) throw new InvalidOperationException();
-            var created = @this.RegisterClient( new ActivityMonitorBridge( targetBridge, false, false ) );
-            return Util.CreateDisposableAction( () => @this.UnregisterClient( created ) );
-        }
-
-        /// <summary>
-        /// Creates a strong bridge to another monitor's <see cref="ActivityMonitorBridgeTarget"/>. 
-        /// Only one bridge to the same monitor can exist at a time: if <see cref="FindBridgeTo"/> is not null, 
-        /// this throws a <see cref="InvalidOperationException"/>.
-        /// A strong bridge synchronizes <see cref="IActivityMonitor.AutoTags"/> and <see cref="IActivityMonitor.Topic"/> between the two monitors. When created, the 2 properties
-        /// of the local monitor are set to the ones of the target monitor. 
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>
-        /// <param name="targetBridge">The target bridge that will receive our logs.</param>
-        /// <returns>A <see cref="IDisposable"/> object that can be disposed to automatically call <see cref="UnbridgeTo"/>.</returns>
-        public static IDisposable CreateStrongBridgeTo( this IActivityMonitorOutput @this, ActivityMonitorBridgeTarget targetBridge )
-        {
-            Throw.CheckNotNullArgument( targetBridge );
-            if( @this.Clients.OfType<ActivityMonitorBridge>().Any( b => b.BridgeTarget == targetBridge ) ) throw new InvalidOperationException();
-            var created = @this.RegisterClient( new ActivityMonitorBridge( targetBridge, true, true ) );
-            return Util.CreateDisposableAction( () => @this.UnregisterClient( created ) );
-        }
-
-        /// <summary>
-        /// Removes an existing <see cref="ActivityMonitorBridge"/> to another monitor if it exists (silently ignores it if not found).
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>
-        /// <param name="targetBridge">The target bridge that will no more receive our logs.</param>
-        /// <returns>The unregistered <see cref="ActivityMonitorBridge"/> if found, null otherwise.</returns>
-        public static ActivityMonitorBridge? UnbridgeTo( this IActivityMonitorOutput @this, ActivityMonitorBridgeTarget targetBridge )
-        {
-            Throw.CheckNotNullArgument( targetBridge );
-            return UnregisterClient<ActivityMonitorBridge>( @this, b => b.BridgeTarget == targetBridge );
-        }
-
-        #endregion
-
-
         #region Catch & CatchCounter
 
         /// <summary>

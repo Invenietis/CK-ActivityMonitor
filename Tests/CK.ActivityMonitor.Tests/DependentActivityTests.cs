@@ -9,29 +9,6 @@ namespace CK.Core.Tests.Monitoring
     public class DependentActivityTests
     {
 
-        [Test]
-        public void DependentToken_API_use()
-        {
-            var monitor = new ActivityMonitor();
-            monitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget );
-
-            using( monitor.OpenTrace( "Create token and dependent monitor." ) )
-            {
-                // Creates the token.
-                var token = monitor.CreateDependentToken( "Processing the thing." );
-                // Creates a dependent monitor.
-                var dep = new ActivityMonitor();
-                dep.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget );
-                using( dep.StartDependentActivity( token ) )
-                {
-                    monitor.Trace( "Doing something..." );
-                    // ...
-                }
-                dep.MonitorEnd();
-            }
-        }
-
-
         [TestCase( "A topic!" )]
         [TestCase( "A 'topic' with quote." )]
         [TestCase( "A 'topic' \r\n with \"quote\" and new lines." )]
@@ -77,7 +54,6 @@ namespace CK.Core.Tests.Monitoring
             TestHelper.LogsToConsole = true;
 
             ActivityMonitor m = new ActivityMonitor( applyAutoConfigurations: false );
-            m.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget );
             StupidStringClient cCreate = m.Output.RegisterClient( new StupidStringClient() );
 
             // Generates a token with time collision.

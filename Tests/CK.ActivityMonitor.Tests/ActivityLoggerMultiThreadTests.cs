@@ -155,20 +155,17 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void simple_reentrancy_detection()
         {
-            IActivityMonitor monitor = new ActivityMonitor();
-            using( monitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
-            {
-                int clientCount = monitor.Output.Clients.Count;
-                monitor.Output.Clients.Should().HaveCount( clientCount );
+            IActivityMonitor monitor = new ActivityMonitor( false );
+            int clientCount = monitor.Output.Clients.Count;
+            monitor.Output.Clients.Should().HaveCount( clientCount );
 
-                BuggyActivityMonitorClient client = new BuggyActivityMonitorClient( monitor );
-                monitor.Output.RegisterClient( client );
-                monitor.Output.Clients.Should().HaveCount( clientCount + 1 );
-                monitor.Info( "Test" );
-                monitor.Output.Clients.Should().HaveCount( clientCount );
+            BuggyActivityMonitorClient client = new BuggyActivityMonitorClient( monitor );
+            monitor.Output.RegisterClient( client );
+            monitor.Output.Clients.Should().HaveCount( clientCount + 1 );
+            monitor.Info( "Test" );
+            monitor.Output.Clients.Should().HaveCount( clientCount );
 
-                monitor.Info( "Test" );
-            }
+            monitor.Info( "Test" );
         }
 
         [Test]
@@ -238,31 +235,27 @@ namespace CK.Core.Tests.Monitoring
             IActivityMonitor monitor = new ActivityMonitor();
             // Artificially slows down logging to ensure that concurrent access occurs.
             monitor.Output.RegisterClient( new ActionActivityMonitorClient( () => Thread.Sleep( 80 ) ) );
-            // Use a temporary bridge to redirect the logs to the TestHelper.Monitor.
-            //using( monitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
+            CheckConccurrentException( monitor, false );
+            // This activates the Concurrent Access stack trace capture.
+            monitor.AutoTags += ActivityMonitor.Tags.StackTrace;
+            CheckConccurrentException( monitor, true );
+            using( monitor.OpenInfo( $"No more Stack in this group." ) )
             {
-                CheckConccurrentException( monitor, false );
-                // This activates the Concurrent Access stack trace capture.
-                monitor.AutoTags += ActivityMonitor.Tags.StackTrace;
-                CheckConccurrentException( monitor, true );
-                using( monitor.OpenInfo( $"No more Stack in this group." ) )
-                {
-                    // This removes the tracking.
-                    monitor.AutoTags -= ActivityMonitor.Tags.StackTrace;
-                    CheckConccurrentException( monitor, false );
-                }
-                // AutoTags are preserved (just like MinimalFilter).
-
-                // To test if the StackTrace is enabled:
-                // 1 - The Contains method can be used on the Atomic traits...
-                monitor.AutoTags.AtomicTraits.Contains( ActivityMonitor.Tags.StackTrace ).Should().BeTrue();
-                // 2 - ...or the & (Intersect) operator can do the job.
-                ((monitor.AutoTags & ActivityMonitor.Tags.StackTrace) == ActivityMonitor.Tags.StackTrace).Should().BeTrue();
-
-                CheckConccurrentException( monitor, true );
-                monitor.AutoTags = monitor.AutoTags.Except( ActivityMonitor.Tags.StackTrace );
+                // This removes the tracking.
+                monitor.AutoTags -= ActivityMonitor.Tags.StackTrace;
                 CheckConccurrentException( monitor, false );
             }
+            // AutoTags are preserved (just like MinimalFilter).
+
+            // To test if the StackTrace is enabled:
+            // 1 - The Contains method can be used on the Atomic traits...
+            monitor.AutoTags.AtomicTraits.Contains( ActivityMonitor.Tags.StackTrace ).Should().BeTrue();
+            // 2 - ...or the & (Intersect) operator can do the job.
+            ((monitor.AutoTags & ActivityMonitor.Tags.StackTrace) == ActivityMonitor.Tags.StackTrace).Should().BeTrue();
+
+            CheckConccurrentException( monitor, true );
+            monitor.AutoTags = monitor.AutoTags.Except( ActivityMonitor.Tags.StackTrace );
+            CheckConccurrentException( monitor, false );
 
             static void CheckConccurrentException( IActivityMonitor m, bool mustHaveCallStack )
             {

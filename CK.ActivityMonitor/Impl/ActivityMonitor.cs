@@ -219,7 +219,6 @@ namespace CK.Core
             Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
             Debug.Assert( newTopic != null && _topic != newTopic );
             _topic = newTopic!;
-            _output.BridgeTarget.TargetTopicChanged( newTopic!, fileName, lineNumber );
             MonoParameterSafeCall( ( client, topic ) => client.OnTopicChanged( topic!, fileName, lineNumber ), newTopic );
             if( Interlocked.Exchange( ref _signalFlag, 0 ) == 1 ) DoResyncActualFilter();
             SendTopicLogLine( fileName, lineNumber );
@@ -272,7 +271,6 @@ namespace CK.Core
             Debug.Assert( newTags != null && _autoTags != newTags && newTags.Context == Tags.Context );
             _autoTags = newTags!;
             _trackStackTrace = _autoTags.AtomicTraits.Contains( Tags.StackTrace );
-            _output.BridgeTarget.TargetAutoTagsChanged( newTags! );
             MonoParameterSafeCall( ( client, tags ) => client.OnAutoTagsChanged( tags! ), newTags );
         }
 
@@ -369,7 +367,6 @@ namespace CK.Core
             if( newLevel != _actualFilter )
             {
                 _actualFilter = newLevel;
-                _output.BridgeTarget.TargetActualFilterChanged();
             }
         }
 
@@ -412,11 +409,6 @@ namespace CK.Core
         {
             _signalFlag = 1;
             Interlocked.MemoryBarrier();
-            // By signaling here the change to the bridge, we handle the case where the current
-            // active thread works on a bridged monitor: the bridged monitor's _actualFilterIsDirty
-            // is set to true and any interaction with its ActualFilter will trigger a resynchronization
-            // of this _actualFilter.
-            _output.BridgeTarget.TargetActualFilterChanged();
         }
 
         void IActivityMonitorImpl.OnClientMinimalFilterChanged( LogFilter oldLevel, LogFilter newLevel )

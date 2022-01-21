@@ -15,37 +15,34 @@ namespace CK.Core.Tests.Monitoring
             StringBuilder b = new StringBuilder();
             var client = new ActivityMonitorTextWriterClient( s => b.Append( s ), LogFilter.Undefined, '|' );
             m.Output.RegisterClient( client );
-            using( m.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
+            using( m.OpenInfo( "G1." ) )
             {
-                using( m.OpenInfo( "G1." ) )
+                m.Info( "I1." );
+                using( m.OpenTrace( "G2." ) )
                 {
-                    m.Info( "I1." );
-                    using( m.OpenTrace( "G2." ) )
+                    m.Error( "E1." );
+                    m.Warn( "W1." );
+                    m.CloseGroup( new[]
                     {
-                        m.Error( "E1." );
-                        m.Warn( "W1." );
-                        m.CloseGroup( new[]
-                        {
-                            new ActivityLogGroupConclusion("c1"),
-                            new ActivityLogGroupConclusion("c2"),
-                            new ActivityLogGroupConclusion("Multi"+Environment.NewLine+"Line"+Environment.NewLine),
-                            new ActivityLogGroupConclusion("Another"+Environment.NewLine+"Multi"+Environment.NewLine+"Line"+Environment.NewLine)
-                        } );
-                    }
+                        new ActivityLogGroupConclusion("c1"),
+                        new ActivityLogGroupConclusion("c2"),
+                        new ActivityLogGroupConclusion("Multi"+Environment.NewLine+"Line"+Environment.NewLine),
+                        new ActivityLogGroupConclusion("Another"+Environment.NewLine+"Multi"+Environment.NewLine+"Line"+Environment.NewLine)
+                    } );
                 }
-                using( m.OpenInfo( "G1-1." + Environment.NewLine + "G1-2." + Environment.NewLine + "G1-3" ) )
+            }
+            using( m.OpenInfo( "G1-1." + Environment.NewLine + "G1-2." + Environment.NewLine + "G1-3" ) )
+            {
+                using( m.OpenTrace( "G2-1" + Environment.NewLine + "G2-2" + Environment.NewLine + "G2-3" ) )
                 {
-                    using( m.OpenTrace( "G2-1" + Environment.NewLine + "G2-2" + Environment.NewLine + "G2-3" ) )
+                    m.Trace( "T1-1." + Environment.NewLine + "T1-2" + Environment.NewLine + "T1-3" );
+                    m.CloseGroup( new[]
                     {
-                        m.Trace( "T1-1." + Environment.NewLine + "T1-2" + Environment.NewLine + "T1-3" );
-                        m.CloseGroup( new[]
-                        {
-                            new ActivityLogGroupConclusion("c1"),
-                            new ActivityLogGroupConclusion("c2"),
-                            new ActivityLogGroupConclusion("Multi"+Environment.NewLine+"Line"+Environment.NewLine),
-                            new ActivityLogGroupConclusion("Another"+Environment.NewLine+"Multi"+Environment.NewLine+"Line"+Environment.NewLine)
-                        } );
-                    }
+                        new ActivityLogGroupConclusion("c1"),
+                        new ActivityLogGroupConclusion("c2"),
+                        new ActivityLogGroupConclusion("Multi"+Environment.NewLine+"Line"+Environment.NewLine),
+                        new ActivityLogGroupConclusion("Another"+Environment.NewLine+"Multi"+Environment.NewLine+"Line"+Environment.NewLine)
+                    } );
                 }
             }
             string result = b.ToString();
@@ -87,18 +84,15 @@ namespace CK.Core.Tests.Monitoring
             StringBuilder b = new StringBuilder();
             var client = new ActivityMonitorTextWriterClient( s => b.Append( s ), LogFilter.Undefined, '|' );
             m.Output.RegisterClient( client );
-            using( m.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
-            {
-                m.Debug( "One." );
-                m.Debug( "Two." );
-                m.Fatal( "Three." );
-                m.Error( "Four." );
+            m.Debug( "One." );
+            m.Debug( "Two." );
+            m.Fatal( "Three." );
+            m.Error( "Four." );
 
-                m.Debug( $"One1.{Environment.NewLine}One2.{Environment.NewLine}One3." );
-                m.Debug( $"Two1.{Environment.NewLine}Two2.{Environment.NewLine}Two3." );
-                m.Fatal( $"Three1.{Environment.NewLine}Three2.{Environment.NewLine}Three3." );
-                m.Error( $"Four1.{Environment.NewLine}Four2.{Environment.NewLine}Four3." );
-            }
+            m.Debug( $"One1.{Environment.NewLine}One2.{Environment.NewLine}One3." );
+            m.Debug( $"Two1.{Environment.NewLine}Two2.{Environment.NewLine}Two3." );
+            m.Fatal( $"Three1.{Environment.NewLine}Three2.{Environment.NewLine}Three3." );
+            m.Error( $"Four1.{Environment.NewLine}Four2.{Environment.NewLine}Four3." );
             string result = b.ToString();
             result.Trim().Should().Be( @"
  d [] One.
@@ -134,16 +128,13 @@ namespace CK.Core.Tests.Monitoring
             StringBuilder b = new StringBuilder();
             var client = new ActivityMonitorTextWriterClient( s => b.Append( s ), LogFilter.Undefined, '|' );
             m.Output.RegisterClient( client );
-            using( m.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
+            using( m.OpenInfo( Sql|Google, "One." ) )
             {
-                using( m.OpenInfo( Sql|Google, "One." ) )
+                using( m.OpenTrace( Perf, "Two." ) )
                 {
-                    using( m.OpenTrace( Perf, "Two." ) )
-                    {
-                        m.Debug( Perf, "Same tags appear." );
-                        m.Warn( Test | Google | Perf | Sql, "Three." );
-                        m.Debug( Test | Google | Perf | Sql, "Same tags appear." );
-                    }
+                    m.Debug( Perf, "Same tags appear." );
+                    m.Warn( Test | Google | Perf | Sql, "Three." );
+                    m.Debug( Test | Google | Perf | Sql, "Same tags appear." );
                 }
             }
             string result = b.ToString();
