@@ -99,7 +99,9 @@ This MUST be correctly indented!" ) )
                     m.Error( "An error.", _exceptionWithInnerLoader );
                     m.Error( "Same error occured (wrapped in CKException)", new CKException( CKExceptionData.CreateFrom( _exceptionWithInnerLoader ) ) );
                     m.Warn( "A warning." );
-                    m.Trace( "Something must be said." );
+                    m.Trace( "Something must be said (1/3)." );
+                    m.Trace( "Something must be said (2/3)." );
+                    m.Trace( "Something must be said (3/3)." );
                     m.CloseGroup( "Everything is in place." );
                 }
             }
