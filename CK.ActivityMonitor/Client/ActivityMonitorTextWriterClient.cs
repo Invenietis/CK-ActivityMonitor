@@ -25,7 +25,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="writer">Function that writes the content.</param>
         /// <param name="filter">Filter to apply.</param>
-        public ActivityMonitorTextWriterClient( Action<string> writer, LogFilter filter )
+        public ActivityMonitorTextWriterClient( Action<string> writer, LogClamper filter )
             : this( writer, filter, ' ' )
         {
         }
@@ -37,7 +37,7 @@ namespace CK.Core
         /// <param name="writer">Function that writes the content.</param>
         /// <param name="filter">Filter to apply.</param>
         /// <param name="depthInitial">The character to use in front of the "depth padding".</param>
-        public ActivityMonitorTextWriterClient( Action<string> writer, LogFilter filter, char depthInitial )
+        public ActivityMonitorTextWriterClient( Action<string> writer, LogClamper filter, char depthInitial )
             : this( filter )
         {
             Throw.CheckNotNullArgument( writer );
@@ -52,7 +52,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="writer">Function that writes the content.</param>
         public ActivityMonitorTextWriterClient( Action<string> writer )
-            : this( writer, LogFilter.Undefined )
+            : this( writer, LogClamper.Undefined )
         {
         }
 
@@ -63,7 +63,7 @@ namespace CK.Core
         /// The depth padding is using white spaces.
         /// </summary>
         /// <param name="filter">Filter to apply.</param>
-        public ActivityMonitorTextWriterClient( LogFilter filter )
+        public ActivityMonitorTextWriterClient( LogClamper filter )
             : base( filter )
         {
             _depthPadding = "   ";
@@ -79,7 +79,7 @@ namespace CK.Core
         /// The depth padding is using white spaces.
         /// </summary>
         public ActivityMonitorTextWriterClient()
-            : this( LogFilter.Undefined )
+            : this( LogClamper.Undefined )
         {
         }
 

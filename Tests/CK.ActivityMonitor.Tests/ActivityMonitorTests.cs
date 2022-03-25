@@ -744,7 +744,7 @@ namespace CK.Core.Tests.Monitoring
             IActivityMonitor d = new ActivityMonitor();
             d.MinimalFilter = LogFilter.Trace;
 
-            var c = new ActivityMonitorTextWriterClient( s => sb.Append( s ), LogFilter.Release );
+            var c = new ActivityMonitorTextWriterClient( s => sb.Append( s ), new LogClamper( LogFilter.Release, true ) );
             d.Output.RegisterClient( c );
 
             d.Trace( "NO SHOW" );

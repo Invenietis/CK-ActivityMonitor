@@ -12,7 +12,7 @@ namespace CK.Core
     public abstract class ActivityMonitorTextHelperClient : IActivityMonitorFilteredClient
     {
         int _curLevel;
-        LogFilter _filter;
+        LogClamper _filter;
         readonly Stack<bool> _openGroups;
         IActivityMonitorImpl? _source;
         static string[] _prefixGroupDepthCache;
@@ -48,7 +48,7 @@ namespace CK.Core
         /// <summary>
         /// Initialize a new <see cref="ActivityMonitorTextHelperClient"/> with a filter.
         /// </summary>
-        protected ActivityMonitorTextHelperClient( LogFilter filter )
+        protected ActivityMonitorTextHelperClient( LogClamper filter )
         {
             _curLevel = -1;
             _openGroups = new Stack<bool>();
@@ -56,10 +56,10 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Initialize a new <see cref="ActivityMonitorTextHelperClient"/>.
+        /// Initialize a new <see cref="ActivityMonitorTextHelperClient"/> without any filter.
         /// </summary>
         protected ActivityMonitorTextHelperClient()
-            : this( LogFilter.Undefined )
+            : this( LogClamper.Undefined )
         {
         }
 
@@ -169,37 +169,33 @@ namespace CK.Core
         {
         }
 
-        /// <summary>
-        /// Gets or sets the filter for this client.
-        /// Setting this to any level ensures that the bounded monitor will accept
-        /// at least this level (see <see cref="IActivityMonitor.ActualFilter"/>).
-        /// </summary>
-        public LogFilter MinimalFilter
+        /// <inheritdoc />
+        public LogClamper MinimalFilter
         {
             get { return _filter; }
             set
             {
-                LogFilter oldFilter = _filter;
+                LogFilter oldFilter = _filter.Filter;
                 _filter = value;
-                if( _source != null ) _source.OnClientMinimalFilterChanged( oldFilter, _filter );
+                if( _source != null ) _source.OnClientMinimalFilterChanged( oldFilter, _filter.Filter );
             }
         }
 
         bool CanOutputLine( LogLevel logLevel )
         {
             Debug.Assert( (logLevel & LogLevel.IsFiltered) == 0, "The level must already be masked." );
-            return _filter.Line == LogLevelFilter.None || (int)logLevel >= (int)_filter.Line;
+            return !_filter.Clamp || _filter.Filter.Line == LogLevelFilter.None || (int)logLevel >= (int)_filter.Filter.Line;
         }
 
         bool CanOutputGroup( LogLevel logLevel )
         {
             Debug.Assert( (logLevel & LogLevel.IsFiltered) == 0, "The level must already be masked." );
-            return _filter.Group == LogLevelFilter.None || (int)logLevel >= (int)_filter.Group;
+            return !_filter.Clamp || _filter.Filter.Group == LogLevelFilter.None || (int)logLevel >= (int)_filter.Filter.Group;
         }
 
         #region IActivityMonitorBoundClient Members
 
-        LogFilter IActivityMonitorBoundClient.MinimalFilter => _filter;
+        LogFilter IActivityMonitorBoundClient.MinimalFilter => _filter.Filter;
 
         void IActivityMonitorBoundClient.SetMonitor( Impl.IActivityMonitorImpl? source, bool forceBuggyRemove )
         {

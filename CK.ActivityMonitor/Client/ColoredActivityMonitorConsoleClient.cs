@@ -16,7 +16,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="background">Background color used to log.</param>
         public ColoredActivityMonitorConsoleClient( ConsoleColor background )
-            : this( LogFilter.Undefined, background )
+            : this( LogClamper.Undefined, background )
         {
         }
 
@@ -25,16 +25,16 @@ namespace CK.Core
         /// The background color is unchanged.
         /// </summary>
         public ColoredActivityMonitorConsoleClient()
-            : this( LogFilter.Undefined )
+            : this( LogClamper.Undefined )
         {
         }
 
         /// <summary>
         /// Creates a new instance of <see cref="ColoredActivityMonitorConsoleClient"/> with a filter initially set.
         /// </summary>
-        /// <param name="filter"><see cref="LogFilter"/> to set on this monitor</param>
+        /// <param name="filter"><see cref="LogClamper"/> to set on this client.</param>
         /// <param name="background">Background color used to log.</param>
-        public ColoredActivityMonitorConsoleClient( LogFilter filter, ConsoleColor background )
+        public ColoredActivityMonitorConsoleClient( LogClamper filter, ConsoleColor background )
             : base( filter )
         {
             _backgroundColor = background;
@@ -44,8 +44,8 @@ namespace CK.Core
         /// <summary>
         /// Creates a new instance of <see cref="ColoredActivityMonitorConsoleClient"/> with a filter initially set.
         /// </summary>
-        /// <param name="filter"><see cref="LogFilter"/> to set on this monitor</param>
-        public ColoredActivityMonitorConsoleClient( LogFilter filter )
+        /// <param name="filter"><see cref="LogClamper"/> to set on this client.</param>
+        public ColoredActivityMonitorConsoleClient( LogClamper filter )
             : this( filter, Console.BackgroundColor )
         {
         }

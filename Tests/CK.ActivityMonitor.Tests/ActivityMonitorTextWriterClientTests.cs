@@ -13,7 +13,7 @@ namespace CK.Core.Tests.Monitoring
             var m = new ActivityMonitor( false );
             m.MinimalFilter = LogFilter.Debug;
             StringBuilder b = new StringBuilder();
-            var client = new ActivityMonitorTextWriterClient( s => b.Append( s ), LogFilter.Undefined, '|' );
+            var client = new ActivityMonitorTextWriterClient( s => b.Append( s ), LogClamper.Undefined, '|' );
             m.Output.RegisterClient( client );
             using( m.OpenInfo( "G1." ) )
             {
@@ -82,7 +82,7 @@ namespace CK.Core.Tests.Monitoring
             var m = new ActivityMonitor( false );
             m.MinimalFilter = LogFilter.Debug;
             StringBuilder b = new StringBuilder();
-            var client = new ActivityMonitorTextWriterClient( s => b.Append( s ), LogFilter.Undefined, '|' );
+            var client = new ActivityMonitorTextWriterClient( s => b.Append( s ), LogClamper.Undefined, '|' );
             m.Output.RegisterClient( client );
             m.Debug( "One." );
             m.Debug( "Two." );
@@ -126,7 +126,7 @@ namespace CK.Core.Tests.Monitoring
             var m = new ActivityMonitor( false );
             m.MinimalFilter = LogFilter.Debug;
             StringBuilder b = new StringBuilder();
-            var client = new ActivityMonitorTextWriterClient( s => b.Append( s ), LogFilter.Undefined, '|' );
+            var client = new ActivityMonitorTextWriterClient( s => b.Append( s ), LogClamper.Undefined, '|' );
             m.Output.RegisterClient( client );
             using( m.OpenInfo( Sql|Google, "One." ) )
             {
