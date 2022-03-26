@@ -6,7 +6,7 @@ namespace CK.Core
     /// <summary>
     /// Displays the activity to the console with colors.
     /// </summary>
-    public class ColoredActivityMonitorConsoleClient : ActivityMonitorTextWriterClient
+    public class ColoredActivityMonitorConsoleClient : ActivityMonitorTextWriterClient, IActivityMonitorInteractiveUserClient
     {
         LogLevel _currentLogLevel;
         ConsoleColor _backgroundColor;
@@ -73,23 +73,16 @@ namespace CK.Core
         /// <param name="logLevel">Current log level.</param>
         public static (ConsoleColor background, ConsoleColor foreground) DefaultColorTheme( ConsoleColor backgroundColor, LogLevel logLevel )
         {
-            switch( logLevel )
+            return logLevel switch
             {
-                case LogLevel.Fatal:
-                    return (ConsoleColor.DarkRed, ConsoleColor.Yellow);
-                case LogLevel.Error:
-                    return (backgroundColor, ConsoleColor.Red);
-                case LogLevel.Warn:
-                    return (backgroundColor, ConsoleColor.Yellow);
-                case LogLevel.Info:
-                    return (backgroundColor, ConsoleColor.Cyan);
-                case LogLevel.Trace:
-                    return (backgroundColor, ConsoleColor.Gray);
-                case LogLevel.Debug:
-                    return (backgroundColor, ConsoleColor.DarkGray);
-                default:
-                    return (ConsoleColor.Red, ConsoleColor.Green);//awful so people may think "something is not right"
-            }
+                LogLevel.Fatal => (ConsoleColor.DarkRed, ConsoleColor.Yellow),
+                LogLevel.Error => (backgroundColor, ConsoleColor.Red),
+                LogLevel.Warn => (backgroundColor, ConsoleColor.Yellow),
+                LogLevel.Info => (backgroundColor, ConsoleColor.Cyan),
+                LogLevel.Trace => (backgroundColor, ConsoleColor.Gray),
+                LogLevel.Debug => (backgroundColor, ConsoleColor.DarkGray),
+                _ => (ConsoleColor.Red, ConsoleColor.Green), //Awful so people may think "something is not right"
+            };
         }
 
         void WriteConsole( string s )

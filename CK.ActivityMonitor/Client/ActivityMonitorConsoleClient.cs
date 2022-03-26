@@ -5,7 +5,7 @@ namespace CK.Core
     /// <summary>
     /// Displays the activity to the console.
     /// </summary>
-    public sealed class ActivityMonitorConsoleClient : ActivityMonitorTextWriterClient
+    public sealed class ActivityMonitorConsoleClient : ActivityMonitorTextWriterClient, IActivityMonitorInteractiveUserClient
     {
         
         /// <summary>

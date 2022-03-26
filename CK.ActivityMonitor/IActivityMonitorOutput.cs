@@ -4,8 +4,7 @@ using System.Collections.Generic;
 namespace CK.Core
 {
     /// <summary>
-    /// Offers <see cref="IActivityMonitorClient"/> registration/unregistration and exposes a <see cref="BridgeTarget"/> 
-    /// (an <see cref="ActivityMonitorBridgeTarget"/>) that can be used to accept logs from other monitors.
+    /// Offers <see cref="IActivityMonitorClient"/> registration/unregistration.
     /// </summary>
     public interface IActivityMonitorOutput
     {

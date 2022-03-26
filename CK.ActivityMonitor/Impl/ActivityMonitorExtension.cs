@@ -262,6 +262,45 @@ namespace CK.Core
         #endregion
 
 
+        /// <summary>
+        /// Sets the <see cref="IActivityMonitorFilteredClient.MinimalFilter"/> to all clients
+        /// that are <see cref="IActivityMonitorInteractiveUserClient"/>.
+        /// </summary>
+        /// <param name="this">This monitor.</param>
+        /// <param name="filter">The filter (typically <see cref="LogClamper.Clamp"/> is true).</param>
+        public static void SetInteractiveUserFilter( this IActivityMonitor @this, LogClamper filter )
+        {
+            foreach( var c in @this.Output.Clients.OfType<IActivityMonitorInteractiveUserClient>() )
+            {
+                c.MinimalFilter = filter;
+            }
+        }
+
+        /// <summary>
+        /// Temporarily sets the <see cref="IActivityMonitorFilteredClient.MinimalFilter"/> to all clients
+        /// that are <see cref="IActivityMonitorInteractiveUserClient"/> until the returned disposable is disposed.
+        /// </summary>
+        /// <param name="this">This monitor.</param>
+        /// <param name="filter">The filter (typically <see cref="LogClamper.Clamp"/> is true).</param>
+        /// <returns>A disposable to restore the original filters.</returns>
+        public static IDisposable TemporarilySetInteractiveUserFilter( this IActivityMonitor @this, LogClamper filter )
+        {
+            Action? restore = null;
+            foreach( var c in @this.Output.Clients.OfType<IActivityMonitorInteractiveUserClient>() )
+            {
+                var current = c.MinimalFilter;
+                if( current != filter )
+                {
+                    var prevRestore = restore;
+                    restore = prevRestore != null
+                                ? () => { prevRestore(); c.MinimalFilter = current; }
+                    : () => c.MinimalFilter = current;
+                    c.MinimalFilter = filter;
+                }
+            }
+            return restore == null ? Util.EmptyDisposable : Util.CreateDisposableAction( restore );
+        }
+
         #region IActivityMonitor.TemporarilySetMinimalFilter( ... )
 
         class LogFilterSentinel : IDisposable
@@ -286,9 +325,11 @@ namespace CK.Core
         /// <summary>
         /// Sets filter levels on this <see cref="IActivityMonitor"/>. The current <see cref="IActivityMonitor.MinimalFilter"/> will be automatically 
         /// restored when the returned <see cref="IDisposable"/> will be disposed.
+        /// <para>
         /// Note that even if closing a Group automatically restores the IActivityMonitor.MinimalFilter to its original value 
         /// (captured when the Group was opened), this may be useful to locally change the filter level without bothering to restore the 
         /// initial value (this is what OpenGroup/CloseGroup do with both the Filter and the AutoTags).
+        /// </para>
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="group">The new filter level for group.</param>
@@ -302,9 +343,11 @@ namespace CK.Core
         /// <summary>
         /// Sets a filter level on this <see cref="IActivityMonitor"/>. The current <see cref="IActivityMonitor.MinimalFilter"/> will be automatically 
         /// restored when the returned <see cref="IDisposable"/> will be disposed.
+        /// <para>
         /// Even if, when a Group is closed, the IActivityMonitor.Filter is automatically restored to its original value 
         /// (captured when the Group was opened), this may be useful to locally change the filter level without bothering to restore the 
         /// initial value (this is what OpenGroup/CloseGroup do with both the Filter and the AutoTags).
+        /// </para>
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="f">The new filter.</param>

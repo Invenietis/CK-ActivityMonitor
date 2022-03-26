@@ -104,6 +104,12 @@ namespace CK.Core
             return m.TryMatchLogClamper( out c ) && m.Head.IsEmpty;
         }
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
+        public static bool operator ==( LogClamper left, LogClamper right ) => left.Equals( right );
+
+        public static bool operator !=( LogClamper left, LogClamper right ) => !left.Equals( right );
+
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
 }

@@ -257,8 +257,7 @@ namespace CK.Core
                 }
                 else
                 {
-                    var typeLoadEx = ex as ReflectionTypeLoadException;
-                    if( typeLoadEx != null )
+                    if( ex is ReflectionTypeLoadException typeLoadEx )
                     {
                         w.AppendLine( localPrefix + " ┌──────────────────────────■ [Loader Exceptions] ■──────────────────────────" );
                         p = localPrefix + " | ";
@@ -281,8 +280,7 @@ namespace CK.Core
             // The InnerException of an aggregated exception is the same as the first of it InnerExceptionS.
             // (The InnerExceptionS are the contained/aggregated exceptions of the AggregatedException object.)
             // This is why, if we are on an AggregatedException we do not follow its InnerException.
-            var aggrex = ex as AggregateException;
-            if( aggrex != null && aggrex.InnerExceptions.Count > 0 )
+            if( ex is AggregateException aggrex && aggrex.InnerExceptions.Count > 0 )
             {
                 w.AppendLine( localPrefix + " ┌──────────────────────────■ [Aggregated Exceptions] ■──────────────────────────" );
                 p = localPrefix + " | ";
