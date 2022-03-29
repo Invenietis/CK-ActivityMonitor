@@ -101,7 +101,8 @@ namespace CK.Core
             static (CKTrait T, LogClamper F)[] _defaultFilters;
             static (CKTrait T, LogClamper F)[] _finalFilters;
             // We take no risk here: since final filters are updated by filters and defaultFilters
-            // we may (very unlikely) have a race condition if we use interlocked functions.
+            // we may (very unlikely) have a race condition if we use interlocked functions so we use a lock
+            // (that is also the empty array).
             static readonly (CKTrait T, LogClamper F)[] _finalFiltersLockAndEmptyArray;
 
             /// <summary>

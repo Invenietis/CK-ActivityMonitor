@@ -18,7 +18,7 @@ in the maintenance, exploitation and evolution phase of any serious project.
 The ActivityMonitor is more a **Storyteller**, than a regular Logger.
 
 We believe that more and more architectures, tools, programs will take this path because it's one of the mean to handle high complexity.
-MSBuild has this https://msbuildlog.com/, CI/CD interfaces starts to dislay toggled section around the execution steps, etc.
+MSBuild has this https://msbuildlog.com/, CI/CD interfaces starts to display toggled section around the execution steps, etc.
 
 ---
 
@@ -133,32 +133,9 @@ public class MyClass
 }
 ```
 Before this simple sender, a less intuitive set of extension methods exist: the "standard" ones that rely on a
-two-steps approach. Even if we maintain this package, we recommend to use the Simple one rather that the Standard one.
-
-> **CK.ActivityMonitor.StandardSender** [![Nuget](https://img.shields.io/nuget/vpre/CK.ActivityMonitor.StandardSender.svg)](https://www.nuget.org/packages/CK.ActivityMonitor.StandardSender/)
-> 
-> Contains the two-steps logging extension methods on `IActivityMonitor`:
-> ```csharp
-> using CK.Core;
-> public class MyClass
-> { 
->   public void MyMethod()
->   {
->       IActivityMonitor m = new ActivityMonitor();
-> 
->       using( m.OpenInfo().Send("My group") )
->       {
->           m.Debug().Send("My Debug log line");
->           m.Trace().Send("My Trace log line");
->           m.Info().Send("My Info log line");
->           m.Warn().Send("My Warn log line");
->           m.Error().Send("My Error log line");
->           m.Fatal().Send("My Fatal log line");
->       }
->   }
-> }
-> ```
-
+two-steps approach. This package is now totally deprecated since thanks to the C# 10 [interpolated handlers](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-10.0/improved-interpolated-strings#the-handler-pattern),
+the .NET 6 simple sender can now skip the evaluation of the interpolated message based on the log Tags.
+This is described here: [CK.ActivityMonitor/Impl/TagFiltering.md](CK.ActivityMonitor/Impl/TagFiltering.md).
  
 ### CK.PerfectEvent [![Nuget](https://img.shields.io/nuget/vpre/CK.PerfectEvent.svg)](https://www.nuget.org/packages/CK.PerfectEvent/)
 
