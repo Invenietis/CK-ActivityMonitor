@@ -135,7 +135,7 @@ public class MyClass
 Before this simple sender, a less intuitive set of extension methods exist: the "standard" ones that rely on a
 two-steps approach. This package is now totally deprecated since thanks to the C# 10 [interpolated handlers](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-10.0/improved-interpolated-strings#the-handler-pattern),
 the .NET 6 simple sender can now skip the evaluation of the interpolated message based on the log Tags.
-This is described here: [CK.ActivityMonitor/Impl/TagFiltering.md](CK.ActivityMonitor/Impl/TagFiltering.md).
+This is described here: [CK.ActivityMonitor/Impl/TagFiltering](CK.ActivityMonitor/Impl/TagFiltering.md).
  
 ### CK.PerfectEvent [![Nuget](https://img.shields.io/nuget/vpre/CK.PerfectEvent.svg)](https://www.nuget.org/packages/CK.PerfectEvent/)
 

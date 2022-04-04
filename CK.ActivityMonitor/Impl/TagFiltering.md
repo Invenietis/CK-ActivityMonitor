@@ -129,7 +129,7 @@ Static thread-safe methods are available to modify these 2 lists:
   /// <returns>True if an occurrence of the tag has been found and removed, false otherwise.</returns>
   public static bool RemoveDefaultFilter( CKTrait tag );
 ```
-
+### Default Tag Filters
 The `DefaultFilters` are typically registered by [static type initializers](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/static-constructors)
 of libraries that want, by default, that some of their logs should be filtered at a given level. Below an example
 of such use:
@@ -158,6 +158,8 @@ And a static constructor of a class (here an internal one) configures its defaul
       }
   }
 ``` 
+
+### Tag filtering: first subset wins
 
 This default configuration is easily overridden by any other filter added for "Device-Model" since order matters: the
 first tag in the final `Filters` array that combines the added filters and the default ones that appear in the logged
