@@ -4,11 +4,11 @@ This struct holds the data common to any log event (except the closing group tha
 tags, logTime, exception, file name and line number.
 
 Currently, it is a mutable big struct always passed by reference: it always lies on the stack except in the corner
-case of the (ActivityMonitor.InternalMonitor)[Impl/ActivityMonitor.InternalMonitor.cs] that handles buggy clients.
+case of the [ActivityMonitor.InternalMonitor](Impl/ActivityMonitor.InternalMonitor.cs) that handles buggy clients.
 
 ## Goal: Zero allocation logging 
 
-Groups (see (Impl/ActimvityMonitor.Groups.cs)[Impl/ActimvityMonitor.Groups.cs]}) are pooled by each monitor and reused: their life
+Groups (see [Impl/ActimvityMonitor.Groups.cs](Impl/ActivityMonitor.Group.cs)) are pooled by each monitor and reused: their life
 cycle is directly driven by the Open/CloseGroup of the monitor API. When groups 
 
 This struct passed by reference works great in terms of allocations as long as the data doesn't need to be queued for a deferred
@@ -32,7 +32,7 @@ Currently the only content is the `Text` that is a string (and a string requires
 Logging JSON payload is rather inefficient: the JSON has to be encoded in UTF-16 in the Text string to
 eventually be written/serialized in UTF-8 encoding.
 
-The efficient Utf8JsonWriter directly writes to a IBufferWriter that can be a (RecyclableMemoryStream)[https://github.com/microsoft/Microsoft.IO.RecyclableMemoryStream]
+The efficient Utf8JsonWriter directly writes to a IBufferWriter that can be a [RecyclableMemoryStream](https://github.com/microsoft/Microsoft.IO.RecyclableMemoryStream)
 (that uses a pool of reusable buffers).
 The idea is to support binary payloads thanks to RecyclableMemoryStream for:
 - computing once on demand the UTF-8 Text string representation and cache it when Text is the logged data.
