@@ -217,7 +217,9 @@ namespace CK.Core.Tests.Monitoring
                 lock( lockTasks )
                     Monitor.PulseAll( lockTasks );
 
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
                 Task.WaitAll( tasks );
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
             }
             catch( AggregateException ex )
             {

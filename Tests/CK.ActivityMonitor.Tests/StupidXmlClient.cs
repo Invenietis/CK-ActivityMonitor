@@ -22,7 +22,7 @@ namespace CK.Core.Tests.Monitoring
         {
             get
             {
-                string text = InnerWriter.ToString();
+                string? text = InnerWriter.ToString();
                 XElement doc = XElement.Parse( "<r>" + text + "</r>" );
                 return doc.Elements().ToList();
             }

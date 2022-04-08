@@ -73,7 +73,7 @@ namespace CK.Core.Tests.Monitoring
 |  - Another
 |    Multi
 |    Line
-".Trim().NormalizeEOL() );
+".Trim().ReplaceLineEndings() );
         }
 
         [Test]
@@ -111,7 +111,7 @@ namespace CK.Core.Tests.Monitoring
  E [] Four1.
    Four2.
    Four3.
-".Trim().NormalizeEOL() );
+".Trim().ReplaceLineEndings() );
         }
 
 
@@ -144,7 +144,7 @@ namespace CK.Core.Tests.Monitoring
 |  |   d [Perf] Same tags appear.
 |  |   W [Google|Perf|Sql|Test] Three.
 |  |   d [Google|Perf|Sql|Test] Same tags appear.
-".Trim().NormalizeEOL() );
+".Trim().ReplaceLineEndings() );
         }
 
     }

@@ -93,6 +93,7 @@ namespace CK.Core.Tests.Monitoring
             {
                 logs[0].Data.Text.Should().Be( ActivityMonitor.SetTopicPrefix + "Test Topic." );
                 ActivityMonitor.DependentToken.TryParseStartMessage( logs[1].Data.Text, out var t ).Should().BeTrue();
+                Debug.Assert( t != null );
                 t.OriginatorId.Should().Be( m.UniqueId );
                 t.CreationDate.Should().Be( cCreate.Entries[loopNeeded].Data.LogTime );
                 t.Message.Should().Be( "Test Message." );

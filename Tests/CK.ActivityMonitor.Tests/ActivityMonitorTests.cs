@@ -437,9 +437,6 @@ namespace CK.Core.Tests.Monitoring
                 p.DynamicPath.ToStringPath()
                    .Should().Contain( "!D" ).And.Contain( "!T" ).And.Contain( "!I" ).And.Contain( "!W" ).And.Contain( "!E" ).And.Contain( "!F" );
             }
-            var path = p.DynamicPath;
-            path = null;
-            path.ToStringPath().Should().BeEmpty();
         }
 
         [Test]
@@ -665,13 +662,13 @@ namespace CK.Core.Tests.Monitoring
                         c.Current.FatalCount.Should().Be( 0 );
                         c.Current.WarnCount.Should().Be( 0 );
 
-                        errorMessage = String.Join( "|", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion.ToStringGroupConclusion() ) );
+                        errorMessage = String.Join( "|", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion?.ToStringGroupConclusion() ) );
                         errorMessage.Should().Be( "G1-|G2-|G3-|An error...-", "Groups are not closed: no conclusion exist yet." );
                     }
-                    errorMessage = String.Join( "|", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion.ToStringGroupConclusion() ) );
+                    errorMessage = String.Join( "|", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion?.ToStringGroupConclusion() ) );
                     errorMessage.Should().Be( "G1-|G2-|G3-1 Error|An error...-", "G3 is closed: its conclusion is available." );
                 }
-                errorMessage = String.Join( "|", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion.ToStringGroupConclusion() ) );
+                errorMessage = String.Join( "|", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion?.ToStringGroupConclusion() ) );
                 errorMessage.Should().Be( "G1-|G2-1 Fatal error, 2 Errors|G3-1 Error|An error...-" );
                 monitor.Error( "E3" );
                 monitor.Fatal( "F2" );
@@ -682,8 +679,8 @@ namespace CK.Core.Tests.Monitoring
                 c.Root.ErrorCount.Should().Be( 3 );
                 c.Root.MaxLogLevel.Should().Be( LogLevel.Fatal );
             }
-            String.Join( ">", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion.ToStringGroupConclusion() ) ).Should().Be( "G1-2 Fatal errors, 3 Errors, 1 Warning>F2-" );
-            String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.Text + '-' + e.GroupConclusion.ToStringGroupConclusion() ) ).Should().Be( "G1-2 Fatal errors, 3 Errors, 1 Warning>W2-" );
+            String.Join( ">", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion?.ToStringGroupConclusion() ) ).Should().Be( "G1-2 Fatal errors, 3 Errors, 1 Warning>F2-" );
+            String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.Text + '-' + e.GroupConclusion?.ToStringGroupConclusion() ) ).Should().Be( "G1-2 Fatal errors, 3 Errors, 1 Warning>W2-" );
         }
 
         [Test]

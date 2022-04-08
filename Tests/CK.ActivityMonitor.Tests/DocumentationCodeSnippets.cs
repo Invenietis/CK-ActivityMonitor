@@ -89,7 +89,10 @@ namespace CK.Core.Tests.Monitoring
             }
         }
 
-        class Product { public bool IsAlive; }
+        class Product
+        {
+            public bool IsAlive = (Environment.TickCount & 1) == 0;
+        }
 
         void DemoHandler( IActivityMonitor m )
         {

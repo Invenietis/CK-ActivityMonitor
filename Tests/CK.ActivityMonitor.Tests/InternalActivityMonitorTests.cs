@@ -14,7 +14,7 @@ namespace CK.Core.Tests.Monitoring
     {
         class TalkingClient : ActivityMonitorClient, IActivityMonitorBoundClient
         {
-            IActivityMonitorImpl _source;
+            IActivityMonitorImpl? _source;
 
             public bool IsDead => false;
 
@@ -28,6 +28,7 @@ namespace CK.Core.Tests.Monitoring
 
             protected override void OnOpenGroup( IActivityLogGroup group )
             {
+                Debug.Assert( _source != null );
                 Thread.Sleep( SleepTime );
                 if( group.Data.Text == "TalkingClient MUST leave an opened Group on the InternalMonitor." )
                     _source.InternalMonitor.OpenInfo( "Talk: OnOpenGroup (Unclosed)" );
@@ -37,6 +38,7 @@ namespace CK.Core.Tests.Monitoring
 
             protected override void OnUnfilteredLog( ref ActivityMonitorLogData data )
             {
+                Debug.Assert( _source != null );
                 Thread.Sleep( SleepTime );
                 _source.InternalMonitor.Info( "Talk: OnUnfilteredLog" );
                 if( SleepTime != TimeSpan.Zero ) _source.InternalMonitor.Info( $"SleepTime: {SleepTime}." );
@@ -44,6 +46,7 @@ namespace CK.Core.Tests.Monitoring
 
             public void TalkToInternalMonitor( string msg )
             {
+                Debug.Assert( _source != null );
                 using( _source.ReentrancyAndConcurrencyLock() )
                 {
                     _source.Invoking( sut => sut.ReentrancyAndConcurrencyLock() )
@@ -56,6 +59,7 @@ namespace CK.Core.Tests.Monitoring
 
             public void LeaveAnUnclosedGroupInInternalMonitor( string msg )
             {
+                Debug.Assert( _source != null );
                 using( _source.ReentrancyAndConcurrencyLock() )
                 {
                     Thread.Sleep( SleepTime );
@@ -66,6 +70,7 @@ namespace CK.Core.Tests.Monitoring
 
             public void CannotTalkWithoutLock()
             {
+                Debug.Assert( _source != null );
                 _source.Invoking( sut => sut.InternalMonitor.Info( "Fail." ) )
                        .Should().Throw<InvalidOperationException>();
             }
