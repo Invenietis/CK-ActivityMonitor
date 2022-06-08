@@ -31,6 +31,7 @@ namespace CK.Core
                                        [CallerFilePath]string? fileName = null,
                                        [CallerLineNumber]int lineNumber = 0 )
         {
+            Throw.CheckArgument( finalTags != null && finalTags.Context == ActivityMonitor.Tags.Context );
             if( text == null || text.Length == 0 )
             {
                 text = exception == null || exception.Message.Length == 0

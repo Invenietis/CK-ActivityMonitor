@@ -184,13 +184,13 @@ namespace CK.Core
         bool CanOutputLine( LogLevel logLevel )
         {
             Debug.Assert( (logLevel & LogLevel.IsFiltered) == 0, "The level must already be masked." );
-            return !_filter.Clamp || _filter.Filter.Line == LogLevelFilter.None || (int)logLevel >= (int)_filter.Filter.Line;
+            return !_filter.Clamp || (int)logLevel >= (int)_filter.Filter.Line;
         }
 
         bool CanOutputGroup( LogLevel logLevel )
         {
             Debug.Assert( (logLevel & LogLevel.IsFiltered) == 0, "The level must already be masked." );
-            return !_filter.Clamp || _filter.Filter.Group == LogLevelFilter.None || (int)logLevel >= (int)_filter.Filter.Group;
+            return !_filter.Clamp || (int)logLevel >= (int)_filter.Filter.Group;
         }
 
         #region IActivityMonitorBoundClient Members

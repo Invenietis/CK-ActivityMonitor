@@ -11,8 +11,7 @@ namespace CK.Core
     public partial class ActivityMonitor
     {
         /// <summary>
-        /// Exposes static methods that immediately relay log data to <see cref="OnExternalLog"/>
-        /// event.
+        /// Exposes static methods that immediately relay log data to <see cref="OnExternalLog"/> event.
         /// <para>
         /// Nothing is done with these logs at this level: this is to be used by client code of this library, typically CK.Monitoring.
         /// </para>
@@ -23,8 +22,6 @@ namespace CK.Core
         /// </summary>
         public class ExternalLog
         {
-            static Handler[] _handlers = Array.Empty<Handler>();
-
             /// <summary>
             /// The handler signature of external logs.
             /// <para>
@@ -47,10 +44,151 @@ namespace CK.Core
             /// taken to unregister callbacks otherwise referenced objects will never be garbage collected.
             /// </para>
             /// </summary>
-            static public event Handler OnExternalLog
+            static public event Handler? OnExternalLog;
+
+            /// <summary>
+            /// Calls <see cref="Log(LogLevel,string,Exception,string,int)"/> for this level.
+            /// Log will be filtered only by <see cref="DefaultFilter"/>'s Line level filter.
+            /// </summary>
+            /// <param name="text">The text of the log.</param>
+            /// <param name="ex">Optional associated exception.</param>
+            /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
+            /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
+            [MethodImpl( MethodImplOptions.AggressiveInlining )]
+            static public void Debug( string text,
+                                      Exception? ex = null,
+                                      [CallerFilePath] string? fileName = null,
+                                      [CallerLineNumber] int lineNumber = 0 ) => Log( LogLevel.Debug, text, ex, fileName, lineNumber );
+            /// <inheritdoc cref="Debug(string, Exception?, string?, int)"/>
+            [MethodImpl( MethodImplOptions.AggressiveInlining )]
+            static public void Trace( string text,
+                                      Exception? ex = null,
+                                      [CallerFilePath] string? fileName = null,
+                                      [CallerLineNumber] int lineNumber = 0 ) => Log( LogLevel.Trace, text, ex, fileName, lineNumber );
+            /// <inheritdoc cref="Debug(string, Exception?, string?, int)"/>
+            [MethodImpl( MethodImplOptions.AggressiveInlining )]
+            static public void Info( string text,
+                                     Exception? ex = null,
+                                     [CallerFilePath] string? fileName = null,
+                                     [CallerLineNumber] int lineNumber = 0 ) => Log( LogLevel.Info, text, ex, fileName, lineNumber );
+            /// <inheritdoc cref="Debug(string, Exception?, string?, int)"/>
+            [MethodImpl( MethodImplOptions.AggressiveInlining )]
+            static public void Warn( string text,
+                                     Exception? ex = null,
+                                     [CallerFilePath] string? fileName = null,
+                                     [CallerLineNumber] int lineNumber = 0 ) => Log( LogLevel.Warn, text, ex, fileName, lineNumber );
+            /// <inheritdoc cref="Debug(string, Exception?, string?, int)"/>
+            [MethodImpl( MethodImplOptions.AggressiveInlining )]
+            static public void Error( string text,
+                                      Exception? ex = null,
+                                      [CallerFilePath] string? fileName = null,
+                                      [CallerLineNumber] int lineNumber = 0 ) => Log( LogLevel.Error, text, ex, fileName, lineNumber );
+            /// <inheritdoc cref="Debug(string, Exception?, string?, int)"/>
+            [MethodImpl( MethodImplOptions.AggressiveInlining )]
+            static public void Fatal( string text,
+                                      Exception? ex = null,
+                                      [CallerFilePath] string? fileName = null,
+                                      [CallerLineNumber] int lineNumber = 0 ) => Log( LogLevel.Fatal, text, ex, fileName, lineNumber );
+
+            /// <summary>
+            /// Calls <see cref="Log(LogLevel,CKTrait,string,Exception,string,int)"/> for this level.
+            /// Log will be filtered by <see cref="DefaultFilter"/>'s Line level filter and current <see cref="Tags.Filters"/>.
+            /// </summary>
+            /// <param name="tags">The log tags.</param>
+            /// <param name="text">The text of the log.</param>
+            /// <param name="ex">Optional associated exception.</param>
+            /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
+            /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
+            [MethodImpl( MethodImplOptions.AggressiveInlining )]
+            static public void Debug( CKTrait tags,
+                                      string text,
+                                      Exception? ex = null,
+                                      [CallerFilePath] string? fileName = null,
+                                      [CallerLineNumber] int lineNumber = 0 ) => Log( LogLevel.Debug, tags, text, ex, fileName, lineNumber );
+            /// <inheritdoc cref="Debug(CKTrait,string, Exception?, string?, int)"/>
+            [MethodImpl( MethodImplOptions.AggressiveInlining )]
+            static public void Trace( CKTrait tags,
+                                      string text,
+                                      Exception? ex = null,
+                                      [CallerFilePath] string? fileName = null,
+                                      [CallerLineNumber] int lineNumber = 0 ) => Log( LogLevel.Trace, tags, text, ex, fileName, lineNumber );
+            /// <inheritdoc cref="Debug(CKTrait,string, Exception?, string?, int)"/>
+            [MethodImpl( MethodImplOptions.AggressiveInlining )]
+            static public void Info( CKTrait tags,
+                                     string text,
+                                     Exception? ex = null,
+                                     [CallerFilePath] string? fileName = null,
+                                     [CallerLineNumber] int lineNumber = 0 ) => Log( LogLevel.Info, tags, text, ex, fileName, lineNumber );
+            /// <inheritdoc cref="Debug(CKTrait,string, Exception?, string?, int)"/>
+            [MethodImpl( MethodImplOptions.AggressiveInlining )]
+            static public void Warn( CKTrait tags,
+                                     string text,
+                                     Exception? ex = null,
+                                     [CallerFilePath] string? fileName = null,
+                                     [CallerLineNumber] int lineNumber = 0 ) => Log( LogLevel.Warn, tags, text, ex, fileName, lineNumber );
+            /// <inheritdoc cref="Debug(CKTrait,string, Exception?, string?, int)"/>
+            [MethodImpl( MethodImplOptions.AggressiveInlining )]
+            static public void Error( CKTrait tags,
+                                      string text,
+                                      Exception? ex = null,
+                                      [CallerFilePath] string? fileName = null,
+                                      [CallerLineNumber] int lineNumber = 0 ) => Log( LogLevel.Error, tags, text, ex, fileName, lineNumber );
+            /// <inheritdoc cref="Debug(CKTrait,string, Exception?, string?, int)"/>
+            [MethodImpl( MethodImplOptions.AggressiveInlining )]
+            static public void Fatal( CKTrait tags,
+                                      string text,
+                                      Exception? ex = null,
+                                      [CallerFilePath] string? fileName = null,
+                                      [CallerLineNumber] int lineNumber = 0 ) => Log( LogLevel.Fatal, tags, text, ex, fileName, lineNumber );
+
+            /// <summary>
+            /// Tests <see cref="DefaultFilter"/>.<see cref="LogFilter.Line">Line</see> against <paramref name="level"/>
+            /// and calls <see cref="UnfilteredLog(LogLevel, string, Exception?, string?, int)"/> if the log level is enough.
+            /// </summary>
+            /// <param name="level">The log level that will be filtered by the static DefaultFilter.</param>
+            /// <param name="text">The text of the log.</param>
+            /// <param name="ex">Optional associated exception.</param>
+            /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
+            /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
+            [MethodImpl( MethodImplOptions.AggressiveInlining )]
+            static public void Log( LogLevel level,
+                                    string text,
+                                    Exception? ex = null,
+                                    [CallerFilePath] string? fileName = null,
+                                    [CallerLineNumber] int lineNumber = 0 )
             {
-                add => Util.InterlockedAdd( ref _handlers, value );
-                remove => Util.InterlockedRemove( ref _handlers, value );
+                if( ((int)level & (int)LogLevel.Mask) >= (int)DefaultFilter.Line )
+                {
+                    UnfilteredLog( level | LogLevel.IsFiltered, text, ex, fileName, lineNumber );
+                }
+            }
+
+            /// <summary>
+            /// Filters log by <see cref="DefaultFilter"/>.<see cref="LogFilter.Line">Line</see> against <paramref name="level"/>
+            /// and current <see cref="Tags.Filters"/>, then calls <see cref="UnfilteredLog(LogLevel, string, Exception?, string?, int)"/>
+            /// if level and tags fit.
+            /// </summary>
+            /// <param name="level">The log level that will be filtered by the static DefaultFilter.</param>
+            /// <param name="tags">The log tags.</param>
+            /// <param name="text">The text of the log.</param>
+            /// <param name="ex">Optional associated exception.</param>
+            /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
+            /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            static public void Log( LogLevel level,
+                                    CKTrait tags,
+                                    string text,
+                                    Exception? ex = null,
+                                    [CallerFilePath] string? fileName = null,
+                                    [CallerLineNumber] int lineNumber = 0 )
+            {
+                Throw.CheckNotNullArgument( tags );
+                // Using empty tags here would be quite stupid: let a single code path be executed
+                // instead of "optimizing" a rare case.
+                if( Tags.ApplyForLine( tags, (int)DefaultFilter.Line, (int)level ) )
+                {
+                    UnfilteredLog( level | LogLevel.IsFiltered, tags, text, ex, fileName, lineNumber );
+                }
             }
 
             /// <summary>
@@ -72,7 +210,7 @@ namespace CK.Core
                                               [CallerLineNumber] int lineNumber = 0 )
             {
                 var d = new ActivityMonitorLogData( level, Tags.Empty, text, ex, fileName, lineNumber );
-                SendData( ref d );
+                OnExternalLog?.Invoke( ref d );
             }
 
             /// <summary>
@@ -83,20 +221,20 @@ namespace CK.Core
             /// </para>
             /// </summary>
             /// <param name="level">The log level that may be flagged with <see cref="LogLevel.IsFiltered"/> to skip any subsequent filtering.</param>
-            /// <param name="tags">Optional tags.</param>
+            /// <param name="tags">The log tags.</param>
             /// <param name="text">The text of the log.</param>
             /// <param name="ex">Optional associated exception.</param>
             /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
             /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
             static public void UnfilteredLog( LogLevel level,
-                                              CKTrait? tags,
+                                              CKTrait tags,
                                               string text,
                                               Exception? ex = null,
                                               [CallerFilePath] string? fileName = null,
                                               [CallerLineNumber] int lineNumber = 0 )
             {
-                var d = new ActivityMonitorLogData( level, tags ?? Tags.Empty, text, ex, fileName, lineNumber );
-                SendData( ref d );
+                var d = new ActivityMonitorLogData( level, tags, text, ex, fileName, lineNumber );
+                OnExternalLog?.Invoke( ref d );
             }
 
             /// <summary>
@@ -113,7 +251,7 @@ namespace CK.Core
             /// <param name="data">Data that describes the log. </param>
             public static void SendData( ref ActivityMonitorLogData data )
             {
-                foreach( var h in _handlers ) h.Invoke( ref data );               
+                OnExternalLog?.Invoke( ref data );               
             }
 
         }

@@ -88,6 +88,30 @@ and it can be changed by calling the `SetTopic( message )` method at any time.
 
 The topic is merely a log line with a special tag, sent when constructing the monitor or changing it.
 
+#### Emitting logs the `ILogger` (static, contextless) way
+
+When no `IActivityMonitor` exists in a given context, there are 2 possibilities:
+- Create a `var monitor = new ActivityMonitor();` and use it. There is nothing to dispose (but if your code can know where a monitor should not be 
+used anymore, calling `monitor.MonitorEnd()` is welcome).
+- If there is only one (or very few) things to log, then you can use the [`ActivityMonitor.ExternalLogger`](CK.ActivityMonitor/Impl/ActivityMonitor.ExternalLog.cs) 
+simple static API. Such log events are not tied to a monitor, their monitor identifier will be "§ext" and they are
+collectible by any external components: the CK.Monitoring.GrandOuput will catch and collect them.
+
+The `ExternalLogger` should be used in very specific cases, in low level zone of code that are not
+yet "monitored" such as callbacks from timers for instance:
+
+```c#
+  void OnTimer( object? _ )
+  {
+      ActivityMonitor.ExternalLog.Debug( IDeviceHost.DeviceModel, $"Timer fired for '{FullName}'." );
+      Volatile.Write( ref _timerFired, true );
+      _commandQueue.Writer.TryWrite( _commandAwaker );
+  }
+```
+
+Of course, there is no `OpenGroup` on this API since open/close would interleave without any clue of which Close
+relates to which Open.
+
 ### Consuming logs
 
 Logs received by the `IActivityMonitor` façade are routed to its clients (see [Clients](CK.ActivityMonitor/Client) for a basic console output sample).
