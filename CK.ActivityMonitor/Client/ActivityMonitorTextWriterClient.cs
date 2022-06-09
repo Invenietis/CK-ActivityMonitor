@@ -100,7 +100,7 @@ namespace CK.Core
             w.Append( _prefix )
                 .Append( data.Level.ToChar() )
                 .Append( " [" ).Append( data.Tags ).Append( "] " )
-                .AppendMultiLine( _prefix + "   ", data.Text, false )
+                .AppendMultiLine( _prefix + "  ", data.Text, false )
                 .AppendLine();
             if( data.Exception != null )
             {
@@ -117,7 +117,7 @@ namespace CK.Core
         {
             var w = _buffer.Clear();
             w.Append( _prefix ).Append( "  [" ).Append( data.Tags ).Append( "] " )
-             .AppendMultiLine( _prefix + "   ", data.Text, false )
+             .AppendMultiLine( _prefix + "  ", data.Text, false )
              .AppendLine();
             if( data.Exception != null )
             {
@@ -146,7 +146,7 @@ namespace CK.Core
 
             w.Append( start )
              .Append( '[' ).Append( g.Data.Tags ).Append( "] " )
-             .AppendMultiLine( _prefix + " ", g.Data.Text, false )
+             .AppendMultiLine( _prefix + "  ", g.Data.Text, false )
              .AppendLine();
             if( g.Data.Exception != null )
             {

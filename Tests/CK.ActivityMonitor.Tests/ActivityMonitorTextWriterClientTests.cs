@@ -48,31 +48,31 @@ namespace CK.Core.Tests.Monitoring
             string result = b.ToString();
             result.Trim().Should().Be( @"
 > i [] G1.
-|   i [] I1.
-|  > t [] G2.
-|  |   E [] E1.
-|  |   W [] W1.
-|  < c1 - c2
-|  - Multi
-|    Line
-|  - Another
-|    Multi
-|    Line
+| i [] I1.
+| > t [] G2.
+| | E [] E1.
+| | W [] W1.
+| < c1 - c2
+| - Multi
+|   Line
+| - Another
+|   Multi
+|   Line
 > i [] G1-1.
 |   G1-2.
 |   G1-3
-|  > t [] G2-1
-|  |   G2-2
-|  |   G2-3
-|  |   t [] T1-1.
-|  |     T1-2
-|  |     T1-3
-|  < c1 - c2
-|  - Multi
-|    Line
-|  - Another
-|    Multi
-|    Line
+| > t [] G2-1
+| |   G2-2
+| |   G2-3
+| | t [] T1-1.
+| |   T1-2
+| |   T1-3
+| < c1 - c2
+| - Multi
+|   Line
+| - Another
+|   Multi
+|   Line
 ".Trim().ReplaceLineEndings() );
         }
 
@@ -95,22 +95,22 @@ namespace CK.Core.Tests.Monitoring
             m.Error( $"Four1.{Environment.NewLine}Four2.{Environment.NewLine}Four3." );
             string result = b.ToString();
             result.Trim().Should().Be( @"
- d [] One.
-   [] Two.
- F [] Three.
- E [] Four.
- d [] One1.
-   One2.
-   One3.
-   [] Two1.
-   Two2.
-   Two3.
- F [] Three1.
-   Three2.
-   Three3.
- E [] Four1.
-   Four2.
-   Four3.
+d [] One.
+  [] Two.
+F [] Three.
+E [] Four.
+d [] One1.
+  One2.
+  One3.
+  [] Two1.
+  Two2.
+  Two3.
+F [] Three1.
+  Three2.
+  Three3.
+E [] Four1.
+  Four2.
+  Four3.
 ".Trim().ReplaceLineEndings() );
         }
 
@@ -140,10 +140,10 @@ namespace CK.Core.Tests.Monitoring
             string result = b.ToString();
             result.Trim().Should().Be( @"
 > i [Google|Sql] One.
-|  > t [Perf] Two.
-|  |   d [Perf] Same tags appear.
-|  |   W [Google|Perf|Sql|Test] Three.
-|  |   d [Google|Perf|Sql|Test] Same tags appear.
+| > t [Perf] Two.
+| | d [Perf] Same tags appear.
+| | W [Google|Perf|Sql|Test] Three.
+| | d [Google|Perf|Sql|Test] Same tags appear.
 ".Trim().ReplaceLineEndings() );
         }
 
