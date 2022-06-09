@@ -172,18 +172,17 @@ namespace CK.Core
                     }
                     else
                     {
-                        w.Append( " - " );
+                        w.Append( _prefix ).Append( "  - " );
                     }
-                    w.Append( c.Text );
+                    w.AppendLine( c.Text );
                 }
             }
-            if( one ) w.AppendLine();
             if( withMultiLines != null )
             {
                 foreach( var c in withMultiLines )
                 {
-                    w.Append( _prefix ).Append( "- " );
-                    w.AppendMultiLine( _prefix + "  ", c.Text, false );
+                    w.Append( _prefix ).Append( "  - " );
+                    w.AppendMultiLine( _prefix + "    ", c.Text, false );
                     w.AppendLine();
                 }
             }

@@ -52,12 +52,13 @@ namespace CK.Core.Tests.Monitoring
 | > t [] G2.
 | | E [] E1.
 | | W [] W1.
-| < c1 - c2
-| - Multi
-|   Line
-| - Another
-|   Multi
-|   Line
+| < c1
+|   - c2
+|   - Multi
+|     Line
+|   - Another
+|     Multi
+|     Line
 > i [] G1-1.
 |   G1-2.
 |   G1-3
@@ -67,12 +68,13 @@ namespace CK.Core.Tests.Monitoring
 | | t [] T1-1.
 | |   T1-2
 | |   T1-3
-| < c1 - c2
-| - Multi
-|   Line
-| - Another
-|   Multi
-|   Line
+| < c1
+|   - c2
+|   - Multi
+|     Line
+|   - Another
+|     Multi
+|     Line
 ".Trim().ReplaceLineEndings() );
         }
 
