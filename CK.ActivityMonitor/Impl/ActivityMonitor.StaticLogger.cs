@@ -11,19 +11,19 @@ namespace CK.Core
     public partial class ActivityMonitor
     {
         /// <summary>
-        /// Exposes static methods that immediately relay log data to <see cref="OnExternalLog"/> event.
+        /// Exposes static methods that immediately relay log data to <see cref="OnStaticLog"/> event.
         /// <para>
         /// Nothing is done with these logs at this level: this is to be used by client code of this library, typically CK.Monitoring.
         /// </para>
         /// <para>
         /// This is to be used rarely: only if there's really no way to bind the calling context to a real <see cref="IActivityMonitor"/>.
-        /// Handlers of the OnExternalLog event should use the <see cref="ExternalLogMonitorUniqueId"/> as the monitor identifier.
+        /// Handlers of the OnStaticLog event should use the <see cref="ExternalLogMonitorUniqueId"/> as the monitor identifier.
         /// </para>
         /// </summary>
-        public class ExternalLog
+        public class StaticLogger
         {
             /// <summary>
-            /// The handler signature of external logs.
+            /// The handler signature of static logs.
             /// <para>
             /// The "by ref" argument here is to avoid any copy of the data. The data should not be altered by calling one of
             /// the 2 mutating methods <see cref="ActivityMonitorLogData.SetExplicitLogTime(DateTimeStamp)"/> or <see cref="ActivityMonitorLogData.SetExplicitTags(CKTrait)"/>
@@ -44,7 +44,7 @@ namespace CK.Core
             /// taken to unregister callbacks otherwise referenced objects will never be garbage collected.
             /// </para>
             /// </summary>
-            static public event Handler? OnExternalLog;
+            static public event Handler? OnStaticLog;
 
             /// <summary>
             /// Calls <see cref="Log(LogLevel,string,Exception,string,int)"/> for this level.
@@ -192,7 +192,7 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Raises the <see cref="OnExternalLog"/> event with an explicit level and no tags. 
+            /// Raises the <see cref="OnStaticLog"/> event with an explicit level and no tags. 
             /// <para>
             /// This can be used to log in context-less situations (when no <see cref="IActivityMonitor"/> exists) but
             /// this should be avoided as much as possible.
@@ -210,11 +210,11 @@ namespace CK.Core
                                               [CallerLineNumber] int lineNumber = 0 )
             {
                 var d = new ActivityMonitorLogData( level, Tags.Empty, text, ex, fileName, lineNumber );
-                OnExternalLog?.Invoke( ref d );
+                OnStaticLog?.Invoke( ref d );
             }
 
             /// <summary>
-            /// Raises the <see cref="OnExternalLog"/> event with an explicit level and optional tags. 
+            /// Raises the <see cref="OnStaticLog"/> event with an explicit level and optional tags. 
             /// <para>
             /// This can be used to log in context-less situations (when no <see cref="IActivityMonitor"/> exists) but
             /// this should be avoided as much as possible.
@@ -234,11 +234,11 @@ namespace CK.Core
                                               [CallerLineNumber] int lineNumber = 0 )
             {
                 var d = new ActivityMonitorLogData( level, tags, text, ex, fileName, lineNumber );
-                OnExternalLog?.Invoke( ref d );
+                OnStaticLog?.Invoke( ref d );
             }
 
             /// <summary>
-            /// Raises the <see cref="OnExternalLog"/> event with the logged data. 
+            /// Raises the <see cref="OnStaticLog"/> event with the logged data. 
             /// <para>
             /// This can be used to log in context-less situations (when no <see cref="IActivityMonitor"/> exists) but
             /// this should be avoided as much as possible.
@@ -251,7 +251,7 @@ namespace CK.Core
             /// <param name="data">Data that describes the log. </param>
             public static void SendData( ref ActivityMonitorLogData data )
             {
-                OnExternalLog?.Invoke( ref data );               
+                OnStaticLog?.Invoke( ref data );               
             }
 
         }
