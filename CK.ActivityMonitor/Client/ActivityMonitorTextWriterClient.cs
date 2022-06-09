@@ -66,7 +66,7 @@ namespace CK.Core
         public ActivityMonitorTextWriterClient( LogClamper filter )
             : base( filter )
         {
-            _depthPadding = "   ";
+            _depthPadding = "  ";
             _buffer = new StringBuilder();
             _prefix = String.Empty;
             _writer = Util.ActionVoid<string>;
@@ -98,14 +98,13 @@ namespace CK.Core
         {
             var w = _buffer.Clear();
             w.Append( _prefix )
-                .Append( ' ' )
                 .Append( data.Level.ToChar() )
                 .Append( " [" ).Append( data.Tags ).Append( "] " )
                 .AppendMultiLine( _prefix + "   ", data.Text, false )
                 .AppendLine();
             if( data.Exception != null )
             {
-                DumpException( w, _prefix, !data.IsTextTheExceptionMessage, data.Exception );
+                DumpException( w, _prefix + ' ', !data.IsTextTheExceptionMessage, data.Exception );
             }
             Writer( w.ToString() );
         }
@@ -117,12 +116,12 @@ namespace CK.Core
         protected override void OnContinueOnSameLevel( ref ActivityMonitorLogData data )
         {
             var w = _buffer.Clear();
-            w.Append( _prefix ).Append( "   [" ).Append( data.Tags ).Append( "] " )
+            w.Append( _prefix ).Append( "  [" ).Append( data.Tags ).Append( "] " )
              .AppendMultiLine( _prefix + "   ", data.Text, false )
              .AppendLine();
             if( data.Exception != null )
             {
-                DumpException( w, _prefix, !data.IsTextTheExceptionMessage, data.Exception );
+                DumpException( w, _prefix + ' ', !data.IsTextTheExceptionMessage, data.Exception );
             }
             Writer( _buffer.ToString() );
         }
@@ -163,7 +162,8 @@ namespace CK.Core
         /// <param name="conclusions">Conclusions for the group.</param>
         protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
-            _prefix = _prefix.Remove( _prefix.Length - 3 );
+            Debug.Assert( _depthPadding.Length == 2 );
+            _prefix = _prefix.Remove( _prefix.Length - 2 );
             if( conclusions is null || conclusions.Count == 0 ) return;
             var w = _buffer.Clear();
             bool one = false;

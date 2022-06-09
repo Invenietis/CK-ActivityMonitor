@@ -64,7 +64,7 @@ namespace CK.Core
                 }
                 catch( Exception ex )
                 {
-                    throw new Exception( $"Provided RootLogPath '{value}' must be a writable folder.", ex );
+                    Throw.Exception( $"Provided RootLogPath '{value}' must be a writable folder.", ex );
                 }
             }
         }
