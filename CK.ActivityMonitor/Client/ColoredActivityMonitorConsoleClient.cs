@@ -15,27 +15,31 @@ namespace CK.Core
         /// Creates a new instance of <see cref="ColoredActivityMonitorConsoleClient"/> with the filter set to <see cref="LogFilter.Undefined"/>.
         /// </summary>
         /// <param name="background">Background color used to log.</param>
-        public ColoredActivityMonitorConsoleClient( ConsoleColor background )
-            : this( LogClamper.Undefined, background )
+        /// <param name="depthInitial">A character that starts the "depth padding".</param>
+        public ColoredActivityMonitorConsoleClient( ConsoleColor background, char depthInitial = '|' )
+            : this( LogClamper.Undefined, background, depthInitial )
         {
         }
 
         /// <summary>
         /// Creates a new instance of <see cref="ColoredActivityMonitorConsoleClient"/> with the filter set to <see cref="LogFilter.Undefined"/>.
-        /// The background color is unchanged.
+        /// The console's current background color is unchanged.
         /// </summary>
-        public ColoredActivityMonitorConsoleClient()
-            : this( LogClamper.Undefined )
+        /// <param name="depthInitial">A character that starts the "depth padding".</param>
+        public ColoredActivityMonitorConsoleClient( char depthInitial = '|' )
+            : this( LogClamper.Undefined, depthInitial )
         {
         }
 
         /// <summary>
-        /// Creates a new instance of <see cref="ColoredActivityMonitorConsoleClient"/> with a filter initially set.
+        /// Creates a new instance of <see cref="ColoredActivityMonitorConsoleClient"/> with a filter initially set
+        /// and a specific background color.
         /// </summary>
         /// <param name="filter"><see cref="LogClamper"/> to set on this client.</param>
         /// <param name="background">Background color used to log.</param>
-        public ColoredActivityMonitorConsoleClient( LogClamper filter, ConsoleColor background )
-            : base( filter )
+        /// <param name="depthInitial">A character that starts the "depth padding".</param>
+        public ColoredActivityMonitorConsoleClient( LogClamper filter, ConsoleColor background, char depthInitial = '|' )
+            : base( filter, depthInitial )
         {
             _backgroundColor = background;
             Writer = WriteConsole;
@@ -43,17 +47,19 @@ namespace CK.Core
 
         /// <summary>
         /// Creates a new instance of <see cref="ColoredActivityMonitorConsoleClient"/> with a filter initially set.
+        /// The console's current background color is unchanged.
         /// </summary>
         /// <param name="filter"><see cref="LogClamper"/> to set on this client.</param>
-        public ColoredActivityMonitorConsoleClient( LogClamper filter )
-            : this( filter, Console.BackgroundColor )
+        /// <param name="depthInitial">A character that starts the "depth padding".</param>
+        public ColoredActivityMonitorConsoleClient( LogClamper filter, char depthInitial = '|' )
+            : this( filter, Console.BackgroundColor, depthInitial )
         {
         }
+
         /// <summary>
         /// Gets or Sets the background color used to log to the console.
         /// </summary>
         public ConsoleColor BackgroundColor { get => _backgroundColor; set => _backgroundColor = value; }
-
 
         /// <summary>
         /// Sets the color of the logged text. 

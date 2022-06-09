@@ -20,39 +20,27 @@ namespace CK.Core
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitorTextWriterClient"/> bound to a 
-        /// function that must write a string, with a filter.
-        /// The depth padding is using white spaces.
-        /// </summary>
-        /// <param name="writer">Function that writes the content.</param>
-        /// <param name="filter">Filter to apply.</param>
-        public ActivityMonitorTextWriterClient( Action<string> writer, LogClamper filter )
-            : this( writer, filter, ' ' )
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new <see cref="ActivityMonitorTextWriterClient"/> bound to a 
-        /// function that must write a string, with a filter and a character that starts the "depth padding".
+        /// function that must write a string, with a filter and a character that starts
+        /// the "depth padding" that defaults to '|'.
         /// </summary>
         /// <param name="writer">Function that writes the content.</param>
         /// <param name="filter">Filter to apply.</param>
         /// <param name="depthInitial">The character to use in front of the "depth padding".</param>
-        public ActivityMonitorTextWriterClient( Action<string> writer, LogClamper filter, char depthInitial )
-            : this( filter )
+        public ActivityMonitorTextWriterClient( Action<string> writer, LogClamper filter, char depthInitial = '|' )
+            : this( filter, depthInitial )
         {
             Throw.CheckNotNullArgument( writer );
-            if( depthInitial != ' ' ) _depthPadding = depthInitial + _depthPadding.Substring( 1 );
             Writer = writer;
         }
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitorTextWriterClient"/> bound to a 
         /// function that must write a string.
-        /// The depth padding is using white spaces.
         /// </summary>
         /// <param name="writer">Function that writes the content.</param>
-        public ActivityMonitorTextWriterClient( Action<string> writer )
-            : this( writer, LogClamper.Undefined )
+        /// <param name="depthInitial">The character to use in front of the "depth padding".</param>
+        public ActivityMonitorTextWriterClient( Action<string> writer, char depthInitial = '|' )
+            : this( writer, LogClamper.Undefined, depthInitial )
         {
         }
 
@@ -60,13 +48,13 @@ namespace CK.Core
         /// Initialize a new <see cref="ActivityMonitorTextWriterClient"/> with a 
         /// <see cref="Writer"/> sets to <see cref="Util.ActionVoid{T}"/>.
         /// Unless explicitly initialized, this will not write anything anywhere.
-        /// The depth padding is using white spaces.
         /// </summary>
         /// <param name="filter">Filter to apply.</param>
-        public ActivityMonitorTextWriterClient( LogClamper filter )
+        /// <param name="depthInitial">The character to use in front of the "depth padding".</param>
+        public ActivityMonitorTextWriterClient( LogClamper filter, char depthInitial = '|' )
             : base( filter )
         {
-            _depthPadding = "  ";
+            _depthPadding = depthInitial != ' ' ? depthInitial + " " : "  ";
             _buffer = new StringBuilder();
             _prefix = String.Empty;
             _writer = Util.ActionVoid<string>;
@@ -76,10 +64,10 @@ namespace CK.Core
         /// Initialize a new <see cref="ActivityMonitorTextWriterClient"/> with a 
         /// <see cref="Writer"/> sets to <see cref="Util.ActionVoid{T}"/>.
         /// Unless explicitly initialized, this will not write anything anywhere.
-        /// The depth padding is using white spaces.
         /// </summary>
-        public ActivityMonitorTextWriterClient()
-            : this( LogClamper.Undefined )
+        /// <param name="depthInitial">The character to use in front of the "depth padding".</param>
+        public ActivityMonitorTextWriterClient( char depthInitial = '|' )
+            : this( LogClamper.Undefined, depthInitial )
         {
         }
 
