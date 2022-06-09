@@ -49,7 +49,7 @@ namespace CK.Core
         public static bool ShouldLogLine( this IActivityMonitor @this, LogLevel level, CKTrait? tags, out CKTrait finalTags )
         {
             finalTags = @this.AutoTags + tags;
-            return ActivityMonitor.Tags.ApplyForLine( finalTags, (int)@this.ActualFilter.Line, (int)level );
+            return ActivityMonitor.Tags.ApplyForLine( (int)level, finalTags, (int)@this.ActualFilter.Line );
         }
 
         /// <summary>

@@ -52,6 +52,7 @@ namespace CK.Core.Tests.Monitoring
 
             ActivityMonitor.DefaultFilter.Should().Be( LogFilter.Trace );
 
+            ActivityMonitor.StaticLogger.ShouldLog( LogLevel.Debug ).Should().BeFalse();
             ActivityMonitor.StaticLogger.Debug( "NOSHOW" );
             received.Should().BeEmpty();
 
@@ -60,6 +61,8 @@ namespace CK.Core.Tests.Monitoring
             received.Clear();
 
             ActivityMonitor.DefaultFilter = LogFilter.Debug;
+
+            ActivityMonitor.StaticLogger.ShouldLog( LogLevel.Debug ).Should().BeTrue();
 
             ActivityMonitor.StaticLogger.Debug( "Debug!" );
             ActivityMonitor.StaticLogger.Trace( "Trace!" );
@@ -72,6 +75,9 @@ namespace CK.Core.Tests.Monitoring
 
             ActivityMonitor.Tags.AddFilter( _myTag, new LogClamper( LogFilter.Release, true ) );
 
+            ActivityMonitor.StaticLogger.ShouldLog( LogLevel.Debug, _myTag ).Should().BeFalse();
+            ActivityMonitor.StaticLogger.ShouldLog( LogLevel.Warn, _myTag ).Should().BeFalse();
+
             ActivityMonitor.StaticLogger.Debug( _myTag, "Debug!" );
             ActivityMonitor.StaticLogger.Trace( _myTag, "Trace!" );
             ActivityMonitor.StaticLogger.Info( _myTag, "Info!" );
@@ -82,6 +88,8 @@ namespace CK.Core.Tests.Monitoring
             received.Clear();
 
             ActivityMonitor.Tags.RemoveFilter( _myTag );
+
+            ActivityMonitor.StaticLogger.ShouldLog( LogLevel.Debug, _myTag ).Should().BeTrue();
 
             ActivityMonitor.StaticLogger.Debug( _myTag, "Debug!" );
             ActivityMonitor.StaticLogger.Trace( _myTag, "Trace!" );

@@ -295,12 +295,13 @@ namespace CK.Core
             /// Finds a <see cref="LogClamper"/> to consider for a line that has tags and a current filter
             /// and updates the filter.
             /// </summary>
+            /// <param name="logLevel">The current log level.</param>
             /// <param name="tags">The log's tags.</param>
             /// <param name="filter">The current filter applied to the line.</param>
-            /// <param name="logLevel">The current log level.</param>
             /// <returns>Whether the log must be emitted or not.</returns>
-            internal static bool ApplyForLine( CKTrait tags, int filter, int logLevel )
+            internal static bool ApplyForLine( int logLevel, CKTrait tags, int filter )
             {
+                Debug.Assert( tags != null );
                 var filters = _finalFilters;
                 if( !tags.IsEmpty )
                 {
