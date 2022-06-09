@@ -142,11 +142,15 @@ namespace CK.Core
                                       [CallerLineNumber] int lineNumber = 0 ) => Log( LogLevel.Fatal, tags, text, ex, fileName, lineNumber );
 
             /// <summary>
-            /// Challenges the <paramref name="level"/> against <see cref="DefaultFilter"/>.<see cref="LogFilter.Line">Line</see>.
+            /// Challenges the <paramref name="level"/> against <paramref name="lineFilter"/> (by
+            /// default, <see cref="DefaultFilter"/>.<see cref="LogFilter.Line">Line</see> is used).
             /// </summary>
             /// <param name="level">The level to test.</param>
+            /// <param name="lineFilter">The filter to consider for the log. Defaults to DefaultFilter.Line.</param>
             /// <returns>Whether the log should be emitted or not.</returns>
-            public static bool ShouldLog( LogLevel level ) => ((int)level & (int)LogLevel.Mask) >= (int)DefaultFilter.Line;
+            public static bool ShouldLog( LogLevel level, LogLevelFilter lineFilter = LogLevelFilter.None ) => ((int)level & (int)LogLevel.Mask) >= (lineFilter == LogLevelFilter.None
+                                                                                                                                                        ? (int)DefaultFilter.Line
+                                                                                                                                                        : (int)lineFilter);
 
             /// <summary>
             /// Challenges the <see cref="Tags.Filters"/> and applicable <paramref name="lineFilter"/> (by
