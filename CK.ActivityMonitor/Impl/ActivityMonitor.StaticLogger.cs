@@ -190,8 +190,8 @@ namespace CK.Core
 
             /// <summary>
             /// Filters log by <see cref="DefaultFilter"/>.<see cref="LogFilter.Line">Line</see> against <paramref name="level"/>
-            /// and current <see cref="Tags.Filters"/>, then calls <see cref="UnfilteredLog(LogLevel, string, Exception?, string?, int)"/>
-            /// if level and tags fit.
+            /// and <paramref name="tags"/> against current <see cref="Tags.Filters"/>, then
+            /// calls <see cref="UnfilteredLog(LogLevel, string, Exception?, string?, int)"/> if level and tags fit.
             /// </summary>
             /// <param name="level">The log level that will be filtered by the static DefaultFilter.</param>
             /// <param name="tags">The log tags.</param>

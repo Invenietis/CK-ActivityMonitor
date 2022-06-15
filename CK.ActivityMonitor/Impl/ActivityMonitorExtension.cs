@@ -54,7 +54,7 @@ namespace CK.Core
 
         /// <summary>
         /// Challenges tag minimal filters, <see cref="IActivityMonitor.ActualFilter">this monitors' actual filter</see> and application 
-        /// domain's <see cref="ActivityMonitor.DefaultFilter"/> filters to test whether a log line should actually be emitted.
+        /// domain's <see cref="ActivityMonitor.DefaultFilter"/> filters to test whether a log group should actually be opened.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="level">Log level.</param>

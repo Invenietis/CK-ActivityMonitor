@@ -45,30 +45,58 @@ namespace CK.Core
 
         /// <summary>
         /// Starts a dependent activity. This temporarily sets the <see cref="ActivityMonitor.DependentToken.Topic"/> if it is not null and opens a group
-        /// tagged with <see cref="ActivityMonitor.Tags.StartDependentActivity"/> and a message that can be parsed back thanks to <see cref="ActivityMonitor.DependentToken.TryParseStartMessage"/>.
+        /// tagged with <see cref="ActivityMonitor.Tags.StartDependentActivity"/> and a message that can be parsed back thanks
+        /// to <see cref="ActivityMonitor.DependentToken.TryParseStartMessage"/>.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="token">Token that describes the origin of the activity.</param>
         /// <param name="temporarilySetTopic">False to ignore the <see cref="ActivityMonitor.DependentToken.Topic"/> even if it is not null.</param>
+        /// <param name="groupLevel">
+        /// Group level. Use <see cref="LogLevel.None"/> to not open a group.
+        /// <para>
+        /// Note that this group is filtered by <see cref="ActivityMonitor.Tags.Filters"/> by default.
+        /// </para>
+        /// </param>
+        /// <param name="alwaysOpenGroup">True to not apply <see cref="ActivityMonitor.Tags.Filters"/> to the group.</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
         /// <returns>A disposable object. It must be disposed at the end of the activity.</returns>
         static public IDisposable StartDependentActivity( this IActivityMonitor @this,
                                                           ActivityMonitor.DependentToken token,
                                                           bool temporarilySetTopic = true,
+                                                          LogLevel groupLevel = LogLevel.Info,
+                                                          bool alwaysOpenGroup = false,
                                                           [CallerFilePath] string? fileName = null,
                                                           [CallerLineNumber] int lineNumber = 0 )
         {
             Throw.CheckNotNullArgument( token );
             string msg = token.ToString( "Starting: " );
+            string? currentTopic = null;
             if( temporarilySetTopic && token.Topic != null )
             {
-                string currentTopic = @this.Topic;
+                currentTopic = @this.Topic;
                 @this.SetTopic( token.Topic, fileName, lineNumber );
-                var g = @this.UnfilteredOpenGroup( LogLevel.Info, ActivityMonitor.Tags.StartDependentActivity, msg, null, fileName, lineNumber );
-                return Util.CreateDisposableAction( () => { g.Dispose(); @this.SetTopic( currentTopic, fileName, lineNumber ); } );
             }
-            return @this.UnfilteredOpenGroup( LogLevel.Info, ActivityMonitor.Tags.StartDependentActivity, msg, null, fileName, lineNumber );
+            if( groupLevel != LogLevel.None )
+            {
+                CKTrait finalTags;
+                bool doOpen;
+                if( doOpen = alwaysOpenGroup ) finalTags = @this.AutoTags + ActivityMonitor.Tags.StartDependentActivity;
+                else doOpen = @this.ShouldLogGroup( groupLevel, ActivityMonitor.Tags.StartDependentActivity, out finalTags );
+                if( doOpen )
+                {
+                    var d = new ActivityMonitorLogData( groupLevel | LogLevel.IsFiltered, finalTags, msg, null, fileName, lineNumber );
+                    var g = @this.UnfilteredOpenGroup( ref d );
+                    if( currentTopic != null )
+                    {
+                        return Util.CreateDisposableAction( () => { g.Dispose(); @this.SetTopic( currentTopic, fileName, lineNumber ); } );
+                    }
+                    return g;
+                }
+            }
+            return currentTopic != null
+                    ? Util.CreateDisposableAction( () => @this.SetTopic( currentTopic, fileName, lineNumber ) )
+                    : Util.EmptyDisposable;
         }
 
     }
