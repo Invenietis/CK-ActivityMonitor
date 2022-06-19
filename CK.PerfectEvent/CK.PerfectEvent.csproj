@@ -1,15 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  
-  <Import Project="..\Common\Shared.props" />
-  
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <Description>Perfect events are .Net events that support 3 kind of callbacks: synchronous, sequential asynchronous and parallel asynchronous.</Description>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-  
   <ItemGroup>
     <ProjectReference Include="..\CK.ActivityMonitor\CK.ActivityMonitor.csproj" />
   </ItemGroup>
-  
 </Project>
