@@ -76,6 +76,12 @@ namespace CK.Core
             static public readonly CKTrait StackTrace;
 
             /// <summary>
+            /// Tag that describes a critical security info: any log tagged with this MUST NOT be sent to
+            /// any remote. Such logs must be displayed locally and collected only by local stores.
+            /// </summary>
+            static public readonly CKTrait SecurityCritical;
+
+            /// <summary>
             /// Simple shortcut to <see cref="CKTraitContext.FindOrCreate(string)"/>.
             /// </summary>
             /// <param name="tags">Atomic tag or multiple tags separated by pipes (|).</param>
