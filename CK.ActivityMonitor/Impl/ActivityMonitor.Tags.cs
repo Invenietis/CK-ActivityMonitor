@@ -98,6 +98,7 @@ namespace CK.Core
                 CreateDependentToken = Context.FindOrCreate( "dep:CreateActivity" );
                 StartDependentActivity = Context.FindOrCreate( "dep:StartActivity" );
                 MonitorEnd = Context.FindOrCreate( "MonitorEnd" );
+                SecurityCritical = Context.FindOrCreate( "SecurityCritical" );
                 InternalMonitor = Context.FindOrCreate( "m:Internal" );
                 StackTrace = Context.FindOrCreate( "StackTrace" );
                 _finalFiltersLockAndEmptyArray = _defaultFilters = _filters = _finalFilters = Array.Empty<(CKTrait, LogClamper)>();
