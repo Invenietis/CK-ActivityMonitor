@@ -9,13 +9,15 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+#pragma warning disable VSTHRD103 // Call async methods when in an async method
+
 namespace CK.Core.Tests.Monitoring
 {
     [TestFixture]
     public partial class AsyncLockTests
     {
         [Test]
-        public async Task SemaphoreSlim_deadlocks_when_reentering()
+        public async Task SemaphoreSlim_deadlocks_when_reentering_Async()
         {
             static async Task Deadlock()
             {
@@ -41,7 +43,7 @@ namespace CK.Core.Tests.Monitoring
         [TestCase( false, true, false )]
         [TestCase( false, false, true )]
         [TestCase( false, false, false )]
-        public async Task our_AsyncLock_handles_reentrancy( bool firstAsync, bool secondAsync, bool thirdAsync )
+        public async Task our_AsyncLock_handles_reentrancy_Async( bool firstAsync, bool secondAsync, bool thirdAsync )
         {
             var m = TestHelper.Monitor;
 
@@ -92,7 +94,7 @@ namespace CK.Core.Tests.Monitoring
 
         [TestCase( 3000, 3000 )]
         [TestCase( 35000, 25000 )]
-        public async Task simple_stress_test( int syncIncLoop, int asyncDecLoop )
+        public async Task simple_stress_test_Async( int syncIncLoop, int asyncDecLoop )
         {
             AsyncLock guard = new AsyncLock( LockRecursionPolicy.NoRecursion, "G" );
 
@@ -135,7 +137,7 @@ namespace CK.Core.Tests.Monitoring
 
 
         [Test]
-        public async Task our_AsyncLock_can_detect_reentrancy_and_throw_LockRecursionException()
+        public async Task our_AsyncLock_can_detect_reentrancy_and_throw_LockRecursionException_Async()
         {
             var m = TestHelper.Monitor;
 
@@ -154,7 +156,7 @@ namespace CK.Core.Tests.Monitoring
             using( l.Lock( m ) )
             {
                 l.IsEnteredBy( m ).Should().BeTrue();
-                l.Awaiting( x => x.LockAsync( m ) ).Should().Throw<LockRecursionException>();
+                await l.Awaiting( x => x.LockAsync( m ) ).Should().ThrowAsync<LockRecursionException>();
             }
 
             l.IsEnteredBy( m ).Should().BeFalse();
@@ -169,7 +171,7 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Test]
-        public async Task TryEnter_works_as_expected()
+        public async Task TryEnter_works_as_expected_Async()
         {
             var m = TestHelper.Monitor;
             var l = new AsyncLock( LockRecursionPolicy.SupportsRecursion );

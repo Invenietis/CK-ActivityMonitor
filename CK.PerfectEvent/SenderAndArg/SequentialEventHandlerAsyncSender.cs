@@ -26,7 +26,7 @@ namespace CK.PerfectEvent
     /// </remarks>
     /// <typeparam name="TSender">Type of the sender.</typeparam>
     /// <typeparam name="TArg">Type of the event argument.</typeparam>
-    public class SequentialEventHandlerAsyncSender<TSender, TArg>
+    public sealed class SequentialEventHandlerAsyncSender<TSender, TArg>
     {
         object? _handler;
 
@@ -42,7 +42,7 @@ namespace CK.PerfectEvent
         public SequentialEventHandlerAsyncSender<TSender, TArg> Add( SequentialEventHandlerAsync<TSender, TArg> handler )
         {
             if( handler == null ) throw new ArgumentNullException( nameof( handler ) );
-            Util.InterlockedSet( ref _handler, h =>
+            Util.InterlockedNullableSet( ref _handler, h =>
             {
                 if( h == null ) return handler;
                 if( h is SequentialEventHandlerAsync<TSender, TArg> a ) return new SequentialEventHandlerAsync<TSender, TArg>[] { a, handler };
@@ -61,7 +61,7 @@ namespace CK.PerfectEvent
         /// <param name="handler">The handler to remove. Cannot be null.</param>
         public SequentialEventHandlerAsyncSender<TSender, TArg> Remove( SequentialEventHandlerAsync<TSender, TArg> handler )
         {
-            Util.InterlockedSet( ref _handler, h =>
+            Util.InterlockedNullableSet( ref _handler, h =>
             {
                 if( h == null ) return null;
                 if( h is SequentialEventHandlerAsync<TSender, TArg> a ) return a == handler ? null : h;

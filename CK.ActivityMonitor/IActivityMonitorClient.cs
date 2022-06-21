@@ -13,7 +13,7 @@ namespace CK.Core
         /// are carried by groups.
         /// </summary>
         /// <param name="data">Log data. Never null.</param>
-        void OnUnfilteredLog( ActivityMonitorLogData data );
+        void OnUnfilteredLog( ref ActivityMonitorLogData data );
 
         /// <summary>
         /// Called for each <see cref="IActivityMonitor.UnfilteredOpenGroup"/>.

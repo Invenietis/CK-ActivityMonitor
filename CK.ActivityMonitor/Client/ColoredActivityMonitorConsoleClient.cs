@@ -6,7 +6,7 @@ namespace CK.Core
     /// <summary>
     /// Displays the activity to the console with colors.
     /// </summary>
-    public class ColoredActivityMonitorConsoleClient : ActivityMonitorTextWriterClient
+    public class ColoredActivityMonitorConsoleClient : ActivityMonitorTextWriterClient, IActivityMonitorInteractiveUserClient
     {
         LogLevel _currentLogLevel;
         ConsoleColor _backgroundColor;
@@ -15,27 +15,31 @@ namespace CK.Core
         /// Creates a new instance of <see cref="ColoredActivityMonitorConsoleClient"/> with the filter set to <see cref="LogFilter.Undefined"/>.
         /// </summary>
         /// <param name="background">Background color used to log.</param>
-        public ColoredActivityMonitorConsoleClient( ConsoleColor background )
-            : this( LogFilter.Undefined, background )
+        /// <param name="depthInitial">A character that starts the "depth padding".</param>
+        public ColoredActivityMonitorConsoleClient( ConsoleColor background, char depthInitial = '|' )
+            : this( LogClamper.Undefined, background, depthInitial )
         {
         }
 
         /// <summary>
         /// Creates a new instance of <see cref="ColoredActivityMonitorConsoleClient"/> with the filter set to <see cref="LogFilter.Undefined"/>.
-        /// The background color is unchanged.
+        /// The console's current background color is unchanged.
         /// </summary>
-        public ColoredActivityMonitorConsoleClient()
-            : this( LogFilter.Undefined )
+        /// <param name="depthInitial">A character that starts the "depth padding".</param>
+        public ColoredActivityMonitorConsoleClient( char depthInitial = '|' )
+            : this( LogClamper.Undefined, depthInitial )
         {
         }
 
         /// <summary>
-        /// Creates a new instance of <see cref="ColoredActivityMonitorConsoleClient"/> with a filter initially set.
+        /// Creates a new instance of <see cref="ColoredActivityMonitorConsoleClient"/> with a filter initially set
+        /// and a specific background color.
         /// </summary>
-        /// <param name="filter"><see cref="LogFilter"/> to set on this monitor</param>
+        /// <param name="filter"><see cref="LogClamper"/> to set on this client.</param>
         /// <param name="background">Background color used to log.</param>
-        public ColoredActivityMonitorConsoleClient( LogFilter filter, ConsoleColor background )
-            : base( filter )
+        /// <param name="depthInitial">A character that starts the "depth padding".</param>
+        public ColoredActivityMonitorConsoleClient( LogClamper filter, ConsoleColor background, char depthInitial = '|' )
+            : base( filter, depthInitial )
         {
             _backgroundColor = background;
             Writer = WriteConsole;
@@ -43,17 +47,19 @@ namespace CK.Core
 
         /// <summary>
         /// Creates a new instance of <see cref="ColoredActivityMonitorConsoleClient"/> with a filter initially set.
+        /// The console's current background color is unchanged.
         /// </summary>
-        /// <param name="filter"><see cref="LogFilter"/> to set on this monitor</param>
-        public ColoredActivityMonitorConsoleClient( LogFilter filter )
-            : this( filter, Console.BackgroundColor )
+        /// <param name="filter"><see cref="LogClamper"/> to set on this client.</param>
+        /// <param name="depthInitial">A character that starts the "depth padding".</param>
+        public ColoredActivityMonitorConsoleClient( LogClamper filter, char depthInitial = '|' )
+            : this( filter, Console.BackgroundColor, depthInitial )
         {
         }
+
         /// <summary>
         /// Gets or Sets the background color used to log to the console.
         /// </summary>
         public ConsoleColor BackgroundColor { get => _backgroundColor; set => _backgroundColor = value; }
-
 
         /// <summary>
         /// Sets the color of the logged text. 
@@ -73,23 +79,16 @@ namespace CK.Core
         /// <param name="logLevel">Current log level.</param>
         public static (ConsoleColor background, ConsoleColor foreground) DefaultColorTheme( ConsoleColor backgroundColor, LogLevel logLevel )
         {
-            switch( logLevel )
+            return logLevel switch
             {
-                case LogLevel.Fatal:
-                    return (ConsoleColor.DarkRed, ConsoleColor.Yellow);
-                case LogLevel.Error:
-                    return (backgroundColor, ConsoleColor.Red);
-                case LogLevel.Warn:
-                    return (backgroundColor, ConsoleColor.Yellow);
-                case LogLevel.Info:
-                    return (backgroundColor, ConsoleColor.Cyan);
-                case LogLevel.Trace:
-                    return (backgroundColor, ConsoleColor.Gray);
-                case LogLevel.Debug:
-                    return (backgroundColor, ConsoleColor.DarkGray);
-                default:
-                    return (ConsoleColor.Red, ConsoleColor.Green);//awful so people may think "something is not right"
-            }
+                LogLevel.Fatal => (ConsoleColor.DarkRed, ConsoleColor.Yellow),
+                LogLevel.Error => (backgroundColor, ConsoleColor.Red),
+                LogLevel.Warn => (backgroundColor, ConsoleColor.Yellow),
+                LogLevel.Info => (backgroundColor, ConsoleColor.Cyan),
+                LogLevel.Trace => (backgroundColor, ConsoleColor.Gray),
+                LogLevel.Debug => (backgroundColor, ConsoleColor.DarkGray),
+                _ => (ConsoleColor.Red, ConsoleColor.Green), //Awful so people may think "something is not right"
+            };
         }
 
         void WriteConsole( string s )
@@ -106,10 +105,10 @@ namespace CK.Core
         /// Writes all the information after having captured the log level.
         /// </summary>
         /// <param name="data">Log data.</param>
-        protected override void OnEnterLevel( ActivityMonitorLogData data )
+        protected override void OnEnterLevel( ref ActivityMonitorLogData data )
         {
             _currentLogLevel = data.MaskedLevel;
-            base.OnEnterLevel( data );
+            base.OnEnterLevel( ref data );
         }
 
         /// <summary>
@@ -118,7 +117,7 @@ namespace CK.Core
         /// <param name="g">Group information.</param>
         protected override void OnGroupOpen( IActivityLogGroup g )
         {
-            _currentLogLevel = g.MaskedGroupLevel;
+            _currentLogLevel = g.Data.MaskedLevel;
             base.OnGroupOpen( g );
         }
 
@@ -129,7 +128,7 @@ namespace CK.Core
         /// <param name="conclusions">Conclusions for the group.</param>
         protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
-            _currentLogLevel = g.MaskedGroupLevel;
+            _currentLogLevel = g.Data.MaskedLevel;
             base.OnGroupClose( g, conclusions );
         }
 

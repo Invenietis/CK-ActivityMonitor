@@ -1,26 +1,3 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Core\ActivityMonitor\Impl\ActivityMonitorOutput.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -35,7 +12,6 @@ namespace CK.Core.Impl
     {
         readonly List<IActivityMonitorClient> _clients;
         readonly IActivityMonitorImpl _monitor;
-        readonly ActivityMonitorBridgeTarget _externalInput;
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitorOutput"/> bound to a <see cref="IActivityMonitor"/>.
@@ -43,17 +19,10 @@ namespace CK.Core.Impl
         /// <param name="monitor"></param>
         public ActivityMonitorOutput( IActivityMonitorImpl monitor )
         {
-            if( monitor == null ) throw new ArgumentNullException();
+            Throw.CheckNotNullArgument( monitor );
             _monitor = monitor;
             _clients = new List<IActivityMonitorClient>();
-            _externalInput = new ActivityMonitorBridgeTarget( monitor, true );
         }
-
-        /// <summary>
-        /// Gets an entry point for other monitors: by registering <see cref="ActivityMonitorBridge"/> in other <see cref="IActivityMonitor.Output"/>
-        /// bound to this <see cref="ActivityMonitorBridgeTarget"/>, log streams can easily be merged.
-        /// </summary>
-        public ActivityMonitorBridgeTarget BridgeTarget => _externalInput; 
 
         /// <summary>
         /// Registers an <see cref="IActivityMonitorClient"/> to the <see cref="Clients"/> list.
@@ -64,7 +33,7 @@ namespace CK.Core.Impl
         /// <returns>The registered client.</returns>
         public IActivityMonitorClient RegisterClient( IActivityMonitorClient client, out bool added )
         {
-            if( client == null ) throw new ArgumentNullException( "client" );
+            Throw.CheckNotNullArgument( client );
             using( _monitor.ReentrancyAndConcurrencyLock() )
             {
                 added = false;
@@ -80,7 +49,7 @@ namespace CK.Core.Impl
                 if( bound != null )
                 {
                     // Calling SetMonitor before adding it to the client first:
-                    // - Enables the monitor to initialize itself before being sollicited.
+                    // - Enables the monitor to initialize itself before being solicited.
                     // - If SetMonitor method calls InitializeTopicAndAutoTags, it does not
                     //   receive a "stupid" OnTopic/AutoTagsChanged.
                     // - Any exceptions like the ones created by CreateMultipleRegisterOnBoundClientException or
@@ -118,8 +87,8 @@ namespace CK.Core.Impl
         /// </remarks>
         public T? RegisterUniqueClient<T>( Func<T, bool> tester, Func<T?> factory ) where T : IActivityMonitorClient
         {
-            if( tester == null ) throw new ArgumentNullException( "tester" );
-            if( factory == null ) throw new ArgumentNullException( "factory" );
+            Throw.CheckNotNullArgument( tester );
+            Throw.CheckNotNullArgument( factory );
             using( _monitor.ReentrancyAndConcurrencyLock() )
             {
                 T? e = _clients.OfType<T>().FirstOrDefault( tester );
@@ -144,20 +113,22 @@ namespace CK.Core.Impl
         /// <returns>The unregistered client or null if it has not been found.</returns>
         public IActivityMonitorClient? UnregisterClient( IActivityMonitorClient client )
         {
-            if( client == null ) throw new ArgumentNullException( "client" );
+            Throw.CheckNotNullArgument( client );
             using( _monitor.ReentrancyAndConcurrencyLock() )
             {
                 int idx;
                 if( (idx = _clients.IndexOf( client )) >= 0 )
                 {
+                    // Removes the client first: if an exception is raised here
+                    // (by a bound client), it bubbles to the caller and this is fine:
+                    // UnregisterClient is a direct API call.
+                    _clients.RemoveAt( idx );
                     LogFilter filter = LogFilter.Undefined;
-                    IActivityMonitorBoundClient? bound = client as IActivityMonitorBoundClient;
-                    if( bound != null )
+                    if( client is IActivityMonitorBoundClient bound )
                     {
                         filter = bound.MinimalFilter;
                         bound.SetMonitor( null, false );
                     }
-                    _clients.RemoveAt( idx );
                     if( filter != LogFilter.Undefined ) _monitor.OnClientMinimalFilterChanged( filter, LogFilter.Undefined );
                     return client;
                 }
@@ -170,11 +141,10 @@ namespace CK.Core.Impl
         /// </summary>
         public IReadOnlyList<IActivityMonitorClient> Clients => _clients;
 
-        internal void ForceRemoveCondemnedClient( IActivityMonitorClient client )
+        internal Exception? ForceRemoveCondemnedClient( IActivityMonitorClient client )
         {
             Debug.Assert( client != null && _clients.Contains( client ) );
-            IActivityMonitorBoundClient? bound = client as IActivityMonitorBoundClient;
-            if( bound != null )
+            if( client is IActivityMonitorBoundClient bound )
             {
                 try
                 {
@@ -182,10 +152,11 @@ namespace CK.Core.Impl
                 }
                 catch( Exception ex )
                 {
-                    ActivityMonitor.CriticalErrorCollector.Add( ex, $"While removing condemned client." );
+                    return ex;
                 }
             }
             _clients.Remove( client );
+            return null;
         }
 
     }

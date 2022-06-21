@@ -13,28 +13,28 @@ namespace CK.Core.Tests.Monitoring
     {
         internal class BuggyActivityMonitorClient : ActivityMonitorClient
         {
-            private IActivityMonitor _monitor;
+            readonly IActivityMonitor _monitor;
             internal BuggyActivityMonitorClient( IActivityMonitor monitor )
             {
                 _monitor = monitor;
             }
 
-            protected override void OnUnfilteredLog( ActivityMonitorLogData data )
+            protected override void OnUnfilteredLog( ref ActivityMonitorLogData data )
             {
-                _monitor.Info().Send( "I'm buggy: I'm logging back in my monitor!" );
-                base.OnUnfilteredLog( data );
+                _monitor.Info( "I'm buggy: I'm logging back in my monitor!" );
+                base.OnUnfilteredLog( ref data );
             }
         }
 
         internal class NotBuggyActivityMonitorClient : ActivityMonitorClient
         {
-            private int _number;
+            readonly int _number;
             internal NotBuggyActivityMonitorClient( int number )
             {
                 _number = number;
             }
 
-            protected override void OnUnfilteredLog( ActivityMonitorLogData data )
+            protected override void OnUnfilteredLog( ref ActivityMonitorLogData data )
             {
                 if( TestHelper.LogsToConsole ) Console.WriteLine( "NotBuggyActivityMonitorClient.OnUnfilteredLog n°{0}: {1}", _number, data.Text );
             }
@@ -42,13 +42,13 @@ namespace CK.Core.Tests.Monitoring
 
         internal class ActionActivityMonitorClient : ActivityMonitorClient
         {
-            Action _action;
+            readonly Action _action;
             internal ActionActivityMonitorClient( Action log )
             {
                 _action = log;
             }
 
-            protected override void OnUnfilteredLog( ActivityMonitorLogData data )
+            protected override void OnUnfilteredLog( ref ActivityMonitorLogData data )
             {
                 _action();
             }
@@ -62,7 +62,7 @@ namespace CK.Core.Tests.Monitoring
             readonly object _outLocker = new object();
             bool _outDone = false;
 
-            protected override void OnUnfilteredLog( ActivityMonitorLogData data )
+            protected override void OnUnfilteredLog( ref ActivityMonitorLogData data )
             {
                 lock( _locker )
                 {
@@ -112,15 +112,12 @@ namespace CK.Core.Tests.Monitoring
 
             try
             {
-                Task.Factory.StartNew( () =>
-                 {
-                     monitor.Info().Send( "Test must work in task" );
-                 } );
+                _ = Task.Run( () => monitor.Info( "Test must work in task" ) );
 
                 client.WaitForOnUnfilteredLog();
 
                 var expectedMessage = Impl.ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess.Replace( "{0}", "*" ).Replace( "{1}", "*" ).Replace( "{2}", "*" );
-                monitor.Invoking( sut => sut.Info().Send( "Test must fail" ) )
+                monitor.Invoking( sut => sut.Info( "Test must fail" ) )
                        .Should().Throw<CKException>()
                        .WithMessage( expectedMessage );
 
@@ -132,47 +129,43 @@ namespace CK.Core.Tests.Monitoring
             }
 
             Thread.Sleep( 50 );
-            monitor.Info().Send( "Test must work after task" );
+            monitor.Info( "Test must work after task" );
 
             ++clientCount;
             monitor.Output.RegisterClient( new ActionActivityMonitorClient( () =>
               {
-                  monitor.Invoking( sut => sut.Info().Send( "Test must fail reentrant client" ) )
+                  monitor.Invoking( sut => sut.Info( "Test must fail reentrant client" ) )
                          .Should().Throw<CKException>()
                          .WithMessage( Impl.ActivityMonitorResources.ActivityMonitorReentrancyError.Replace( "{0}", "*" ) );
               } ) );
 
-            monitor.Info().Send( "Test must work after reentrant client" );
+            monitor.Info( "Test must work after reentrant client" );
             monitor.Output.Clients.Should().HaveCount( clientCount, "The RegisterClient action above is ok: it checks that it triggered a reentrant call." );
 
             ++clientCount;
             monitor.Output.RegisterClient( new ActionActivityMonitorClient( () =>
               {
-                  monitor.Info().Send( "Test must fail reentrant client" );
+                  monitor.Info( "Test must fail reentrant client" );
               } ) );
 
-            monitor.Info().Send( "Test must work after reentrant client" );
+            monitor.Info( "Test must work after reentrant client" );
             monitor.Output.Clients.Should().HaveCount( clientCount - 1, "The BUGGY RegisterClient action above is NOT ok: it triggers a reentrant call exception => We have removed it." );
         }
 
         [Test]
         public void simple_reentrancy_detection()
         {
-            IActivityMonitor monitor = new ActivityMonitor();
-            using( monitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
-            {
-                int clientCount = monitor.Output.Clients.Count;
-                monitor.Output.Clients.Should().HaveCount( clientCount );
+            IActivityMonitor monitor = new ActivityMonitor( false );
+            int clientCount = monitor.Output.Clients.Count;
+            monitor.Output.Clients.Should().HaveCount( clientCount );
 
-                BuggyActivityMonitorClient client = new BuggyActivityMonitorClient( monitor );
-                monitor.Output.RegisterClient( client );
-                monitor.Output.Clients.Should().HaveCount( clientCount + 1 );
-                monitor.Info().Send( "Test" );
-                ActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
-                monitor.Output.Clients.Should().HaveCount( clientCount );
+            BuggyActivityMonitorClient client = new BuggyActivityMonitorClient( monitor );
+            monitor.Output.RegisterClient( client );
+            monitor.Output.Clients.Should().HaveCount( clientCount + 1 );
+            monitor.Info( "Test" );
+            monitor.Output.Clients.Should().HaveCount( clientCount );
 
-                monitor.Info().Send( "Test" );
-            }
+            monitor.Info( "Test" );
         }
 
         [Test]
@@ -186,7 +179,7 @@ namespace CK.Core.Tests.Monitoring
             AggregateException? ex = ConcurrentThrow( monitor );
             ex.Should().NotBeNull();
 
-            monitor.Info().Send( "Test" );
+            monitor.Info( "Test" );
         }
 
         static AggregateException? ConcurrentThrow( IActivityMonitor monitor )
@@ -195,7 +188,7 @@ namespace CK.Core.Tests.Monitoring
             object lockRunner = new object();
             int enteredThread = 0;
 
-            Action getLock = () =>
+            void GetLock()
             {
                 lock( lockTasks )
                 {
@@ -204,13 +197,13 @@ namespace CK.Core.Tests.Monitoring
                         Monitor.Pulse( lockRunner );
                     Monitor.Wait( lockTasks );
                 }
-            };
+            }
 
             Task[] tasks = new Task[]
             {
-                new Task( () => { getLock(); monitor.Info().Send( "Test T1" ); } ),
-                new Task( () => { getLock(); monitor.Info().Send( new Exception(), "Test T2" ); } ),
-                new Task( () => { getLock(); monitor.Info().Send( "Test T3" ); } )
+                new Task( () => { GetLock(); monitor.Info( "Test T1" ); } ),
+                new Task( () => { GetLock(); monitor.Info( "Test T2", new Exception() ); } ),
+                new Task( () => { GetLock(); monitor.Info( "Test T3" ); } )
             };
 
             try
@@ -224,7 +217,9 @@ namespace CK.Core.Tests.Monitoring
                 lock( lockTasks )
                     Monitor.PulseAll( lockTasks );
 
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
                 Task.WaitAll( tasks );
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
             }
             catch( AggregateException ex )
             {
@@ -242,31 +237,27 @@ namespace CK.Core.Tests.Monitoring
             IActivityMonitor monitor = new ActivityMonitor();
             // Artificially slows down logging to ensure that concurrent access occurs.
             monitor.Output.RegisterClient( new ActionActivityMonitorClient( () => Thread.Sleep( 80 ) ) );
-            // Use a temporary bridge to redirect the logs to the TestHelper.Monitor.
-            //using( monitor.Output.CreateBridgeTo( TestHelper.Monitor.Output.BridgeTarget ) )
+            CheckConccurrentException( monitor, false );
+            // This activates the Concurrent Access stack trace capture.
+            monitor.AutoTags += ActivityMonitor.Tags.StackTrace;
+            CheckConccurrentException( monitor, true );
+            using( monitor.OpenInfo( $"No more Stack in this group." ) )
             {
-                CheckConccurrentException( monitor, false );
-                // This activates the Concurrent Access stack trace capture.
-                monitor.AutoTags += ActivityMonitor.Tags.StackTrace;
-                CheckConccurrentException( monitor, true );
-                using( monitor.OpenInfo( $"No more Stack in this group." ) )
-                {
-                    // This removes the tracking.
-                    monitor.AutoTags -= ActivityMonitor.Tags.StackTrace;
-                    CheckConccurrentException( monitor, false );
-                }
-                // AutoTags are preserved (just like MinimalFilter).
-
-                // To test if the StackTrace is enabled:
-                // 1 - The Contains method can be used on the Atomic traits...
-                monitor.AutoTags.AtomicTraits.Contains( ActivityMonitor.Tags.StackTrace ).Should().BeTrue();
-                // 2 - ...or the & (Intersect) operator can do the job.
-                ((monitor.AutoTags & ActivityMonitor.Tags.StackTrace) == ActivityMonitor.Tags.StackTrace).Should().BeTrue();
-
-                CheckConccurrentException( monitor, true );
-                monitor.AutoTags = monitor.AutoTags.Except( ActivityMonitor.Tags.StackTrace );
+                // This removes the tracking.
+                monitor.AutoTags -= ActivityMonitor.Tags.StackTrace;
                 CheckConccurrentException( monitor, false );
             }
+            // AutoTags are preserved (just like MinimalFilter).
+
+            // To test if the StackTrace is enabled:
+            // 1 - The Contains method can be used on the Atomic traits...
+            monitor.AutoTags.AtomicTraits.Contains( ActivityMonitor.Tags.StackTrace ).Should().BeTrue();
+            // 2 - ...or the & (Intersect) operator can do the job.
+            ((monitor.AutoTags & ActivityMonitor.Tags.StackTrace) == ActivityMonitor.Tags.StackTrace).Should().BeTrue();
+
+            CheckConccurrentException( monitor, true );
+            monitor.AutoTags = monitor.AutoTags.Except( ActivityMonitor.Tags.StackTrace );
+            CheckConccurrentException( monitor, false );
 
             static void CheckConccurrentException( IActivityMonitor m, bool mustHaveCallStack )
             {

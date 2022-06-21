@@ -1,39 +1,64 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using CK.Text;
 
 namespace CK.Core
 {
-    /// <summary>
-    /// Concrete implementation of <see cref="IActivityMonitor"/>.
-    /// </summary>
     public partial class ActivityMonitor
     {
         /// <summary>
-        /// Describes the origin of a dependent activity: it is created by <see cref="ActivityMonitorExtension.DependentActivity">IActivityMonitor.DependentActivity</see> 
-        /// (extension methods).
+        /// Describes the origin of a dependent activity: it is created by <see cref="ActivityMonitorExtension.CreateDependentToken(IActivityMonitor, string, string?, string?, int)">IActivityMonitor.CreateDependentToken</see> 
+        /// (extension method).
         /// </summary>
-        [Serializable]
-        public class DependentToken
+        public sealed class DependentToken : ICKSimpleBinarySerializable
         {
-            readonly Guid _originatorId;
+            readonly string _originatorId;
             readonly DateTimeStamp _creationDate;
+            readonly string? _message;
             readonly string? _topic;
-            [NonSerialized]
-            string? _delayedLaunchMessage;
+            readonly bool _isMonitorTopic;
 
-            internal DependentToken( Guid monitorId, DateTimeStamp logTime, string? topic )
+            internal DependentToken( string monitorId, DateTimeStamp logTime, string? message, string? topic, bool isMonitorTopic )
             {
                 _originatorId = monitorId;
                 _creationDate = logTime;
+                _message = message;
                 _topic = topic;
+                _isMonitorTopic = isMonitorTopic;
+            }
+
+            /// <summary>
+            /// Deserialization constructor.
+            /// </summary>
+            /// <param name="r">The reader.</param>
+            public DependentToken( ICKBinaryReader r )
+            {
+                r.ReadByte();
+                _originatorId = r.ReadString();
+                _creationDate = new DateTimeStamp( r );
+                _message = r.ReadNullableString();
+                _topic = r.ReadNullableString();
+                _isMonitorTopic = r.ReadBoolean();
+            }
+
+            /// <summary>
+            /// Writes this token.
+            /// </summary>
+            /// <param name="w">The writer.</param>
+            public void Write( ICKBinaryWriter w )
+            {
+                w.Write( (byte)0 );
+                w.Write( _originatorId );
+                _creationDate.Write( w );
+                w.WriteNullableString( _message );
+                w.WriteNullableString( _topic );
+                w.Write( _isMonitorTopic );
             }
 
             /// <summary>
             /// Unique identifier of the activity that created this dependent token.
             /// </summary>
-            public Guid OriginatorId => _originatorId;
+            public string OriginatorId => _originatorId;
 
             /// <summary>
             /// Gets the creation date. This is the log time of the unfiltered Info log that has 
@@ -42,20 +67,37 @@ namespace CK.Core
             public DateTimeStamp CreationDate => _creationDate;
 
             /// <summary>
+            /// Gets the token creation message.
+            /// </summary>
+            public string? Message => _message;
+
+            /// <summary>
             /// Gets the topic that must be set on the dependent activity.
             /// When null, the current <see cref="IActivityMonitor.Topic"/> of the dependent monitor is not changed.
             /// </summary>
             public string? Topic => _topic;
 
             /// <summary>
+            /// Gets whether the <see cref="Topic"/> to set on the target monitor is the
+            /// same as the originating monitor.
+            /// </summary>
+            public bool IsMonitorTopic => _isMonitorTopic;
+
+            internal string ToString( string? prefix )
+            {
+                if( _topic == null )
+                    return $"{prefix}{_originatorId} at {_creationDate} - {_message} (Without topic.)";
+                if( _isMonitorTopic )
+                    return $"{prefix}{_originatorId} at {_creationDate} - {_message} (With monitor's topic '{_topic}'.)";
+                return $"{prefix}{_originatorId} at {_creationDate} - {_message} (With topic '{_topic}'.)";
+            }
+
+            /// <summary>
             /// Overridden to give a readable description of this token that can be <see cref="Parse"/>d (or <see cref="TryParse"/>) back:
-            /// The format is "{<see cref="OriginatorId"/>} at <see cref="CreationDate"/> (with topic '...'|without topic).".
+            /// The format is "<see cref="OriginatorId"/> at <see cref="CreationDate"/> with topic '...'|without topic|with monitor's topic '...'.".
             /// </summary>
             /// <returns>A readable string.</returns>
-            public override string ToString()
-            {
-                return AppendTopic( $"{_originatorId:B} at {_creationDate} with", _topic );
-            }
+            public override string ToString() => ToString( null );
 
             /// <summary>
             /// Tries to parse a <see cref="DependentToken.ToString()"/> string.
@@ -63,19 +105,16 @@ namespace CK.Core
             /// <param name="s">The string to parse.</param>
             /// <param name="t">The resulting dependent token.</param>
             /// <returns>True on success, false otherwise.</returns>
-            static public bool TryParse( string s, [MaybeNullWhen( false )] out DependentToken t )
+            static public bool TryParse( ReadOnlySpan<char> s, [NotNullWhen( true )] out DependentToken? t )
             {
                 t = null;
-                StringMatcher m = new StringMatcher( s );
-                Guid id;
-                DateTimeStamp time;
-                if( MatchOriginatorAndTime( m, out id, out time ) && m.TryMatchText( " with" ) )
+                var m = new ROSpanCharMatcher( s ) { SingleExpectationMode = true };
+                if( MatchOriginatorAndTime( ref m, out var id, out DateTimeStamp time )
+                    && m.TryMatch( " - " )
+                    && TryParseCreateMessage( m.Head, out var message, out var topic, out var isMonitorTopic ) )
                 {
-                    if( ExtractTopic( s, m.StartIndex, out string? topic ) )
-                    {
-                        t = new DependentToken( id, time, topic );
-                        return true;
-                    }
+                    t = new DependentToken( id, time, message, topic, isMonitorTopic );
+                    return true;
                 }
                 return false;
             }
@@ -86,80 +125,46 @@ namespace CK.Core
             /// </summary>
             /// <param name="s">The string to parse.</param>
             /// <returns>The resulting dependent token.</returns>
-            static public DependentToken Parse( string s )
+            static public DependentToken Parse( ReadOnlySpan<char> s )
             {
-                DependentToken? t;
-                if( !TryParse( s, out t ) ) throw new FormatException( "Invalid Dependent token string." );
+                if( !TryParse( s, out DependentToken? t ) ) Throw.FormatException( $"Invalid Dependent token string: '{s}'." );
                 return t;
             }
 
             /// <summary>
-            /// Tries to parse a launch or create message. 
+            /// Tries to parse a create message. 
             /// </summary>
-            /// <param name="message">The message to parse.</param>
-            /// <param name="launched">True if the activity has been launched or the token has only be created.</param>
-            /// <param name="withTopic">True if an explicit topic has been associated to the dependent activity.</param>
-            /// <param name="dependentTopic">When <paramref name="withTopic"/> is true, this contains the explicitly set topic.</param>
-            /// <returns>True on success.</returns>
-            public static bool TryParseLaunchOrCreateMessage( string message, out bool launched, out bool withTopic, out string? dependentTopic )
+            /// <param name="s">The string to parse.</param>
+            /// <param name="message">The optional token creation message.</param>
+            /// <param name="topic">The topic to set on the target monitor.</param>
+            /// <param name="isMonitorTopic">True the topic is the one of the originating monitor.</param>
+            /// <returns>True on success, false otherwise.</returns>
+            public static bool TryParseCreateMessage( ReadOnlySpan<char> s,
+                                                      out string? message,
+                                                      out string? topic,
+                                                      out bool isMonitorTopic )
             {
-                if( message == null ) throw new ArgumentNullException();
-                launched = false;
-                withTopic = false;
-                dependentTopic = null;
-
-                if( message.Length < 10 ) return false;
-                if( message.StartsWith( _prefixLaunchWithTopic ) )
+                message = null;
+                topic = null;
+                isMonitorTopic = false;
+                if( s.EndsWith( "\'.)", StringComparison.Ordinal ) )
                 {
-                    launched = true;
-                    withTopic = true;
-                    Debug.Assert( _prefixLaunchWithTopic.Length == 33 );
-                    if( !ExtractTopic( message, 33, out dependentTopic ) ) return false;
-                }
-                else if( message.StartsWith( _prefixCreateWithTopic ) )
-                {
-                    withTopic = true;
-                    Debug.Assert( _prefixCreateWithTopic.Length == 37 );
-                    if( !ExtractTopic( message, 37, out dependentTopic ) ) return false;
-                }
-                else if( message.StartsWith( _prefixLaunch ) )
-                {
-                    launched = true;
-                }
-                else if( !message.StartsWith( _prefixCreate ) ) return false;
-                return true;
-            }
-
-            /// <summary>
-            /// Captures the log message when created with a delayed launch so that DependentSender.Launch( token ) can log it.
-            /// </summary>
-            internal string? DelayedLaunchMessage
-            {
-                get { return _delayedLaunchMessage; }
-                set { _delayedLaunchMessage = value; }
-            }
-
-            private static bool ExtractTopic( string message, int start, out string? dependentTopic )
-            {
-                Debug.Assert( _suffixWithoutTopic.Length == 9 );
-                Debug.Assert( _suffixWithTopic.Length == 8 );
-
-                dependentTopic = null;
-
-                if( message.Length < start + 8 + 1 ) return false;
-                if( string.CompareOrdinal( message, start, _suffixWithTopic, 0, 8 ) == 0 )
-                {
-                    int idxEndQuote = message.LastIndexOf( '\'' );
-                    if( idxEndQuote < start ) return false;
-                    start += 8;
-                    dependentTopic = message.Substring( start, idxEndQuote - start );
+                    int idx = s.IndexOf( " (With monitor's topic '", StringComparison.Ordinal );
+                    if( idx >= 0 ) isMonitorTopic = true;
+                    else if( (idx = s.IndexOf( " (With topic '", StringComparison.Ordinal )) < 0 ) return false;
+                    Debug.Assert( " (With monitor's topic '".Length == 24 );
+                    Debug.Assert( " (With topic '".Length == 14 );
+                    if( idx > 0 ) message = s.Slice( 0, idx ).ToString();
+                    idx += isMonitorTopic ? 24 : 14;
+                    topic = s.Slice( idx, s.Length - idx - 3 ).ToString();
                     return true;
                 }
-                if( message.Length < start + 9 + 1 ) return false;
-                if( string.CompareOrdinal( message, start, _suffixWithoutTopic, 0, 8 ) == 0 )
+                if( s.EndsWith( " (Without topic.)", StringComparison.Ordinal ) )
                 {
-                    // We exit with true and a null dependentTopic since there is no topic.
-                    return true; 
+                    Debug.Assert( " (Without topic.)".Length == 17 );
+                    int len = s.Length - 17;
+                    if( len > 0 ) message = s.Slice( 0, len ).ToString();
+                    return true;
                 }
                 return false;
             }
@@ -168,75 +173,35 @@ namespace CK.Core
             /// Attempts to parse the start message of a dependent activity (tagged with <see cref="ActivityMonitor.Tags.StartDependentActivity"/>).
             /// </summary>
             /// <param name="startMessage">The start message to parse.</param>
-            /// <param name="id">The originator monitor identifier.</param>
-            /// <param name="time">The creation time of the dependent activity.</param>
+            /// <param name="token">The token parsed.</param>
             /// <returns>True on success.</returns>
-            static public bool TryParseStartMessage( string startMessage, out Guid id, out DateTimeStamp time )
+            static public bool TryParseStartMessage( ReadOnlySpan<char> startMessage, [NotNullWhen(true)]out DependentToken? token )
             {
-                int idx = startMessage.IndexOf( '{' );
-                if( idx <= 0 )
-                {
-                    id = Guid.Empty;
-                    time = DateTimeStamp.MinValue;
-                    return false;
-                }
-                return MatchOriginatorAndTime( new StringMatcher( startMessage, idx ), out id, out time );
+                token = null;
+                if( !startMessage.StartsWith( "Starting: ", StringComparison.Ordinal ) ) return false;
+                Debug.Assert( "Starting: ".Length == 10 );
+                return TryParse( startMessage.Slice( 10 ), out token );
             }
 
-            static bool MatchOriginatorAndTime( StringMatcher m, out Guid id, out DateTimeStamp time )
+            static bool MatchOriginatorAndTime( ref ROSpanCharMatcher m, out string id, out DateTimeStamp time )
             {
                 time = DateTimeStamp.MinValue;
-                if( !m.TryMatchGuid( out id ) ) return false;
-                if( !m.TryMatchText( " at " ) ) return false;
-                return m.MatchDateTimeStamp( out time );
-            }
-
-            internal string FormatStartMessage()
-            {
-                return string.Format( "Starting dependent activity issued by {0:B} at {1}.", _originatorId, _creationDate );
-            }
-
-            const string _prefixLaunch = "Launching dependent activity";
-            const string _prefixCreate = "Activity dependent token created";
-            const string _prefixLaunchWithTopic = "Launching dependent activity with";
-            const string _prefixCreateWithTopic = "Activity dependent token created with";
-            const string _suffixWithoutTopic = "out topic";
-            const string _suffixWithTopic = " topic '";
-
-            internal static DependentToken CreateWithMonitorTopic( IActivityMonitor m, bool launchActivity, out string msg )
-            {
-                msg = launchActivity ? _prefixLaunch : _prefixCreate;
-                DependentToken t = new DependentToken( ((IUniqueId)m).UniqueId, m.NextLogTime(), m.Topic );
-                msg += '.';
-                return t;
-            }
-
-            internal static DependentToken CreateWithDependentTopic( IActivityMonitor m, bool launchActivity, string dependentTopic, out string msg )
-            {
-                msg = AppendTopic( launchActivity ? _prefixLaunchWithTopic : _prefixCreateWithTopic, dependentTopic );
-                return new DependentToken( ((IUniqueId)m).UniqueId, m.NextLogTime(), dependentTopic );
-            }
-
-            static string AppendTopic( string msg, string? dependentTopic )
-            {
-                Debug.Assert( msg.EndsWith( " with" ) );
-                if( dependentTopic == null ) msg += _suffixWithoutTopic;
-                else msg += _suffixWithTopic + dependentTopic + '\'';
-                return msg + '.';
-            }
-
-            static internal IDisposable Start( ActivityMonitor.DependentToken token, IActivityMonitor monitor, string fileName, int lineNumber )
-            {
-                string msg = token.FormatStartMessage();
-                if( token.Topic != null )
+                id = string.Empty;
+                int i = 0;
+                int len = m.Head.Length;
+                while( --len >= 0 )
                 {
-                    string currentTopic = token.Topic;
-                    monitor.SetTopic( token.Topic, fileName, lineNumber );
-                    var g = monitor.UnfilteredOpenGroup( Tags.StartDependentActivity, LogLevel.Info, null, msg, monitor.NextLogTime(), null, fileName, lineNumber );
-                    return Util.CreateDisposableAction( () => { g.Dispose(); monitor.SetTopic( currentTopic, fileName, lineNumber ); } );
+                    char c = m.Head[i];
+                    if( char.IsWhiteSpace( c ) ) break;
+                    ++i;
                 }
-                return monitor.UnfilteredOpenGroup( Tags.StartDependentActivity, LogLevel.Info, null, msg, monitor.NextLogTime(), null, fileName, lineNumber );
+                if( i < MinMonitorUniqueIdLength ) return m.AddExpectation( "Monitor Id" );
+                id = new string( m.Head.Slice( 0, i ) );
+                m.Head = m.Head.Slice( i );
+                if( !m.TryMatch( " at " ) ) return false;
+                return m.TryMatchDateTimeStamp( out time );
             }
+
         }
     }
 }

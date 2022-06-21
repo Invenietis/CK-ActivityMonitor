@@ -45,9 +45,9 @@ namespace CK.Core.Tests.Monitoring
         public void ParseTests()
         {
              LogFilter.Parse( "Undefined" ).Should().Be( LogFilter.Undefined  );
-            LogFilter.Parse("Debug").Should().Be(LogFilter.Debug);
-            LogFilter.Parse("Trace").Should().Be(LogFilter.Trace);
-            LogFilter.Parse( "Verbose" ).Should().Be( LogFilter.Verbose  );
+             LogFilter.Parse("Debug").Should().Be(LogFilter.Debug);
+             LogFilter.Parse("Trace").Should().Be(LogFilter.Trace);
+             LogFilter.Parse( "Verbose" ).Should().Be( LogFilter.Verbose  );
              LogFilter.Parse( "Monitor" ).Should().Be( LogFilter.Monitor  );
              LogFilter.Parse( "Terse" ).Should().Be( LogFilter.Terse  );
              LogFilter.Parse( "Release" ).Should().Be( LogFilter.Release  );

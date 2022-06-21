@@ -30,52 +30,42 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        public static void MonitorEnd(this IActivityMonitor @this, string? text = null, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0)
+        public static void MonitorEnd( this IActivityMonitor @this, string? text = null, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
-            while (@this.CloseGroup(NextLogTime(@this)));
-            @this.UnfilteredLog(ActivityMonitor.Tags.MonitorEnd, LogLevel.Info, text ?? "Done.", NextLogTime(@this), null, fileName, lineNumber);
+            while( @this.CloseGroup() ) ;
+            @this.UnfilteredLog( LogLevel.Info, ActivityMonitor.Tags.MonitorEnd, text ?? "Done.", null, fileName, lineNumber );
         }
 
         /// <summary>
-        /// Challenges source filters based on FileName/LineNumber, <see cref="IActivityMonitor.ActualFilter">this monitors' actual filter</see> and application 
+        /// Challenges tag minimal filters, <see cref="IActivityMonitor.ActualFilter">this monitors' actual filter</see> and application 
         /// domain's <see cref="ActivityMonitor.DefaultFilter"/> filters to test whether a log line should actually be emitted.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="level">Log level.</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
+        /// <param name="tags">Optional tags on the line.</param>
+        /// <param name="finalTags">Combined monitor's and line's tag.</param>
         /// <returns>True if the log should be emitted.</returns>
-        public static bool ShouldLogLine( this IActivityMonitor @this, LogLevel level, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]  
+        public static bool ShouldLogLine( this IActivityMonitor @this, LogLevel level, CKTrait? tags, out CKTrait finalTags )
         {
-            var h = ActivityMonitor.SourceFilter.FilterSource;
-            int combined = h == null ? 0 : (int)h( ref fileName, ref lineNumber ).LineFilter;
-            // Extract Override filter.
-            int filter = (short)(combined >> 16);
-            // If Override is undefined, combine the ActualFilter and Minimal source filter.
-            if( filter <= 0 ) filter = (int)LogFilter.Combine( @this.ActualFilter.Line, (LogLevelFilter)(combined & 0xFFFF) );
-            level &= LogLevel.Mask;
-            return filter <= 0 ? (int)ActivityMonitor.DefaultFilter.Line <= (int)level : filter <= (int)level;
+            finalTags = @this.AutoTags + tags;
+            return ActivityMonitor.Tags.ApplyForLine( (int)level, finalTags, (int)@this.ActualFilter.Line );
         }
 
         /// <summary>
-        /// Challenges source filters based on FileName/LineNumber, <see cref="IActivityMonitor.ActualFilter">this monitor's actual filter</see> and application 
-        /// domain's <see cref="ActivityMonitor.DefaultFilter"/> filters to test whether a log group should actually be emitted.
+        /// Challenges tag minimal filters, <see cref="IActivityMonitor.ActualFilter">this monitors' actual filter</see> and application 
+        /// domain's <see cref="ActivityMonitor.DefaultFilter"/> filters to test whether a log group should actually be opened.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="level">Log level.</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
+        /// <param name="tags">Optional tags on the group.</param>
+        /// <param name="finalTags">Combined monitor's and group's tag.</param>
         /// <returns>True if the log should be emitted.</returns>
-        public static bool ShouldLogGroup( this IActivityMonitor @this, LogLevel level, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static bool ShouldLogGroup( this IActivityMonitor @this, LogLevel level, CKTrait? tags, out CKTrait finalTags )
         {
-            var h = ActivityMonitor.SourceFilter.FilterSource;
-            int combined = h == null ? 0 : (int)h( ref fileName, ref lineNumber ).GroupFilter;
-            // Extract Override filter.
-            int filter = (short)(combined >> 16);
-            // If Override is undefined, combine the ActualFilter and Minimal source filter.
-            if( filter <= 0 ) filter = (int)LogFilter.Combine( @this.ActualFilter.Group, (LogLevelFilter)(combined & 0xFFFF) );
-            level &= LogLevel.Mask;
-            return filter <= 0 ? (int)ActivityMonitor.DefaultFilter.Group <= (int)level : filter <= (int)level;
+            finalTags = @this.AutoTags + tags;
+            return ActivityMonitor.Tags.ApplyForGroup( finalTags, (int)@this.ActualFilter.Group, (int)level );
         }
 
         /// <summary>
@@ -88,10 +78,6 @@ namespace CK.Core
         /// </param>
         /// <param name="level">Log level. Must not be <see cref="LogLevel.None"/>.</param>
         /// <param name="text">Text to log. Must not be null or empty.</param>
-        /// <param name="logTime">
-        /// Time-stamp of the log entry.
-        /// You can use <see cref="DateTimeStamp.UtcNow"/> or <see cref="ActivityMonitorExtension.NextLogTime">IActivityMonitor.NextLogTime()</see> extension method.
-        /// </param>
         /// <param name="ex">Optional exception associated to the log. When not null, a Group is automatically created.</param>
         /// <param name="fileName">The source code file name from which the log is emitted.</param>
         /// <param name="lineNumber">The line number in the source from which the log is emitted.</param>
@@ -107,32 +93,28 @@ namespace CK.Core
         /// treated as if a different LogLevel is used.
         /// </para>
         /// </remarks>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static public void UnfilteredLog( this IActivityMonitor @this,
-                                          CKTrait? tags,
                                           LogLevel level,
+                                          CKTrait? tags,
                                           string? text,
-                                          DateTimeStamp logTime,
                                           Exception? ex,
                                           [CallerFilePath] string? fileName = null,
                                           [CallerLineNumber] int lineNumber = 0 )
         {
-            @this.UnfilteredLog( new ActivityMonitorLogData( level, ex, tags, text, logTime, fileName, lineNumber ) );
+            var d = new ActivityMonitorLogData( level, @this.AutoTags | tags, text, ex, fileName, lineNumber );
+            @this.UnfilteredLog( ref d );
         }
 
         /// <summary>
         /// Opens a group regardless of <see cref="IActivityMonitor.ActualFilter">ActualFilter</see> level. 
-        /// <see cref="CloseGroup"/> must be called in order to close the group, and/or the returned object must be disposed (both safely can be called: 
+        /// <see cref="IActivityMonitor.CloseGroup"/> must be called in order to close the group, and/or the returned object must be disposed (both safely can be called: 
         /// the group is closed on the first action, the second one is ignored).
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="tags">Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. It will be union-ed with current <see cref="IActivityMonitor.AutoTags">AutoTags</see>.</param>
         /// <param name="level">Log level. The <see cref="LogLevel.None"/> level is used to open a filtered group. See remarks.</param>
-        /// <param name="getConclusionText">Optional function that will be called on group closing.</param>
+        /// <param name="tags">Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. It will be union-ed with current <see cref="IActivityMonitor.AutoTags">AutoTags</see>.</param>
         /// <param name="text">Text to log (the title of the group). Null text is valid and considered as <see cref="String.Empty"/> or assigned to the <see cref="Exception.Message"/> if it exists.</param>
-        /// <param name="logTime">
-        /// Time of the log entry.
-        /// You can use <see cref="DateTimeStamp.UtcNow"/> or <see cref="ActivityMonitorExtension.NextLogTime">IActivityMonitor.NextLogTime()</see> extension method.
-        /// </param>
         /// <param name="ex">Optional exception associated to the group.</param>
         /// <param name="fileName">The source code file name from which the group is opened.</param>
         /// <param name="lineNumber">The line number in the source from which the group is opened.</param>
@@ -152,99 +134,19 @@ namespace CK.Core
         /// Note that this automatic configuration restoration works even if the group is filtered (when the <paramref name="level"/> is None).
         /// </para>
         /// </remarks>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
         static public IDisposable UnfilteredOpenGroup( this IActivityMonitor @this,
-                                                       CKTrait tags,
                                                        LogLevel level,
-                                                       Func<string>? getConclusionText,
+                                                       CKTrait? tags,
                                                        string text,
-                                                       DateTimeStamp logTime,
                                                        Exception? ex,
                                                        [CallerFilePath] string? fileName = null,
                                                        [CallerLineNumber] int lineNumber = 0 )
         {
-            return @this.UnfilteredOpenGroup( new ActivityMonitorGroupData( level, tags, text, logTime, ex, getConclusionText, fileName, lineNumber ) );
-        }
-
-        /// <summary>
-        /// Closes the current Group. Optional parameter is polymorphic. It can be a string, a <see cref="ActivityLogGroupConclusion"/>, 
-        /// a <see cref="List{T}"/> or an <see cref="IEnumerable{T}"/> of ActivityLogGroupConclusion, or any object with an overridden <see cref="Object.ToString"/> method. 
-        /// See remarks (especially for List&lt;ActivityLogGroupConclusion&gt;).
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="userConclusion">Optional string, ActivityLogGroupConclusion object, enumerable of ActivityLogGroupConclusion or object to conclude the group. See remarks.</param>
-        /// <returns>True if a group has actually been closed, false if there is no more opened group.</returns>
-        /// <remarks>
-        /// An untyped object is used here to easily and efficiently accommodate both string and already existing ActivityLogGroupConclusion.
-        /// When a List&lt;ActivityLogGroupConclusion&gt; is used, it will be directly used to collect conclusion objects (new conclusions will be added to it). This is an optimization.
-        /// </remarks>
-        public static bool CloseGroup( this IActivityMonitor @this, object? userConclusion = null )
-        {
-            return @this.CloseGroup( NextLogTime( @this ), userConclusion );
+            var d = new ActivityMonitorLogData( level, @this.AutoTags | tags, text, ex, fileName, lineNumber );
+            return @this.UnfilteredOpenGroup( ref d );
         }
         
-        #region Bridge: FindBridgeTo, CreateBridgeTo and UnbridgeTo.
-
-        /// <summary>
-        /// Finds an existing bridge to another monitor.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>
-        /// <param name="targetBridge">The target bridge that receives our logs.</param>
-        /// <returns>The existing <see cref="ActivityMonitorBridge"/> or null if no such bridge exists.</returns>
-        public static ActivityMonitorBridge? FindBridgeTo( this IActivityMonitorOutput @this, ActivityMonitorBridgeTarget targetBridge )
-        {
-            if( targetBridge == null ) throw new ArgumentNullException( "targetBridge" );
-            return @this.Clients.OfType<ActivityMonitorBridge>().FirstOrDefault( b => b.BridgeTarget == targetBridge );
-        }
-
-        /// <summary>
-        /// Creates a bridge to another monitor's <see cref="ActivityMonitorBridgeTarget"/>. Only one bridge to the same monitor can exist at a time: if <see cref="FindBridgeTo"/> is not null, 
-        /// this throws a <see cref="InvalidOperationException"/>.
-        /// This bridge does not synchronize <see cref="IActivityMonitor.AutoTags"/> and <see cref="IActivityMonitor.Topic"/> (see <see cref="CreateStrongBridgeTo"/>). 
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>
-        /// <param name="targetBridge">The target bridge that will receive our logs.</param>
-        /// <returns>A <see cref="IDisposable"/> object that can be disposed to automatically call <see cref="UnbridgeTo"/>.</returns>
-        public static IDisposable CreateBridgeTo( this IActivityMonitorOutput @this, ActivityMonitorBridgeTarget targetBridge )
-        {
-            if( targetBridge == null ) throw new ArgumentNullException( "targetBridge" );
-            if( @this.Clients.OfType<ActivityMonitorBridge>().Any( b => b.BridgeTarget == targetBridge ) ) throw new InvalidOperationException();
-            var created = @this.RegisterClient( new ActivityMonitorBridge( targetBridge, false, false ) );
-            return Util.CreateDisposableAction( () => @this.UnregisterClient( created ) );
-        }
-
-        /// <summary>
-        /// Creates a strong bridge to another monitor's <see cref="ActivityMonitorBridgeTarget"/>. 
-        /// Only one bridge to the same monitor can exist at a time: if <see cref="FindBridgeTo"/> is not null, 
-        /// this throws a <see cref="InvalidOperationException"/>.
-        /// A strong bridge synchronizes <see cref="IActivityMonitor.AutoTags"/> and <see cref="IActivityMonitor.Topic"/> between the two monitors. When created, the 2 properties
-        /// of the local monitor are set to the ones of the target monitor. 
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>
-        /// <param name="targetBridge">The target bridge that will receive our logs.</param>
-        /// <returns>A <see cref="IDisposable"/> object that can be disposed to automatically call <see cref="UnbridgeTo"/>.</returns>
-        public static IDisposable CreateStrongBridgeTo( this IActivityMonitorOutput @this, ActivityMonitorBridgeTarget targetBridge )
-        {
-            if( targetBridge == null ) throw new ArgumentNullException( "targetBridge" );
-            if( @this.Clients.OfType<ActivityMonitorBridge>().Any( b => b.BridgeTarget == targetBridge ) ) throw new InvalidOperationException();
-            var created = @this.RegisterClient( new ActivityMonitorBridge( targetBridge, true, true ) );
-            return Util.CreateDisposableAction( () => @this.UnregisterClient( created ) );
-        }
-
-        /// <summary>
-        /// Removes an existing <see cref="ActivityMonitorBridge"/> to another monitor if it exists (silently ignores it if not found).
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>
-        /// <param name="targetBridge">The target bridge that will no more receive our logs.</param>
-        /// <returns>The unregistered <see cref="ActivityMonitorBridge"/> if found, null otherwise.</returns>
-        public static ActivityMonitorBridge? UnbridgeTo( this IActivityMonitorOutput @this, ActivityMonitorBridgeTarget targetBridge )
-        {
-            if( targetBridge == null ) throw new ArgumentNullException( "targetBridge" );
-            return UnregisterClient<ActivityMonitorBridge>( @this, b => b.BridgeTarget == targetBridge );
-        }
-
-        #endregion
-
-
         #region Catch & CatchCounter
 
         /// <summary>
@@ -258,7 +160,7 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
         public static IDisposable CollectEntries( this IActivityMonitor @this, Action<IReadOnlyList<ActivityMonitorSimpleCollector.Entry>> errorHandler, LogLevelFilter level = LogLevelFilter.Error, int capacity = 50 )
         {
-            if( errorHandler == null ) throw new ArgumentNullException( "errorHandler" );
+            Throw.CheckNotNullArgument( errorHandler );
             ActivityMonitorSimpleCollector errorTracker = new ActivityMonitorSimpleCollector() { MinimalFilter = level, Capacity = capacity };
             @this.Output.RegisterClient( errorTracker );
             return Util.CreateDisposableAction( () =>
@@ -300,7 +202,7 @@ namespace CK.Core
                 _onError = onError;
             }
 
-            public void OnUnfilteredLog( ActivityMonitorLogData data )
+            public void OnUnfilteredLog( ref ActivityMonitorLogData data )
             {
                 if( data.MaskedLevel == LogLevel.Error ) _onError();
                 else if( data.MaskedLevel == LogLevel.Fatal ) _onFatal();
@@ -308,8 +210,8 @@ namespace CK.Core
 
             public void OnOpenGroup( IActivityLogGroup group )
             {
-                if( group.MaskedGroupLevel == LogLevel.Error ) _onError();
-                else if( group.MaskedGroupLevel == LogLevel.Fatal ) _onFatal();
+                if( group.Data.MaskedLevel == LogLevel.Error ) _onError();
+                else if( group.Data.MaskedLevel == LogLevel.Fatal ) _onFatal();
             }
 
             public void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions )
@@ -337,7 +239,7 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
         public static IDisposable OnError( this IActivityMonitor @this, Action onFatalOrError )
         {
-            if( onFatalOrError == null ) throw new ArgumentNullException( "onError" );
+            Throw.CheckNotNullArgument( onFatalOrError );
             ErrorTracker tracker = new ErrorTracker( onFatalOrError, onFatalOrError );
             @this.Output.RegisterClient( tracker );
             return Util.CreateDisposableAction( () => @this.Output.UnregisterClient( tracker ) );
@@ -352,13 +254,52 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
         public static IDisposable OnError( this IActivityMonitor @this, Action onFatal, Action onError )
         {
-            if( onFatal == null || onError == null ) throw new ArgumentNullException();
+            Throw.CheckArgument( onFatal != null && onError != null );
             ErrorTracker tracker = new ErrorTracker( onFatal, onError );
             @this.Output.RegisterClient( tracker );
             return Util.CreateDisposableAction( () => @this.Output.UnregisterClient( tracker ) );
         }
         #endregion
 
+
+        /// <summary>
+        /// Sets the <see cref="IActivityMonitorFilteredClient.MinimalFilter"/> to all clients
+        /// that are <see cref="IActivityMonitorInteractiveUserClient"/>.
+        /// </summary>
+        /// <param name="this">This monitor.</param>
+        /// <param name="filter">The filter (typically <see cref="LogClamper.Clamp"/> is true).</param>
+        public static void SetInteractiveUserFilter( this IActivityMonitor @this, LogClamper filter )
+        {
+            foreach( var c in @this.Output.Clients.OfType<IActivityMonitorInteractiveUserClient>() )
+            {
+                c.MinimalFilter = filter;
+            }
+        }
+
+        /// <summary>
+        /// Temporarily sets the <see cref="IActivityMonitorFilteredClient.MinimalFilter"/> to all clients
+        /// that are <see cref="IActivityMonitorInteractiveUserClient"/> until the returned disposable is disposed.
+        /// </summary>
+        /// <param name="this">This monitor.</param>
+        /// <param name="filter">The filter (typically <see cref="LogClamper.Clamp"/> is true).</param>
+        /// <returns>A disposable to restore the original filters.</returns>
+        public static IDisposable TemporarilySetInteractiveUserFilter( this IActivityMonitor @this, LogClamper filter )
+        {
+            Action? restore = null;
+            foreach( var c in @this.Output.Clients.OfType<IActivityMonitorInteractiveUserClient>() )
+            {
+                var current = c.MinimalFilter;
+                if( current != filter )
+                {
+                    var prevRestore = restore;
+                    restore = prevRestore != null
+                                ? () => { prevRestore(); c.MinimalFilter = current; }
+                    : () => c.MinimalFilter = current;
+                    c.MinimalFilter = filter;
+                }
+            }
+            return restore == null ? Util.EmptyDisposable : Util.CreateDisposableAction( restore );
+        }
 
         #region IActivityMonitor.TemporarilySetMinimalFilter( ... )
 
@@ -384,9 +325,11 @@ namespace CK.Core
         /// <summary>
         /// Sets filter levels on this <see cref="IActivityMonitor"/>. The current <see cref="IActivityMonitor.MinimalFilter"/> will be automatically 
         /// restored when the returned <see cref="IDisposable"/> will be disposed.
+        /// <para>
         /// Note that even if closing a Group automatically restores the IActivityMonitor.MinimalFilter to its original value 
         /// (captured when the Group was opened), this may be useful to locally change the filter level without bothering to restore the 
         /// initial value (this is what OpenGroup/CloseGroup do with both the Filter and the AutoTags).
+        /// </para>
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="group">The new filter level for group.</param>
@@ -400,9 +343,11 @@ namespace CK.Core
         /// <summary>
         /// Sets a filter level on this <see cref="IActivityMonitor"/>. The current <see cref="IActivityMonitor.MinimalFilter"/> will be automatically 
         /// restored when the returned <see cref="IDisposable"/> will be disposed.
+        /// <para>
         /// Even if, when a Group is closed, the IActivityMonitor.Filter is automatically restored to its original value 
         /// (captured when the Group was opened), this may be useful to locally change the filter level without bothering to restore the 
         /// initial value (this is what OpenGroup/CloseGroup do with both the Filter and the AutoTags).
+        /// </para>
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="f">The new filter.</param>
@@ -526,7 +471,7 @@ namespace CK.Core
         /// <returns>The unregistered client, or null if no client has been found.</returns>
         public static T? UnregisterClient<T>( this IActivityMonitorOutput @this, Func<T, bool> predicate ) where T : IActivityMonitorClient
         {
-            if( predicate == null ) throw new ArgumentNullException( "predicate" );
+            Throw.CheckNotNullArgument( predicate );
             T? c = @this.Clients.OfType<T>().Where( predicate ).FirstOrDefault();
             if( c != null ) @this.UnregisterClient( c );
             return c;

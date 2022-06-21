@@ -21,7 +21,7 @@ namespace CK.PerfectEvent
     /// This cannot be implemented as a struct because the <see cref="operator+"/> and <see cref="operator-"/> must
     /// return the instance and a value type wouldn't correctly handle the null/single/array reference.
     /// </remarks>
-    public class SequentialEventHandlerAsyncSender<TEvent>
+    public sealed class SequentialEventHandlerAsyncSender<TEvent>
     {
         object? _handler;
 
@@ -37,7 +37,7 @@ namespace CK.PerfectEvent
         public SequentialEventHandlerAsyncSender<TEvent> Add( SequentialEventHandlerAsync<TEvent> handler )
         {
             if( handler == null ) throw new ArgumentNullException( nameof( handler ) );
-            Util.InterlockedSet( ref _handler, h =>
+            Util.InterlockedNullableSet( ref _handler, h =>
             {
                 if( h == null ) return handler;
                 if( h is SequentialEventHandlerAsync<TEvent> a ) return new SequentialEventHandlerAsync<TEvent>[] { a, handler };
@@ -56,7 +56,7 @@ namespace CK.PerfectEvent
         /// <param name="handler">The handler to remove. Cannot be null.</param>
         public SequentialEventHandlerAsyncSender<TEvent> Remove( SequentialEventHandlerAsync<TEvent> handler )
         {
-            Util.InterlockedSet( ref _handler, h =>
+            Util.InterlockedNullableSet( ref _handler, h =>
             {
                 if( h == null ) return null;
                 if( h is SequentialEventHandlerAsync<TEvent> a ) return a == handler ? null : h;

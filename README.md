@@ -4,7 +4,7 @@
 [![Nuget](https://img.shields.io/nuget/vpre/CK.ActivityMonitor.svg)](https://www.nuget.org/packages/CK.ActivityMonitor/)
 [![Licence](https://img.shields.io/github/license/Invenietis/CK-ActivityMonitor.svg)](https://github.com/Invenietis/CK-ActivityMonitor/blob/develop/LICENSE)
 
-This repository contains `IActivityMonitor` defifinition and its primary implementation along with helpers.  
+This repository contains `IActivityMonitor` definition and its primary implementation along with helpers.  
 See [CK-Monitoring](https://github.com/Invenietis/CK-Monitoring) for integration and use as a logging solution in .Net projects.
 
 ---
@@ -18,7 +18,7 @@ in the maintenance, exploitation and evolution phase of any serious project.
 The ActivityMonitor is more a **Storyteller**, than a regular Logger.
 
 We believe that more and more architectures, tools, programs will take this path because it's one of the mean to handle high complexity.
-MSBuild has this https://msbuildlog.com/, CI/CD interfaces starts to dislay toggled section around the execution steps, etc.
+MSBuild has this https://msbuildlog.com/, CI/CD interfaces starts to display toggled section around the execution steps, etc.
 
 ---
 
@@ -88,11 +88,35 @@ and it can be changed by calling the `SetTopic( message )` method at any time.
 
 The topic is merely a log line with a special tag, sent when constructing the monitor or changing it.
 
+#### Emitting logs the `ILogger` (static, contextless) way
+
+When no `IActivityMonitor` exists in a given context, there are 2 possibilities:
+- Create a `var monitor = new ActivityMonitor();` and use it. There is nothing to dispose (but if your code can know where a monitor should not be 
+used anymore, calling `monitor.MonitorEnd()` is welcome).
+- If there is only one (or very few) things to log, then you can use the [`ActivityMonitor.StaticLogger`](CK.ActivityMonitor/Impl/ActivityMonitor.StaticLogger.cs) 
+simple static API. Such log events are not tied to a monitor, their monitor identifier will be "§ext" and they are
+collectible by any external components: the CK.Monitoring.GrandOuput will catch and collect them.
+
+The `StaticLogger` should be used in very specific cases, in low level zone of code that are not
+yet "monitored" such as callbacks from timers for instance:
+
+```c#
+  void OnTimer( object? _ )
+  {
+      ActivityMonitor.StaticLogger.Debug( IDeviceHost.DeviceModel, $"Timer fired for '{FullName}'." );
+      Volatile.Write( ref _timerFired, true );
+      _commandQueue.Writer.TryWrite( _commandAwaker );
+  }
+```
+
+Of course, there is no `OpenGroup` on this API since open/close would interleave without any clue of which Close
+relates to which Open.
+
 ### Consuming logs
 
 Logs received by the `IActivityMonitor` façade are routed to its clients (see [Clients](CK.ActivityMonitor/Client) for a basic console output sample).
 
-In practice, more powerful logs management that this simple direct clients is required and we use the packages from
+In practice, more powerful logs management than this simple direct clients is required and we use the packages from
 [CK-Monitoring](https://github.com/Invenietis/CK-Monitoring) repository (that implements the `GrandOutput` central collector) and, for tests,
 the [CK.Testing.Monitoring](https://github.com/Invenietis/CK-Testing/tree/master/CK.Testing.Monitoring) package that adds a Monitor property on the **TestHelper**
 mix-in: it's easy to use `TestHelper.Monitor` from any tests.
@@ -133,32 +157,9 @@ public class MyClass
 }
 ```
 Before this simple sender, a less intuitive set of extension methods exist: the "standard" ones that rely on a
-two-steps approach. Even if we maintain this package, we recommend to use the Simple one rather that the Standard one.
-
-> **CK.ActivityMonitor.StandardSender** [![Nuget](https://img.shields.io/nuget/vpre/CK.ActivityMonitor.StandardSender.svg)](https://www.nuget.org/packages/CK.ActivityMonitor.StandardSender/)
-> 
-> Contains the two-steps logging extension methods on `IActivityMonitor`:
-> ```csharp
-> using CK.Core;
-> public class MyClass
-> { 
->   public void MyMethod()
->   {
->       IActivityMonitor m = new ActivityMonitor();
-> 
->       using( m.OpenInfo().Send("My group") )
->       {
->           m.Debug().Send("My Debug log line");
->           m.Trace().Send("My Trace log line");
->           m.Info().Send("My Info log line");
->           m.Warn().Send("My Warn log line");
->           m.Error().Send("My Error log line");
->           m.Fatal().Send("My Fatal log line");
->       }
->   }
-> }
-> ```
-
+two-steps approach. This package is now totally deprecated since thanks to the C# 10 [interpolated handlers](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-10.0/improved-interpolated-strings#the-handler-pattern),
+the .NET 6 simple sender can now skip the evaluation of the interpolated message based on the log Tags.
+This is described here: [CK.ActivityMonitor/Impl/TagFiltering](CK.ActivityMonitor/Impl/TagFiltering.md).
  
 ### CK.PerfectEvent [![Nuget](https://img.shields.io/nuget/vpre/CK.PerfectEvent.svg)](https://www.nuget.org/packages/CK.PerfectEvent/)
 

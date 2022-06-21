@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using System.Diagnostics;
-using CK.Text;
 using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core
@@ -18,77 +17,63 @@ namespace CK.Core
         readonly StringBuilder _buffer;
         Action<string> _writer;
         string _prefix;
-        string _prefixLevel;
-        CKTrait _currentTags;
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitorTextWriterClient"/> bound to a 
-        /// function that must write a string, with a filter.
-        /// The depth padding is using white spaces.
-        /// </summary>
-        /// <param name="writer">Function that writes the content.</param>
-        /// <param name="filter">Filter to apply.</param>
-        public ActivityMonitorTextWriterClient( Action<string> writer, LogFilter filter )
-            : this( writer, filter, ' ' )
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new <see cref="ActivityMonitorTextWriterClient"/> bound to a 
-        /// function that must write a string, with a filter and a character that starts the "depth padding".
+        /// function that must write a string, with a filter and a character that starts
+        /// the "depth padding" that defaults to '|'.
         /// </summary>
         /// <param name="writer">Function that writes the content.</param>
         /// <param name="filter">Filter to apply.</param>
         /// <param name="depthInitial">The character to use in front of the "depth padding".</param>
-        public ActivityMonitorTextWriterClient( Action<string> writer, LogFilter filter, char depthInitial )
-            : this( filter )
+        public ActivityMonitorTextWriterClient( Action<string> writer, LogClamper filter, char depthInitial = '|' )
+            : this( filter, depthInitial )
         {
-            if( depthInitial != ' ' ) _depthPadding = depthInitial + _depthPadding.Substring( 1 );
-            Writer = writer ?? throw new ArgumentNullException( "writer" );
+            Throw.CheckNotNullArgument( writer );
+            Writer = writer;
         }
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitorTextWriterClient"/> bound to a 
         /// function that must write a string.
-        /// The depth padding is using white spaces.
         /// </summary>
         /// <param name="writer">Function that writes the content.</param>
-        public ActivityMonitorTextWriterClient( Action<string> writer )
-            : this( writer, LogFilter.Undefined )
+        /// <param name="depthInitial">The character to use in front of the "depth padding".</param>
+        public ActivityMonitorTextWriterClient( Action<string> writer, char depthInitial = '|' )
+            : this( writer, LogClamper.Undefined, depthInitial )
         {
         }
 
         /// <summary>
         /// Initialize a new <see cref="ActivityMonitorTextWriterClient"/> with a 
-        /// <see cref="Writer"/> sets to <see cref="Util.ActionVoid{string}"/>.
+        /// <see cref="Writer"/> sets to <see cref="Util.ActionVoid{T}"/>.
         /// Unless explicitly initialized, this will not write anything anywhere.
-        /// The depth padding is using white spaces.
         /// </summary>
         /// <param name="filter">Filter to apply.</param>
-        public ActivityMonitorTextWriterClient( LogFilter filter )
+        /// <param name="depthInitial">The character to use in front of the "depth padding".</param>
+        public ActivityMonitorTextWriterClient( LogClamper filter, char depthInitial = '|' )
             : base( filter )
         {
-            _depthPadding = "   ";
+            _depthPadding = depthInitial != ' ' ? depthInitial + " " : "  ";
             _buffer = new StringBuilder();
-            _prefixLevel = _prefix = String.Empty;
-            _currentTags = ActivityMonitor.Tags.Empty;
+            _prefix = String.Empty;
             _writer = Util.ActionVoid<string>;
         }
 
         /// <summary>
         /// Initialize a new <see cref="ActivityMonitorTextWriterClient"/> with a 
-        /// <see cref="Writer"/> sets to <see cref="Util.ActionVoid{string}"/>.
+        /// <see cref="Writer"/> sets to <see cref="Util.ActionVoid{T}"/>.
         /// Unless explicitly initialized, this will not write anything anywhere.
-        /// The depth padding is using white spaces.
         /// </summary>
-        public ActivityMonitorTextWriterClient()
-            : this( LogFilter.Undefined )
+        /// <param name="depthInitial">The character to use in front of the "depth padding".</param>
+        public ActivityMonitorTextWriterClient( char depthInitial = '|' )
+            : this( LogClamper.Undefined, depthInitial )
         {
         }
 
         /// <summary>
         /// Gets or sets the actual writer function.
-        /// When set to null, the empty <see cref="Util.ActionVoid{string}"/> is set.
+        /// When set to null, the empty <see cref="Util.ActionVoid{T}"/> is set.
         /// </summary>
         [AllowNull]
         protected Action<string> Writer { get => _writer; set => _writer = value ?? Util.ActionVoid<string>; }
@@ -97,26 +82,17 @@ namespace CK.Core
         /// Writes all the information.
         /// </summary>
         /// <param name="data">Log data.</param>
-        protected override void OnEnterLevel( ActivityMonitorLogData data )
+        protected override void OnEnterLevel( ref ActivityMonitorLogData data )
         {
             var w = _buffer.Clear();
-            _prefixLevel = _prefix + new string( ' ', data.MaskedLevel.ToString().Length + 4 );
-
             w.Append( _prefix )
-                .Append( "- " )
-                .Append( data.MaskedLevel.ToString() )
-                .Append( ": " )
-                .AppendMultiLine( _prefixLevel, data.Text, false );
-
-            if( _currentTags != data.Tags )
-            {
-                w.Append( " -[" ).Append( data.Tags ).Append( ']' );
-                _currentTags = data.Tags;
-            }
-            w.AppendLine();
+                .Append( data.Level.ToChar() )
+                .Append( " [" ).Append( data.Tags ).Append( "] " )
+                .AppendMultiLine( _prefix + "  ", data.Text, false )
+                .AppendLine();
             if( data.Exception != null )
             {
-                DumpException( w, _prefix, !data.IsTextTheExceptionMessage, data.Exception );
+                DumpException( w, _prefix + ' ', !data.IsTextTheExceptionMessage, data.Exception );
             }
             Writer( w.ToString() );
         }
@@ -125,32 +101,25 @@ namespace CK.Core
         /// Writes all information.
         /// </summary>
         /// <param name="data">Log data.</param>
-        protected override void OnContinueOnSameLevel( ActivityMonitorLogData data )
+        protected override void OnContinueOnSameLevel( ref ActivityMonitorLogData data )
         {
             var w = _buffer.Clear();
-            w.AppendMultiLine( _prefixLevel, data.Text, true );
-            if( _currentTags != data.Tags )
-            {
-                w.Append( " -[" ).Append( data.Tags ).Append( ']' );
-                _currentTags = data.Tags;
-            }
-            w.AppendLine();
+            w.Append( _prefix ).Append( "  [" ).Append( data.Tags ).Append( "] " )
+             .AppendMultiLine( _prefix + "  ", data.Text, false )
+             .AppendLine();
             if( data.Exception != null )
             {
-                DumpException( w, _prefix, !data.IsTextTheExceptionMessage, data.Exception );
+                DumpException( w, _prefix + ' ', !data.IsTextTheExceptionMessage, data.Exception );
             }
-
             Writer( _buffer.ToString() );
         }
 
         /// <summary>
-        /// Updates the internally maintained prefix for lines.
+        /// Does nothing.
         /// </summary>
-        /// <param name="level">Previous level.</param>
+        /// <param name="level">The previous log level (without <see cref="LogLevel.IsFiltered"/>).</param>
         protected override void OnLeaveLevel( LogLevel level )
         {
-            Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
-            _prefixLevel = _prefix;
         }
 
         /// <summary>
@@ -160,22 +129,16 @@ namespace CK.Core
         protected override void OnGroupOpen( IActivityLogGroup g )
         {
             var w = _buffer.Clear();
-            string levelLabel = g.MaskedGroupLevel.ToString();
-            string start = string.Format( "{0}> {1}: ", _prefix, levelLabel );
+            string start = string.Format( "{0}> {1} ", _prefix, g.Data.Level.ToChar() );
             _prefix += _depthPadding;
-            _prefixLevel = _prefix;
-            string prefixLabel = _prefixLevel + new string( ' ', levelLabel.Length + 1 );
 
-            w.Append( start ).AppendMultiLine( prefixLabel, g.GroupText, false );
-            if( _currentTags != g.GroupTags )
+            w.Append( start )
+             .Append( '[' ).Append( g.Data.Tags ).Append( "] " )
+             .AppendMultiLine( _prefix + "  ", g.Data.Text, false )
+             .AppendLine();
+            if( g.Data.Exception != null )
             {
-                w.Append( " -[" ).Append( g.GroupTags ).Append( ']' );
-                _currentTags = g.GroupTags;
-            }
-            w.AppendLine();
-            if( g.Exception != null )
-            {
-                DumpException( w, _prefix, !g.IsGroupTextTheExceptionMessage, g.Exception );
+                DumpException( w, _prefix, !g.Data.IsTextTheExceptionMessage, g.Data.Exception );
             }
             Writer( _buffer.ToString() );
         }
@@ -187,7 +150,8 @@ namespace CK.Core
         /// <param name="conclusions">Conclusions for the group.</param>
         protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
         {
-            _prefixLevel = _prefix = _prefix.Remove( _prefix.Length - 3 );
+            Debug.Assert( _depthPadding.Length == 2 );
+            _prefix = _prefix.Remove( _prefix.Length - 2 );
             if( conclusions is null || conclusions.Count == 0 ) return;
             var w = _buffer.Clear();
             bool one = false;
@@ -203,24 +167,22 @@ namespace CK.Core
                 {
                     if( !one )
                     {
-                        w.Append( _prefixLevel ).Append( "< " );
+                        w.Append( _prefix ).Append( "< " );
                         one = true;
                     }
                     else
                     {
-                        w.Append( " - " );
+                        w.Append( _prefix ).Append( "  - " );
                     }
-
-                    w.Append( c.Text );
+                    w.AppendLine( c.Text );
                 }
             }
-            if( one ) w.AppendLine();
             if( withMultiLines != null )
             {
                 foreach( var c in withMultiLines )
                 {
-                    w.Append( _prefixLevel ).Append( "< " );
-                    w.AppendMultiLine( _prefixLevel + "  ", c.Text, false );
+                    w.Append( _prefix ).Append( "  - " );
+                    w.AppendMultiLine( _prefix + "    ", c.Text, false );
                     w.AppendLine();
                 }
             }
@@ -258,8 +220,7 @@ namespace CK.Core
                 w.AppendMultiLine( localPrefix + "       ", ex.StackTrace, false );
                 w.AppendLine();
             }
-            var fileNFEx = ex as System.IO.FileNotFoundException;
-            if( fileNFEx != null )
+            if( ex is System.IO.FileNotFoundException fileNFEx )
             {
                 if( !String.IsNullOrEmpty( fileNFEx.FileName ) ) w.AppendLine( localPrefix + "FileName: " + fileNFEx.FileName );
                 if( fileNFEx.FusionLog != null )
@@ -271,8 +232,7 @@ namespace CK.Core
             }
             else
             {
-                var loadFileEx = ex as System.IO.FileLoadException;
-                if( loadFileEx != null )
+                if( ex is System.IO.FileLoadException loadFileEx )
                 {
                     if( !String.IsNullOrEmpty( loadFileEx.FileName ) ) w.AppendLine( localPrefix + "FileName: " + loadFileEx.FileName );
                     if( loadFileEx.FusionLog != null )
@@ -284,8 +244,7 @@ namespace CK.Core
                 }
                 else
                 {
-                    var typeLoadEx = ex as ReflectionTypeLoadException;
-                    if( typeLoadEx != null )
+                    if( ex is ReflectionTypeLoadException typeLoadEx )
                     {
                         w.AppendLine( localPrefix + " ┌──────────────────────────■ [Loader Exceptions] ■──────────────────────────" );
                         p = localPrefix + " | ";
@@ -294,7 +253,7 @@ namespace CK.Core
                             // apparently, Types/LoaderExceptions are parallel array.
                             // A null in Types[i] mean there is an exception in LoaderException[i]
                             // https://docs.microsoft.com/en-us/dotnet/api/system.reflection.reflectiontypeloadexception.loaderexceptions?view=netstandard-2.0#property-value
-                            if( typeLoadEx.Types[i] != null ) 
+                            if( typeLoadEx.Types[i] != null )
                             {
                                 Debug.Assert( typeLoadEx.LoaderExceptions[i] == null );
                                 continue;
@@ -308,8 +267,7 @@ namespace CK.Core
             // The InnerException of an aggregated exception is the same as the first of it InnerExceptionS.
             // (The InnerExceptionS are the contained/aggregated exceptions of the AggregatedException object.)
             // This is why, if we are on an AggregatedException we do not follow its InnerException.
-            var aggrex = ex as AggregateException;
-            if( aggrex != null && aggrex.InnerExceptions.Count > 0 )
+            if( ex is AggregateException aggrex && aggrex.InnerExceptions.Count > 0 )
             {
                 w.AppendLine( localPrefix + " ┌──────────────────────────■ [Aggregated Exceptions] ■──────────────────────────" );
                 p = localPrefix + " | ";

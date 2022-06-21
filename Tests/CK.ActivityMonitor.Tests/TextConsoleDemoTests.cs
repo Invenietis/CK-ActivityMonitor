@@ -35,10 +35,10 @@ namespace CK.Core.Tests.Monitoring
 
         static Exception ThrowLoaderException()
         {
-            Exception e = null;
+            Exception? e = null;
             try { Type.GetType( "A.Type, An.Unexisting.Assembly", true ); }
             catch( Exception ex ) { e = ex; }
-            return e;
+            return e!;
         }
         #endregion
 
@@ -99,11 +99,13 @@ This MUST be correctly indented!" ) )
                     m.Error( "An error.", _exceptionWithInnerLoader );
                     m.Error( "Same error occured (wrapped in CKException)", new CKException( CKExceptionData.CreateFrom( _exceptionWithInnerLoader ) ) );
                     m.Warn( "A warning." );
-                    m.Trace( "Something must be said." );
+                    m.Trace( "Something must be said (1/3)." );
+                    m.Trace( "Something must be said (2/3)." );
+                    m.Trace( "Something must be said (3/3)." );
                     m.CloseGroup( "Everything is in place." );
                 }
             }
-            m.SetTopic( null );
+            m.SetTopic( null! );
             using( m.OpenTrace( "A group with multiple conclusions." ) )
             {
                 using( m.OpenTrace( "A group with no conclusion." ) )

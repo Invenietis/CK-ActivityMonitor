@@ -17,7 +17,7 @@ namespace CK.PerfectEvent
     /// </summary>
     /// <typeparam name="TSender">The type of the event sender.</typeparam>
     /// <typeparam name="TArg">The type of the event argument.</typeparam>
-    public class PerfectEventSender<TSender, TArg>
+    public sealed class PerfectEventSender<TSender, TArg>
     {
         readonly SequentialEventHandlerSender<TSender, TArg> _seq;
         readonly SequentialEventHandlerAsyncSender<TSender, TArg> _seqAsync;
@@ -160,9 +160,9 @@ namespace CK.PerfectEvent
             }
             catch( Exception ex )
             {
-                if( monitor.ShouldLogLine( LogLevel.Error, fileName, lineNumber ) )
+                if( monitor.ShouldLogLine( LogLevel.Error, null, out var finalTags ) )
                 {
-                    monitor.UnfilteredLog( null, LogLevel.Error, $"While raising event '{e}'.", monitor.NextLogTime(), ex, fileName, lineNumber );
+                    monitor.UnfilteredLog( LogLevel.Error, finalTags, $"While raising event '{e}'.", ex, fileName, lineNumber );
                 }
                 return false;
             }

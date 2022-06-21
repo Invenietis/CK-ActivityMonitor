@@ -1,26 +1,3 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Core\ActivityMonitor\Impl\IActivityMonitorImpl.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Runtime.CompilerServices;
 
@@ -30,7 +7,7 @@ namespace CK.Core.Impl
     /// Defines required aspects that an actual monitor implementation must support.
     /// This interface is available to any <see cref="IActivityMonitorBoundClient"/>.
     /// </summary>
-    public interface IActivityMonitorImpl : IActivityMonitor, IUniqueId
+    public interface IActivityMonitorImpl : IActivityMonitor
     {
         /// <summary>
         /// Gets the currently opened group.
@@ -86,7 +63,7 @@ namespace CK.Core.Impl
         /// <param name="newTags">new tags to set. When null, it is ignored.</param>
         /// <param name="fileName">Source file name of the caller. Do not set it: the attribute will do the job.</param>
         /// <param name="lineNumber">Line number in the source file. Do not set it: the attribute will do the job.</param>
-        void InitializeTopicAndAutoTags( string newTopic, CKTrait newTags, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 );
+        void InitializeTopicAndAutoTags( string newTopic, CKTrait newTags, [CallerFilePath]string? fileName = null, [CallerLineNumber]int lineNumber = 0 );
 
     }
 }

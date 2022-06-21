@@ -1,41 +1,29 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Core\ActivityMonitor\IActivityMonitorBoundClient.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 namespace CK.Core
 {
     /// <summary>
     /// Specialized <see cref="IActivityMonitorBoundClient"/> that exposes
-    /// its <see cref="IActivityMonitorBoundClient.MinimalFilter"/> as a writable property.
+    /// its <see cref="IActivityMonitorBoundClient.MinimalFilter"/> as a <see cref="LogClamper"/> property:
+    /// when <see cref="LogClamper.Clamp"/> is true, logs for this client should be filtered out accordingly.
     /// </summary>
+    /// <remarks>
+    /// Implementations should explicitly implement <see cref="IActivityMonitorBoundClient.MinimalFilter"/> to
+    /// return the <see cref="LogClamper.Filter"/>.
+    /// </remarks>
     public interface IActivityMonitorFilteredClient : IActivityMonitorBoundClient
     {
         /// <summary>
         /// Gets or sets the minimal log level that this Client expects. 
         /// Setting this to any level ensures that the bounded monitor will accept
         /// at least this level (see <see cref="IActivityMonitor.ActualFilter"/>).
-        /// Defaults to <see cref="LogFilter.Undefined"/> if this client has no filtering requirements.
+        /// <para>
+        /// When the <see cref="LogClamper.Clamp"/> is true, any log more verbose than
+        /// the <see cref="LogClamper.Filter"/> should be ignored by this implementation.
+        /// </para>
+        /// <para>
+        /// Defaults to <see cref="LogClamper.Undefined"/> if this client has no filtering requirements.
+        /// </para>
         /// </summary>
-        new LogFilter MinimalFilter { get; set; }
+        new LogClamper MinimalFilter { get; set; }
 
     }
 }

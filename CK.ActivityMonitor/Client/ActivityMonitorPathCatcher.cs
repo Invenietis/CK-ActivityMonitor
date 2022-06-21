@@ -1,26 +1,3 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Core\ActivityMonitor\Client\ActivityMonitorPathCatcher.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,8 +43,8 @@ namespace CK.Core
             public override string ToString() => Text;
         }
 
-        IReadOnlyList<PathElement>? _errorSnaphot;
-        IReadOnlyList<PathElement>? _warnSnaphot;
+        IReadOnlyList<PathElement> _errorSnaphot;
+        IReadOnlyList<PathElement> _warnSnaphot;
 
         readonly List<PathElement> _path;
         PathElement? _current;
@@ -82,6 +59,8 @@ namespace CK.Core
         public ActivityMonitorPathCatcher()
         {
             _path = new List<PathElement>();
+            _errorSnaphot = Array.Empty<PathElement>();
+            _warnSnaphot = Array.Empty<PathElement>();  
         }
 
         void IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl? source, bool forceBuggyRemove )
@@ -111,22 +90,22 @@ namespace CK.Core
 
         /// <summary>
         /// Gets the last <see cref="DynamicPath"/> where an <see cref="LogLevel.Error"/> or a <see cref="LogLevel.Fatal"/> occurred.
-        /// Null if no error nor fatal occurred.
+        /// Empty if no error nor fatal occurred.
         /// Use the extension method <see cref="ActivityMonitorExtension.ToStringPath"/> to easily format this path.
         /// </summary>
-        public IReadOnlyList<PathElement>? LastErrorPath => _errorSnaphot;
+        public IReadOnlyList<PathElement> LastErrorPath => _errorSnaphot;
 
         /// <summary>
         /// Clears current <see cref="LastErrorPath"/> (sets it to null).
         /// </summary>
-        public void ClearLastErrorPath() => _errorSnaphot = null;
+        public void ClearLastErrorPath() => _errorSnaphot = Array.Empty<PathElement>();
 
         /// <summary>
         /// Gets the last path with a <see cref="LogLevel.Fatal"/>, <see cref="LogLevel.Error"/> or a <see cref="LogLevel.Warn"/>.
-        /// Null if no error, fatal nor warn occurred.
+        /// Empty if no error, fatal nor warn occurred.
         /// Use the extension method <see cref="ActivityMonitorExtension.ToStringPath"/> to easily format this path.
         /// </summary>
-        public IReadOnlyList<PathElement>? LastWarnOrErrorPath => _warnSnaphot; 
+        public IReadOnlyList<PathElement> LastWarnOrErrorPath => _warnSnaphot; 
 
         /// <summary>
         /// Clears current <see cref="LastWarnOrErrorPath"/> (sets it to null), and
@@ -134,8 +113,8 @@ namespace CK.Core
         /// </summary>
         public void ClearLastWarnPath( bool clearLastErrorPath = false )
         {
-            _warnSnaphot = null;
-            if( clearLastErrorPath ) _errorSnaphot = null;
+            _warnSnaphot = Array.Empty<PathElement>();
+            if( clearLastErrorPath ) _errorSnaphot = Array.Empty<PathElement>();
         }
 
         /// <summary>
@@ -143,7 +122,7 @@ namespace CK.Core
         /// and handles errors or warning.
         /// </summary>
         /// <param name="data">Log data. Never null.</param>
-        protected override void OnUnfilteredLog( ActivityMonitorLogData data )
+        protected override void OnUnfilteredLog( ref ActivityMonitorLogData data )
         {
             if( data.Text != ActivityMonitor.ParkLevel )
             {
@@ -175,9 +154,9 @@ namespace CK.Core
                 _path.Add( _current );
             }
             _currentIsGroup = true;
-            _current.Tags = group.GroupTags;
-            _current.MaskedLevel = group.MaskedGroupLevel;
-            _current.Text = group.GroupText;
+            _current.Tags = group.Data.Tags;
+            _current.MaskedLevel = group.Data.MaskedLevel;
+            _current.Text = group.Data.Text;
             CheckSnapshot();
         }
 

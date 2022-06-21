@@ -27,7 +27,7 @@ namespace CK.PerfectEvent
     /// </remarks>
     /// <typeparam name="TSender">Type of the sender.</typeparam>
     /// <typeparam name="TArg">Type of the event argument.</typeparam>
-    public class ParallelEventHandlerAsyncSender<TSender, TArg>
+    public sealed class ParallelEventHandlerAsyncSender<TSender, TArg>
     {
         object? _handler;
 
@@ -43,7 +43,7 @@ namespace CK.PerfectEvent
         public ParallelEventHandlerAsyncSender<TSender, TArg> Add( ParallelEventHandlerAsync<TSender, TArg> handler )
         {
             if( handler == null ) throw new ArgumentNullException( nameof( handler ) );
-            Util.InterlockedSet( ref _handler, h =>
+            Util.InterlockedNullableSet( ref _handler, h =>
             {
                 if( h == null ) return handler;
                 if( h is ParallelEventHandlerAsync<TSender, TArg> a ) return new ParallelEventHandlerAsync<TSender, TArg>[] { a, handler };
@@ -63,7 +63,7 @@ namespace CK.PerfectEvent
         public ParallelEventHandlerAsyncSender<TSender, TArg> Remove( ParallelEventHandlerAsync<TSender, TArg> handler )
         {
             if( handler == null ) throw new ArgumentNullException( nameof( handler ) );
-            Util.InterlockedSet( ref _handler, h =>
+            Util.InterlockedNullableSet( ref _handler, h =>
             {
                 if( h == null ) return null;
                 if( h is ParallelEventHandlerAsync<TSender, TArg> a ) return a == handler ? null : h;
@@ -110,7 +110,7 @@ namespace CK.PerfectEvent
         {
             var h = _handler;
             if( h == null ) return Task.CompletedTask;
-            ActivityMonitor.DependentToken token = monitor.DependentActivity().CreateToken();
+            ActivityMonitor.DependentToken token = monitor.CreateDependentToken();
             if( h is ParallelEventHandlerAsync<TSender, TArg> a ) return a( token, sender, args );
             var all = (ParallelEventHandlerAsync<TSender, TArg>[])h;
             return Task.WhenAll( all.Select( x => x( token, sender, args ) ) );

@@ -1,26 +1,3 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Core\ActivityMonitor\Client\ActivityMonitorTextHelperClient.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -30,13 +7,13 @@ namespace CK.Core
 {
     /// <summary>
     /// Base class for <see cref="IActivityMonitorClient"/> that tracks groups and level changes in order
-    /// to ease text-based renderer.
+    /// to ease text-based renderer implementations.
     /// </summary>
     public abstract class ActivityMonitorTextHelperClient : IActivityMonitorFilteredClient
     {
         int _curLevel;
-        LogFilter _filter;
-        Stack<bool> _openGroups;
+        LogClamper _filter;
+        readonly Stack<bool> _openGroups;
         IActivityMonitorImpl? _source;
         static string[] _prefixGroupDepthCache;
         const string _emptyLinePrefix = "| ";
@@ -59,7 +36,7 @@ namespace CK.Core
         /// <returns>The string to display the indented group.</returns>
         public static string GetMultilinePrefixWithDepth( int depth )
         {
-            if( depth < 0 && depth >= 1024 ) ActivityMonitor.ThrowOutOfRangeArg( nameof( depth ) );
+            Throw.CheckArgument( depth >= 0 && depth <= 1024 );
             if( _prefixGroupDepthCache.Length < depth + 1 )
             {
                 string previousPrefix = GetMultilinePrefixWithDepth( depth - 1 );
@@ -71,7 +48,7 @@ namespace CK.Core
         /// <summary>
         /// Initialize a new <see cref="ActivityMonitorTextHelperClient"/> with a filter.
         /// </summary>
-        protected ActivityMonitorTextHelperClient( LogFilter filter )
+        protected ActivityMonitorTextHelperClient( LogClamper filter )
         {
             _curLevel = -1;
             _openGroups = new Stack<bool>();
@@ -79,14 +56,14 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Initialize a new <see cref="ActivityMonitorTextHelperClient"/>.
+        /// Initialize a new <see cref="ActivityMonitorTextHelperClient"/> without any filter.
         /// </summary>
         protected ActivityMonitorTextHelperClient()
-            : this( LogFilter.Undefined )
+            : this( LogClamper.Undefined )
         {
         }
 
-        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorLogData data )
+        void IActivityMonitorClient.OnUnfilteredLog( ref ActivityMonitorLogData data )
         {
             var level = data.MaskedLevel;
 
@@ -107,7 +84,7 @@ namespace CK.Core
             {
                 if( _curLevel == (int)level )
                 {
-                    OnContinueOnSameLevel( data );
+                    OnContinueOnSameLevel( ref data );
                 }
                 else
                 {
@@ -115,7 +92,7 @@ namespace CK.Core
                     {
                         OnLeaveLevel( (LogLevel)_curLevel );
                     }
-                    OnEnterLevel( data );
+                    OnEnterLevel( ref data );
                     _curLevel = (int)level;
                 }
             }
@@ -128,7 +105,7 @@ namespace CK.Core
                 OnLeaveLevel( (LogLevel)_curLevel );
                 _curLevel = -1;
             }
-            if( !CanOutputGroup( group.MaskedGroupLevel ) )
+            if( !CanOutputGroup( group.Data.MaskedLevel ) )
             {
                 _openGroups.Push( false );
                 return;
@@ -156,13 +133,13 @@ namespace CK.Core
         /// Called for the first text of a <see cref="LogLevel"/>.
         /// </summary>
         /// <param name="data">Log data.</param>
-        protected abstract void OnEnterLevel( ActivityMonitorLogData data );
+        protected abstract void OnEnterLevel( ref ActivityMonitorLogData data );
 
         /// <summary>
         /// Called for text with the same <see cref="LogLevel"/> as the previous ones.
         /// </summary>
         /// <param name="data">Log data.</param>
-        protected abstract void OnContinueOnSameLevel( ActivityMonitorLogData data );
+        protected abstract void OnContinueOnSameLevel( ref ActivityMonitorLogData data );
 
         /// <summary>
         /// Called when current log level changes.
@@ -192,37 +169,33 @@ namespace CK.Core
         {
         }
 
-        /// <summary>
-        /// Gets or sets the filter for this client.
-        /// Setting this to any level ensures that the bounded monitor will accept
-        /// at least this level (see <see cref="IActivityMonitor.ActualFilter"/>).
-        /// </summary>
-        public LogFilter MinimalFilter
+        /// <inheritdoc />
+        public LogClamper MinimalFilter
         {
             get { return _filter; }
             set
             {
-                LogFilter oldFilter = _filter;
+                LogFilter oldFilter = _filter.Filter;
                 _filter = value;
-                if( _source != null ) _source.OnClientMinimalFilterChanged( oldFilter, _filter );
+                if( _source != null ) _source.OnClientMinimalFilterChanged( oldFilter, _filter.Filter );
             }
         }
 
         bool CanOutputLine( LogLevel logLevel )
         {
             Debug.Assert( (logLevel & LogLevel.IsFiltered) == 0, "The level must already be masked." );
-            return _filter.Line == LogLevelFilter.None || (int)logLevel >= (int)_filter.Line;
+            return !_filter.Clamp || (int)logLevel >= (int)_filter.Filter.Line;
         }
 
         bool CanOutputGroup( LogLevel logLevel )
         {
             Debug.Assert( (logLevel & LogLevel.IsFiltered) == 0, "The level must already be masked." );
-            return _filter.Group == LogLevelFilter.None || (int)logLevel >= (int)_filter.Group;
+            return !_filter.Clamp || (int)logLevel >= (int)_filter.Filter.Group;
         }
 
         #region IActivityMonitorBoundClient Members
 
-        LogFilter IActivityMonitorBoundClient.MinimalFilter => _filter;
+        LogFilter IActivityMonitorBoundClient.MinimalFilter => _filter.Filter;
 
         void IActivityMonitorBoundClient.SetMonitor( Impl.IActivityMonitorImpl? source, bool forceBuggyRemove )
         {

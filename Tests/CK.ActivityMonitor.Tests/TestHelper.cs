@@ -1,8 +1,10 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using CK.Text;
+
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
 namespace CK.Core.Tests
 {
@@ -10,7 +12,7 @@ namespace CK.Core.Tests
     {
         static string _testFolder;
         static string _solutionFolder;
-        
+
         static IActivityMonitor _monitor;
         static ActivityMonitorConsoleClient _console;
 
@@ -21,7 +23,15 @@ namespace CK.Core.Tests
             _console = new ActivityMonitorConsoleClient();
         }
 
-        public static IActivityMonitor Monitor => _monitor; 
+        public static CKTrait Tag1 = ActivityMonitor.Tags.Register( "Tag1" );
+        public static CKTrait Tag2 = ActivityMonitor.Tags.Register( "Tag2" );
+        public static CKTrait Tag3 = ActivityMonitor.Tags.Register( "Tag3" );
+        public static CKTrait Tag4 = ActivityMonitor.Tags.Register( "Tag4" );
+        public static CKTrait Tag5 = ActivityMonitor.Tags.Register( "Tag5" );
+        public static CKTrait Tag6 = ActivityMonitor.Tags.Register( "Tag6" );
+
+
+        public static IActivityMonitor Monitor => _monitor;
 
         public static bool LogsToConsole
         {
@@ -41,7 +51,7 @@ namespace CK.Core.Tests
             get
             {
                 if( _testFolder == null ) InitializePaths();
-                return _testFolder;
+                return _testFolder!;
             }
         }
 
@@ -50,19 +60,19 @@ namespace CK.Core.Tests
             get
             {
                 if( _solutionFolder == null ) InitializePaths();
-                return _solutionFolder;
+                return _solutionFolder!;
             }
         }
 
         public static void CleanupTestFolder()
         {
-            CleanupFolder(TestFolder);
+            CleanupFolder( TestFolder );
         }
 
         public static void CleanupFolder( string folder )
         {
             int tryCount = 0;
-            for( ; ; )
+            for(; ; )
             {
                 try
                 {
@@ -75,7 +85,7 @@ namespace CK.Core.Tests
                 catch( Exception ex )
                 {
                     if( ++tryCount == 20 ) throw;
-                    Monitor.Info().Send( ex, "While cleaning up test directory. Retrying." );
+                    Monitor.Info( "While cleaning up test directory. Retrying.", ex );
                     System.Threading.Thread.Sleep( 100 );
                 }
             }
@@ -93,7 +103,7 @@ namespace CK.Core.Tests
             LogFile.RootLogPath = Path.Combine( _testFolder, "Logs" );
             Console.WriteLine($"SolutionFolder is: {_solutionFolder}.");
             Console.WriteLine($"TestFolder is: {_testFolder}.");
-            Console.WriteLine($"Core path: {typeof(string).GetTypeInfo().Assembly.CodeBase}.");
+            Console.WriteLine($"Core path: {typeof(string).GetTypeInfo().Assembly.Location}.");
         }
 
     }

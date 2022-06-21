@@ -24,7 +24,7 @@ namespace CK.PerfectEvent
     /// return the instance and a value type wouldn't correctly handle the null/single/array reference.
     /// </remarks>
     /// <typeparam name="TEvent">The type of the event.</typeparam>
-    public class ParallelEventHandlerAsyncSender<TEvent>
+    public sealed class ParallelEventHandlerAsyncSender<TEvent>
     {
         object? _handler;
 
@@ -40,7 +40,7 @@ namespace CK.PerfectEvent
         public ParallelEventHandlerAsyncSender<TEvent> Add( ParallelEventHandlerAsync<TEvent> handler )
         {
             if( handler == null ) throw new ArgumentNullException( nameof( handler ) );
-            Util.InterlockedSet( ref _handler, h =>
+            Util.InterlockedNullableSet( ref _handler, h =>
             {
                 if( h == null ) return handler;
                 if( h is ParallelEventHandlerAsync<TEvent> a ) return new ParallelEventHandlerAsync<TEvent>[] { a, handler };
@@ -60,7 +60,7 @@ namespace CK.PerfectEvent
         public ParallelEventHandlerAsyncSender<TEvent> Remove( ParallelEventHandlerAsync<TEvent> handler )
         {
             if( handler == null ) throw new ArgumentNullException( nameof( handler ) );
-            Util.InterlockedSet( ref _handler, h =>
+            Util.InterlockedNullableSet( ref _handler, h =>
             {
                 if( h == null ) return null;
                 if( h is ParallelEventHandlerAsync<TEvent> a ) return a == handler ? null : h;
@@ -106,7 +106,7 @@ namespace CK.PerfectEvent
         {
             var h = _handler;
             if( h == null ) return Task.CompletedTask;
-            ActivityMonitor.DependentToken token = monitor.DependentActivity().CreateToken();
+            ActivityMonitor.DependentToken token = monitor.CreateDependentToken();
             if( h is ParallelEventHandlerAsync<TEvent> a ) return a( token, e );
             var all = (ParallelEventHandlerAsync<TEvent>[])h;
             return Task.WhenAll( all.Select( x => x( token, e ) ) );

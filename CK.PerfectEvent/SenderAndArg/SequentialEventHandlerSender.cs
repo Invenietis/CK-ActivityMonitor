@@ -25,7 +25,7 @@ namespace CK.PerfectEvent
     /// </remarks>
     /// <typeparam name="TSender">Type of the sender.</typeparam>
     /// <typeparam name="TArg">Type of the event argument.</typeparam>
-    public class SequentialEventHandlerSender<TSender, TArg>
+    public sealed class SequentialEventHandlerSender<TSender, TArg>
     {
         object? _handler;
 
@@ -41,7 +41,7 @@ namespace CK.PerfectEvent
         public SequentialEventHandlerSender<TSender, TArg> Add( SequentialEventHandler<TSender, TArg> handler )
         {
             if( handler == null ) throw new ArgumentNullException( nameof( handler ) );
-            Util.InterlockedSet( ref _handler, h =>
+            Util.InterlockedNullableSet( ref _handler, h =>
             {
                 if( h == null ) return handler;
                 if( h is SequentialEventHandler<TSender, TArg> a ) return new SequentialEventHandler<TSender, TArg>[] { a, handler };
@@ -61,7 +61,7 @@ namespace CK.PerfectEvent
         public SequentialEventHandlerSender<TSender, TArg> Remove( SequentialEventHandler<TSender, TArg> handler )
         {
             if( handler == null ) throw new ArgumentNullException( nameof( handler ) );
-            Util.InterlockedSet( ref _handler, h =>
+            Util.InterlockedNullableSet( ref _handler, h =>
             {
                 if( h == null ) return null;
                 if( h is SequentialEventHandler<TSender, TArg> a ) return a == handler ? null : h;

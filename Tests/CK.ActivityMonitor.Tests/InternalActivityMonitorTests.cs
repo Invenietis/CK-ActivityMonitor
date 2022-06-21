@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using CK.Core.Impl;
 using System.Threading;
+using System.Diagnostics;
 
 namespace CK.Core.Tests.Monitoring
 {
@@ -13,28 +14,31 @@ namespace CK.Core.Tests.Monitoring
     {
         class TalkingClient : ActivityMonitorClient, IActivityMonitorBoundClient
         {
-            IActivityMonitorImpl _source;
+            IActivityMonitorImpl? _source;
 
             public bool IsDead => false;
 
             public TimeSpan SleepTime { get; set; }
 
-            public void SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove )
+            public void SetMonitor( IActivityMonitorImpl? source, bool forceBuggyRemove )
             {
+                Debug.Assert( source != null );
                 _source = source;
             }
 
             protected override void OnOpenGroup( IActivityLogGroup group )
             {
+                Debug.Assert( _source != null );
                 Thread.Sleep( SleepTime );
-                if( group.GroupText == "TalkingClient MUST leave an opened Group on the InternalMonitor." )
+                if( group.Data.Text == "TalkingClient MUST leave an opened Group on the InternalMonitor." )
                     _source.InternalMonitor.OpenInfo( "Talk: OnOpenGroup (Unclosed)" );
                 else _source.InternalMonitor.Info( "Talk: OnOpenGroup" );
                 if( SleepTime != TimeSpan.Zero ) _source.InternalMonitor.Info( $"SleepTime: {SleepTime}." );
             }
 
-            protected override void OnUnfilteredLog( ActivityMonitorLogData data )
+            protected override void OnUnfilteredLog( ref ActivityMonitorLogData data )
             {
+                Debug.Assert( _source != null );
                 Thread.Sleep( SleepTime );
                 _source.InternalMonitor.Info( "Talk: OnUnfilteredLog" );
                 if( SleepTime != TimeSpan.Zero ) _source.InternalMonitor.Info( $"SleepTime: {SleepTime}." );
@@ -42,6 +46,7 @@ namespace CK.Core.Tests.Monitoring
 
             public void TalkToInternalMonitor( string msg )
             {
+                Debug.Assert( _source != null );
                 using( _source.ReentrancyAndConcurrencyLock() )
                 {
                     _source.Invoking( sut => sut.ReentrancyAndConcurrencyLock() )
@@ -54,6 +59,7 @@ namespace CK.Core.Tests.Monitoring
 
             public void LeaveAnUnclosedGroupInInternalMonitor( string msg )
             {
+                Debug.Assert( _source != null );
                 using( _source.ReentrancyAndConcurrencyLock() )
                 {
                     Thread.Sleep( SleepTime );
@@ -64,6 +70,7 @@ namespace CK.Core.Tests.Monitoring
 
             public void CannotTalkWithoutLock()
             {
+                Debug.Assert( _source != null );
                 _source.Invoking( sut => sut.InternalMonitor.Info( "Fail." ) )
                        .Should().Throw<InvalidOperationException>();
             }
@@ -92,7 +99,7 @@ namespace CK.Core.Tests.Monitoring
                 c.TalkToInternalMonitor( "Hello from outside." );
             }
             c.CannotTalkWithoutLock();
-            logs.Entries.Select( e => e.Text )
+            logs.Entries.Select( e => e.Data.Text )
                 .SequenceEqual( new[]
                 {
                     "Group", "Talk: OnOpenGroup",
@@ -113,9 +120,9 @@ namespace CK.Core.Tests.Monitoring
                 m.Info( "Line" );
                 c.TalkToInternalMonitor( "Hello from outside." );
             }
-            logs.Entries[1].Tags.Should().BeSameAs( ActivityMonitor.Tags.InternalMonitor );
-            logs.Entries[3].Tags.Should().BeSameAs( ActivityMonitor.Tags.InternalMonitor );
-            logs.Entries[4].Tags.Should().BeSameAs( ActivityMonitor.Tags.InternalMonitor );
+            logs.Entries[1].Data.Tags.Should().BeSameAs( ActivityMonitor.Tags.InternalMonitor );
+            logs.Entries[3].Data.Tags.Should().BeSameAs( ActivityMonitor.Tags.InternalMonitor );
+            logs.Entries[4].Data.Tags.Should().BeSameAs( ActivityMonitor.Tags.InternalMonitor );
         }
 
         [Test]
@@ -128,7 +135,7 @@ namespace CK.Core.Tests.Monitoring
             {
                 c.LeaveAnUnclosedGroupInInternalMonitor( "Auto Closed!" );
             }
-            logs.Entries.Select( e => e.Text )
+            logs.Entries.Select( e => e.Data.Text )
                 .SequenceEqual( new[]
                 {
                     "TalkingClient MUST leave an opened Group on the InternalMonitor.",
@@ -150,17 +157,17 @@ namespace CK.Core.Tests.Monitoring
             // Group -> Talk: OnOpenGroup
             diffs[0].Should().BeGreaterOrEqualTo( beforeTalk ).And.BeLessThan( beforeLogs );
             // Talk: OnOpenGroup -> SleepTime: 00:00:00.1000000.
-            diffs[1].Should().BeCloseTo( TimeSpan.Zero );
+            diffs[1].Should().BeCloseTo( TimeSpan.Zero, TimeSpan.FromMilliseconds( 5 ) );
             // SleepTime: 00:00:00.1000000. -> Line
             diffs[2].Should().BeGreaterThan( beforeLogs );
             // Line -> Talk: OnUnfilteredLog
             diffs[3].Should().BeGreaterOrEqualTo( beforeTalk ).And.BeLessThan( beforeLogs );
             // Talk: OnUnfilteredLog -> SleepTime: 00:00:00.1000000.
-            diffs[4].Should().BeCloseTo( TimeSpan.Zero );
+            diffs[4].Should().BeCloseTo( TimeSpan.Zero, TimeSpan.FromMilliseconds( 5 ) );
             // SleepTime: 00:00:00.1000000. -> Talk: Hello from outside.
             diffs[5].Should().BeGreaterThan( beforeLogs + beforeTalk );
             // Talk: Hello from outside. -> SleepTime: 00:00:00.1000000.
-            diffs[6].Should().BeCloseTo( TimeSpan.Zero );
+            diffs[6].Should().BeCloseTo( TimeSpan.Zero, TimeSpan.FromMilliseconds( 5 ) );
         }
 
         static void GetTextAndTimes( TimeSpan beforeLogs, TimeSpan beforeTalk, out string[] texts, out DateTime[] times )
@@ -175,8 +182,8 @@ namespace CK.Core.Tests.Monitoring
                 Thread.Sleep( beforeLogs );
                 c.TalkToInternalMonitor( "Hello from outside." );
             }
-            texts = logs.Entries.Select( e => e.Text ).ToArray();
-            times = logs.Entries.Select( e => e.LogTime.TimeUtc ).ToArray();
+            texts = logs.Entries.Select( e => e.Data.Text ).ToArray();
+            times = logs.Entries.Select( e => e.Data.LogTime.TimeUtc ).ToArray();
         }
 
         static TimeSpan[] DiffTimes( DateTime[] times )
