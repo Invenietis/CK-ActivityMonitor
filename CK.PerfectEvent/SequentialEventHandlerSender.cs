@@ -35,7 +35,7 @@ namespace CK.PerfectEvent
         /// <param name="handler">Non null handler.</param>
         public SequentialEventHandlerSender<TEvent> Add( SequentialEventHandler<TEvent> handler )
         {
-            if( handler == null ) throw new ArgumentNullException( nameof( handler ) );
+            Throw.CheckNotNullArgument( handler );
             Util.InterlockedNullableSet( ref _handler, h =>
             {
                 if( h == null ) return handler;
@@ -55,7 +55,7 @@ namespace CK.PerfectEvent
         /// <param name="handler">The handler to remove. Cannot be null.</param>
         public SequentialEventHandlerSender<TEvent> Remove( SequentialEventHandler<TEvent> handler )
         {
-            if( handler == null ) throw new ArgumentNullException( nameof( handler ) );
+            Throw.CheckNotNullArgument( handler );
             _ = Util.InterlockedNullableSet( ref _handler, h =>
               {
                   if( h == null ) return null;
