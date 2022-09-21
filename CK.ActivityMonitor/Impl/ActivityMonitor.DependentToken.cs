@@ -16,15 +16,13 @@ namespace CK.Core
             readonly DateTimeStamp _creationDate;
             readonly string? _message;
             readonly string? _topic;
-            readonly bool _isMonitorTopic;
 
-            internal DependentToken( string monitorId, DateTimeStamp logTime, string? message, string? topic, bool isMonitorTopic )
+            internal DependentToken( string monitorId, DateTimeStamp logTime, string? message, string? topic )
             {
                 _originatorId = monitorId;
                 _creationDate = logTime;
                 _message = message;
                 _topic = topic;
-                _isMonitorTopic = isMonitorTopic;
             }
 
             /// <summary>
@@ -33,12 +31,16 @@ namespace CK.Core
             /// <param name="r">The reader.</param>
             public DependentToken( ICKBinaryReader r )
             {
-                r.ReadByte();
+                int v = r.ReadByte();
                 _originatorId = r.ReadString();
                 _creationDate = new DateTimeStamp( r );
                 _message = r.ReadNullableString();
                 _topic = r.ReadNullableString();
-                _isMonitorTopic = r.ReadBoolean();
+                if( v == 0 )
+                {
+                    // Was IsMonitorTopic.
+                    r.ReadBoolean();
+                }
             }
 
             /// <summary>
@@ -47,12 +49,11 @@ namespace CK.Core
             /// <param name="w">The writer.</param>
             public void Write( ICKBinaryWriter w )
             {
-                w.Write( (byte)0 );
+                w.Write( (byte)1 );
                 w.Write( _originatorId );
                 _creationDate.Write( w );
                 w.WriteNullableString( _message );
                 w.WriteNullableString( _topic );
-                w.Write( _isMonitorTopic );
             }
 
             /// <summary>
@@ -77,19 +78,15 @@ namespace CK.Core
             /// </summary>
             public string? Topic => _topic;
 
-            /// <summary>
-            /// Gets whether the <see cref="Topic"/> to set on the target monitor is the
-            /// same as the originating monitor.
-            /// </summary>
-            public bool IsMonitorTopic => _isMonitorTopic;
-
             internal string ToString( string? prefix )
             {
                 if( _topic == null )
-                    return $"{prefix}{_originatorId} at {_creationDate} - {_message} (Without topic.)";
-                if( _isMonitorTopic )
-                    return $"{prefix}{_originatorId} at {_creationDate} - {_message} (With monitor's topic '{_topic}'.)";
-                return $"{prefix}{_originatorId} at {_creationDate} - {_message} (With topic '{_topic}'.)";
+                    return _message == null
+                            ? $"{prefix}{_originatorId} at {_creationDate}"
+                            : $"{prefix}{_originatorId} at {_creationDate} - {_message}";
+                return _message == null
+                        ? $"{prefix}{_originatorId} at {_creationDate} (With topic '{_topic}'.)"
+                        : $"{prefix}{_originatorId} at {_creationDate} - {_message} (With topic '{_topic}'.)";
             }
 
             /// <summary>
@@ -109,11 +106,25 @@ namespace CK.Core
             {
                 t = null;
                 var m = new ROSpanCharMatcher( s ) { SingleExpectationMode = true };
-                if( MatchOriginatorAndTime( ref m, out var id, out DateTimeStamp time )
-                    && m.TryMatch( " - " )
-                    && TryParseCreateMessage( m.Head, out var message, out var topic, out var isMonitorTopic ) )
+                if( MatchOriginatorAndTime( ref m, out var id, out DateTimeStamp time ) )
                 {
-                    t = new DependentToken( id, time, message, topic, isMonitorTopic );
+                    string? message, topic;
+                    if( m.Head.Length == 0 )
+                    {
+                        message = topic = null;
+                    }
+                    else
+                    {
+                        // Remove message separator if any.
+                        // If there is no message separator then there must be a space
+                        // before the (With topic...).
+                        if( !(m.TryMatch( " - " ) || m.TryMatch( ' ' ))
+                            || !TryParseCreateMessage( m.Head, out message, out topic ) )
+                        {
+                            return false;
+                        }
+                    }
+                    t = new DependentToken( id, time, message, topic );
                     return true;
                 }
                 return false;
@@ -137,36 +148,34 @@ namespace CK.Core
             /// <param name="s">The string to parse.</param>
             /// <param name="message">The optional token creation message.</param>
             /// <param name="topic">The topic to set on the target monitor.</param>
-            /// <param name="isMonitorTopic">True the topic is the one of the originating monitor.</param>
             /// <returns>True on success, false otherwise.</returns>
             public static bool TryParseCreateMessage( ReadOnlySpan<char> s,
                                                       out string? message,
-                                                      out string? topic,
-                                                      out bool isMonitorTopic )
+                                                      out string? topic )
             {
                 message = null;
                 topic = null;
-                isMonitorTopic = false;
                 if( s.EndsWith( "\'.)", StringComparison.Ordinal ) )
                 {
-                    int idx = s.IndexOf( " (With monitor's topic '", StringComparison.Ordinal );
-                    if( idx >= 0 ) isMonitorTopic = true;
-                    else if( (idx = s.IndexOf( " (With topic '", StringComparison.Ordinal )) < 0 ) return false;
-                    Debug.Assert( " (With monitor's topic '".Length == 24 );
-                    Debug.Assert( " (With topic '".Length == 14 );
-                    if( idx > 0 ) message = s.Slice( 0, idx ).ToString();
-                    idx += isMonitorTopic ? 24 : 14;
+                    int idx = s.IndexOf( "(With topic '", StringComparison.Ordinal );
+                    if( idx < 0 ) return false;
+                    Debug.Assert( "(With topic '".Length == 13 );
+                    if( idx > 0 )
+                    {
+                        // Trim any white space that may appear: normalized to null.
+                        var ss = s.Slice( 0, idx ).Trim();
+                        message = ss.Length > 0 ? ss.ToString() : null;
+                    }
+                    idx += 13;
                     topic = s.Slice( idx, s.Length - idx - 3 ).ToString();
                     return true;
                 }
-                if( s.EndsWith( " (Without topic.)", StringComparison.Ordinal ) )
+                if( !s.TryMatch( NoLogText, StringComparison.Ordinal ) )
                 {
-                    Debug.Assert( " (Without topic.)".Length == 17 );
-                    int len = s.Length - 17;
-                    if( len > 0 ) message = s.Slice( 0, len ).ToString();
-                    return true;
+                    s = s.Trim();
+                    if( s.Length > 0 ) message = s.ToString();
                 }
-                return false;
+                return true;
             }
 
             /// <summary>

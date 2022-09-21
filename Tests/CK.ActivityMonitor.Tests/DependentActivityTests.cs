@@ -3,49 +3,79 @@ using System;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace CK.Core.Tests.Monitoring
 {
     public class DependentActivityTests
     {
 
-        [TestCase( "A topic!" )]
-        [TestCase( "A 'topic' with quote." )]
-        [TestCase( "A 'topic' \r\n with \"quote\" and new lines." )]
-        [TestCase( "" )]
-        [TestCase( " " )]
-        public void parsing_DependentToken_with_topics( string? topic )
+        [TestCase( null, "A topic!" )]
+        [TestCase( "", "A 'topic' with quote." )]
+        [TestCase( " ", "A 'topic' with quote." )]
+        [TestCase( "A message.", "A 'topic' \r\n with \"quote\" and new lines." )]
+        [TestCase( "A message.", null )]
+        [TestCase( "A message.", " " )]
+        [TestCase( "A message.", "" )]
+        [TestCase( null, null )]
+        public void parsing_DependentToken_with_topics( string? message, string? topic )
         {
+            bool isNormalizedNullMessage = string.IsNullOrWhiteSpace( message );
+            bool isNormalizedNullTopic = string.IsNullOrWhiteSpace( topic );
+
             var monitor = new ActivityMonitor( applyAutoConfigurations: false );
             monitor.SetTopic( "This is the monitor's topic." );
-            var t1 = monitor.CreateDependentToken( "Received command n°1.", topic );
-            var t2 = monitor.CreateDependentToken( "Received command n°2.", monitor.Topic );
-            var t3 = monitor.CreateDependentToken( "Received command n°3." );
 
-            var r1 = ActivityMonitor.DependentToken.Parse( t1.ToString() );
+            IReadOnlyList<ActivityMonitorSimpleCollector.Entry>? entries = null;
 
-            r1.OriginatorId.Should().Be( t1.OriginatorId );
-            r1.CreationDate.Should().Be( t1.CreationDate );
-            r1.Message.Should().Be( t1.Message );
-            r1.Topic.Should().Be( t1.Topic );
-            r1.ToString().Should().Be( t1.ToString() );
-            r1.IsMonitorTopic.Should().BeFalse();
+            ActivityMonitor.DependentToken token;
+            using( monitor.CollectEntries( c => entries = c, LogLevelFilter.Info ) )
+            {
+                token = monitor.CreateDependentToken( message, topic );
+            }
+            Debug.Assert( entries != null );
+            ActivityMonitor.DependentToken.TryParseCreateMessage( entries[0].Text, out var creatingMessage, out var creatingTopic ).Should().BeTrue();
+            creatingMessage.Should().Be( token.Message );
+            creatingTopic.Should().Be( token.Topic );
 
-            var r2 = ActivityMonitor.DependentToken.Parse( t2.ToString() );
-            r2.OriginatorId.Should().Be( t2.OriginatorId );
-            r2.CreationDate.Should().Be( t2.CreationDate );
-            r2.Message.Should().Be( t2.Message );
-            r2.Topic.Should().Be( t2.Topic );
-            r2.ToString().Should().Be( t2.ToString() );
-            r2.IsMonitorTopic.Should().BeTrue();
+            (isNormalizedNullMessage == token.Message is null).Should().BeTrue();
+            (isNormalizedNullTopic == token.Topic is null).Should().BeTrue();
 
-            var r3 = ActivityMonitor.DependentToken.Parse( t3.ToString() );
-            r3.OriginatorId.Should().Be( t3.OriginatorId );
-            r3.CreationDate.Should().Be( t3.CreationDate );
-            r3.Message.Should().Be( t3.Message );
-            r3.Topic.Should().Be( null );
-            r3.ToString().Should().Be( t3.ToString() );
-            r3.IsMonitorTopic.Should().BeFalse();
+            var tokenString = ActivityMonitor.DependentToken.Parse( token.ToString() );
+
+            tokenString.OriginatorId.Should().Be( token.OriginatorId );
+            tokenString.CreationDate.Should().Be( token.CreationDate );
+            tokenString.Message.Should().Be( token.Message );
+            tokenString.Topic.Should().Be( token.Topic );
+            tokenString.ToString().Should().Be( token.ToString() );
+
+            bool changeTopic = token.Topic != null;
+            using( monitor.CollectEntries( c => entries = c, LogLevelFilter.Info ) )
+            {
+                monitor.StartDependentActivity( token ).Dispose();
+            }
+            Debug.Assert( entries != null );
+            entries.Should().HaveCount( changeTopic ? 3 : 1 );
+
+            string startingString; 
+            if( changeTopic )
+            {
+                entries[0].Text.Should().Be( "Topic: " + token.Topic );
+                startingString = entries[1].Text;
+                entries[2].Text.Should().Be( "Topic: " + monitor.Topic );
+            }
+            else
+            {
+                startingString = entries[0].Text;
+            }
+
+            ActivityMonitor.DependentToken.TryParseStartMessage( startingString, out var startToken ).Should().BeTrue();
+            Debug.Assert( startToken != null );
+            startToken.OriginatorId.Should().Be( token.OriginatorId );
+            startToken.CreationDate.Should().Be( token.CreationDate );
+            startToken.Message.Should().Be( token.Message );
+            startToken.Topic.Should().Be( token.Topic );
+            startToken.ToString().Should().Be( token.ToString() );
         }
 
         [Test]
@@ -75,11 +105,10 @@ namespace CK.Core.Tests.Monitoring
             }
             string createMessage = cCreate.Entries[loopNeeded].Data.Text;
             {
-                ActivityMonitor.DependentToken.TryParseCreateMessage( createMessage, out var message, out var topic, out var isMonitorTopic )
+                ActivityMonitor.DependentToken.TryParseCreateMessage( createMessage, out var message, out var topic )
                    .Should().BeTrue();
                 message.Should().Be( "Test Message." );
                 topic.Should().Be( "Test Topic." );
-                isMonitorTopic.Should().BeFalse();
             }
 
             string tokenToString = token.ToString();
@@ -98,7 +127,6 @@ namespace CK.Core.Tests.Monitoring
                 t.CreationDate.Should().Be( cCreate.Entries[loopNeeded].Data.LogTime );
                 t.Message.Should().Be( "Test Message." );
                 t.Topic.Should().Be( "Test Topic." );
-                t.IsMonitorTopic.Should().BeFalse();
             }
         }
 
