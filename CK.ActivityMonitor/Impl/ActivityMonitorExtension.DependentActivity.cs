@@ -29,14 +29,18 @@ namespace CK.Core
                                                                            [CallerFilePath] string? fileName = null,
                                                                            [CallerLineNumber] int lineNumber = 0 )
         {
-            bool isMonitorTopic = dependentTopic == @this.Topic;
-            var t = new ActivityMonitor.DependentToken( @this.UniqueId, @this.NextLogTime(), message, dependentTopic, isMonitorTopic );
-            message += isMonitorTopic
-                        ? $" (With monitor's topic '{dependentTopic}'.)"
-                        : dependentTopic != null
-                            ? $" (With topic '{dependentTopic}'.)"
-                            : " (Without topic.)";
-            Debug.Assert( t.ToString().EndsWith( message ), "Checking that inline magic strings are the same." );
+            if( string.IsNullOrWhiteSpace( message ) ) message = null;
+            if( string.IsNullOrWhiteSpace( dependentTopic ) ) dependentTopic = null;
+            var t = new ActivityMonitor.DependentToken( @this.UniqueId, @this.NextLogTime(), message, dependentTopic );
+            if( message != null )
+            {
+                if( dependentTopic != null ) message += $" (With topic '{dependentTopic}'.)";
+            }
+            else if( dependentTopic != null )
+            {
+                message = $"(With topic '{dependentTopic}'.)";
+            }
+            Debug.Assert( message == null || t.ToString().EndsWith( message ), "Checking that inline magic strings are the same." );
             var d = new ActivityMonitorLogData( LogLevel.Info, ActivityMonitor.Tags.CreateDependentToken, message, null, fileName, lineNumber );
             d.SetExplicitLogTime( t.CreationDate );
             @this.UnfilteredLog( ref d );
