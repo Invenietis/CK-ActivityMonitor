@@ -184,12 +184,59 @@ namespace CK.Core
             ActivityMonitorSimpleCollector errorTracker = new ActivityMonitorSimpleCollector() { MinimalFilter = level, Capacity = capacity };
             @this.Output.RegisterClient( errorTracker );
             entries = errorTracker.Entries;
-            return Util.CreateDisposableAction( () =>
-            {
-                @this.Output.UnregisterClient( errorTracker );
-            } );
+            return Util.CreateDisposableAction( () => @this.Output.UnregisterClient( errorTracker ) );
         }
 
+        sealed class TextCollector : IActivityMonitorClient
+        {
+            readonly FIFOBuffer<string> _entries;
+
+            public TextCollector( int capacity )
+            {
+                _entries = new FIFOBuffer<string>( 100 );
+            }
+
+            public IReadOnlyList<string> Entries => _entries;
+
+            void IActivityMonitorClient.OnUnfilteredLog( ref ActivityMonitorLogData data ) => OnLog( ref data );
+
+            void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group ) => OnLog( ref group.Data );
+
+            void OnLog( ref ActivityMonitorLogData data ) => _entries.Push( data.Text );
+
+            void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions )
+            {
+            }
+
+            void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
+            {
+            }
+
+            void IActivityMonitorClient.OnTopicChanged( string newTopic, string? fileName, int lineNumber )
+            {
+            }
+
+            void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )
+            {
+            }
+        }
+
+        /// <summary>
+        /// Enables simple "using" syntax to easily collect logged messages around operations.
+        /// Text messages are added in the <paramref name="logTexts"/> as soon as they appear.
+        /// Only the last <paramref name="capacity"/> messages are kept.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="logTexts">Current text logged.</param>
+        /// <param name="capacity">Capacity of the collector defaults to 100.</param>
+        /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
+        public static IDisposable CollectTexts( this IActivityMonitor @this, out IReadOnlyList<string> logTexts, int capacity = 100 )
+        {
+            var c = new TextCollector( capacity );
+            @this.Output.RegisterClient( c );
+            logTexts = c.Entries;
+            return Util.CreateDisposableAction( () => @this.Output.UnregisterClient( c ) );
+        }
 
         class ErrorTracker : IActivityMonitorClient
         {

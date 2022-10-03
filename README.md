@@ -100,7 +100,7 @@ collectible by any external components: the CK.Monitoring.GrandOuput will catch 
 The `StaticLogger` should be used in very specific cases, in low level zone of code that are not
 yet "monitored" such as callbacks from timers for instance:
 
-```c#
+```csharp
   void OnTimer( object? _ )
   {
       ActivityMonitor.StaticLogger.Debug( IDeviceHost.DeviceModel, $"Timer fired for '{FullName}'." );
@@ -120,6 +120,46 @@ In practice, more powerful logs management than this simple direct clients is re
 [CK-Monitoring](https://github.com/Invenietis/CK-Monitoring) repository (that implements the `GrandOutput` central collector) and, for tests,
 the [CK.Testing.Monitoring](https://github.com/Invenietis/CK-Testing/tree/master/CK.Testing.Monitoring) package that adds a Monitor property on the **TestHelper**
 mix-in: it's easy to use `TestHelper.Monitor` from any tests.
+
+### Using monitor to ease tests writing
+The local client architecture of this logger enables an interesting pattern for tests.
+The following test uses events from CK.PerfectEvent, it creates an independent monitor but may also
+use the `TestHelper.Monitor` from CK.Testing.Monitoring).
+
+```csharp
+[Test]
+public async Task demo_using_CollectTexts_Async()
+{
+    var monitor = new ActivityMonitor();
+            
+    var sender = new PerfectEventSender<Action<IActivityMonitor,int>?>();
+
+    sender.PerfectEvent.Async += OnActionAsync;
+
+    using( monitor.CollectTexts( out var texts ) )
+    {
+        await sender.RaiseAsync( monitor, (monitor,i) => monitor.Info( $"Action {i}" ) );
+        await sender.RaiseAsync( monitor, null );
+        texts.Should().BeEquivalentTo( new[]
+        {
+            "Received Action and executing it after a 100 ms delay.",
+            "Action 3712",
+            "Received a null Action. Ignoring it."
+        } );
+    }
+
+    static async Task OnActionAsync( IActivityMonitor monitor, Action<IActivityMonitor,int>? a )
+    {
+        if( a == null ) monitor.Warn( "Received a null Action. Ignoring it." );
+        else
+        {
+          monitor.Info( "Received Action and executing it after a 100 ms delay." );
+          await Task.Delay( 100 );
+          a( monitor, 3712 );
+        }
+    }
+}
+```
 
 ## Content projects
 
@@ -161,10 +201,6 @@ two-steps approach. This package is now totally deprecated since thanks to the C
 the .NET 6 simple sender can now skip the evaluation of the interpolated message based on the log Tags.
 This is described here: [CK.ActivityMonitor/Impl/TagFiltering](CK.ActivityMonitor/Impl/TagFiltering.md).
  
-### CK.PerfectEvent [![Nuget](https://img.shields.io/nuget/vpre/CK.PerfectEvent.svg)](https://www.nuget.org/packages/CK.PerfectEvent/)
-
-A simple implementation of an asynchronous .Net events that handles synchronous, sequential asynchronous and parallel asynchronous callbacks.
-
 ## Bug tracker
 
 If you find any bug, don't hesitate to report it on [https://github.com/Invenietis/CK-ActivityMonitor/issues/](https://github.com/Invenietis/CK-ActivityMonitor/issues/)

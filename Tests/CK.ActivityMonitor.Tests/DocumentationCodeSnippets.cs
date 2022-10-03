@@ -5,6 +5,8 @@ using FluentAssertions;
 using System.Collections.Generic;
 using System.Linq;
 using CK.Core.LogHandler;
+using System.Threading.Tasks;
+using System.Reflection.Metadata;
 
 namespace CK.Core.Tests.Monitoring
 {
@@ -237,5 +239,49 @@ namespace CK.Core.Tests.Monitoring
             errorCount.Should().Be( 1 );
 
         }
+
+        sealed class ActionEvent : EventMonitoredArgs
+        {
+            public ActionEvent( IActivityMonitor monitor, Action<IActivityMonitor, int>? action )
+                : base( monitor )
+            {
+                Action = action;
+            }
+
+            public Action<IActivityMonitor, int>? Action { get; }
+        }
+
+        [Test]
+        public void demo_using_CollectTexts()
+        {
+            var monitor = new ActivityMonitor();
+
+            EventHandler<ActionEvent>? sender = null;
+
+            sender += OnAction;
+
+            using( monitor.CollectTexts( out var texts ) )
+            {
+                sender.Invoke( null, new ActionEvent( monitor, ( monitor, i ) => monitor.Info( $"Action {i}" ) ) );
+                sender.Invoke( monitor, new ActionEvent( monitor, null ) );
+                texts.Should().BeEquivalentTo( new[]
+                {
+            "Received Action and executing it.",
+            "Action 3712",
+            "Received a null Action. Ignoring it."
+        } );
+            }
+
+            static void OnAction( object? sender, ActionEvent e )
+            {
+                if( e.Action == null ) e.Monitor.Warn( "Received a null Action. Ignoring it." );
+                else
+                {
+                    e.Monitor.Info( "Received Action and executing it." );
+                    e.Action( e.Monitor, 3712 );
+                }
+            }
+        }
+
     }
 }
