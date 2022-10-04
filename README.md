@@ -169,8 +169,10 @@ The core abstractions, and default implementation of `ActivityMonitor`. Also con
 - Standard but basic [Clients](CK.ActivityMonitor/Client). 
 - The LogFile static class that exposes the `RootLogPath` property.
 - The [EventMonitoredArgs](CK.ActivityMonitor/EventMonitoredArgs.cs) that is an EventArgs with a monitor.
-- The [AsyncLock](CK.ActivityMonitor/AsyncLock.md) that can detect, handles or reject asynchronous lock reentrancy without any awful [AsyncLocal](https://docs.microsoft.com/en-us/dotnet/api/system.threading.asynclocal-1) 
+- The [AsyncLock](CK.ActivityMonitor/AsyncLock.md) that can detect, handles or reject asynchronous lock reentrancy 
+without any awful [AsyncLocal](https://docs.microsoft.com/en-us/dotnet/api/system.threading.asynclocal-1) 
 thanks to the `IActivityMonitor` ubiquitous parameter. 
+- The [LogGate](CK.ActivityMonitor/LogGates/README.md) that can optimally control log emission.
 
 ### <a name="SimpleSender"></a>CK.ActivityMonitor.SimpleSender [![Nuget](https://img.shields.io/nuget/vpre/CK.ActivityMonitor.SimpleSender.svg)](https://www.nuget.org/packages/CK.ActivityMonitor.SimpleSender/)
 
