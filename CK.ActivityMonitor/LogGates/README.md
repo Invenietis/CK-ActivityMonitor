@@ -54,9 +54,11 @@ have called `static IEnumerable<LogGate> GetLogGates()` to choose the relevant g
 
 Using a gate is rather easy:
 ```csharp
-Gate.O(monitor)?.Info( $"I'll be emitted only if the Gate is opened." );
+Gate.O(monitor)?.Info( "I'll be emitted only if the Gate is opened." );
 ```
-This `T? O<T>( T instance )` method can be called with any reference type, not necessarily a `IActivityMonitor`.
+
+> This `T? O<T>( T instance )` method can be called **with any reference type**, not necessarily
+a `IActivityMonitor`.
 
 Another capability of a gate is to handle access to the [StaticLogger](../../README.md#emitting-logs-the-ilogger-static-contextless-way):
 ```csharp

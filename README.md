@@ -1,6 +1,6 @@
 # CK-ActivityMonitor
 
-[![AppVeyor](https://img.shields.io/appveyor/ci/olivier-spinelli/ck-activitymonitor.svg)](https://ci.appveyor.com/project/olivier-spinelli/ck-activitymonitor)
+[![AppVeyor](https://ci.appveyor.com/api/projects/status/33mt75jgu2s5d2a0?svg=true)](https://ci.appveyor.com/project/Signature-OpenSource/ck-activitymonitor)
 [![Nuget](https://img.shields.io/nuget/vpre/CK.ActivityMonitor.svg)](https://www.nuget.org/packages/CK.ActivityMonitor/)
 [![Licence](https://img.shields.io/github/license/Invenietis/CK-ActivityMonitor.svg)](https://github.com/Invenietis/CK-ActivityMonitor/blob/develop/LICENSE)
 
@@ -21,6 +21,7 @@ We believe that more and more architectures, tools, programs will take this path
 MSBuild has this https://msbuildlog.com/, CI/CD interfaces starts to display toggled section around the execution steps, etc.
 
 ---
+See [here](CK.ActivityMonitor/README.md) for a more technical rationale.
 
 ## Quick start
 
@@ -83,8 +84,9 @@ public class Program
 }
 ```
 
-A monitor has a Topic that aims to describes what it is OR what it is currently doing. The constructor can initialize it `m = new ActivityMonitor("My topic");`
-and it can be changed by calling the `SetTopic( message )` method at any time.
+A monitor has a Topic that aims to describes what it is OR what it is currently doing.
+The constructor can initialize it `m = new ActivityMonitor("My topic");`
+and it can be changed by calling the `SetTopic( "My new topic." )` method at any time.
 
 The topic is merely a log line with a special tag, sent when constructing the monitor or changing it.
 
@@ -95,7 +97,7 @@ When no `IActivityMonitor` exists in a given context, there are 2 possibilities:
 used anymore, calling `monitor.MonitorEnd()` is welcome).
 - If there is only one (or very few) things to log, then you can use the [`ActivityMonitor.StaticLogger`](CK.ActivityMonitor/Impl/ActivityMonitor.StaticLogger.cs) 
 simple static API. Such log events are not tied to a monitor, their monitor identifier will be "§ext" and they are
-collectible by any external components: the CK.Monitoring.GrandOuput will catch and collect them.
+collectible by any external components: the `CK.Monitoring.GrandOuput` will catch and collect them.
 
 The `StaticLogger` should be used in very specific cases, in low level zone of code that are not
 yet "monitored" such as callbacks from timers for instance:
@@ -112,9 +114,12 @@ yet "monitored" such as callbacks from timers for instance:
 Of course, there is no `OpenGroup` on this API since open/close would interleave without any clue of which Close
 relates to which Open.
 
+In hot paths, if you want to be able to totally remove logging overhead (while preserving the capability to
+log things), use a [LogGate](CK.ActivityMonitor/LogGates/README).
+
 ### Consuming logs
 
-Logs received by the `IActivityMonitor` façade are routed to its clients (see [Clients](CK.ActivityMonitor/Client) for a basic console output sample).
+Logs received by the `IActivityMonitor` façade are routed to its clients (see [Clients](CK.ActivityMonitor/Client/README) for a basic console output sample).
 
 In practice, more powerful logs management than this simple direct clients is required and we use the packages from
 [CK-Monitoring](https://github.com/Invenietis/CK-Monitoring) repository (that implements the `GrandOutput` central collector) and, for tests,
@@ -148,13 +153,13 @@ public async Task demo_using_CollectTexts_Async()
         } );
     }
 
-    static async Task OnActionAsync( IActivityMonitor monitor, Action<IActivityMonitor,int>? a )
+    static async Task OnActionAsync( IActivityMonitor monitor, Action<IActivityMonitor,int>? a, CancellationToken cancel )
     {
         if( a == null ) monitor.Warn( "Received a null Action. Ignoring it." );
         else
         {
           monitor.Info( "Received Action and executing it after a 100 ms delay." );
-          await Task.Delay( 100 );
+          await Task.Delay( 100, cancel );
           a( monitor, 3712 );
         }
     }
@@ -166,13 +171,13 @@ public async Task demo_using_CollectTexts_Async()
 ### CK.ActivityMonitor [![Nuget](https://img.shields.io/nuget/vpre/CK.ActivityMonitor.svg)](https://www.nuget.org/packages/CK.ActivityMonitor/)
 
 The core abstractions, and default implementation of `ActivityMonitor`. Also contains:
-- Standard but basic [Clients](CK.ActivityMonitor/Client). 
+- Standard but basic [Clients](CK.ActivityMonitor/Client/README). 
 - The LogFile static class that exposes the `RootLogPath` property.
 - The [EventMonitoredArgs](CK.ActivityMonitor/EventMonitoredArgs.cs) that is an EventArgs with a monitor.
 - The [AsyncLock](CK.ActivityMonitor/AsyncLock.md) that can detect, handles or reject asynchronous lock reentrancy 
 without any awful [AsyncLocal](https://docs.microsoft.com/en-us/dotnet/api/system.threading.asynclocal-1) 
 thanks to the `IActivityMonitor` ubiquitous parameter. 
-- The [LogGate](CK.ActivityMonitor/LogGates/README.md) that can optimally control log emission.
+- The [LogGate](CK.ActivityMonitor/LogGates/README) that can optimally control log emission.
 
 ### <a name="SimpleSender"></a>CK.ActivityMonitor.SimpleSender [![Nuget](https://img.shields.io/nuget/vpre/CK.ActivityMonitor.SimpleSender.svg)](https://www.nuget.org/packages/CK.ActivityMonitor.SimpleSender/)
 
