@@ -211,11 +211,11 @@ This is described here: [CK.ActivityMonitor/Impl/TagFiltering](CK.ActivityMonito
 
 #### Bonus of the interpolated strings: .Net Type names format
 We often have to log type names. Name types are not that easy: in .Net a Type has 3 different names.
-The code and names below is taken from the `CK.Core.Tests.Monitoring.LogTextHandlerTests` test.
+The code and names below are taken from the `CK.Core.Tests.Monitoring.LogTextHandlerTests` test.
 A (stupid) nested and generic class is used (to complicate things): `class Nested<T> { }`, the
 actual type for which a name must be obtained is then the `Nested<Dictionary<int, (string, int?)>>`.
 
-Now take a breath, these are the 3 names of this type:
+Now take a breath, these are the 3 .Net names of this type:
 
 |Method/Property |  Names  |
 |---|---|
@@ -223,15 +223,15 @@ Now take a breath, these are the 3 names of this type:
 |FullName| ``CK.Core.Tests.Monitoring.LogTextHandlerTests+Nested`1[[System.Collections.Generic.Dictionary`2[[System.Int32, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.ValueTuple`2[[System.String, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Nullable`1[[System.Int32, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]`` |
 |AssemblyQualifiedName| ``CK.Core.Tests.Monitoring.LogTextHandlerTests+Nested`1[[System.Collections.Generic.Dictionary`2[[System.Int32, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.ValueTuple`2[[System.String, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Nullable`1[[System.Int32, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], CK.ActivityMonitor.Tests, Version=0.0.0.0, Culture=neutral, PublicKeyToken=731c291b31fb8d27`` |
 
-A `monitor.Warn( $"Type is {t}." );` will use the `ToString()` form (see above). This is the "natural"
-C# default so we won't change it.
+A `monitor.Warn( $"Type is {t}." );` will use the `ToString()` form. This is the "natural"
+C# default so we won't change it even if, see above, it's not very satisfying.
 
 We support much more readable thanks to _type formats_. Using the "C" format:
-`monitor.Warn( $"Expected type is 'int', not {t:C}." );`, the previous log message becomes:
+`monitor.Warn( $"Type is {t:C}." );`, the previous log message becomes:
 
 `Type is LogTextHandlerTests.Nested<Dictionary<int,(string,int?)>>.`
 
-With the "N" format, namespaces appear, `monitor.Warn( $"Expected type is 'int', not {t:N}." );` emits:
+With the "N" format, namespaces appear, `monitor.Warn( $"Type is {t:N}." );` emits:
 
 `Type is CK.Core.Tests.Monitoring.LogTextHandlerTests.Nested<System.Collections.Generic.Dictionary<int,(string,int?)>>.`
 
