@@ -26,17 +26,14 @@ namespace CK.Core.Tests.Monitoring
             var monitor = new ActivityMonitor( applyAutoConfigurations: false );
             monitor.SetTopic( "This is the monitor's topic." );
 
-            IReadOnlyList<ActivityMonitorSimpleCollector.Entry>? entries = null;
-
             ActivityMonitor.DependentToken token;
-            using( monitor.CollectEntries( c => entries = c, LogLevelFilter.Info ) )
+            using( monitor.CollectEntries( out var entries, LogLevelFilter.Info ) )
             {
                 token = monitor.CreateDependentToken( message, topic );
+                ActivityMonitor.DependentToken.TryParseCreateMessage( entries[0].Text, out var creatingMessage, out var creatingTopic ).Should().BeTrue();
+                creatingMessage.Should().Be( token.Message );
+                creatingTopic.Should().Be( token.Topic );
             }
-            Debug.Assert( entries != null );
-            ActivityMonitor.DependentToken.TryParseCreateMessage( entries[0].Text, out var creatingMessage, out var creatingTopic ).Should().BeTrue();
-            creatingMessage.Should().Be( token.Message );
-            creatingTopic.Should().Be( token.Topic );
 
             (isNormalizedNullMessage == token.Message is null).Should().BeTrue();
             (isNormalizedNullTopic == token.Topic is null).Should().BeTrue();
@@ -49,24 +46,24 @@ namespace CK.Core.Tests.Monitoring
             tokenString.Topic.Should().Be( token.Topic );
             tokenString.ToString().Should().Be( token.ToString() );
 
+            string startingString;
             bool changeTopic = token.Topic != null;
-            using( monitor.CollectEntries( c => entries = c, LogLevelFilter.Info ) )
+            using( monitor.CollectEntries( out var entries, LogLevelFilter.Info ) )
             {
                 monitor.StartDependentActivity( token ).Dispose();
-            }
-            Debug.Assert( entries != null );
-            entries.Should().HaveCount( changeTopic ? 3 : 1 );
 
-            string startingString; 
-            if( changeTopic )
-            {
-                entries[0].Text.Should().Be( "Topic: " + token.Topic );
-                startingString = entries[1].Text;
-                entries[2].Text.Should().Be( "Topic: " + monitor.Topic );
-            }
-            else
-            {
-                startingString = entries[0].Text;
+                Debug.Assert( entries != null );
+                entries.Should().HaveCount( changeTopic ? 3 : 1 );
+                if( changeTopic )
+                {
+                    entries[0].Text.Should().Be( "Topic: " + token.Topic );
+                    startingString = entries[1].Text;
+                    entries[2].Text.Should().Be( "Topic: " + monitor.Topic );
+                }
+                else
+                {
+                    startingString = entries[0].Text;
+                }
             }
 
             ActivityMonitor.DependentToken.TryParseStartMessage( startingString, out var startToken ).Should().BeTrue();
