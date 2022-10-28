@@ -112,7 +112,8 @@ yet "monitored" such as callbacks from timers for instance:
 ```
 
 Of course, there is no `OpenGroup` on this API since open/close would interleave without any clue of which Close
-relates to which Open.
+relates to which Open. Also, there is not the special support for Type names that is available on the
+interpolated strings handled by the [CK.ActivityMonitor.SimpleSender](#SimpleSender).
 
 In hot paths, if you want to be able to totally remove logging overhead (while preserving the capability to
 log things), use a [LogGate](CK.ActivityMonitor/LogGates/README).
@@ -203,14 +204,48 @@ public class MyClass
     }
 }
 ```
-Before this simple sender, a less intuitive set of extension methods exist: the "standard" ones that rely on a
+Before this simple sender, a less intuitive set of extension methods existed: the "standard" ones that rely on a
 two-steps approach. This package is now totally deprecated since thanks to the C# 10 [interpolated handlers](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-10.0/improved-interpolated-strings#the-handler-pattern),
 the .NET 6 simple sender can now skip the evaluation of the interpolated message based on the log Tags.
 This is described here: [CK.ActivityMonitor/Impl/TagFiltering](CK.ActivityMonitor/Impl/TagFiltering.md).
- 
-## Bug tracker
 
-If you find any bug, don't hesitate to report it on [https://github.com/Invenietis/CK-ActivityMonitor/issues/](https://github.com/Invenietis/CK-ActivityMonitor/issues/)
+#### Bonus of the interpolated strings: .Net Type names format
+We often have to log type names. Name types are not that easy: in .Net a Type has 3 different names.
+The code and names below is taken from the `CK.Core.Tests.Monitoring.LogTextHandlerTests` test.
+A (stupid) nested and generic class is used (to complicate things): `class Nested<T> { }`, the
+actual type for which a name must be obtained is then the `Nested<Dictionary<int, (string, int?)>>`.
+
+Now take a breath, these are the 3 names of this type:
+
+|Method/Property |  Names  |
+|---|---|
+|ToString()| ``CK.Core.Tests.Monitoring.LogTextHandlerTests+Nested`1[System.Collections.Generic.Dictionary`2[System.Int32,System.ValueTuple`2[System.String,System.Nullable`1[System.Int32]]]]`` |
+|FullName| ``CK.Core.Tests.Monitoring.LogTextHandlerTests+Nested`1[[System.Collections.Generic.Dictionary`2[[System.Int32, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.ValueTuple`2[[System.String, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Nullable`1[[System.Int32, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]`` |
+|AssemblyQualifiedName| ``CK.Core.Tests.Monitoring.LogTextHandlerTests+Nested`1[[System.Collections.Generic.Dictionary`2[[System.Int32, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.ValueTuple`2[[System.String, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Nullable`1[[System.Int32, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], CK.ActivityMonitor.Tests, Version=0.0.0.0, Culture=neutral, PublicKeyToken=731c291b31fb8d27`` |
+
+A `monitor.Warn( $"Type is {t}." );` will use the `ToString()` form (see above). This is the "natural"
+C# default so we won't change it.
+
+We support much more readable thanks to _type formats_. Using the "C" format:
+`monitor.Warn( $"Expected type is 'int', not {t:C}." );`, the previous log message becomes:
+
+`Type is LogTextHandlerTests.Nested<Dictionary<int,(string,int?)>>.`
+
+With the "N" format, namespaces appear, `monitor.Warn( $"Expected type is 'int', not {t:N}." );` emits:
+
+`Type is CK.Core.Tests.Monitoring.LogTextHandlerTests.Nested<System.Collections.Generic.Dictionary<int,(string,int?)>>.`
+
+|Format |  Result  |
+|---|---|
+|C| Compact, no namespace C# Type names.|
+|N| C# Type names with their namespaces.|
+|F| Type's FullName. |
+|A| Type's AssemblyQualifiedName. |
+
+The "C" or "N" definitely helps while reading logs. Note that these names are
+provided by the [CK.Core](https://github.com/Invenietis/CK-Core) package and are exposed
+by the `Type.ToCSharpName(bool withNamespace = true, bool typeDeclaration = true, bool useValueTupleParentheses = true)`
+extension method.
 
 ## Copyright and license
 

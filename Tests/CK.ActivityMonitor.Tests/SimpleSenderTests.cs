@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using NUnit.Framework;
 using FluentAssertions;
+using System.Collections.Generic;
 
 namespace CK.Core.Tests.Monitoring
 {
@@ -19,13 +20,13 @@ namespace CK.Core.Tests.Monitoring
             m.Log( LogLevel.Fatal, TestHelper.Tag1, "Text3" );
             m.Log( LogLevel.Fatal, TestHelper.Tag2, "Text4", new Exception( "EX3" ) );
             m.Log( LogLevel.Fatal, TestHelper.Tag3, new Exception( "EX4" ) );
-            client.Entries.Where( e => e.Data.Level == (LogLevel.Fatal|LogLevel.IsFiltered) )
+            client.Entries.Where( e => e.Data.Level == (LogLevel.Fatal | LogLevel.IsFiltered) )
                             .Select( e => e.Data.Text + e.Data.Exception?.Message + e.Data.Tags )
                             .Concatenate()
                 .Should().Be( "Text1, EX1EX1, Text2EX2, Text3Tag1, Text4EX3Tag2, EX4EX4Tag3" );
 
 
-            (m.ActualFilter.Line == LogLevelFilter.None && ActivityMonitor.DefaultFilter.Line > LogLevelFilter.Debug )
+            (m.ActualFilter.Line == LogLevelFilter.None && ActivityMonitor.DefaultFilter.Line > LogLevelFilter.Debug)
                 .Should().BeTrue( "The Default filter is set to Trace and should not be changed by this unit tests." );
 
             client.Entries.Clear();
@@ -132,13 +133,12 @@ namespace CK.Core.Tests.Monitoring
 
             m.MinimalFilter = LogFilter.Release;
             // The text is never called.
-            IDisposableGroup g = m.OpenGroup( LogLevel.Info, $"Bug {( 1 == 1 ? throw new Exception( "Never called" ) : 0)}" );
+            IDisposableGroup g = m.OpenGroup( LogLevel.Info, $"Bug {(1 == 1 ? throw new Exception( "Never called" ) : 0)}" );
             g.IsRejectedGroup.Should().BeTrue();
             // The conclude function is never called.
             IDisposable d = g.ConcludeWith( () => throw new Exception( "Never called" ) );
             d.Dispose();
         }
-
 
     }
 }
