@@ -48,7 +48,8 @@ For remote control of gates, the static `Open` method should be used:
 public static bool Open( int key, string instanceId, bool open )
 ```
 This guaranties that the caller knows what he's doing: he must have obtained the instance identifier of the application and
-have called `static IEnumerable<LogGate> GetLogGates()` to choose the relevant gate.
+have called `static IEnumerable<LogGate> GetLogGates()` to choose the relevant gate thanks to its properties
+(`DisplayName`, `FilePath` and `LineNumber`).
 
 ## Usage: the `O` method and StaticLogger property
 

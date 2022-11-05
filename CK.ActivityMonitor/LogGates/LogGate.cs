@@ -23,9 +23,10 @@ namespace CK.Core
 
         LogGate? _prev;
         bool _isOpen;
+        bool _hasDisplayName;
 
         /// <summary>
-        /// Creates a gate with no display name (it will be the <see cref="FileName"/>).
+        /// Creates a gate with no display name (it will be the <see cref="FilePath"/>).
         /// </summary>
         /// <param name="open">Whether to initially open this gate or not.</param>
         /// <param name="fileName">Source file name of the instantiation (automatically injected by C# compiler).</param>
@@ -38,17 +39,31 @@ namespace CK.Core
         /// <summary>
         /// Creates a gate with a display name.
         /// </summary>
-        /// <param name="displayName">The display name. Must not be empty or whitespace.</param>
+        /// <param name="displayName">
+        /// The display name. Must not be empty or whitespace nor contain
+        /// comma ',', colon ':', semicolon ';', exclamation mark '!', pipe '|', ampersand '&', double quotes '"', and parentheses '(', ')'.
+        /// </param>
         /// <param name="open">Whether to initially open this gate or not.</param>
         /// <param name="fileName">Source file name of the instantiation (automatically injected by C# compiler).</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         public LogGate( string displayName, bool open, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
-            Throw.CheckNotNullOrWhiteSpaceArgument( displayName );
             Throw.CheckNotNullOrWhiteSpaceArgument( fileName );
-            DisplayName = displayName;
-            FileName = fileName;
+            Throw.CheckNotNullOrWhiteSpaceArgument( displayName );
+            FilePath = fileName;
             LineNumber = lineNumber;
+            _isOpen = open;
+            displayName = displayName.Trim();
+            if( _hasDisplayName = displayName != fileName )
+            {
+                Throw.CheckArgument( displayName.AsSpan().IndexOfAny( ",:;!|&\",()" ) < 0 );
+                DisplayName = displayName;
+            }
+            else
+            {
+                DisplayName = FilePath.LastPart;
+            }
+            OnNewLogGate?.Invoke( this );
             lock( _registerLock )
             {
                 if( _last == null ) _last = _first = this;
@@ -56,7 +71,7 @@ namespace CK.Core
                 _last = this;
                 Key = _count++;
             }
-            if( _isOpen = open )
+            if( _isOpen )
             {
                 Interlocked.Increment( ref _activeCount );
             }
@@ -78,6 +93,13 @@ namespace CK.Core
                 _activeCount = _count = 0;
             }
         }
+
+        /// <summary>
+        /// Provides a hook that is called when a new LogGate is created.
+        /// This is called before the LogGate is registered and appears in
+        /// <see cref="GetLogGates()"/> enumeration.
+        /// </summary>
+        public static event Action<LogGate>? OnNewLogGate;
 
         /// <summary>
         /// Gets the number of log gates.
@@ -139,17 +161,30 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Gets whether this gate has an actual <see cref="DisplayName"/>
+        /// or its display name is the <see cref="FilePath"/>.
+        /// </summary>
+        public bool HasDisplayName => _hasDisplayName;
+
+        /// <summary>
         /// Gets the display name of this gate.
+        /// <para>
+        /// When <see cref="HasDisplayName"/> is true, this name cannot contain
+        /// comma ',', colon ':', semicolon ';', exclamation mark '!', pipe '|', ampersand '&', double quotes '"', and parentheses '(', ')'.
+        /// </para>
+        /// <para>
+        /// When <see cref="HasDisplayName"/> is false, this is the <see cref="FilePath"/>'s <see cref="NormalizedPath.LastPart"/>.
+        /// </para>
         /// </summary>
         public string DisplayName { get; }
 
         /// <summary>
         /// Gets the file name where this gate has been instantiated.
         /// </summary>
-        public string FileName { get; }
+        public NormalizedPath FilePath { get; }
 
         /// <summary>
-        /// Gets the file number of the <see cref="FileName"/> where this gate has been instantiated.
+        /// Gets the file number of the <see cref="FilePath"/> where this gate has been instantiated.
         /// </summary>
         public int LineNumber { get; }
 
