@@ -9,19 +9,23 @@ using System.Threading.Tasks;
 namespace CK.Core
 {
     /// <summary>
-    /// Simple boolean gate that can control log emission with minimal overhead.
+    /// Simple boolean gate that can control log emission or any access to object reference
+    /// with minimal overhead.
     /// This class is totally thread safe.
+    /// <para>
+    /// Gates must be static, they cannot be removed or destroyed and live for the lifetime of the application.
+    /// </para>
     /// </summary>
-    public sealed partial class LogGate
+    public sealed partial class StaticGate
     {
-        readonly static GateLogger _gateLogger = new GateLogger();
+        readonly static Logger _gateLogger = new Logger();
         static object _registerLock;
-        static LogGate? _first;
-        static LogGate? _last;
+        static StaticGate? _first;
+        static StaticGate? _last;
         static int _count;
         static int _activeCount;
 
-        LogGate? _prev;
+        StaticGate? _prev;
         bool _isOpen;
         bool _hasDisplayName;
 
@@ -31,7 +35,7 @@ namespace CK.Core
         /// <param name="open">Whether to initially open this gate or not.</param>
         /// <param name="fileName">Source file name of the instantiation (automatically injected by C# compiler).</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        public LogGate( bool open, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
+        public StaticGate( bool open, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
             : this( fileName!, open, fileName, lineNumber )
         {
         }
@@ -46,7 +50,7 @@ namespace CK.Core
         /// <param name="open">Whether to initially open this gate or not.</param>
         /// <param name="fileName">Source file name of the instantiation (automatically injected by C# compiler).</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        public LogGate( string displayName, bool open, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
+        public StaticGate( string displayName, bool open, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
             Throw.CheckNotNullOrWhiteSpaceArgument( fileName );
             Throw.CheckNotNullOrWhiteSpaceArgument( displayName );
@@ -63,7 +67,7 @@ namespace CK.Core
             {
                 DisplayName = FilePath.LastPart;
             }
-            OnNewLogGate?.Invoke( this );
+            OnNewStaticGate?.Invoke( this );
             lock( _registerLock )
             {
                 if( _last == null ) _last = _first = this;
@@ -77,7 +81,7 @@ namespace CK.Core
             }
         }
 
-        static LogGate()
+        static StaticGate()
         {
             _registerLock = new object();
         }
@@ -95,11 +99,11 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Provides a hook that is called when a new LogGate is created.
-        /// This is called before the LogGate is registered and appears in
-        /// <see cref="GetLogGates()"/> enumeration.
+        /// Provides a hook that is called when a new StaticGate is created.
+        /// This is called before the StaticGate is registered and appears in
+        /// <see cref="GetStaticGates()"/> enumeration.
         /// </summary>
-        public static event Action<LogGate>? OnNewLogGate;
+        public static event Action<StaticGate>? OnNewStaticGate;
 
         /// <summary>
         /// Gets the number of log gates.
@@ -123,7 +127,7 @@ namespace CK.Core
         {
             if( instanceId == CoreApplicationIdentity.InstanceId )
             {
-                LogGate? g = Find( key );
+                StaticGate? g = Find( key );
                 if( g != null )
                 {
                     g.IsOpen = open;
@@ -137,7 +141,7 @@ namespace CK.Core
         /// Gets all the registered gates, order by their <see cref="Key"/>.
         /// </summary>
         /// <returns>All registered gates.</returns>
-        public static IEnumerable<LogGate> GetLogGates()
+        public static IEnumerable<StaticGate> GetStaticGates()
         {
             var g = _first;
             while( g != null )
@@ -152,7 +156,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="key"></param>
         /// <returns>The gate or null.</returns>
-        public static LogGate? Find( int key )
+        public static StaticGate? Find( int key )
         {
             var g = _first;
             if( key >= _count ) return null;
@@ -226,7 +230,7 @@ namespace CK.Core
         /// <summary>
         /// Gets a <see cref="ActivityMonitor.StaticLogger"/> relay if this gate is opened, null otherwise.
         /// </summary>
-        public GateLogger? StaticLogger => _isOpen ? _gateLogger : null;
+        public Logger? StaticLogger => _isOpen ? _gateLogger : null;
     }
 
 }

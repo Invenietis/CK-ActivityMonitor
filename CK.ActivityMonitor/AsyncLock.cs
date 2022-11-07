@@ -23,7 +23,7 @@ namespace CK.Core
         /// The gate that controls logging for AsyncLock. Can be reused by other async related
         /// features. It is closed by default.
         /// </summary>
-        public static readonly LogGate Gate = new LogGate( nameof(AsyncLock), false );
+        public static readonly StaticGate Gate = new StaticGate( nameof(AsyncLock), false );
 
         readonly SemaphoreSlim _semaphore;
         readonly LockRecursionPolicy _policy;

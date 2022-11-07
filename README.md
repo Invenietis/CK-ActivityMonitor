@@ -116,7 +116,7 @@ relates to which Open. Also, there is not the special support for Type names tha
 interpolated strings handled by the [CK.ActivityMonitor.SimpleSender](#SimpleSender).
 
 In hot paths, if you want to be able to totally remove logging overhead (while preserving the capability to
-log things), use a [LogGate](CK.ActivityMonitor/LogGates/README).
+log things), use a [StaticGate](CK.ActivityMonitor/StaticGates/README).
 
 ### Consuming logs
 
@@ -178,7 +178,7 @@ The core abstractions, and default implementation of `ActivityMonitor`. Also con
 - The [AsyncLock](CK.ActivityMonitor/AsyncLock.md) that can detect, handles or reject asynchronous lock reentrancy 
 without any awful [AsyncLocal](https://docs.microsoft.com/en-us/dotnet/api/system.threading.asynclocal-1) 
 thanks to the `IActivityMonitor` ubiquitous parameter. 
-- The [LogGate](CK.ActivityMonitor/LogGates/README) that can optimally control log emission.
+- The [StaticGate](CK.ActivityMonitor/StaticGates/README) that can optimally control log emission.
 
 ### <a name="SimpleSender"></a>CK.ActivityMonitor.SimpleSender [![Nuget](https://img.shields.io/nuget/vpre/CK.ActivityMonitor.SimpleSender.svg)](https://www.nuget.org/packages/CK.ActivityMonitor.SimpleSender/)
 

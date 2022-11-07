@@ -5,13 +5,13 @@ using System.Runtime.CompilerServices;
 
 namespace CK.Core
 {
-    public sealed partial class LogGate
+    public sealed partial class StaticGate
     {
         /// <summary>
         /// Relay to the <see cref="ActivityMonitor.StaticLogger"/>. This is a singleton instance: as an instance this
         /// can be nullable, as a sealed class this wrapper is optimal.
         /// </summary>
-        public sealed class GateLogger
+        public sealed class Logger
         {
             /// <inheritdoc cref="ActivityMonitor.StaticLogger.Debug(CKTrait, string, Exception?, string?, int)"/>
             [MethodImpl( MethodImplOptions.AggressiveInlining )]

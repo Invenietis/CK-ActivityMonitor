@@ -95,7 +95,7 @@ is calling and to react the way we want thanks to the standard [LockRecursionPol
 
 To ease debugging and maintenance (concurrency is hard), this lock has a name that defaults to the source location of
 where it has been new'ed (source file name and line number). And, since a `IActivityMonitor` is available, logs are
-emitted when entering/leaving the lock under the control of a [LogGate](LogGates/README.md).
+emitted when entering/leaving the lock under the control of a [StaticGate](StaticGates/README.md).
 
 [^1]: A Mutex (Mutual Exclusion) is like a car with only one seat: no more that one participant can enjoy the trip.
 A Semaphores is a car with multiple seats: you can choose the number of seats, letting multiple participants playing
