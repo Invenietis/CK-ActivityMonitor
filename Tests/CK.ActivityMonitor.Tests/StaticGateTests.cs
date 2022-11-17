@@ -7,7 +7,7 @@ using System.Reflection;
 namespace CK.Core.Tests.Monitoring
 {
     [TestFixture]
-    public class StaticGateTests
+    public partial class StaticGateTests
     {
         [Test]
         public void gates_ToString_gives_all_the_details()

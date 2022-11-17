@@ -57,7 +57,6 @@ namespace CK.Core
             Throw.CheckNotNullOrWhiteSpaceArgument( displayName );
             FilePath = fileName;
             LineNumber = lineNumber;
-            _isOpen = open;
             displayName = displayName.Trim();
             if( _hasDisplayName = displayName != fileName )
             {
@@ -68,17 +67,14 @@ namespace CK.Core
             {
                 DisplayName = FilePath.LastPart;
             }
+            Key = Interlocked.Increment( ref _count ) - 1;
+            if( _isOpen = open ) Interlocked.Increment( ref _activeCount );
             OnNewStaticGate?.Invoke( this );
             lock( _registerLock )
             {
                 if( _last == null ) _last = _first = this;
                 else _last._prev = this;
                 _last = this;
-                Key = _count++;
-            }
-            if( _isOpen )
-            {
-                Interlocked.Increment( ref _activeCount );
             }
         }
 
@@ -144,7 +140,7 @@ namespace CK.Core
         /// <returns>All registered gates.</returns>
         public static IEnumerable<StaticGate> GetStaticGates()
         {
-            var g = _first;
+            var g = Volatile.Read( ref _first );
             while( g != null )
             {
                 yield return g;
