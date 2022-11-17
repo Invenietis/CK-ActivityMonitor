@@ -46,7 +46,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="displayName">
         /// The display name. Must not be empty or whitespace nor contain
-        /// comma ',', colon ':', semicolon ';', exclamation mark '!', pipe '|', ampersand '&', double quotes '"', and parentheses '(', ')'.
+        /// comma ',', colon ':', semicolon ';', exclamation mark '!', pipe '|', ampersand '&amp;', double quotes '"', and parentheses '(', ')'.
         /// </param>
         /// <param name="open">Whether to initially open this gate or not.</param>
         /// <param name="fileName">Source file name of the instantiation (automatically injected by C# compiler).</param>
@@ -175,7 +175,7 @@ namespace CK.Core
         /// Gets the display name of this gate.
         /// <para>
         /// When <see cref="HasDisplayName"/> is true, this name cannot contain
-        /// comma ',', colon ':', semicolon ';', exclamation mark '!', pipe '|', ampersand '&', double quotes '"', and parentheses '(', ')'.
+        /// comma ',', colon ':', semicolon ';', exclamation mark '!', pipe '|', ampersand '&amp;', double quotes '"', and parentheses '(', ')'.
         /// </para>
         /// <para>
         /// When <see cref="HasDisplayName"/> is false, this is the <see cref="FilePath"/>'s <see cref="NormalizedPath.LastPart"/>.
