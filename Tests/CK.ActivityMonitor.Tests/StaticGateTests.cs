@@ -9,22 +9,21 @@ namespace CK.Core.Tests.Monitoring
     [TestFixture]
     public partial class StaticGateTests
     {
-        [Test]
-        public void gates_ToString_gives_all_the_details()
-        {
-            var g = new StaticGate( false );
-            g.ToString().Should().Be( "StaticGateTests.cs [Closed] @C:/Dev/CK/CK-Core-Projects/CK-ActivityMonitor/Tests/CK.ActivityMonitor.Tests/StaticGateTests.cs;15 - Key: 0" );
-
-            var gN = new StaticGate( "Hop", true );
-            gN.ToString().Should().Be( "Hop [Opened] @C:/Dev/CK/CK-Core-Projects/CK-ActivityMonitor/Tests/CK.ActivityMonitor.Tests/StaticGateTests.cs;18 - Key: 1" );
-        }
-        // Above test relies on the line numbers in this file. Avoid moving it (or update the expected line number).
-
         [SetUp]
         protected void ResetGates()
         {
             typeof( StaticGate ).GetMethod( "Reset", BindingFlags.NonPublic | BindingFlags.Static )!
                              .Invoke( null, Array.Empty<object>() );
+        }
+
+        [Test]
+        public void gates_ToString_gives_all_the_details()
+        {
+            var g = new StaticGate( false );
+            g.ToString().Should().MatchEquivalentOf( "StaticGateTests.cs [Closed] @*/CK-ActivityMonitor/Tests/CK.ActivityMonitor.Tests/StaticGateTests.cs;* - Key: 0" );
+
+            var gN = new StaticGate( "Hop", true );
+            gN.ToString().Should().MatchEquivalentOf( "Hop [Opened] @*/CK-ActivityMonitor/Tests/CK.ActivityMonitor.Tests/StaticGateTests.cs;* - Key: 1" );
         }
 
         [Test]
