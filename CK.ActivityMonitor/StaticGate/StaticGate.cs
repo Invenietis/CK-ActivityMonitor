@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -160,7 +161,11 @@ namespace CK.Core
         {
             var g = _first;
             if( key >= _count ) return null;
-            while( --key >= 0 ) g = g._prev;
+            while( --key >= 0 )
+            {
+                Debug.Assert( g != null );
+                g = g._prev;
+            }
             return g;
         }
 
@@ -219,6 +224,12 @@ namespace CK.Core
                 }
             }
         }
+
+        /// <summary>
+        /// Overridden to return all the attributes in a readable string.
+        /// </summary>
+        /// <returns>Detailed current information about this gate.</returns>
+        public override string ToString() => $"{DisplayName} [{(_isOpen ? "Open" : "Clos" )}ed] @{FilePath};{LineNumber} - Key: {Key}";
 
         /// <summary>
         /// Returns the <paramref name="instance"/> if this gate is opened, null otherwise.
