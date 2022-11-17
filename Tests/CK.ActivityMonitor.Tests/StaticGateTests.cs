@@ -20,10 +20,10 @@ namespace CK.Core.Tests.Monitoring
         public void gates_ToString_gives_all_the_details()
         {
             var g = new StaticGate( false );
-            g.ToString().Should().MatchEquivalentOf( "StaticGateTests.cs [Closed] @*/CK-ActivityMonitor/Tests/CK.ActivityMonitor.Tests/StaticGateTests.cs;* - Key: 0" );
+            g.ToString().Should().MatchEquivalentOf( "StaticGateTests.cs [Closed] @*/Tests/CK.ActivityMonitor.Tests/StaticGateTests.cs;* - Key: 0" );
 
             var gN = new StaticGate( "Hop", true );
-            gN.ToString().Should().MatchEquivalentOf( "Hop [Opened] @*/CK-ActivityMonitor/Tests/CK.ActivityMonitor.Tests/StaticGateTests.cs;* - Key: 1" );
+            gN.ToString().Should().MatchEquivalentOf( "Hop [Opened] @*/Tests/CK.ActivityMonitor.Tests/StaticGateTests.cs;* - Key: 1" );
         }
 
         [Test]
