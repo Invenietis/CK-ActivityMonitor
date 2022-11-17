@@ -30,7 +30,17 @@ public sealed class AsyncLock
 The name (here "AsyncLock") is a DisplayName, it doesn't have to be unique. The constructor captures the file name and line number
 of the instantiation however even this is not used as an identity. The true identity of a StaticGate is provided
 by the [CoreApplicationIdentity.InstanceId](https://github.com/Invenietis/CK-Core/blob/master/CK.Core/CoreApplicationIdentity/README.md)
-of the running application and the `int Key { get; }` (an incremented index for each gate created). 
+of the running application and the `int Key { get; }` (an incremented index for each gate created).
+
+___
+**Important:** As an optimization, the .Net runtime defers the initialization of the static fields of a Type until
+ one of them is accessed: a StaticGate will only appear if it's used or if another static field of the Type is accessed.
+
+To ensure that the static fields of a Type are initialized at the first `new MyType()` instance, one can
+define an empty static constructor (called a Type Initializer). (The other trick that is to "touch" a static
+field in the constructor works but is, by far, less elegant). 
+See the tests [here](../../Tests/CK.ActivityMonitor.Tests//StaticGateTests.StaticGateHolder.cs).
+___
 
 ## StaticGate opening and closing
 

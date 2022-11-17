@@ -14,52 +14,71 @@ namespace CK.Core.Tests.Monitoring
         List<StaticGate> Gates { get; }
     }
 
-    public class StaticGateHolder : IGateHolder
-    {
-        readonly StaticGate _gate = new StaticGate( "StaticGateHolder", false );
-
-        public StaticGateHolder()
-        {
-            Throw.CheckState( _gate != null );
-            Gates = StaticGate.GetStaticGates().ToList();
-        }
-
-        public List<StaticGate> Gates { get; }
-    }
-
-    public class StaticGateHolderDynamic : IGateHolder
-    {
-        readonly StaticGate _gate = new StaticGate( "StaticGateHolderDynamic", false );
-
-        public StaticGateHolderDynamic()
-        {
-            Throw.CheckState( _gate != null );
-            Gates = StaticGate.GetStaticGates().ToList();
-        }
-
-        public List<StaticGate> Gates { get; }
-    }
-
     public partial class StaticGateTests
     {
-        [TestCase( true )]
-        public void gates_are_immediately_visible( bool activator )
+        // This doesn't work!
+        public class ThisOneDoesntWork : IGateHolder
         {
-            var h = activator ? CreateActivator() : CreateDirect();
+            readonly static StaticGate _gate1 = new StaticGate( "StaticGateHolder1", false );
+
+            public ThisOneDoesntWork()
+            {
+                Gates = StaticGate.GetStaticGates().ToList();
+            }
+
+            public List<StaticGate> Gates { get; }
+        }
+
+        [Test]
+        public void static_fields_are_initialized_only_when_they_are_accessed()
+        {
+            var h = new ThisOneDoesntWork();
+            h.Gates.Should().HaveCount( 0, "No gates registered." );
+        }
+
+        // This works.
+        public class WithInitializer : IGateHolder
+        {
+            readonly static StaticGate _gate1;
+
+            static WithInitializer()
+            {
+                _gate1 = new StaticGate( "G", false );
+            }
+
+            public WithInitializer()
+            {
+                Gates = StaticGate.GetStaticGates().ToList();
+            }
+
+            public List<StaticGate> Gates { get; }
+        }
+
+        // This also works.
+        public class WithEmptyInitializer : IGateHolder
+        {
+            readonly static StaticGate _gate1 = new StaticGate( "G", false );
+
+            static WithEmptyInitializer()
+            {
+            }
+
+            public WithEmptyInitializer()
+            {
+                Gates = StaticGate.GetStaticGates().ToList();
+            }
+
+            public List<StaticGate> Gates { get; }
+        }
+
+        [TestCase( "EmptyInitializer" )]
+        [TestCase( "Initializer" )]
+        public void gate_fields_SHOULD_use_type_initializer_or_declare_an_empty_initializer( string mode )
+        {
+            IGateHolder h = mode == "Initializer" ? new WithInitializer() : new WithEmptyInitializer();
             h.Gates.Should().HaveCount( 1 );
-            h.Gates[0].DisplayName.Should().Be( activator ? "StaticGateHolderDynamic" : "StaticGateHolder" );
+            h.Gates[0].DisplayName.Should().Be( "G" );
         }
 
-        [MethodImpl( MethodImplOptions.NoInlining )]
-        static IGateHolder CreateDirect()
-        {
-            return new StaticGateHolder();
-        }
-
-        [MethodImpl( MethodImplOptions.NoInlining )]
-        static IGateHolder CreateActivator()
-        {
-            return (IGateHolder)Activator.CreateInstance( typeof( StaticGateHolderDynamic ) )!;
-        }
     }
 }
