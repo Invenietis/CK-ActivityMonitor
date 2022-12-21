@@ -84,7 +84,7 @@ Actually ONE solution exists to detect reentrancy but with a serious price to pa
 using an [AsyncLocal](https://docs.microsoft.com/en-us/dotnet/api/system.threading.asynclocal-1).
 
 We strongly encourage you to NEVER rely on `AsyncLocal`. There are plenty of discussions about this and even if some
-disagree, we NEVER use them. See this intersting post https://codeblog.jonskeet.uk/2010/11/08/the-importance-of-context-and-a-question-of-explicitness/
+disagree, we NEVER use them. See this interesting post https://codeblog.jonskeet.uk/2010/11/08/the-importance-of-context-and-a-question-of-explicitness/
 and this (sad) [story](https://github.com/dotnet/aspnetcore/issues/4731).
 
 ### Our IActivityMonitor-based answer
@@ -95,7 +95,7 @@ is calling and to react the way we want thanks to the standard [LockRecursionPol
 
 To ease debugging and maintenance (concurrency is hard), this lock has a name that defaults to the source location of
 where it has been new'ed (source file name and line number). And, since a `IActivityMonitor` is available, logs are
-emitted when entering/leaving the lock.
+emitted when entering/leaving the lock under the control of a [StaticGate](StaticGates/README.md).
 
 [^1]: A Mutex (Mutual Exclusion) is like a car with only one seat: no more that one participant can enjoy the trip.
 A Semaphores is a car with multiple seats: you can choose the number of seats, letting multiple participants playing

@@ -17,8 +17,14 @@ namespace CK.Core
     /// disposed only if its <see cref="SemaphoreSlim.AvailableWaitHandle"/> has been used and since we
     /// encapsulate the semaphore and don't use it, we can avoid the IDisposable burden.
     /// </remarks>
-    public class AsyncLock
+    public sealed class AsyncLock
     {
+        /// <summary>
+        /// The gate that controls logging for AsyncLock. Can be reused by other async related
+        /// features. It is closed by default.
+        /// </summary>
+        public static readonly StaticGate Gate = new StaticGate( nameof(AsyncLock), false );
+
         readonly SemaphoreSlim _semaphore;
         readonly LockRecursionPolicy _policy;
         IActivityMonitorOutput? _current;
@@ -70,6 +76,20 @@ namespace CK.Core
 
         /// <summary>
         /// Helper to support using statement.
+        /// <see cref="Enter(IActivityMonitor)"/> this lock and returns a <see cref="IDisposable"/> that will <see cref="Leave(IActivityMonitor)"/> this lock.
+        /// </summary>
+        /// <param name="monitor">The monitor that identifies the activity.</param>
+        /// <param name="cancel">Cancellation token.</param>
+        /// <returns>The disposable to release the lock.</returns>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public Releaser Lock( IActivityMonitor monitor, CancellationToken cancel )
+        {
+            Enter( monitor, cancel );
+            return new Releaser( this, monitor );
+        }
+
+        /// <summary>
+        /// Helper to support using statement.
         /// <see cref="EnterAsync(IActivityMonitor)"/> this lock and returns an awaitable <see cref="IDisposable"/> that
         /// will <see cref="Leave(IActivityMonitor)"/> this lock.
         /// <para>
@@ -79,11 +99,27 @@ namespace CK.Core
         /// </summary>
         /// <param name="monitor">The monitor that identifies the activity.</param>
         /// <returns>The disposable to release the lock.</returns>
-        public ValueTask<Releaser> LockAsync( IActivityMonitor monitor ) => new ValueTask<Releaser>( DoLockAsync( monitor ) );
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public ValueTask<Releaser> LockAsync( IActivityMonitor monitor ) => new ValueTask<Releaser>( DoLockAsync( monitor, CancellationToken.None ) );
 
-        async Task<Releaser> DoLockAsync( IActivityMonitor monitor )
+        /// <summary>
+        /// Helper to support using statement.
+        /// <see cref="EnterAsync(IActivityMonitor,CancellationToken)"/> this lock and returns an awaitable <see cref="IDisposable"/> that
+        /// will <see cref="Leave(IActivityMonitor)"/> this lock.
+        /// <para>
+        /// This returns a ValueTask (that is not IDisposable): forgetting the await in the <c>using( await _lock.LockAsync() )</c> is not possible
+        /// since this doesn't compile.
+        /// </para>
+        /// </summary>
+        /// <param name="monitor">The monitor that identifies the activity.</param>
+        /// <param name="cancel">Cancellation token.</param>
+        /// <returns>The disposable to release the lock.</returns>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public ValueTask<Releaser> LockAsync( IActivityMonitor monitor, CancellationToken cancel ) => new ValueTask<Releaser>( DoLockAsync( monitor, cancel ) );
+
+        async Task<Releaser> DoLockAsync( IActivityMonitor monitor, CancellationToken cancel )
         {
-            await EnterAsync( monitor );
+            await EnterAsync( monitor, Timeout.Infinite, cancel );
             return new Releaser( this, monitor );
         }
 
@@ -132,7 +168,21 @@ namespace CK.Core
         /// <returns>A task that will complete when the lock has been entered.</returns>
         /// <exception cref="ArgumentNullException">The monitor is null.</exception>
         /// <exception cref="LockRecursionException">Recursion detected and <see cref="LockRecursionPolicy.NoRecursion"/> has been configured.</exception>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public Task EnterAsync( IActivityMonitor monitor ) => EnterAsync( monitor, Timeout.Infinite, default );
+
+        /// <summary>
+        /// Asynchronously waits to enter this <see cref="AsyncLock"/>.
+        /// This MUST NOT be used in a using statement (unfortunately, a Task is IDisposable),
+        /// use <see cref="LockAsync(IActivityMonitor,CancellationToken)"/> for this.
+        /// </summary>
+        /// <param name="monitor">The monitor that identifies the activity.</param>
+        /// <param name="cancel">Cancellation token.</param>
+        /// <returns>A task that will complete when the lock has been entered.</returns>
+        /// <exception cref="ArgumentNullException">The monitor is null.</exception>
+        /// <exception cref="LockRecursionException">Recursion detected and <see cref="LockRecursionPolicy.NoRecursion"/> has been configured.</exception>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public Task EnterAsync( IActivityMonitor monitor, CancellationToken cancel ) => EnterAsync( monitor, Timeout.Infinite, cancel );
 
         /// <summary>
         /// Asynchronously waits to enter this <see cref="AsyncLock"/>, using a 32-bit signed integer to measure the time interval,
@@ -163,12 +213,19 @@ namespace CK.Core
             {
                 if( _policy == LockRecursionPolicy.NoRecursion ) throw new LockRecursionException( Name );
                 ++_recCount;
+                Gate.O( monitor )?.UnfilteredLog( LogLevel.Warn | LogLevel.IsFiltered,
+                                                  ActivityMonitor.Tags.Empty,
+                                                  $"Asynchronously reentered AsyncLock '{_name}', recursion count: {_recCount}.",
+                                                  null );
                 return true;
             }
             if( await _semaphore.WaitAsync( millisecondsTimeout, cancellationToken ).ConfigureAwait( false ) )
             {
                 Debug.Assert( _recCount == 0 );
-                if( ShouldLog( monitor ) ) SendLine( monitor, $"Entered AsyncLock '{_name}' (async)." );
+                Gate.O( monitor )?.UnfilteredLog( LogLevel.Trace | LogLevel.IsFiltered,
+                                                  ActivityMonitor.Tags.Empty,
+                                                  $"Asynchronously entered AsyncLock '{_name}'.",
+                                                  null );
                 _current = monitor.Output;
                 return true;
             }
@@ -183,15 +240,30 @@ namespace CK.Core
         /// <exception cref="System.ObjectDisposedException">The current instance has already been
         /// disposed.</exception>
         /// <exception cref="LockRecursionException">Recursion detected and <see cref="LockRecursionPolicy.NoRecursion"/> has been configured.</exception>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public void Enter( IActivityMonitor monitor ) => Enter( monitor, Timeout.Infinite, CancellationToken.None );
+
+        /// <summary>
+        /// Blocks the current thread until it can enter the <see cref="AsyncLock"/>.
+        /// </summary>
+        /// <param name="monitor">The monitor that identifies the activity.</param>
+        /// <param name="cancel">Cancellation token.</param>
+        /// <exception cref="ArgumentNullException">The monitor is null.</exception>
+        /// <exception cref="System.ObjectDisposedException">The current instance has already been
+        /// disposed.</exception>
+        /// <exception cref="LockRecursionException">Recursion detected and <see cref="LockRecursionPolicy.NoRecursion"/> has been configured.</exception>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public void Enter( IActivityMonitor monitor, CancellationToken cancel ) => Enter( monitor, Timeout.Infinite, cancel );
 
         /// <summary>
         /// Blocks the current thread until it can enter this <see cref="AsyncLock"/>, using a 32-bit signed integer to measure the
         /// time interval in milliseconds, while observing a <see cref="System.Threading.CancellationToken"/>.
         /// </summary>
         /// <param name="monitor">The monitor that identifies the activity.</param>
-        /// <param name="millisecondsTimeout">The number of milliseconds to wait, or <see cref="Timeout.Infinite"/>(-1) to
-        /// wait indefinitely.</param>
+        /// <param name="millisecondsTimeout">
+        /// The number of milliseconds to wait, or <see cref="Timeout.Infinite"/>(-1) to
+        /// wait indefinitely.
+        /// </param>
         /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> to observe.</param>
         /// <returns>true if the current thread successfully entered the <see cref="AsyncLock"/>; otherwise, false.</returns>
         /// <exception cref="ArgumentNullException">The monitor is null.</exception>
@@ -208,13 +280,19 @@ namespace CK.Core
             {
                 if( _policy == LockRecursionPolicy.NoRecursion ) throw new LockRecursionException( Name );
                 ++_recCount;
-                if( ShouldLog( monitor ) ) SendLine( monitor, $"Incremented AsyncLock '{_name}' recursion count ({_recCount})." );
+                Gate.O( monitor )?.UnfilteredLog( LogLevel.Warn | LogLevel.IsFiltered,
+                                                  ActivityMonitor.Tags.Empty,
+                                                  $"Synchronously reentered AsyncLock '{_name}', recursion count: {_recCount}.",
+                                                  null );
                 return true;
             }
             if( _semaphore.Wait( millisecondsTimeout, cancellationToken ) )
             {
                 Debug.Assert( _recCount == 0 );
-                if( ShouldLog( monitor ) ) SendLine( monitor, $"Synchronously entered AsyncLock '{_name}'." );
+                Gate.O( monitor )?.UnfilteredLog( LogLevel.Trace | LogLevel.IsFiltered,
+                                                  ActivityMonitor.Tags.Empty,
+                                                  $"Synchronously entered AsyncLock '{_name}'.",
+                                                  null );
                 _current = monitor.Output;
                 return true;
             }
@@ -227,6 +305,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="m">The monitor that identifies the activity.</param>
         /// <returns>true if the lock was taken, false otherwise.</returns>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public bool TryEnter( IActivityMonitor m ) => Enter( m, 0, default );
 
         /// <summary>
@@ -244,23 +323,22 @@ namespace CK.Core
             Debug.Assert( _recCount >= 0 );
             if( _recCount == 0 )
             {
-                if( ShouldLog( monitor ) ) SendLine( monitor, $"Released AsyncLock '{_name}'." );
+                Gate.O( monitor )?.UnfilteredLog( LogLevel.Trace | LogLevel.IsFiltered,
+                                                  ActivityMonitor.Tags.Empty,
+                                                  $"Released AsyncLock '{_name}'.",
+                                                  null );
                 _current = null;
                 _semaphore.Release();
             }
             else
             {
-                if( ShouldLog( monitor ) ) SendLine( monitor, $"Decremented AsyncLock '{_name}' recursion count ({_recCount})." );
+                Gate.O( monitor )?.UnfilteredLog( LogLevel.Trace | LogLevel.IsFiltered,
+                                                 ActivityMonitor.Tags.Empty,
+                                                 $"Decremented AsyncLock '{_name}', recursion count: {_recCount}.",
+                                                 null );
                 --_recCount;
             }
         }
-
-        static bool ShouldLog( IActivityMonitor monitor ) => monitor.ShouldLogLine( LogLevel.Debug, null, out _ );
-
-        static void SendLine( IActivityMonitor monitor, string text ) => monitor.UnfilteredLog( LogLevel.Debug | LogLevel.IsFiltered,
-                                                                                                ActivityMonitor.Tags.Empty,
-                                                                                                text,
-                                                                                                null );
 
         /// <summary>
         /// Overridden to return the name of this lock.

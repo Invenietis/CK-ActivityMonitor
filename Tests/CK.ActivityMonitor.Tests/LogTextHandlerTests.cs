@@ -26,6 +26,40 @@ namespace CK.Core.Tests.Monitoring
             i.Should().Be( 1 );
         }
 
+        class Nested<T> { }
+
+        [Test]
+        public void logging_types()
+        {
+            var m = new ActivityMonitor( false );
+
+            using( m.CollectTexts( out var messages ) )
+            {
+                // t.ToString()            "CK.Core.Tests.Monitoring.LogTextHandlerTests+Nested`1[System.Collections.Generic.Dictionary`2[System.Int32,System.ValueTuple`2[System.String,System.Nullable`1[System.Int32]]]]"
+                // t.FullName              "CK.Core.Tests.Monitoring.LogTextHandlerTests+Nested`1[[System.Collections.Generic.Dictionary`2[[System.Int32, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.ValueTuple`2[[System.String, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Nullable`1[[System.Int32, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]"
+                // t.AssemblyQualifiedName "CK.Core.Tests.Monitoring.LogTextHandlerTests+Nested`1[[System.Collections.Generic.Dictionary`2[[System.Int32, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.ValueTuple`2[[System.String, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Nullable`1[[System.Int32, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], CK.ActivityMonitor.Tests, Version=0.0.0.0, Culture=neutral, PublicKeyToken=731c291b31fb8d27"
+                var t = typeof( Nested<Dictionary<int, (string, int?)>> );
+                var toString = t.ToString();
+                var fullName = t.FullName;
+                var qualifiedName = t.AssemblyQualifiedName;
+
+                m.Info( $"Type: {t}" );
+                messages[0].Should().Be( $"Type: {toString}" );
+
+                m.Info( $"Type: {t:F}" );
+                messages[1].Should().Be( $"Type: {fullName}" );
+
+                m.Info( $"Type: {t:A}" );
+                messages[2].Should().Be( $"Type: {qualifiedName}" );
+
+                m.Info( $"Type: {t:C}" );
+                messages[3].Should().Be( "Type: LogTextHandlerTests.Nested<Dictionary<int,(string,int?)>>" );
+
+                m.Info( $"Type: {t:N}" );
+                messages[4].Should().Be( "Type: CK.Core.Tests.Monitoring.LogTextHandlerTests.Nested<System.Collections.Generic.Dictionary<int,(string,int?)>>" );
+            }
+        }
+
         class Gen<T>
         {
             public class Sub<T2> { }
@@ -33,51 +67,99 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Test]
-        public void Types_are_logged_with_clear_names_using_Toolkit_Diagnostics_ToTypeString()
+        public void Types_are_logged_with_csharp_names_with_Type_Format_C_with_all_overloads()
         {
-            var o = new Gen<Guid>();
             var m = new ActivityMonitor( false );
 
+            var o = new Gen<Guid>();
+
             var expected = o.Prop.GetType().ToCSharpName( withNamespace: false );
+            // This test like an "object" (see below).
             CheckWithAllTextHandlers( m, o.Prop.GetType(), expected );
+            // So this is the same as this one:
             CheckWithAllTextHandlers( m, (object)o.Prop.GetType(), expected );
+            // To test with Type, we cannot use the generic sender but the explicitly typed one.
+            CheckWithAllTextHandlersWithExplicitype( m, o.Prop.GetType(), expected );
 
             var oG = new Gen<Guid>.Sub<string>();
             expected = oG.GetType().ToCSharpName( withNamespace: false );
             CheckWithAllTextHandlers( m, oG.GetType(), expected );
-            CheckWithAllTextHandlers( m, oG.GetType(), expected );
+            CheckWithAllTextHandlersWithExplicitype( m, oG.GetType(), expected );
             CheckWithAllTextHandlers( m, typeof( Gen<Guid>.Sub<string> ), expected );
-            CheckWithAllTextHandlers( m, typeof( Gen<Guid>.Sub<string> ), expected );
+            CheckWithAllTextHandlersWithExplicitype( m, typeof( Gen<Guid>.Sub<string> ), expected );
+
+            // My first idea: this generic method should be routed to AppendFormatted( Type t, string? format )
+            // when T is Type and to the AppendFormatted<T>( T value, string? format ) when Type is an "object".
+            // But it's not! This is always routed to the AppendFormatted<T>( T value, string? format ).
+            //
+            // This is why the generic method handler on the InternalHandler has to match the T as a Type to reroute the call.
+            // The AppendFormatted( Type t, string? format ) overload is correctly selected when
+            // using a regular (ie. non generic) Type.
+
+            // These 2 calls are (correctly) handled by the AppendFormatted( Type t, string? format ) overload.
+            m.Info( $"{typeof( Gen<Guid>.Sub<string> ):C}" ); 
+            m.Info( $"{oG.GetType():C}" ); 
+
+            // This "generic" acts as the "object tester". I keep it but copy it with an explict Type
+            // below to test all the overloads/interpolated handlers...
+            static void CheckWithAllTextHandlers<T>( IActivityMonitor monitor, T t, string expectedText )
+            {
+                using( monitor.CollectTexts( out var messages ) )
+                {
+                    LogWithAllTextHandlers( monitor, "~~|", t, "|~~" );
+
+                    var typeNames = messages.Select( t => Regex.Matches( t, "~~\\|(?<1>.*?)\\|~~", RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture )
+                                               .OfType<Match>().Single().Groups[1].Value );
+
+                    typeNames.Should().HaveCount( 8 )
+                                      .And.OnlyContain( t => t == expectedText );
+                }
+
+                static void LogWithAllTextHandlers( IActivityMonitor monitor, string prefix, T value, string suffix )
+                {
+                    monitor.Log( LogLevel.Info, $"Log {prefix}{value:C}{suffix}" );
+                    monitor.Info( $"Line {prefix}{value:C}{suffix}" );
+                    monitor.OpenGroup( LogLevel.Info, $"Log {prefix}{value:C}{suffix}" );
+                    monitor.OpenInfo( $"Group {prefix}{value:C}{suffix}" );
+
+                    monitor.Log( LogLevel.Info, TestHelper.Tag1, $"Log With Tags {prefix}{value:C}{suffix}" );
+                    monitor.Info( TestHelper.Tag1, $"Line With Tags {prefix}{value:C}{suffix}" );
+                    monitor.OpenGroup( LogLevel.Info, TestHelper.Tag1, $"Log With Tags {prefix}{value:C}{suffix}" );
+                    monitor.OpenInfo( TestHelper.Tag1, $"Group With Tags {prefix}{value:C}{suffix}" );
+                }
+
+            }
+
+            static void CheckWithAllTextHandlersWithExplicitype( IActivityMonitor monitor, Type t, string expectedText )
+            {
+                using( monitor.CollectTexts( out var messages ) )
+                {
+                    LogWithAllTextHandlers( monitor, "~~|", t, "|~~" );
+
+                    var typeNames = messages.Select( t => Regex.Matches( t, "~~\\|(?<1>.*?)\\|~~", RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture )
+                                               .OfType<Match>().Single().Groups[1].Value );
+
+                    typeNames.Should().HaveCount( 8 )
+                                      .And.OnlyContain( t => t == expectedText );
+                }
+
+                static void LogWithAllTextHandlers( IActivityMonitor monitor, string prefix, Type value, string suffix )
+                {
+                    monitor.Log( LogLevel.Info, $"Log {prefix}{value:C}{suffix}" );
+                    monitor.Info( $"Line {prefix}{value:C}{suffix}" );
+                    monitor.OpenGroup( LogLevel.Info, $"Log {prefix}{value:C}{suffix}" );
+                    monitor.OpenInfo( $"Group {prefix}{value:C}{suffix}" );
+
+                    monitor.Log( LogLevel.Info, TestHelper.Tag1, $"Log With Tags {prefix}{value:C}{suffix}" );
+                    monitor.Info( TestHelper.Tag1, $"Line With Tags {prefix}{value:C}{suffix}" );
+                    monitor.OpenGroup( LogLevel.Info, TestHelper.Tag1, $"Log With Tags {prefix}{value:C}{suffix}" );
+                    monitor.OpenInfo( TestHelper.Tag1, $"Group With Tags {prefix}{value:C}{suffix}" );
+                }
+
+            }
+
         }
 
-        void CheckWithAllTextHandlers<T>( IActivityMonitor monitor, T value, string expectedText )
-        {
-            var text = new StupidStringClient();
-            monitor.Output.RegisterClient( text );
-
-            LogWithAllTextHandlers( monitor, "~~|", value, "|~~" );
-
-            var logs = text.Writer.ToString();
-            monitor.Output.UnregisterClient( text );
-
-            var m = Regex.Matches( logs, "~~\\|(?<1>.*?)\\|~~", RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture );
-            var logged = m.OfType<Match>().Select( x => x.Groups[1].Value ).Concatenate();
-            var expected = Enumerable.Repeat( expectedText, 8 ).Concatenate();
-            logged.Should().Be( expected );
-        }
-
-        void LogWithAllTextHandlers<T>( IActivityMonitor monitor, string prefix, T value, string suffix )
-        {
-            monitor.Log( LogLevel.Info, $"Log {prefix}{value}{suffix}" );
-            monitor.Info( $"Line {prefix}{value}{suffix}" );
-            monitor.OpenGroup( LogLevel.Info, $"Log {prefix}{value}{suffix}" );
-            monitor.OpenInfo( $"Group {prefix}{value}{suffix}" );
-
-            monitor.Log( LogLevel.Info, TestHelper.Tag1, $"Log With Tags {prefix}{value}{suffix}" );
-            monitor.Info( TestHelper.Tag1, $"Line With Tags {prefix}{value}{suffix}" );
-            monitor.OpenGroup( LogLevel.Info, TestHelper.Tag1, $"Log With Tags {prefix}{value}{suffix}" );
-            monitor.OpenInfo( TestHelper.Tag1, $"Group With Tags {prefix}{value}{suffix}" );
-        }
 
         // FYI:
         void ILSpyLogWithAllTextHandlers<T>( IActivityMonitor monitor, string prefix, T value, string suffix )

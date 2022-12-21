@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Runtime.CompilerServices;
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics;
 
 namespace CK.Core
 {
@@ -146,29 +147,8 @@ namespace CK.Core
             var d = new ActivityMonitorLogData( level, @this.AutoTags | tags, text, ex, fileName, lineNumber );
             return @this.UnfilteredOpenGroup( ref d );
         }
-        
-        #region Catch & CatchCounter
 
-        /// <summary>
-        /// Enables simple "using" syntax to easily collect any <paramref name="level"/> (or above) entries (defaults to <see cref="LogLevel.Error"/>) around operations.
-        /// The callback is called when the returned IDisposable is disposed and there are at least one collected entry.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="errorHandler">An action that accepts a list of <see cref="ActivityMonitorSimpleCollector.Entry">entries</see>.</param>
-        /// <param name="level">Defines the level of the collected entries (by default fatal or error entries).</param>
-        /// <param name="capacity">Capacity of the collector defaults to 50.</param>
-        /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
-        public static IDisposable CollectEntries( this IActivityMonitor @this, Action<IReadOnlyList<ActivityMonitorSimpleCollector.Entry>> errorHandler, LogLevelFilter level = LogLevelFilter.Error, int capacity = 50 )
-        {
-            Throw.CheckNotNullArgument( errorHandler );
-            ActivityMonitorSimpleCollector errorTracker = new ActivityMonitorSimpleCollector() { MinimalFilter = level, Capacity = capacity };
-            @this.Output.RegisterClient( errorTracker );
-            return Util.CreateDisposableAction( () =>
-            {
-                @this.Output.UnregisterClient( errorTracker );
-                if( errorTracker.Entries.Count > 0 ) errorHandler( errorTracker.Entries );
-            } );
-        }
+        #region CollectEntries, CollectTexts and OnError.
 
         /// <summary>
         /// Enables simple "using" syntax to easily collect any <see cref="LogLevel"/> (or above) entries (defaults to <see cref="LogLevel.Error"/>) around operations.
@@ -184,23 +164,75 @@ namespace CK.Core
             ActivityMonitorSimpleCollector errorTracker = new ActivityMonitorSimpleCollector() { MinimalFilter = level, Capacity = capacity };
             @this.Output.RegisterClient( errorTracker );
             entries = errorTracker.Entries;
-            return Util.CreateDisposableAction( () =>
-            {
-                @this.Output.UnregisterClient( errorTracker );
-            } );
+            return Util.CreateDisposableAction( () => @this.Output.UnregisterClient( errorTracker ) );
         }
 
-
-        class ErrorTracker : IActivityMonitorClient
+        sealed class TextCollector : IActivityMonitorClient
         {
+            readonly FIFOBuffer<string> _entries;
+
+            public TextCollector( int capacity )
+            {
+                _entries = new FIFOBuffer<string>( 100 );
+            }
+
+            public IReadOnlyList<string> Entries => _entries;
+
+            void IActivityMonitorClient.OnUnfilteredLog( ref ActivityMonitorLogData data ) => OnLog( ref data );
+
+            void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group ) => OnLog( ref group.Data );
+
+            void OnLog( ref ActivityMonitorLogData data ) => _entries.Push( data.Text );
+
+            void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions )
+            {
+            }
+
+            void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
+            {
+            }
+
+            void IActivityMonitorClient.OnTopicChanged( string newTopic, string? fileName, int lineNumber )
+            {
+            }
+
+            void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )
+            {
+            }
+        }
+
+        /// <summary>
+        /// Enables simple "using" syntax to easily collect logged messages around operations.
+        /// Text messages are added in the <paramref name="logTexts"/> as soon as they appear.
+        /// Only the last <paramref name="capacity"/> messages are kept.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="logTexts">Current text logged.</param>
+        /// <param name="capacity">Capacity of the collector defaults to 100.</param>
+        /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
+        public static IDisposable CollectTexts( this IActivityMonitor @this, out IReadOnlyList<string> logTexts, int capacity = 100 )
+        {
+            var c = new TextCollector( capacity );
+            @this.Output.RegisterClient( c );
+            logTexts = c.Entries;
+            return Util.CreateDisposableAction( () => @this.Output.UnregisterClient( c ) );
+        }
+
+        sealed class ErrorTracker : IActivityMonitorClient, IDisposable
+        {
+            readonly IActivityMonitorOutput _output;
             readonly Action _onFatal;
             readonly Action _onError;
 
-            public ErrorTracker( Action onFatal, Action onError )
+            public ErrorTracker( IActivityMonitorOutput output, Action onFatal, Action onError )
             {
+                _output = output;
+                output.RegisterClient( this );
                 _onFatal = onFatal;
                 _onError = onError;
             }
+
+            public void Dispose() => _output.UnregisterClient( this );
 
             public void OnUnfilteredLog( ref ActivityMonitorLogData data )
             {
@@ -229,6 +261,52 @@ namespace CK.Core
             public void OnAutoTagsChanged( CKTrait newTrait )
             {
             }
+
+        }
+        sealed class ErrorTrackerMessage : IActivityMonitorClient, IDisposable
+        {
+            readonly IActivityMonitorOutput _output;
+            readonly Action<string> _onFatal;
+            readonly Action<string> _onError;
+
+            public ErrorTrackerMessage( IActivityMonitorOutput output, Action<string> onFatal, Action<string> onError )
+            {
+                _output = output;
+                output.RegisterClient( this );
+                _onFatal = onFatal;
+                _onError = onError;
+            }
+
+            public void Dispose() => _output.UnregisterClient( this );
+
+            public void OnUnfilteredLog( ref ActivityMonitorLogData data )
+            {
+                if( data.MaskedLevel == LogLevel.Error ) _onError( data.Text );
+                else if( data.MaskedLevel == LogLevel.Fatal ) _onFatal( data.Text );
+            }
+
+            public void OnOpenGroup( IActivityLogGroup group )
+            {
+                if( group.Data.MaskedLevel == LogLevel.Error ) _onError( group.Data.Text );
+                else if( group.Data.MaskedLevel == LogLevel.Fatal ) _onFatal( group.Data.Text );
+            }
+
+            public void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions )
+            {
+            }
+
+            public void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
+            {
+            }
+
+            public void OnTopicChanged( string newTopic, string? fileName, int lineNumber )
+            {
+            }
+
+            public void OnAutoTagsChanged( CKTrait newTrait )
+            {
+            }
+
         }
 
         /// <summary>
@@ -240,9 +318,19 @@ namespace CK.Core
         public static IDisposable OnError( this IActivityMonitor @this, Action onFatalOrError )
         {
             Throw.CheckNotNullArgument( onFatalOrError );
-            ErrorTracker tracker = new ErrorTracker( onFatalOrError, onFatalOrError );
-            @this.Output.RegisterClient( tracker );
-            return Util.CreateDisposableAction( () => @this.Output.UnregisterClient( tracker ) );
+            return new ErrorTracker( @this.Output, onFatalOrError, onFatalOrError );
+        }
+
+        /// <summary>
+        /// Enables simple "using" syntax to easily detect <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/>.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="onFatalOrError">An action that is called with the message whenever an Error or Fatal error occurs.</param>
+        /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
+        public static IDisposable OnError( this IActivityMonitor @this, Action<string> onFatalOrError )
+        {
+            Throw.CheckNotNullArgument( onFatalOrError );
+            return new ErrorTrackerMessage( @this.Output, onFatalOrError, onFatalOrError );
         }
 
         /// <summary>
@@ -255,9 +343,20 @@ namespace CK.Core
         public static IDisposable OnError( this IActivityMonitor @this, Action onFatal, Action onError )
         {
             Throw.CheckArgument( onFatal != null && onError != null );
-            ErrorTracker tracker = new ErrorTracker( onFatal, onError );
-            @this.Output.RegisterClient( tracker );
-            return Util.CreateDisposableAction( () => @this.Output.UnregisterClient( tracker ) );
+            return new ErrorTracker( @this.Output, onFatal, onError );
+        }
+
+        /// <summary>
+        /// Enables simple "using" syntax to easily detect <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/>.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="onFatal">An action that is called with the message whenever a Fatal error occurs.</param>
+        /// <param name="onError">An action that is called with the message whenever an Error occurs.</param>
+        /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
+        public static IDisposable OnError( this IActivityMonitor @this, Action<string> onFatal, Action<string> onError )
+        {
+            Throw.CheckArgument( onFatal != null && onError != null );
+            return new ErrorTrackerMessage( @this.Output, onFatal, onError );
         }
         #endregion
 

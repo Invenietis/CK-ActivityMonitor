@@ -35,22 +35,31 @@ namespace CK.Core.LogHandler
             return b != null ? StringBuilderCache.GetStringAndRelease( b ) : null;
         }
 
-        public void AppendLiteral( string value ) => _stringBuilderHandler.AppendLiteral( value );
-
-        public void AppendFormatted<T>( T value )
+        public void AppendFormatted( Type t, string? format )
         {
-            if( value is Type type )
+            switch( format )
             {
-                _stringBuilderHandler.AppendLiteral( type.ToCSharpName( withNamespace: false ) );
-            }
-            else
-            {
-                _stringBuilderHandler.AppendFormatted( value );
+                case "C": _stringBuilderHandler.AppendLiteral( t.ToCSharpName( withNamespace: false, true, true ) ); break;
+                case "N": _stringBuilderHandler.AppendLiteral( t.ToCSharpName( withNamespace: true, true, true ) ); break;
+                case "A": _stringBuilderHandler.AppendLiteral( t.AssemblyQualifiedName ?? "null" ); break;
+                case "F": _stringBuilderHandler.AppendLiteral( t.FullName ?? "null" ); break;
 
+                default:
+                    _stringBuilderHandler.AppendFormatted( t ); 
+                    _stringBuilderHandler.AppendLiteral( "(Invalid Type Format. Must be \"F\" for FullName,`\"A\" for AssemblyQualifiedName, \"C\" for compact C# name and \"N\" for C# name with namespace)" );
+                    break;
             }
         }
 
-        public void AppendFormatted<T>( T value, string? format ) => _stringBuilderHandler.AppendFormatted( value, format );
+        public void AppendLiteral( string value ) => _stringBuilderHandler.AppendLiteral( value );
+
+        public void AppendFormatted<T>( T value ) => _stringBuilderHandler.AppendFormatted( value );
+
+        public void AppendFormatted<T>( T value, string? format )
+        {
+            if( format != null && value is Type t ) AppendFormatted( t, format );
+            else _stringBuilderHandler.AppendFormatted( value, format );
+        }
 
         public void AppendFormatted<T>( T value, int alignment ) => _stringBuilderHandler.AppendFormatted( value, alignment );
 

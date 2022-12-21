@@ -129,7 +129,10 @@ namespace CK.Core.Tests.Monitoring
             IActivityMonitor m3 = new ActivityMonitor( applyAutoConfigurations: false );
             IActivityMonitor m4 = new ActivityMonitor( applyAutoConfigurations: false );
 
-            await Task.WhenAll( Task.Run( () => job( m1 ) ), Task.Run( () => job( m2 ) ), Task.Run( () => asyncJob( m3 ) ), Task.Run( () => asyncJob( m4 ) ) );
+            await Task.WhenAll( Task.Run( () => job( m1 ) ),
+                                Task.Run( () => job( m2 ) ),
+                                Task.Run( () => asyncJob( m3 ) ),
+                                Task.Run( () => asyncJob( m4 ) ) );
 
             nByJob.Should().Be( syncIncLoop * 2 - asyncDecLoop * 2 );
             nByJobAsync.Should().Be( asyncDecLoop * 2 );
@@ -171,7 +174,7 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Test]
-        public async Task TryEnter_works_as_expected_Async()
+        public async Task TryEnter_works_as_expected_with_LockRecursionPolicy_SupportsRecursion_Async()
         {
             var m = TestHelper.Monitor;
             var l = new AsyncLock( LockRecursionPolicy.SupportsRecursion );

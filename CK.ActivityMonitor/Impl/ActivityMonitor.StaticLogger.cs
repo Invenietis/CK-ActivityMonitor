@@ -20,7 +20,7 @@ namespace CK.Core
         /// Handlers of the OnStaticLog event should use the <see cref="ExternalLogMonitorUniqueId"/> as the monitor identifier.
         /// </para>
         /// </summary>
-        public class StaticLogger
+        public static class StaticLogger
         {
             /// <summary>
             /// The handler signature of static logs.
