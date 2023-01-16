@@ -44,25 +44,32 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void ParseTests()
         {
-             LogFilter.Parse( "Undefined" ).Should().Be( LogFilter.Undefined  );
-             LogFilter.Parse("Debug").Should().Be(LogFilter.Debug);
-             LogFilter.Parse("Trace").Should().Be(LogFilter.Trace);
-             LogFilter.Parse( "Verbose" ).Should().Be( LogFilter.Verbose  );
-             LogFilter.Parse( "Monitor" ).Should().Be( LogFilter.Monitor  );
-             LogFilter.Parse( "Terse" ).Should().Be( LogFilter.Terse  );
-             LogFilter.Parse( "Release" ).Should().Be( LogFilter.Release  );
-             LogFilter.Parse( "Off" ).Should().Be( LogFilter.Off  );
+            LogFilter.Parse( "Undefined" ).Should().Be( LogFilter.Undefined );
+            LogFilter.Parse( "Debug" ).Should().Be( LogFilter.Debug );
+            LogFilter.Parse( "Trace" ).Should().Be( LogFilter.Trace );
+            LogFilter.Parse( "Verbose" ).Should().Be( LogFilter.Verbose );
+            LogFilter.Parse( "Monitor" ).Should().Be( LogFilter.Monitor );
+            LogFilter.Parse( "Terse" ).Should().Be( LogFilter.Terse );
+            LogFilter.Parse( "Release" ).Should().Be( LogFilter.Release );
+            LogFilter.Parse( "Off" ).Should().Be( LogFilter.Off );
 
-             LogFilter.Parse( "{None,None}" ).Should().Be( LogFilter.Undefined );
-             LogFilter.Parse( "{Warn,None}" ).Should().Be( new LogFilter( LogLevelFilter.Warn, LogLevelFilter.None )  );
-             LogFilter.Parse( "{Error,Warn}" ).Should().Be( new LogFilter( LogLevelFilter.Error, LogLevelFilter.Warn )  );
-             LogFilter.Parse( "{Off,None}" ).Should().Be( new LogFilter( LogLevelFilter.Off, LogLevelFilter.None )  );
-             LogFilter.Parse( "{Error,Error}" ).Should().Be( LogFilter.Release  );
-             LogFilter.Parse( "{Info,Error}" ).Should().Be( LogFilter.Terse  );
-             LogFilter.Parse( "{Fatal,Invalid}" ).Should().Be( new LogFilter( LogLevelFilter.Fatal, LogLevelFilter.Invalid )  );
+            LogFilter.Parse( "Quiet" ).Should().Be( LogFilter.Quiet );
+            LogFilter.Parse( "Minimal" ).Should().Be( LogFilter.Minimal );
+            LogFilter.Parse( "Normal" ).Should().Be( LogFilter.Normal );
+            LogFilter.Parse( "Detailed" ).Should().Be( LogFilter.Detailed );
+            LogFilter.Parse( "Diagnostic" ).Should().Be( LogFilter.Diagnostic );
 
-             LogFilter.Parse( "{ Error , Error }" ).Should().Be( LogFilter.Release  );
-             LogFilter.Parse( "{   Trace    ,    Info   }" ).Should().Be( LogFilter.Verbose  );
+
+            LogFilter.Parse( "{None,None}" ).Should().Be( LogFilter.Undefined );
+            LogFilter.Parse( "{Warn,None}" ).Should().Be( new LogFilter( LogLevelFilter.Warn, LogLevelFilter.None ) );
+            LogFilter.Parse( "{Error,Warn}" ).Should().Be( new LogFilter( LogLevelFilter.Error, LogLevelFilter.Warn ) );
+            LogFilter.Parse( "{Off,None}" ).Should().Be( new LogFilter( LogLevelFilter.Off, LogLevelFilter.None ) );
+            LogFilter.Parse( "{Error,Error}" ).Should().Be( LogFilter.Release );
+            LogFilter.Parse( "{Info,Warn}" ).Should().Be( LogFilter.Terse );
+            LogFilter.Parse( "{Fatal,Invalid}" ).Should().Be( new LogFilter( LogLevelFilter.Fatal, LogLevelFilter.Invalid ) );
+
+            LogFilter.Parse( "{ Error , Error }" ).Should().Be( LogFilter.Release );
+            LogFilter.Parse( "{   Trace    ,    Info   }" ).Should().Be( LogFilter.Verbose );
 
             Action fail = () => LogFilter.Parse( " {Error,Error}" );
             fail.Should().Throw<Exception>();

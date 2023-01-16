@@ -14,8 +14,7 @@ There is basically two such mechanisms: TLS and AsyncLocal.
 ### Thread Local Storage (good old synchronous world)
 
 This one is easy, safe, and rather efficient. [Wikipedia](https://fr.wikipedia.org/wiki/Thread_Local_Storage) explains
-it well. In C#, this is as simple as using the [ThreadStatic attribute](https://docs.microsoft.com/en-us/dotnet/api/system.threadstaticattribute)
-
+it well. In C#, this is as simple as using the [ThreadStatic attribute](https://learn.microsoft.com/en-us/dotnet/api/system.threadstaticattribute)
 Numerous historical logging framework used this to enrich the logs with contextual information, to structure the logs (by
 opening "scopes"). This was easy, lock-free by design and "magical".
 
@@ -29,7 +28,7 @@ to thread static in the asynchronous world.
 
 Unfortunately, this is much more complex and less efficient than TLS: the information that must "follow the code" is
 encapsulated in an `ExecutionContext`, a kind of associative map whose implementation is deeply rooted in the framework.
-Below a piece of [source](https://source.dot.net/#System.Private.CoreLib/AsyncLocal.cs,86):
+Below a piece of [source](https://source.dot.net/#System.Private.CoreLib/src/libraries/System.Private.CoreLib/src/System/Threading/AsyncLocal.cs,ef9ce034697240ba):
 ```c#
     /// <summary>
     /// Interface used to store an IAsyncLocal => object mapping in ExecutionContext.
@@ -44,7 +43,7 @@ Below a piece of [source](https://source.dot.net/#System.Private.CoreLib/AsyncLo
 ```
 Contrary to the `SynchronizationContext`, suppressing the flowing of this context is not as easy as calling `ConfigureAwait(false)`
 because since "some code somewhere" may need this hidden context, it is considered too dangerous to be exposed (it can
-still be [suppressed](https://docs.microsoft.com/en-us/dotnet/api/system.threading.executioncontext.suppressflow)).
+still be [suppressed](https://learn.microsoft.com/en-us/dotnet/api/system.threading.executioncontext.suppressflow)).
 
 The good news is that as long as this context is not used (ideally remains empty), the overhead is rather small. But
 overusing `AsyncLocal<T>` will definitely cost.
@@ -61,4 +60,43 @@ site. In this scenario, an ActivityMonitor can be used as a kind of information 
 caller. 
 
 This is described in more details in [Client](Client/README.md).
+
+## Standard LogFilter names
+A [LogFilter](LogFilter.cs) must apply to Groups of logs and to Lines of logs. It can be expressed as **{Group,Line}** strings
+like `"{Error,Trace}"` or predefined couples `"Debug"`.
+
+A `LogFilter` is usually used as a "Minimal Filter": multiple participants declare their "MinimalFiler" and the resulting filter
+is the lowest one: combining 2 LogFilters results in a `LogFilter` that satisfies both of them: “{Error,Trace}” combined
+with “{Warn,Warn}” is “{Warn,Trace}”.
+
+[LogClamper](LogClamper.cs) enables a `LogFilter` to act as a strong filter.
+More on this [here](Impl/TagFiltering.md).
+
+### .Net standard conventions
+The standard LogFilter have been defined based on the [recommended verbosity option for command lines](https://learn.microsoft.com/en-us/dotnet/standard/commandline/syntax#the---verbosity-option).
+
+|   Name    |     Description   |
+|-----------|-------------------|
+|`Diagnostic` |`{Debug,Debug}` Everything is required.|
+|`Detailed`   |`{Trace,Trace}` OpenTrace and Trace appear but no OpenDebug nor Debug lines.|
+|`Normal`     |`{Trace,Warn}` OpenTrace and Fatal, Error or Warn lines appear. This may be still a little "verbose" but captures key information. |
+|`Minimal`    |`{Info,Warn}` OpenInfo and Fatal, Error or Warn lines appear. Minimal should have enough context to understand issues. |
+|`Quiet`      |`{Error,Error}` Only errors are considered. This is our "minimal": errors should never be hidden. |
+
+To this list, the `Off` that ignores any log (`{Off,Off}`) is added. It should be avoided.
+
+### Other names
+Before this recommendation appears we used:
+
+|   Name    |     Description    |
+|-----------|--------------------|
+|`Debug`      | `{Debug,Debug}` |
+|`Trace`      | `{Trace,Trace}`|
+|`Verbose`    | `{Trace,Info}` |
+|`Monitor`    | `{Trace,Warn}` |
+|`Terse`      | `{Info,Warn}`  |
+|`Release`    | `{Error,Error}`|
+
+Those names are supported but the .Net standard ones should be preferred.
+
 
