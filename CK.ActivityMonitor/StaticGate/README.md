@@ -32,6 +32,8 @@ of the instantiation however even this is not used as an identity. The true iden
 by the [CoreApplicationIdentity.InstanceId](https://github.com/Invenietis/CK-Core/blob/master/CK.Core/CoreApplicationIdentity/README.md)
 of the running application and the `int Key { get; }` (an incremented index for each gate created).
 
+Gates that have DisplayName can be configured by the [StaticGatesConfigurator](StaticGatesConfigurator.cs) (see below).
+
 ___
 **Important:** As an optimization, the .Net runtime defers the initialization of the static fields of a Type until
  one of them is accessed: a StaticGate will only appear if it's used or if another static field of the Type is accessed.
@@ -83,5 +85,23 @@ a well identified object or part of code (the AsyncLock is good example).
 StaticGate should not be used in applicative layer, where activities flow across multiple
 layers of code and the context of the callee is highly relevant: [Tags](../Impl/TagFiltering.md) are much more powerful.
 
+## StaticGatesConfigurator
+
+This is a simple disposable helper that can configure any number of StaticGate that must have a DisplayName and can already exist or don't exist
+yet (as long as the configurator is not disposed).
+
+The configuration is applied at construction time and the creation of new gates is tracked thanks to `StaticGate.OnNewStaticGate` event.
+When a configurator is disposed, it can optionally restore the gates' states with their state prior to its construction (only the gates whose
+state has been changed by the configurator are restored).
+
+```csharp
+var c = new StaticGatesConfigurator( configuration: "AsyncLock;Archive.Manager.TraceAll;LowLevelStuff:!",
+                                     restoreOnDispose: true );
+```
+
+To close an open gate, the suffix `:!` can be added (here, "LowLevelStuff" is closed).
+
+The package [CK.Monitoring](https://github.com/Invenietis/CK-Monitoring) uses this to enable its
+GrandOutput configuration to configure the StaticGates.
 
 

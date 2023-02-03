@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace CK.Core
 {
@@ -32,6 +29,7 @@ namespace CK.Core
 
         /// <summary>
         /// Creates a gate with no display name (it will be the <see cref="FilePath"/>).
+        /// Caution: gates with no real display names cannot be configured by <see cref="DotNetEventSourceConfigurator"/>.
         /// </summary>
         /// <param name="open">Whether to initially open this gate or not.</param>
         /// <param name="fileName">Source file name of the instantiation (automatically injected by C# compiler).</param>
@@ -43,6 +41,8 @@ namespace CK.Core
 
         /// <summary>
         /// Creates a gate with a display name.
+        /// This display name should be unique, if they are not, the <see cref="DotNetEventSourceConfigurator"/> will configure
+        /// 
         /// </summary>
         /// <param name="displayName">
         /// The display name. Must not be empty or whitespace nor contain

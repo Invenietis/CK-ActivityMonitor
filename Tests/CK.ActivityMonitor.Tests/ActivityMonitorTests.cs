@@ -11,6 +11,8 @@ using System.Diagnostics;
 
 namespace CK.Core.Tests.Monitoring
 {
+
+
     public class ActivityMonitorTests
     {
         [SetUp]
