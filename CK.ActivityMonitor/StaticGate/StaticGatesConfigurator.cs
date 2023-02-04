@@ -27,7 +27,6 @@ namespace CK.Core
         /// </summary>
         /// <param name="monitor">The monitor to use. When null, <see cref="ActivityMonitor.StaticLogger"/> is used.</param>
         /// <param name="configuration">The configuration string: semi colon separated display names to activate or suffixed with ":!" to deactivate them.</param>
-        /// <summary>
         public static void ApplyConfiguration( IActivityMonitor? monitor, string configuration )
         {
             var (names, states) = CreateConfig( configuration );
@@ -110,15 +109,6 @@ namespace CK.Core
             readonly string[] _names;
             readonly bool[] _states;
 
-            /// <summary>
-            /// Applies a new configuration to <see cref="StaticGate"/> that must have a real display name - <see cref="StaticGate.HasDisplayName"/>
-            /// must be true - gates without real display name are ignored.
-            /// <para>
-            /// The <paramref name="configuration"/> is rather simple: "Archive.Manager.TraceAll;LowLevelStuff;VeryLowLevelStuff:!" will
-            /// open the first two and close the "VeryLowLevelStuff" gate.
-            /// </para>
-            /// </summary>
-            /// <param name="configuration">The configuration string: semi colon separated display name to activate or suffixed with ":!" to deactivate them.</param>
             public Current( string[] names, bool[] states )
             {
                 _names = names;

@@ -74,6 +74,7 @@ namespace CK.Core
         /// <summary>
         /// Enables an EventSource by its name at a given level.
         /// </summary>
+        /// <param name="eventSourceName">The event source name to enable.</param>
         /// <param name="level">The level of events to enable.</param>
         /// <returns>True if the operation has been applied, false otherwise.</returns>
         public static bool Enable( string eventSourceName, EventLevel level )

@@ -35,7 +35,6 @@ namespace CK.Core
         /// </summary>
         /// <param name="monitor">The monitor to use. When null, <see cref="ActivityMonitor.StaticLogger"/> is used.</param>
         /// <param name="configuration">The configuration string: semi colon separated EventSource names suffixed by ":<see cref="EventLevel"/>" or ":!" for disabled ones.</param>
-        /// <summary>
         public static void ApplyConfiguration( IActivityMonitor? monitor, string configuration )
         {
             if( monitor != null ) monitor.UnfilteredLog( LogLevel.Info, null, $"Applying .Net EventSource configuration: '{configuration}'.", null );
