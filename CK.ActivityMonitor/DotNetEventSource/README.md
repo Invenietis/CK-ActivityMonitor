@@ -87,22 +87,34 @@ Note that the `DotNetEventSourceCollector.DisableAll()` helper can be called at 
 
 ## DotNetEventSourceConfigurator
 
-This helper works exactly like the one for [StaticGate](../StaticGate/README.md). It is a simple disposable helper that can configure any number
-of EventSource that can already exist or don't exist yet (as long as the configurator is not disposed).
-
-The configuration is applied at construction time and the creation of new gates is tracked thanks to `StaticGate.OnNewStaticGate` event.
-
-When a configurator is disposed, it can optionally restore the gates' states with their state prior to its construction (only the gates whose
-state has been changed by the configurator are restored).
+This helper works exactly like the one for [StaticGate](../StaticGate/README.md). It only exposes 2 static methods:
 
 ```csharp
-var c = new StaticGatesConfigurator( configuration: "AsyncLock;Archive.Manager.TraceAll;LowLevelStuff:!",
-                                     restoreOnDispose: true );
+public static void ApplyConfiguration( IActivityMonitor? monitor, string configuration );
 ```
+Applies a new configuration. The configuration string is rather simple, each name is followed by its level:
+`"System.Threading.Tasks.TplEventSource:C[ritical];System.Net.Sockets:!"`.
 
-To close an open gate, the suffix `:!` can be added (here, "LowLevelStuff" is closed).
+It is enough for the level to be the first character:
+- 'L' or 'l' for `LogAlways`.
+- 'C' or 'c' for `Critical`.
+- 'E' or 'e' for `Error`.
+- 'W' or 'w' for `Warning`.
+- 'I' or 'i' for `Informational`.
+- 'V' or 'v' for `Verbose`.
+- '!' to disable the EventSource.
+
+If the level is not specified or is not one of these characters, `EventLevel.Informational` is assumed.
+The configuration applies until a new one is applied (the creation of new EventSources is tracked thanks to `DotNetEventSourceCollector.OnNewEventSource`).
+
+```csharp
+public static string GetConfiguration( bool? enabled = null )
+```
+Gets a configuration string that can be applied later by calling `ApplyConfiguration`.
+By default both enabled and disabled EventSources are returned. The `enabled` parameter can be true to only consider the
+enabled ones and false to only return the disabled ones.
 
 The package [CK.Monitoring](https://github.com/Invenietis/CK-Monitoring) uses this to enable its
-GrandOutput configuration to configure the StaticGates.
+GrandOutput configuration to configure the .Net event sources.
 
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
+using static CK.Core.CheckedWriteStream;
 
 namespace CK.Core
 {
@@ -134,6 +135,26 @@ namespace CK.Core
                 }
             }
             return result;
+        }
+
+        /// <summary>
+        /// Gets the <see cref="EventLevel"/> for a source.
+        /// </summary>
+        /// <param name="name">The EventSource name.</param>
+        /// <param name="found">True if the source name exists, false otherwise.</param>
+        /// <returns>The level or null if the source is disabled or not found.</returns>
+        public static EventLevel? GetLevel( string name, out bool found )
+        {
+            found = false;  
+            foreach( var (S, L) in _allEventSources )
+            {
+                if( S != null && S.TryGetTarget( out var s ) && s.Name == name )
+                {
+                    found = true;
+                    return L >= 0 ? (EventLevel)L : null;
+                }
+            }
+            return null;
         }
 
         sealed class Listener : EventListener

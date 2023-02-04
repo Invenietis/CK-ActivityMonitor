@@ -8,7 +8,7 @@ namespace CK.Core
     public sealed partial class StaticGate
     {
         /// <summary>
-        /// Relay to the <see cref="ActivityMonitor.StaticLogger"/>. This is a singleton instance: as an instance this
+        /// Relay to the <see cref="ActivityMonitor.StaticLogger"/>. This is a singleton instance: as an reference type this
         /// can be nullable, as a sealed class this wrapper is optimal.
         /// </summary>
         public sealed class Logger
