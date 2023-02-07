@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 
 namespace CK.Core
 {
@@ -16,8 +17,44 @@ namespace CK.Core
         static public readonly LogClamper Undefined = default;
 
         /// <summary>
-        /// Gets the filter to apply. It is generally <see cref="LogFilter.Combine(LogFilter)"/> with other
-        /// participant filters to satisfy all of them.
+        /// Off is {Off,Off}. This is not recommended.
+        /// See https://learn.microsoft.com/en-us/dotnet/standard/commandline/syntax#the---verbosity-option.
+        /// </summary>
+        static public LogClamper Off => new LogClamper( LogFilter.Off, true );
+
+        /// <summary>
+        /// Quiet is {Error,Error}.
+        /// Use <see cref="Off"/> to cut logs (but this is not recommended).
+        /// See https://learn.microsoft.com/en-us/dotnet/standard/commandline/syntax#the---verbosity-option.
+        /// </summary>
+        static public LogClamper Quiet => new LogClamper( LogFilter.Quiet, true );
+
+        /// <summary>
+        /// Minimal is {Info,Warn}.
+        /// See https://learn.microsoft.com/en-us/dotnet/standard/commandline/syntax#the---verbosity-option.
+        /// </summary>
+        static public LogClamper Minimal => new LogClamper( LogFilter.Minimal, true );
+
+        /// <summary>
+        /// Normal is {Trace,Warn}.
+        /// See https://learn.microsoft.com/en-us/dotnet/standard/commandline/syntax#the---verbosity-option.
+        /// </summary>
+        static public LogClamper Normal => new LogClamper( LogFilter.Normal, true );
+
+        /// <summary>
+        /// Detailed is {Trace,Trace}.
+        /// See https://learn.microsoft.com/en-us/dotnet/standard/commandline/syntax#the---verbosity-option.
+        /// </summary>
+        static public LogClamper Detailed => new LogClamper( LogFilter.Detailed, true );
+
+        /// <summary>
+        /// Diagnostic is {Debug,Debug}.
+        /// See https://learn.microsoft.com/en-us/dotnet/standard/commandline/syntax#the---verbosity-option.
+        /// </summary>
+        static public LogClamper Diagnostic => new LogClamper( LogFilter.Diagnostic, true );
+
+        /// <summary>
+        /// Gets the filter to apply.
         /// </summary>
         public LogFilter Filter { get; }
 
@@ -111,5 +148,7 @@ namespace CK.Core
         public static bool operator !=( LogClamper left, LogClamper right ) => !left.Equals( right );
 
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+
+
     }
 }

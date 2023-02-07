@@ -32,6 +32,8 @@ of the instantiation however even this is not used as an identity. The true iden
 by the [CoreApplicationIdentity.InstanceId](https://github.com/Invenietis/CK-Core/blob/master/CK.Core/CoreApplicationIdentity/README.md)
 of the running application and the `int Key { get; }` (an incremented index for each gate created).
 
+Gates that have DisplayName can be configured by the [StaticGatesConfigurator](StaticGatesConfigurator.cs) (see below).
+
 ___
 **Important:** As an optimization, the .Net runtime defers the initialization of the static fields of a Type until
  one of them is accessed: a StaticGate will only appear if it's used or if another static field of the Type is accessed.
@@ -83,5 +85,26 @@ a well identified object or part of code (the AsyncLock is good example).
 StaticGate should not be used in applicative layer, where activities flow across multiple
 layers of code and the context of the callee is highly relevant: [Tags](../Impl/TagFiltering.md) are much more powerful.
 
+## StaticGateConfigurator
 
+This is a simple static helper that expose 2 methods:
+
+```csharp
+public static void ApplyConfiguration( IActivityMonitor? monitor, string configuration );
+```
+Applies a new configuration to gates that must have a real display name: gates without real display name are ignored.
+The configuration string is simple: `"AsyncLock;LowLevelStuff;VeryLowLevelStuff:!"` will
+open the first two and close the "VeryLowLevelStuff" gate.
+
+The configuration applies until a new one is applied (the creation of new gates is tracked thanks to `StaticGate.OnNewStaticGate`.
+
+```csharp
+public static string GetConfiguration( bool? openedGates = null );
+```
+Gets a configuration string that can be applied later by calling `ApplyConfiguration`.
+By default both opened and closed gates are returned. The `openedGates` can be set to true to only consider
+the opened gates and false to only return the closed ones (suffixed by ":!").
+
+The package [CK.Monitoring](https://github.com/Invenietis/CK-Monitoring) uses this to enable its
+GrandOutput configuration to configure the StaticGates.
 

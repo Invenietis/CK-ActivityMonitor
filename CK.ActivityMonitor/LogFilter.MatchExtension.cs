@@ -1,5 +1,6 @@
 
 using System;
+using System.Diagnostics;
 
 namespace CK.Core
 {
@@ -38,29 +39,34 @@ namespace CK.Core
             {
                 if( !m.TryMatch( "Undefined", StringComparison.OrdinalIgnoreCase ) )
                 {
-                    if( m.TryMatch( "Debug", StringComparison.OrdinalIgnoreCase ) )
+                    if( m.TryMatch( "Diagnostic", StringComparison.OrdinalIgnoreCase ) || m.TryMatch( "Debug", StringComparison.OrdinalIgnoreCase ) )
                     {
-                        f = LogFilter.Debug;
+                        Debug.Assert( LogFilter.Diagnostic == LogFilter.Debug );
+                        f = LogFilter.Diagnostic;
                     }
-                    else if( m.TryMatch( "Trace", StringComparison.OrdinalIgnoreCase ) )
+                    else if( m.TryMatch( "Detailed", StringComparison.OrdinalIgnoreCase ) || m.TryMatch( "Trace", StringComparison.OrdinalIgnoreCase ) )
                     {
-                        f = LogFilter.Trace;
+                        Debug.Assert( LogFilter.Detailed == LogFilter.Trace );
+                        f = LogFilter.Detailed;
                     }
                     else if( m.TryMatch( "Verbose", StringComparison.OrdinalIgnoreCase ) )
                     {
                         f = LogFilter.Verbose;
                     }
-                    else if( m.TryMatch( "Monitor", StringComparison.OrdinalIgnoreCase ) )
+                    else if( m.TryMatch( "Normal", StringComparison.OrdinalIgnoreCase ) || m.TryMatch( "Monitor", StringComparison.OrdinalIgnoreCase ) )
                     {
-                        f = LogFilter.Monitor;
+                        Debug.Assert( LogFilter.Normal == LogFilter.Monitor );
+                        f = LogFilter.Normal;
                     }
-                    else if( m.TryMatch( "Terse", StringComparison.OrdinalIgnoreCase ) )
+                    else if( m.TryMatch( "Minimal", StringComparison.OrdinalIgnoreCase ) || m.TryMatch( "Terse", StringComparison.OrdinalIgnoreCase ) )
                     {
+                        Debug.Assert( LogFilter.Minimal == LogFilter.Terse );
                         f = LogFilter.Terse;
                     }
-                    else if( m.TryMatch( "Release", StringComparison.OrdinalIgnoreCase ) )
+                    else if( m.TryMatch( "Quiet", StringComparison.OrdinalIgnoreCase ) || m.TryMatch( "Release", StringComparison.OrdinalIgnoreCase ) )
                     {
-                        f = LogFilter.Release;
+                        Debug.Assert( LogFilter.Quiet == LogFilter.Release );
+                        f = LogFilter.Quiet;
                     }
                     else if( m.TryMatch( "Off", StringComparison.OrdinalIgnoreCase ) )
                     {

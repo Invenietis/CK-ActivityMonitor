@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace CK.Core
 {
@@ -32,6 +29,7 @@ namespace CK.Core
 
         /// <summary>
         /// Creates a gate with no display name (it will be the <see cref="FilePath"/>).
+        /// Caution: gates with no real display names cannot be configured by <see cref="StaticGateConfigurator"/>.
         /// </summary>
         /// <param name="open">Whether to initially open this gate or not.</param>
         /// <param name="fileName">Source file name of the instantiation (automatically injected by C# compiler).</param>
@@ -43,6 +41,8 @@ namespace CK.Core
 
         /// <summary>
         /// Creates a gate with a display name.
+        /// This display name should be unique, if they are not, the <see cref="StaticGateConfigurator"/> will configure
+        /// all the homonyms.
         /// </summary>
         /// <param name="displayName">
         /// The display name. Must not be empty or whitespace nor contain
@@ -51,7 +51,7 @@ namespace CK.Core
         /// <param name="open">Whether to initially open this gate or not.</param>
         /// <param name="fileName">Source file name of the instantiation (automatically injected by C# compiler).</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        public StaticGate( string displayName, bool open, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
+        public StaticGate( string displayName, bool open = false, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
             Throw.CheckNotNullOrWhiteSpaceArgument( fileName );
             Throw.CheckNotNullOrWhiteSpaceArgument( displayName );
@@ -168,6 +168,9 @@ namespace CK.Core
         /// <summary>
         /// Gets whether this gate has an actual <see cref="DisplayName"/>
         /// or its display name is the <see cref="FilePath"/>.
+        /// <para>
+        /// Only gates with a display name can be configured by <see cref="StaticGateConfigurator"/>.
+        /// </para>
         /// </summary>
         public bool HasDisplayName => _hasDisplayName;
 

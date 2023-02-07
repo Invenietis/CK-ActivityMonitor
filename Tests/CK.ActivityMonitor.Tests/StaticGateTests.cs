@@ -142,5 +142,36 @@ namespace CK.Core.Tests.Monitoring
 
         static string ThrowingMessage() => throw new CKException( "Called!" );
 
+        [Test]
+        public void StaticGatesConfigurator_tests()
+        {
+            StaticGate.TotalCount.Should().Be( 0 );
+            StaticGateConfigurator.GetConfiguration().Should().BeEmpty();
+
+            var gates = Enumerable.Range( 0, 5 ).Select( i => new StaticGate( $"n°{i}", false ) ).ToArray();
+            var c = StaticGateConfigurator.GetConfiguration();
+            c.Split( ';' ).All( x => x.EndsWith( ":!" ) ).Should().BeTrue();
+
+            gates[0].IsOpen = true;
+            gates[2].IsOpen = true;
+            c = StaticGateConfigurator.GetConfiguration();
+            c.Should().Be( "n°0;n°1:!;n°2;n°3:!;n°4:!" );
+
+            using( TestHelper.Monitor.CollectTexts( out var logs ) )
+            {
+                StaticGateConfigurator.ApplyConfiguration( TestHelper.Monitor, " FutureGateMustBeClosed  :   ! ;  n°0 : !  ;AnotherFutureMustBeOpened" );
+                logs.Should().HaveCount( 1 );
+                logs[0].Should().Match( "Applying StaticGate configuration: '*" );
+            }
+            gates[0].IsOpen.Should().BeFalse();
+            var f = new StaticGate( "FutureGateMustBeClosed", open: true );
+            f.IsOpen.Should().BeFalse( "Even if f wanted to be opened, current configuration closed it." );
+
+            var a = new StaticGate( "AnotherFutureMustBeOpened", false );
+            a.IsOpen.Should().BeTrue( "Even if a is initially closed, current configuration opened it." );
+
+            StaticGateConfigurator.ApplyConfiguration( TestHelper.Monitor, "" );
+        }
+
     }
 }

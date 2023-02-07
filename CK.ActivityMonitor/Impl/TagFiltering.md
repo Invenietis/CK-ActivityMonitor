@@ -28,10 +28,10 @@ the final monitor’s ActualFilter’s Group or Line filter.
 This is how it works and this is logically sound (I skip here the “Undefined” filter that is ultimately resolved
 by the static `ActivityMonitor.DefaultFilter` property).
 
-A [`LogClamper`](../LogClamper.cs) is a Filter (that de facto acts as a MinimalFilter) with a `Clamp` boolean: when
+A [`LogClamper`](../LogClamper.cs) is a Filter (that de facto can act as a MinimalFilter) with a `Clamp` boolean: when
 Clamp is false it is just like a MinimaFilter. But when Clamp is true, it “cuts” the level.
 A simple optional ‘!’ suffix to the LogFilter expresses it. For instance: 
--	“Release!” (same as “{Error,Error}!”): only Error level will be emitted and not below.
+-	“Minimal!” (same as “{Info,Warn}!”): only Warnings lines will be emitted (not Info, Trace or Debug).
 -	““{Warn,Trace}!” will only emit Groups with Warn, Error or Fatal and Debug Lines will not be emitted.
 
 Two `LogClamper` cannot be combined like `LogFilter` since a true `Clamp` cannot be reconciled.

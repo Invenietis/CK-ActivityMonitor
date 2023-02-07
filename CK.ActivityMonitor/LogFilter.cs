@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace CK.Core
@@ -43,9 +44,9 @@ namespace CK.Core
         static public readonly LogFilter Monitor = new LogFilter( LogLevelFilter.Trace, LogLevelFilter.Warn );
 
         /// <summary>
-        /// Terse filter limits <see cref="Group"/>s to <see cref="LogLevelFilter.Info"/> and captures only errors for <see cref="Line"/>.
+        /// Terse filter limits <see cref="Group"/>s to <see cref="LogLevelFilter.Info"/> and captures errors and warnings for <see cref="Line"/>.
         /// </summary>
-        static public readonly LogFilter Terse = new LogFilter( LogLevelFilter.Info, LogLevelFilter.Error );
+        static public readonly LogFilter Terse = new LogFilter( LogLevelFilter.Info, LogLevelFilter.Warn );
 
         /// <summary>
         /// Release filter captures only <see cref="LogLevelFilter.Error"/>s for both <see cref="Group"/> and <see cref="Line"/>.
@@ -53,9 +54,39 @@ namespace CK.Core
         static public readonly LogFilter Release = new LogFilter( LogLevelFilter.Error, LogLevelFilter.Error );
 
         /// <summary>
-        /// Off filter does not capture anything.
+        /// Off filter does not requires anything {Off,Off}.
         /// </summary>
         static public readonly LogFilter Off = new LogFilter( LogLevelFilter.Off, LogLevelFilter.Off );
+
+        /// <summary>
+        /// Diagnostic is {Debug,Debug}.
+        /// See https://learn.microsoft.com/en-us/dotnet/standard/commandline/syntax#the---verbosity-option.
+        /// </summary>
+        static public LogFilter Diagnostic => Debug;
+
+        /// <summary>
+        /// Detailed is {Trace,Trace}.
+        /// See https://learn.microsoft.com/en-us/dotnet/standard/commandline/syntax#the---verbosity-option.
+        /// </summary>
+        static public LogFilter Detailed => Trace;
+
+        /// <summary>
+        /// Normal is {Trace,Warn}.
+        /// See https://learn.microsoft.com/en-us/dotnet/standard/commandline/syntax#the---verbosity-option.
+        /// </summary>
+        static public LogFilter Normal => Monitor;
+
+        /// <summary>
+        /// Minimal is {Info,Warn}.
+        /// See https://learn.microsoft.com/en-us/dotnet/standard/commandline/syntax#the---verbosity-option.
+        /// </summary>
+        static public LogFilter Minimal => Terse;
+
+        /// <summary>
+        /// Quiet is {Error,Error}.
+        /// See https://learn.microsoft.com/en-us/dotnet/standard/commandline/syntax#the---verbosity-option.
+        /// </summary>
+        static public LogFilter Quiet => Release;
 
         /// <summary>
         /// Invalid must be used as a special value. It is <see cref="LogLevelFilter.Invalid"/> for both <see cref="Line"/> and <see cref="Group"/>.
