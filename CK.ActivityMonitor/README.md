@@ -99,4 +99,50 @@ Before this recommendation appears we used:
 
 Those names are supported but the .Net standard ones should be preferred.
 
+## IActivityLogger vs. IActivityMonitor
+A `IActivityLogger` is close to classical logging solutions: only lines can be emitted. Since it exposes an `AutoTags`
+and an `ActualFilter`, any filtering/sender extension methods are possible. 
+
+```csharp
+/// <summary>
+/// Ultimate possible abstraction of a <see cref="IActivityMonitor"/>: it is context-less and can
+/// only log lines (not groups).
+/// <para>
+/// This unifies context-less loggers like <see cref="ActivityMonitor.StaticLogger"/> or <see cref="IMonitoredWorker"/>
+/// and regular contextual <see cref="ActivityMonitor"/>: filtered extension methods and any other extension methods
+/// that deals only with log lines uniformly apply to regular monitors and context-less loggers.
+/// </para>
+/// </summary>
+public interface IActivityLogger
+{
+    /// <summary>
+    /// Gets the tags that will be combined to the logged ones before filtering
+    /// by <see cref="ActivityMonitorExtension.ShouldLogLine(IActivityLogger, LogLevel, CKTrait?, out CKTrait)"/>
+    /// or by sender with interpolated string handlers.
+    /// </summary>
+    CKTrait AutoTags { get; }
+
+    /// <summary>
+    /// Gets the line filter level to apply.
+    /// </summary>
+    LogLevelFilter ActualFilter { get; }
+
+    /// <summary>
+    /// Logs an already filtered line. 
+    /// </summary>
+    /// <param name="data">Data that describes the log. </param>
+    void UnfilteredLog( ref ActivityMonitorLogData data );
+}
+```
+
+The [`IActivityMonitor`](IActivityMonitor.cs) interface extends this logger interface to support groups and, more importantly, the `Output`
+where `IActivityMonitorClient` listeners/sinks can be registered and unregistered.
+> Note that the `IActivityMonitor.ActualFilter` is a `LogFilter` (with a line and group `LogLevelFilter`).
+
+The `IActivityLogger.AutoTags` and `ActualFilter` cannot be changed at this level. They take their values from:
+- The actual monitor when implemented by a `IActivityMonitor`.
+- For StaticLogger, the tags are empty and the ActualFilter is the static default `ActivityMonitor.DefaultFilter.Line` value.
+- For `IMonitoredWorker`, these are the current values of the internal worker monitor.
+
+
 
