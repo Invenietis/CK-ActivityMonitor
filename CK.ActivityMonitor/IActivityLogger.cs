@@ -6,9 +6,9 @@ namespace CK.Core
     /// Ultimate possible abstraction of a <see cref="IActivityMonitor"/>: it is context-less and can
     /// only log lines (not groups).
     /// <para>
-    /// This unifies context-less loggers like <see cref="ActivityMonitor.StaticLogger"/> or <see cref="IMonitoredWorker"/>
-    /// and regular contextual <see cref="ActivityMonitor"/>: filtered extension methods and any other extension methods
-    /// that deals only with log lines uniformly apply to regular monitors and context-less loggers.
+    /// This unifies context-less loggers like <see cref="ActivityMonitor.StaticLogger"/> and regular
+    /// contextual <see cref="ActivityMonitor"/>: filtered extension methods and any other extension
+    /// methods that deals only with log lines uniformly apply to regular monitors and context-less loggers.
     /// </para>
     /// </summary>
     public interface IActivityLogger
