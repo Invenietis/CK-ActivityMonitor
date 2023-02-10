@@ -76,6 +76,7 @@ namespace CK.Core
             AutoConfiguration = null;
             _defaultFilterLevel = LogFilter.Trace;
             _generatorId = new FastUniqueIdGenerator();
+            _staticLogger = new LoggerStatic();
         }
 
         Group[] _groups;

@@ -257,7 +257,7 @@ namespace CK.Core
                 b.Append( " OpCode='" ).Append( eventData.Opcode ).Append( '\'' );
                 if( eventData.Task == EventTask.None ) b.Append( " Task='" ).Append( eventData.Task ).Append( '\'' );
 
-                ActivityMonitor.StaticLogger.UnfilteredLog( level, EventSourceTag, b.ToString() );
+                ActivityMonitor.StaticLogger.UnfilteredLog( level, EventSourceTag, b.ToString(), null );
             }
         }
     }

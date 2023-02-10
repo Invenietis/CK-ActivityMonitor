@@ -37,8 +37,11 @@ namespace CK.Core
         /// <param name="configuration">The configuration string: semi colon separated EventSource names suffixed by ":<see cref="EventLevel"/>" or ":!" for disabled ones.</param>
         public static void ApplyConfiguration( IActivityMonitor? monitor, string configuration )
         {
-            if( monitor != null ) monitor.UnfilteredLog( LogLevel.Info, null, $"Applying .Net EventSource configuration: '{configuration}'.", null );
-            else ActivityMonitor.StaticLogger.Info( $"Applying .Net EventSource configuration: '{configuration}'." );
+            var logger = monitor ?? ActivityMonitor.StaticLogger;
+            if( logger.ShouldLogLine( LogLevel.Info, null, out var finalTags ) )
+            {
+                logger.UnfilteredLog( LogLevel.Info | LogLevel.IsFiltered, finalTags, $"Applying .Net EventSource configuration: '{configuration}'.", null );
+            }
             var (names, levels) = CreateConfig( monitor, configuration );
             lock( _lock )
             {
@@ -135,8 +138,11 @@ namespace CK.Core
                         warn = $"{(level == -2 ? "Missing" : "Unrecognized")} level specification for EventSource '{name}', using Informational by default. "
                                + $"Levels can be: \"{name}:L[ogAlways]\" or :C[ritical], :E[rror], :W[arning], :I[nformational], !V[erbose] or :! (disabled).";
                     }
-                    if( monitor != null ) monitor.UnfilteredLog( LogLevel.Warn, null, warn, null );
-                    else ActivityMonitor.StaticLogger.Warn( warn );
+                    var logger = monitor ?? ActivityMonitor.StaticLogger;
+                    if( logger.ShouldLogLine( LogLevel.Warn, null, out var finalTags ) )
+                    {
+                        logger.UnfilteredLog( LogLevel.Warn | LogLevel.IsFiltered, finalTags, warn, null );
+                    }
                 }
                 levels[i] = level;
             }

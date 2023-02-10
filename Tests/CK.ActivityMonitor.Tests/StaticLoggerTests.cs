@@ -15,29 +15,29 @@ namespace CK.Core.Tests.Monitoring
         public void Log_and_receive()
         {
             var received = new List<string>();
-            ActivityMonitor.StaticLogger.Handler h = delegate ( ref ActivityMonitorLogData d ) { received.Add( d.Text ); };
-            ActivityMonitor.StaticLogger.OnStaticLog += h;
-            ActivityMonitor.StaticLogger.UnfilteredLog( LogLevel.Debug, "text", null );
+            ActivityMonitor.StaticLogHandler h = delegate ( ref ActivityMonitorLogData d ) { received.Add( d.Text ); };
+            ActivityMonitor.OnStaticLog += h;
+            ActivityMonitor.StaticLogger.UnfilteredLog( LogLevel.Debug, null, "text", null );
             received.Should().ContainSingle( "text" );
             received.Clear();
 
-            ActivityMonitor.StaticLogger.OnStaticLog -= h;
-            ActivityMonitor.StaticLogger.UnfilteredLog( LogLevel.Debug, "NOSHOW", null );
+            ActivityMonitor.OnStaticLog -= h;
+            ActivityMonitor.StaticLogger.UnfilteredLog( LogLevel.Debug, null, "NOSHOW", null );
             received.Should().BeEmpty();
 
-            ActivityMonitor.StaticLogger.OnStaticLog += h;
-            ActivityMonitor.StaticLogger.OnStaticLog += h;
+            ActivityMonitor.OnStaticLog += h;
+            ActivityMonitor.OnStaticLog += h;
             ActivityMonitor.StaticLogger.UnfilteredLog( LogLevel.Debug, ActivityMonitor.Tags.UserConclusion, "twice", null );
             received.Should().BeEquivalentTo( new[] { "twice", "twice" } );
             received.Clear();
 
-            ActivityMonitor.StaticLogger.OnStaticLog -= h;
-            ActivityMonitor.StaticLogger.UnfilteredLog( LogLevel.Debug, "once", null );
+            ActivityMonitor.OnStaticLog -= h;
+            ActivityMonitor.StaticLogger.UnfilteredLog( LogLevel.Debug, null, "once", null );
             received.Should().ContainSingle( "once" );
             received.Clear();
 
-            ActivityMonitor.StaticLogger.OnStaticLog -= h;
-            ActivityMonitor.StaticLogger.UnfilteredLog( LogLevel.Debug, "NOSHOW", null );
+            ActivityMonitor.OnStaticLog -= h;
+            ActivityMonitor.StaticLogger.UnfilteredLog( LogLevel.Debug, null, "NOSHOW", null );
             received.Should().BeEmpty();
         }
 
@@ -47,12 +47,12 @@ namespace CK.Core.Tests.Monitoring
         public void level_and_tags_filtering()
         {
             var received = new List<string>();
-            ActivityMonitor.StaticLogger.Handler h = delegate ( ref ActivityMonitorLogData d ) { received.Add( d.Text ); };
-            ActivityMonitor.StaticLogger.OnStaticLog += h;
+            ActivityMonitor.StaticLogHandler h = delegate ( ref ActivityMonitorLogData d ) { received.Add( d.Text ); };
+            ActivityMonitor.OnStaticLog += h;
 
             ActivityMonitor.DefaultFilter.Should().Be( LogFilter.Trace );
 
-            ActivityMonitor.StaticLogger.ShouldLog( LogLevel.Debug ).Should().BeFalse();
+            ActivityMonitor.StaticLogger.ShouldLogLine( LogLevel.Debug, null, out _ ).Should().BeFalse();
             ActivityMonitor.StaticLogger.Debug( "NOSHOW" );
             received.Should().BeEmpty();
 
@@ -62,7 +62,7 @@ namespace CK.Core.Tests.Monitoring
 
             ActivityMonitor.DefaultFilter = LogFilter.Debug;
 
-            ActivityMonitor.StaticLogger.ShouldLog( LogLevel.Debug ).Should().BeTrue();
+            ActivityMonitor.StaticLogger.ShouldLogLine(LogLevel.Debug, null, out _).Should().BeTrue();
 
             ActivityMonitor.StaticLogger.Debug( "Debug!" );
             ActivityMonitor.StaticLogger.Trace( "Trace!" );
@@ -75,8 +75,8 @@ namespace CK.Core.Tests.Monitoring
 
             ActivityMonitor.Tags.AddFilter( _myTag, new LogClamper( LogFilter.Release, true ) );
 
-            ActivityMonitor.StaticLogger.ShouldLog( LogLevel.Debug, _myTag ).Should().BeFalse();
-            ActivityMonitor.StaticLogger.ShouldLog( LogLevel.Warn, _myTag ).Should().BeFalse();
+            ActivityMonitor.StaticLogger.ShouldLogLine( LogLevel.Debug, _myTag, out _ ).Should().BeFalse();
+            ActivityMonitor.StaticLogger.ShouldLogLine( LogLevel.Warn, _myTag, out _ ).Should().BeFalse();
 
             ActivityMonitor.StaticLogger.Debug( _myTag, "Debug!" );
             ActivityMonitor.StaticLogger.Trace( _myTag, "Trace!" );
@@ -89,7 +89,7 @@ namespace CK.Core.Tests.Monitoring
 
             ActivityMonitor.Tags.RemoveFilter( _myTag );
 
-            ActivityMonitor.StaticLogger.ShouldLog( LogLevel.Debug, _myTag ).Should().BeTrue();
+            ActivityMonitor.StaticLogger.ShouldLogLine( LogLevel.Debug, _myTag, out _ ).Should().BeTrue();
 
             ActivityMonitor.StaticLogger.Debug( _myTag, "Debug!" );
             ActivityMonitor.StaticLogger.Trace( _myTag, "Trace!" );
@@ -101,7 +101,7 @@ namespace CK.Core.Tests.Monitoring
             received.Clear();
 
             ActivityMonitor.DefaultFilter = LogFilter.Trace;
-            ActivityMonitor.StaticLogger.OnStaticLog -= h;
+            ActivityMonitor.OnStaticLog -= h;
         }
     }
 }
