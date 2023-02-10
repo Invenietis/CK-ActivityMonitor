@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace CK.Core
 {
     /// <summary>
-    /// Data required by <see cref="IActivityMonitor.UnfilteredLog"/> and <see cref="IActivityMonitor.UnfilteredOpenGroup(ref ActivityMonitorLogData)"/>.
+    /// Data required by <see cref="IActivityLogger.UnfilteredLog"/> and <see cref="IActivityMonitor.UnfilteredOpenGroup"/>.
     /// </summary>
     public struct ActivityMonitorLogData
     {
@@ -97,17 +97,17 @@ namespace CK.Core
         /// </summary>
         public readonly string? FileName;
 
-        /// <summary>
-        /// Line number in the source file that emitted the log. 
-        /// </summary>
-        public readonly int LineNumber;
-
         DateTimeStamp _logTime;
 
         /// <summary>
         /// Gets the time of the log.
         /// </summary>
         public readonly DateTimeStamp LogTime => _logTime;
+
+        /// <summary>
+        /// Line number in the source file that emitted the log. 
+        /// </summary>
+        public readonly int LineNumber;
 
         /// <summary>
         /// Log level. Can not be <see cref="LogLevel.None"/>.

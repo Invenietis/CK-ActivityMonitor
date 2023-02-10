@@ -1211,7 +1211,7 @@ namespace CK.Core
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public GroupDebug( int literalLength, int formattedCount, IActivityMonitor monitor, out bool shouldAppend )
         {
-            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Debug, null, out shouldAppend );
+            _handler = new InternalHandler( literalLength, formattedCount, monitor, LogLevel.Debug, null, out shouldAppend );
         }
 
         public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
@@ -1251,7 +1251,7 @@ namespace CK.Core
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public GroupDebugWithTags( int literalLength, int formattedCount, IActivityMonitor monitor, CKTrait tags, out bool shouldAppend )
         {
-            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Debug, tags, out shouldAppend );
+            _handler = new InternalHandler( literalLength, formattedCount, monitor, LogLevel.Debug, tags, out shouldAppend );
         }
 
         public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
@@ -1293,7 +1293,7 @@ namespace CK.Core
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public GroupTrace( int literalLength, int formattedCount, IActivityMonitor monitor, out bool shouldAppend )
         {
-            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Trace, null, out shouldAppend );
+            _handler = new InternalHandler( literalLength, formattedCount, monitor, LogLevel.Trace, null, out shouldAppend );
         }
 
         public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
@@ -1333,7 +1333,7 @@ namespace CK.Core
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public GroupTraceWithTags( int literalLength, int formattedCount, IActivityMonitor monitor, CKTrait tags, out bool shouldAppend )
         {
-            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Trace, tags, out shouldAppend );
+            _handler = new InternalHandler( literalLength, formattedCount, monitor, LogLevel.Trace, tags, out shouldAppend );
         }
 
         public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
@@ -1375,7 +1375,7 @@ namespace CK.Core
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public GroupInfo( int literalLength, int formattedCount, IActivityMonitor monitor, out bool shouldAppend )
         {
-            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Info, null, out shouldAppend );
+            _handler = new InternalHandler( literalLength, formattedCount, monitor, LogLevel.Info, null, out shouldAppend );
         }
 
         public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
@@ -1415,7 +1415,7 @@ namespace CK.Core
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public GroupInfoWithTags( int literalLength, int formattedCount, IActivityMonitor monitor, CKTrait tags, out bool shouldAppend )
         {
-            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Info, tags, out shouldAppend );
+            _handler = new InternalHandler( literalLength, formattedCount, monitor, LogLevel.Info, tags, out shouldAppend );
         }
 
         public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
@@ -1457,7 +1457,7 @@ namespace CK.Core
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public GroupWarn( int literalLength, int formattedCount, IActivityMonitor monitor, out bool shouldAppend )
         {
-            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Warn, null, out shouldAppend );
+            _handler = new InternalHandler( literalLength, formattedCount, monitor, LogLevel.Warn, null, out shouldAppend );
         }
 
         public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
@@ -1497,7 +1497,7 @@ namespace CK.Core
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public GroupWarnWithTags( int literalLength, int formattedCount, IActivityMonitor monitor, CKTrait tags, out bool shouldAppend )
         {
-            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Warn, tags, out shouldAppend );
+            _handler = new InternalHandler( literalLength, formattedCount, monitor, LogLevel.Warn, tags, out shouldAppend );
         }
 
         public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
@@ -1539,7 +1539,7 @@ namespace CK.Core
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public GroupError( int literalLength, int formattedCount, IActivityMonitor monitor, out bool shouldAppend )
         {
-            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Error, null, out shouldAppend );
+            _handler = new InternalHandler( literalLength, formattedCount, monitor, LogLevel.Error, null, out shouldAppend );
         }
 
         public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
@@ -1579,7 +1579,7 @@ namespace CK.Core
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public GroupErrorWithTags( int literalLength, int formattedCount, IActivityMonitor monitor, CKTrait tags, out bool shouldAppend )
         {
-            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Error, tags, out shouldAppend );
+            _handler = new InternalHandler( literalLength, formattedCount, monitor, LogLevel.Error, tags, out shouldAppend );
         }
 
         public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
@@ -1621,7 +1621,7 @@ namespace CK.Core
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public GroupFatal( int literalLength, int formattedCount, IActivityMonitor monitor, out bool shouldAppend )
         {
-            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Fatal, null, out shouldAppend );
+            _handler = new InternalHandler( literalLength, formattedCount, monitor, LogLevel.Fatal, null, out shouldAppend );
         }
 
         public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
@@ -1661,7 +1661,7 @@ namespace CK.Core
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public GroupFatalWithTags( int literalLength, int formattedCount, IActivityMonitor monitor, CKTrait tags, out bool shouldAppend )
         {
-            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.Fatal, tags, out shouldAppend );
+            _handler = new InternalHandler( literalLength, formattedCount, monitor, LogLevel.Fatal, tags, out shouldAppend );
         }
 
         public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );

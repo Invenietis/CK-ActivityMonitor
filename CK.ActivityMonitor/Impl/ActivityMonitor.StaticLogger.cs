@@ -30,7 +30,7 @@ namespace CK.Core
             /// unless you absolutely know what you are doing.
             /// </para>
             /// </summary>
-            /// <param name="data"></param>
+            /// <param name="data">The log data payload.</param>
             public delegate void Handler( ref ActivityMonitorLogData data );
 
             /// <summary>
@@ -148,9 +148,12 @@ namespace CK.Core
             /// <param name="level">The level to test.</param>
             /// <param name="lineFilter">The filter to consider for the log. Defaults to DefaultFilter.Line.</param>
             /// <returns>Whether the log should be emitted or not.</returns>
-            public static bool ShouldLog( LogLevel level, LogLevelFilter lineFilter = LogLevelFilter.None ) => ((int)level & (int)LogLevel.Mask) >= (lineFilter == LogLevelFilter.None
-                                                                                                                                                        ? (int)DefaultFilter.Line
-                                                                                                                                                        : (int)lineFilter);
+            public static bool ShouldLog( LogLevel level, LogLevelFilter lineFilter = LogLevelFilter.None )
+            {
+                return ((int)level & (int)LogLevel.Mask) >= (lineFilter == LogLevelFilter.None
+                                                                               ? (int)DefaultFilter.Line
+                                                                               : (int)lineFilter);
+            }
 
             /// <summary>
             /// Challenges the <see cref="Tags.Filters"/> and applicable <paramref name="lineFilter"/> (by

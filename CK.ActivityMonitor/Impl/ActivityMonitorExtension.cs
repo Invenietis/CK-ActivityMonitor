@@ -38,23 +38,23 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Challenges tag minimal filters, <see cref="IActivityMonitor.ActualFilter">this monitors' actual filter</see> and application 
+        /// Challenges <see cref="ActivityMonitor.Tags"/> and <see cref="IActivityMonitor.ActualFilter">this logger's actual filter</see> and application 
         /// domain's <see cref="ActivityMonitor.DefaultFilter"/> filters to test whether a log line should actually be emitted.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/>.</param>
         /// <param name="level">Log level.</param>
         /// <param name="tags">Optional tags on the line.</param>
         /// <param name="finalTags">Combined monitor's and line's tag.</param>
         /// <returns>True if the log should be emitted.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]  
-        public static bool ShouldLogLine( this IActivityMonitor @this, LogLevel level, CKTrait? tags, out CKTrait finalTags )
+        public static bool ShouldLogLine( this IActivityLogger @this, LogLevel level, CKTrait? tags, out CKTrait finalTags )
         {
             finalTags = @this.AutoTags + tags;
-            return ActivityMonitor.Tags.ApplyForLine( (int)level, finalTags, (int)@this.ActualFilter.Line );
+            return ActivityMonitor.Tags.ApplyForLine( (int)level, finalTags, (int)@this.ActualFilter );
         }
 
         /// <summary>
-        /// Challenges tag minimal filters, <see cref="IActivityMonitor.ActualFilter">this monitors' actual filter</see> and application 
+        /// Challenges <see cref="ActivityMonitor.Tags"/> and <see cref="IActivityMonitor.ActualFilter">this monitors' actual filter</see> and application 
         /// domain's <see cref="ActivityMonitor.DefaultFilter"/> filters to test whether a log group should actually be opened.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
@@ -70,12 +70,12 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Logs a text regardless of <see cref="IActivityMonitor.ActualFilter">ActualFilter</see> level. 
+        /// Logs a text regardless of <see cref="IActivityLogger.ActualFilter"/> level. 
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/>.</param>
         /// <param name="tags">
         /// Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. 
-        /// These tags will be union-ed with the current <see cref="IActivityMonitor.AutoTags">AutoTags</see>.
+        /// These tags will be union-ed with the current <see cref="IActivityLogger.AutoTags"/>.
         /// </param>
         /// <param name="level">Log level. Must not be <see cref="LogLevel.None"/>.</param>
         /// <param name="text">Text to log. Must not be null or empty.</param>
@@ -95,7 +95,7 @@ namespace CK.Core
         /// </para>
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static public void UnfilteredLog( this IActivityMonitor @this,
+        static public void UnfilteredLog( this IActivityLogger @this,
                                           LogLevel level,
                                           CKTrait? tags,
                                           string? text,
@@ -108,8 +108,8 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Opens a group regardless of <see cref="IActivityMonitor.ActualFilter">ActualFilter</see> level. 
-        /// <see cref="IActivityMonitor.CloseGroup"/> must be called in order to close the group, and/or the returned object must be disposed (both safely can be called: 
+        /// Opens a group regardless of <see cref="IActivityMonitor.ActualFilter"/> level. 
+        /// <see cref="IActivityMonitor.CloseGroup"/> must be called in order to close the group, and/or the returned object must be disposed (both can be called safely: 
         /// the group is closed on the first action, the second one is ignored).
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
@@ -612,16 +612,16 @@ namespace CK.Core
         /// <param name="debug">For Debugs.</param>
         /// <returns>A lovely path.</returns>
         public static string ToStringPath( this IEnumerable<ActivityMonitorPathCatcher.PathElement> @this,
-            string elementSeparator = "> ",
-            string withoutConclusionFormat = "{0}{1} ",
-            string withConclusionFormat = "{0}{1} -{{ {2} }}",
-            string conclusionSeparator = " - ",
-            string fatal = "[Fatal]- ",
-            string error = "[Error]- ",
-            string warn = "[Warning]- ",
-            string info = "[Info]- ",
-            string trace = "",
-            string debug = "[Debug]- " )
+                                                                                                    string elementSeparator = "> ",
+                                                                                                    string withoutConclusionFormat = "{0}{1} ",
+                                                                                                    string withConclusionFormat = "{0}{1} -{{ {2} }}",
+                                                                                                    string conclusionSeparator = " - ",
+                                                                                                    string fatal = "[Fatal]- ",
+                                                                                                    string error = "[Error]- ",
+                                                                                                    string warn = "[Warning]- ",
+                                                                                                    string info = "[Info]- ",
+                                                                                                    string trace = "",
+                                                                                                    string debug = "[Debug]- " )
         {
             if( @this == null ) return String.Empty;
             StringBuilder b = new StringBuilder();

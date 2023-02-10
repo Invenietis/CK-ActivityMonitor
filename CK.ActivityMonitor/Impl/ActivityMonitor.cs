@@ -82,16 +82,18 @@ namespace CK.Core
         Group? _current;
         Group? _currentUnfiltered;
         readonly ActivityMonitorOutput _output;
-        CKTrait _autoTags;
         string _topic;
         //
         volatile StackTrace? _currentStackTrace;
+        CKTrait _autoTags;
+        LogFilter _actualFilter;
         int _enteredThreadId;
         int _signalFlag;
-        LogFilter _actualFilter;
         LogFilter _configuredFilter;
         LogFilter _clientFilter;
         bool _trackStackTrace;
+
+
 
         /// <summary>
         /// Simple box around <see cref="DateTimeStamp"/> to be able to share it as needed.
@@ -249,7 +251,7 @@ namespace CK.Core
             set
             {
                 if( value == null ) value = Tags.Empty;
-                else if( value.Context != Tags.Context ) throw new ArgumentException( ActivityMonitorResources.ActivityMonitorTagMustBeRegistered, nameof( value ) );
+                else if( value.Context != Tags.Context ) Throw.ArgumentException( nameof( value ), ActivityMonitorResources.ActivityMonitorTagMustBeRegistered );
                 if( _autoTags != value )
                 {
                     ReentrantAndConcurrentCheck();
@@ -269,9 +271,9 @@ namespace CK.Core
         {
             Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
             Debug.Assert( newTags != null && _autoTags != newTags && newTags.Context == Tags.Context );
-            _autoTags = newTags!;
+            _autoTags = newTags;
             _trackStackTrace = _autoTags.AtomicTraits.Contains( Tags.StackTrace );
-            MonoParameterSafeCall( ( client, tags ) => client.OnAutoTagsChanged( tags! ), newTags );
+            MonoParameterSafeCall( ( client, tags ) => client.OnAutoTagsChanged( tags ), newTags );
         }
 
         /// <summary>
@@ -326,6 +328,15 @@ namespace CK.Core
             {
                 if( Interlocked.Exchange( ref _signalFlag, 0 ) == 1 ) ResyncActualFilter();
                 return _actualFilter;
+            }
+        }
+
+        LogLevelFilter IActivityLogger.ActualFilter
+        {
+            get
+            {
+                if( Interlocked.Exchange( ref _signalFlag, 0 ) == 1 ) ResyncActualFilter();
+                return _actualFilter.Line;
             }
         }
 
@@ -458,7 +469,7 @@ namespace CK.Core
         /// See remarks.
         /// </summary>
         /// <param name="data">
-        /// Data that describes the log. When null or when <see cref="ActivityMonitorLogData.MaskedLevel"/> 
+        /// Data that describes the log. When <see cref="ActivityMonitorLogData.MaskedLevel"/> 
         /// is <see cref="LogLevel.None"/>, nothing happens (whereas for group, a rejected group is recorded and returned).
         /// </param>
         /// <remarks>

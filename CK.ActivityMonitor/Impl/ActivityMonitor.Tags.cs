@@ -13,7 +13,7 @@ namespace CK.Core
         /// Thread-safe context for tags used to categorize log entries (and group conclusions).
         /// All tags used in monitoring must be <see cref="Register"/>ed here.
         /// <para>
-        /// This nested static class also manages tags filtering.
+        /// This also manages tags filtering.
         /// </para>
         /// </summary>
         /// <remarks>

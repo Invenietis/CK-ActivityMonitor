@@ -65,7 +65,7 @@ This is described in more details in [Client](Client/README.md).
 A [LogFilter](LogFilter.cs) must apply to Groups of logs and to Lines of logs. It can be expressed as **{Group,Line}** strings
 like `"{Error,Trace}"` or predefined couples `"Debug"`.
 
-A `LogFilter` is usually used as a "Minimal Filter": multiple participants declare their "MinimalFiler" and the resulting filter
+A `LogFilter` is usually used as a "Minimal Filter": multiple participants declare their "MinimalFilter" and the resulting filter
 is the lowest one: combining 2 LogFilters results in a `LogFilter` that satisfies both of them: “{Error,Trace}” combined
 with “{Warn,Warn}” is “{Warn,Trace}”.
 
