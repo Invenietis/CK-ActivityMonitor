@@ -160,8 +160,8 @@ namespace CK.Core
                         Group? g = Monitor._current;
                         while( g != this )
                         {
-                            // The current group cannot be null (or this object would have been already disposed). We bang!
-                            ((IDisposable)g!).Dispose();
+                            Debug.Assert( g != null, "The current group cannot be null (or this object would have been already disposed)." );
+                            ((IDisposable)g).Dispose();
                             g = Monitor._current;
                         }
                         Monitor.CloseGroup( null );
@@ -190,7 +190,7 @@ namespace CK.Core
                     _getConclusion = null;
                     if( auto != null )
                     {
-                        if( conclusions == null ) conclusions = new List<ActivityLogGroupConclusion>();
+                        conclusions ??= new List<ActivityLogGroupConclusion>();
                         conclusions.Add( new ActivityLogGroupConclusion( ActivityMonitor.Tags.GetTextConclusion, auto ) );
                     }
                 }

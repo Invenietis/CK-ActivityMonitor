@@ -120,8 +120,7 @@ namespace CK.Core
             {
                 _internalMonitor = new InternalMonitor( this );
             }
-            var d = new ActivityMonitorLogData( LogLevel.Fatal, Tags.Empty, $"Unhandled error in IActivityMonitorClient '{culprit.GetType().FullName}'.", ex );
-            _internalMonitor.UnfilteredLog( ref d );
+            _internalMonitor.UnfilteredLog( LogLevel.Fatal, Tags.Empty, $"Unhandled error in IActivityMonitorClient '{culprit.GetType().FullName}'.", ex );
             return true;
         }
 
@@ -132,9 +131,8 @@ namespace CK.Core
                 var ex = _output.ForceRemoveCondemnedClient( l );
                 if( ex != null )
                 {
-                    var d = new ActivityMonitorLogData( LogLevel.Fatal, Tags.Empty, text: $"IActivityMonitorBoundClient.SetMonitor '{l.GetType().FullName}' failure.", ex );
-                    if( _internalMonitor == null ) _internalMonitor = new InternalMonitor( this );
-                    _internalMonitor.UnfilteredLog( ref d );
+                    _internalMonitor ??= new InternalMonitor( this );
+                    _internalMonitor.UnfilteredLog( LogLevel.Fatal, Tags.Empty, text: $"IActivityMonitorBoundClient.SetMonitor '{l.GetType().FullName}' failure.", ex );
                 }
             }
             _clientFilter = HandleBoundClientsSignal();
@@ -195,8 +193,7 @@ namespace CK.Core
                 // We close groups opened. If errors occur here they will be recorded.
                 while( balancedGroup > 0 ) DoCloseGroup( ActivityMonitorResources.ErrorWhileReplayingInternalLogs );
                 // This will be recorded and replayed by the next call to ReentrantAndConcurrentRelease().
-                var d = new ActivityMonitorLogData( LogLevel.Fatal, Tags.InternalMonitor, ActivityMonitorResources.ErrorWhileReplayingInternalLogs, ex );
-                UnfilteredLog( ref d );
+                this.UnfilteredLog( LogLevel.Fatal, Tags.InternalMonitor, ActivityMonitorResources.ErrorWhileReplayingInternalLogs, ex );
             }
             _autoTags = savedTags;
             _trackStackTrace = savedTrackStackTrace;
