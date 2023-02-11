@@ -92,23 +92,21 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Creates a standardized exception that can be thrown by <see cref="IActivityMonitorBoundClient.SetMonitor"/>.
+        /// Throws a standardized exception. Can be called from <see cref="IActivityMonitorBoundClient.SetMonitor"/>.
         /// </summary>
         /// <param name="boundClient">The bound client.</param>
-        /// <returns>An exception with an explicit message.</returns>
-        static public InvalidOperationException CreateMultipleRegisterOnBoundClientException( IActivityMonitorBoundClient boundClient )
+        static public void ThrowMultipleRegisterOnBoundClientException( IActivityMonitorBoundClient boundClient )
         {
-            return new InvalidOperationException( String.Format( Impl.ActivityMonitorResources.ActivityMonitorBoundClientMultipleRegister, boundClient != null ? boundClient.GetType().FullName : String.Empty ) );
+            throw new InvalidOperationException( String.Format( Impl.ActivityMonitorResources.ActivityMonitorBoundClientMultipleRegister, boundClient != null ? boundClient.GetType().FullName : String.Empty ) );
         }
 
         /// <summary>
-        /// Creates a standardized exception that can be thrown by <see cref="IActivityMonitorBoundClient.SetMonitor"/>.
+        /// Throws standardized exception. Can be called by <see cref="IActivityMonitorBoundClient.SetMonitor"/>.
         /// </summary>
         /// <param name="boundClient">The bound client.</param>
-        /// <returns>An exception with an explicit message.</returns>
-        static public InvalidOperationException CreateBoundClientIsLockedException( IActivityMonitorBoundClient boundClient )
+        static public void ThrowBoundClientIsLockedException( IActivityMonitorBoundClient boundClient )
         {
-            return new InvalidOperationException( String.Format( Impl.ActivityMonitorResources.ActivityMonitorBoundClientIsLocked, boundClient != null ? boundClient.GetType().FullName : String.Empty ) );
+            throw new InvalidOperationException( String.Format( Impl.ActivityMonitorResources.ActivityMonitorBoundClientIsLocked, boundClient != null ? boundClient.GetType().FullName : String.Empty ) );
         }
 
         #region IActivityMonitorClient Members

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using CK.Core.Impl;
 
@@ -174,7 +175,7 @@ namespace CK.Core
 
             internal void GroupClosing( ref List<ActivityLogGroupConclusion>? conclusions )
             {
-                if( !_isOpen ) ThrowOnGroupOrDataNotInitialized();
+                Debug.Assert( _isOpen );
                 if( _getConclusion != null )
                 {
                     string? auto = null;

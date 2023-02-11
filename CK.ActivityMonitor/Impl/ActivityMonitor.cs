@@ -797,7 +797,7 @@ namespace CK.Core
             {
                 if( alreadyEnteredId == currentThreadId )
                 {
-                    throw new CKException( ActivityMonitorResources.ActivityMonitorReentrancyError, _uniqueId );
+                    Throw.CKException( String.Format( ActivityMonitorResources.ActivityMonitorReentrancyError, _uniqueId ) );
                 }
                 else
                 {
@@ -848,7 +848,7 @@ namespace CK.Core
             }
             var msg = String.Format( messageFormat, _uniqueId, currentThreadId, alreadyEnteredId );
             if( t != null ) msg = AddCurrentStackTrace( msg, t );
-            throw new CKException( msg );
+            Throw.CKException( msg );
         }
 
         void ReentrantAndConcurrentRelease()
@@ -889,12 +889,5 @@ namespace CK.Core
             }
             return b.ToString();
         }
-
-        [DoesNotReturn]
-        internal static void ThrowOnGroupOrDataNotInitialized()
-        {
-            throw new InvalidOperationException( $"Group or Data not initialized, please call Initialize." );
-        }
-
     }
 }

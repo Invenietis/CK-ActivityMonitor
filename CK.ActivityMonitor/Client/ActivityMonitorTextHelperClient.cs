@@ -201,7 +201,7 @@ namespace CK.Core
         {
             if( !forceBuggyRemove )
             {
-                if( source != null && _source != null ) throw ActivityMonitorClient.CreateMultipleRegisterOnBoundClientException( this );
+                if( source != null && _source != null ) ActivityMonitorClient.ThrowMultipleRegisterOnBoundClientException( this );
             }
             _openGroups.Clear();
             _source = source;

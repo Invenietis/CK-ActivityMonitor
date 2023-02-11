@@ -67,8 +67,8 @@ namespace CK.Core
         {
             if( !forceBuggyRemove )
             {
-                if( source != null && _source != null ) throw CreateMultipleRegisterOnBoundClientException( this );
-                if( _locked && _source != null ) throw CreateBoundClientIsLockedException( this );
+                if( source != null && _source != null ) ThrowMultipleRegisterOnBoundClientException(this);
+                if( _locked && _source != null ) ThrowMultipleRegisterOnBoundClientException(this);
             }
             _source = source;
         }

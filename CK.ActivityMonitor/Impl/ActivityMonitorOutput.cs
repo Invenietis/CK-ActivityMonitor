@@ -98,7 +98,7 @@ namespace CK.Core.Impl
                     if( (e = factory()) != null )
                     {
                         e = (T)DoRegisterClient( e, ref forceAdded );
-                        if( !tester( e ) ) throw new InvalidOperationException( Impl.CoreResources.FactoryTesterMismatch );
+                        if( !tester( e ) ) Throw.InvalidOperationException( Impl.CoreResources.FactoryTesterMismatch );
                     }
                 }
                 return e;

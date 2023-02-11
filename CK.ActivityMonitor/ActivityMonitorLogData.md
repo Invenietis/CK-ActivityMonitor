@@ -23,7 +23,7 @@ captures, once for all, log data.
 However, these are immutables and not disposable and this shouldn't be changed: they capture final logged data and making them disposable
 would be a nightmare.
 
-To emit logs we could reuse the interfaces (they should then be defined in CK.ActivityMonitor) and introduce a IDisposable level that
+To emit logs we could simply transform the  the interfaces (they should then be defined in CK.ActivityMonitor) and introduce a IDisposable level that
 handles the reference counter and the pooling.
 
 ## Goal: Utf8 capture and binary content

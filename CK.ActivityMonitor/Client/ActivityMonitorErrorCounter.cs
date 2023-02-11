@@ -190,7 +190,7 @@ namespace CK.Core
         {
             if( !forceBuggyRemove )
             {
-                if( source != null && _source != null ) throw CreateMultipleRegisterOnBoundClientException( this );
+                if( source != null && _source != null ) ThrowMultipleRegisterOnBoundClientException( this );
             }
             _source = source;
         }

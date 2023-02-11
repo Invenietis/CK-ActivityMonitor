@@ -72,7 +72,7 @@ namespace CK.Core
 
             void IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl? source, bool forceBuggyRemove )
             {
-                if( source != _owner ) throw ActivityMonitorClient.CreateBoundClientIsLockedException( this );
+                if( source != _owner ) ActivityMonitorClient.ThrowMultipleRegisterOnBoundClientException( this );
             }
         }
 
