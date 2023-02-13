@@ -70,9 +70,10 @@ namespace CK.Core
         /// Internal is required since the InternalMonitor adds its tag when replaying
         /// and the ExternalData may have already been acquired.
         /// </summary>
-        /// <param name="tags"></param>
+        /// <param name="tags">Non null tags.</param>
         internal void SetTags( CKTrait tags )
         {
+            Debug.Assert( tags != null && tags.Context == ActivityMonitor.Tags.Context );
             _tags = tags;
         }
 
