@@ -8,6 +8,7 @@ using System.Xml.Linq;
 using System.Collections.Generic;
 using FluentAssertions;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace CK.Core.Tests.Monitoring
 {

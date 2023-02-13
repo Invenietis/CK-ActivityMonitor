@@ -14,11 +14,15 @@ namespace CK.Core
             get
             {
                 RentrantOnlyCheck();
-                if( _internalMonitor == null ) _internalMonitor = new InternalMonitor( this );
-                return _internalMonitor;
+                return _internalMonitor ??= new InternalMonitor( this );
             }
         }
 
+        /// <summary>
+        /// History here retains objects that are Tuples of boxed struct ActivityMonitorLogData:
+        /// this allocates objects but it's easier to inject the struct back and we don't care here
+        /// since we are in an edge case.
+        /// </summary>
         sealed class LogsRecorder : IActivityMonitorBoundClient
         {
             readonly InternalMonitor _owner;
@@ -160,7 +164,8 @@ namespace CK.Core
                     {
                         case Tuple<ActivityMonitorLogData> group:
                             var d = group.Item1;
-                            d.SetExplicitTags( d.Tags | Tags.InternalMonitor );
+                            // Don't use SetExplicitTags here.
+                            d.SetTags( d.Tags | Tags.InternalMonitor );
                             DoOpenGroup( ref d );
                             ++balancedGroup;
                             break;
@@ -169,7 +174,8 @@ namespace CK.Core
                             {
                                 changedTopic = line.Text.Substring( SetTopicPrefix.Length );
                             }
-                            line.SetExplicitTags( line.Tags | Tags.InternalMonitor );
+                            // Don't use SetExplicitTags here.
+                            line.SetTags( line.Tags | Tags.InternalMonitor );
                             DoUnfilteredLog( ref line );
                             break;
                         case Tuple<DateTimeStamp, IReadOnlyList<ActivityLogGroupConclusion>?> close:
