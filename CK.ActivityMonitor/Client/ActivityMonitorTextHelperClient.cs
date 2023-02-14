@@ -118,7 +118,7 @@ namespace CK.Core
         {
         }
 
-        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
+        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             if( _curLevel != -1 )
             {
@@ -158,7 +158,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="group">The closing group.</param>
         /// <param name="conclusions">Texts that concludes the group. Never null but can be empty.</param>
-        protected abstract void OnGroupClose( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions );
+        protected abstract void OnGroupClose( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions );
 
 
         void IActivityMonitorClient.OnTopicChanged( string newTopic, string? fileName, int lineNumber )
@@ -177,7 +177,7 @@ namespace CK.Core
             {
                 LogFilter oldFilter = _filter.Filter;
                 _filter = value;
-                if( _source != null ) _source.OnClientMinimalFilterChanged( oldFilter, _filter.Filter );
+                _source?.OnClientMinimalFilterChanged( oldFilter, _filter.Filter );
             }
         }
 

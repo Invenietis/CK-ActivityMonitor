@@ -58,7 +58,7 @@ namespace CK.Core
             {
             }
 
-            void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
+            void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
             {
                 if( !_replaying ) History.Add( Tuple.Create( group.CloseLogTime, conclusions ) );
             }

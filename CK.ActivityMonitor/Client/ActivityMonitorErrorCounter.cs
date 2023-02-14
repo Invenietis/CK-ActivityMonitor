@@ -264,7 +264,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="group">The log group.</param>
         /// <param name="conclusions">Texts that conclude the group.</param>
-        protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
+        protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             if( _current.Parent != null ) _current = _current.Parent;
         }

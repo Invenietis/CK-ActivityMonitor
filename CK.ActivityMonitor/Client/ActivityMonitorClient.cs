@@ -66,8 +66,8 @@ namespace CK.Core
         /// Does nothing by default.
         /// </summary>
         /// <param name="group">The closed group.</param>
-        /// <param name="conclusions">Text that conclude the group. Never null but can be empty.</param>
-        protected virtual void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
+        /// <param name="conclusions">Text that conclude the group.</param>
+        protected virtual void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
         }
 
@@ -126,7 +126,7 @@ namespace CK.Core
             OnGroupClosing( group, ref conclusions );
         }
 
-        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
+        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             OnGroupClosed( group, conclusions );
         }
