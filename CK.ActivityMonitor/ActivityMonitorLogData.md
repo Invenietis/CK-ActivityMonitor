@@ -30,12 +30,12 @@ eventually be written/serialized in UTF-8 encoding.
 
 The efficient Utf8JsonWriter directly writes to a IBufferWriter that can be a [RecyclableMemoryStream](https://github.com/microsoft/Microsoft.IO.RecyclableMemoryStream)
 (that uses a pool of reusable buffers).
-The idea is to support binary payloads thanks to RecyclableMemoryStream for:
-- computing once on demand the UTF-8 Text string representation and cache it when Text is the logged data.
-- offers new ways to log different type of content:
+The idea is to support binary payloads thanks to RecyclableMemoryStream or pooled buffered to:
+- compute once on demand the UTF-8 Text string representation and cache it when Text is the logged data.
+- offer new ways to log different type of content:
 ```c#
 // Using a Utf8Writer.
-// here using the new C# 10 u8 suffix: https://github.com/dotnet/csharplang/blob/main/proposals/utf8-string-literals.md.
+// here using the new C# 11 `u8` suffix: https://devblogs.microsoft.com/dotnet/csharp-11-preview-updates/#utf-8-string-literals.
 monitor.Info( w => { w.WriteStartObject(); w.WriteNumber("Power"u8, _power ); w.WriteEndObject()} );
 
 // Using a binary writer (binary serialization):
@@ -50,10 +50,22 @@ monitor.Info( s => Helper.CopyFile( "appsetings.json", s ) );
 monitor.InfoFile( "appsetings.json" );
 ```
 
-Such binary content goes into an internal RecyclableMemeoryStream of the ActivityMonitorLogData or a pooled array of bytes.
+Interpolated string handlers write their content to a (generally) cached and reusable StringBuilder. The StringBuilder (since .Net 6) exposes its
+`ReadOnlyMemory<char>` chunks of buffers: this can be used to skip the final string generation and directly encode the interpolation
+result as an "UTF8" string into a RecyclableMemoryStream or a pooled byte array (or may be steal the linked list of buffer from the StringBuilder).
 
-This requires to introduce a notion of "content type" that doesn't exist yet.
-We may create a new enum (Text, JSON, Binary...) but this sounds limited. We should simply use Tags to
+Providing that the StringBuilder is a reused one and the `Text` property is NOT solicited later on (the client and handlers only need the Utf8 content),
+this would lead to a real zero allocation logging.
+
+Such binary content goes into an internal RecyclableMemeoryStream of the ActivityMonitorLogData or a pooled array of bytes: the eventual release
+of the resources (dispose of streams or returns of the byte arrays to their pool) is possible thanks to the `ActivityMonitorExternalLogData`:
+at the end of the `UnfilteredOpenGroup` and `UnfilteredLog`, if a `ActivityMonitorExternalLogData` has been acquired, it is the owner of
+the resources, otherwise the resources must be released immediately.
+
+> Once the `ActivityMonitorExternalLogData` holds these resources, forgetting to release them properly WILL LEAK.
+
+This also requires to introduce a notion of "content type" that doesn't exist yet.
+We may create a new enum (Text, JSON, Binary...) but this sounds limited. We should simply use Tags to 
 decorate/qualify the content type and define:
 - "BIN" for binary content.
 - "UTF8" for Utf8 string.
@@ -62,15 +74,6 @@ decorate/qualify the content type and define:
 The `Text` property, if needed, can always be derived from the binary content:
 - for "UTF8", "JSON" by encoding the UTF-8 content back to UTF-16.
 - for binary, a simple `<binary data>` string can be used or a base64/base64Url be generated.
-
-### More optimizations
-
-Interpolated string handlers write their content to a (generally) cached and reusable StringBuilder. The StringBuilder now exposes its
-`ReadOnlyMemory<char>` chunks of buffers: this can be used to skip the final string generation and directly encode the interpolation
-result as an "UTF8" string into the RecyclableMemoryStream.
-
-Providing that the StringBuilder is a reused one and the `Text` property is NOT solicited later on (the client and handlers only need the Utf8 content),
-this would lead to a real zero allocation logging.
 
 ### Impacts
 
