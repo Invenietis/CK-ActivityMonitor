@@ -50,7 +50,7 @@ namespace CK.Core
         public static bool ShouldLogLine( this IActivityLogger @this, LogLevel level, CKTrait? tags, out CKTrait finalTags )
         {
             finalTags = @this.AutoTags + tags;
-            return ActivityMonitor.Tags.ApplyForLine( (int)level, finalTags, (int)@this.ActualFilter );
+            return ActivityMonitor.Tags.ApplyForLine( level, finalTags, @this.ActualFilter );
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace CK.Core
         public static bool ShouldLogGroup( this IActivityMonitor @this, LogLevel level, CKTrait? tags, out CKTrait finalTags )
         {
             finalTags = @this.AutoTags + tags;
-            return ActivityMonitor.Tags.ApplyForGroup( finalTags, (int)@this.ActualFilter.Group, (int)level );
+            return ActivityMonitor.Tags.ApplyForGroup( level, finalTags, @this.ActualFilter.Group );
         }
 
         /// <summary>
