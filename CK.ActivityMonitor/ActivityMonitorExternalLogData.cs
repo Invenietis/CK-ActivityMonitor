@@ -24,7 +24,7 @@ namespace CK.Core
         public string Text => _text;
 
         /// <inheritdoc cref="ActivityMonitorLogData.Tags"/>
-        public string Tags => _text;
+        public CKTrait Tags => _tags;
 
         /// <summary>
         /// Gets the exception data if there's an exception.
