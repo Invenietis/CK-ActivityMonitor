@@ -8,6 +8,10 @@ namespace CK.Core
     /// <summary>
     /// Cached <see cref="ActivityMonitorLogData"/>: these objects are pooled.
     /// See <see cref="CurrentPoolCapacity"/> and <see cref="MaximalCapacity"/>.
+    /// <para>
+    /// The only way to acquire such cached data is to call <see cref="ActivityMonitorLogData.AcquireExternalData"/>
+    /// or <see cref="ActivityMonitorLogData.AcquireExternalData(ref DateTimeStamp, bool)"/>.
+    /// </para>
     /// </summary>
     public sealed partial class ActivityMonitorExternalLogData
     {
@@ -51,7 +55,7 @@ namespace CK.Core
         {
         }
 
-        internal void Initialize( ref ActivityMonitorLogData data)
+        internal void Initialize( ref ActivityMonitorLogData data )
         {
             _text = data.Text;
             _tags = data.Tags;

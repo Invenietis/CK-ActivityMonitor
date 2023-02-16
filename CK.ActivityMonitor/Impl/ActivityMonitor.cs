@@ -94,10 +94,9 @@ namespace CK.Core
         LogFilter _clientFilter;
         bool _trackStackTrace;
 
-
-
         /// <summary>
-        /// Simple box around <see cref="DateTimeStamp"/> to be able to share it as needed.
+        /// Simple box around <see cref="DateTimeStamp"/> to be able to share it as needed
+        /// or to use it as a lock.
         /// </summary>
         protected sealed class DateTimeStampProvider
         {

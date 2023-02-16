@@ -12,12 +12,23 @@ namespace CK.Core
     {
         sealed class LoggerStatic : IActivityLogger
         {
+            static readonly DateTimeStampProvider _stamp = new DateTimeStampProvider();
+
             public CKTrait AutoTags => Tags.Empty;
 
             public LogLevelFilter ActualFilter => DefaultFilter.Line;
 
             public void UnfilteredLog( ref ActivityMonitorLogData data )
             {
+                if( !data.LogTime.IsKnown )
+                {
+                    // There should be very few contentions here (the operation is fast),
+                    // so we keep it simple (lock is efficient when there is no contention).
+                    lock( _stamp )
+                    {
+                        _stamp.Value = data.SetLogTime( new DateTimeStamp( _stamp.Value, DateTime.UtcNow ) );
+                    }
+                }
                 OnStaticLog?.Invoke( ref data );
             }
         }
@@ -38,8 +49,8 @@ namespace CK.Core
         /// <summary>
         /// Raised by <see cref="StaticLogger"/>.
         /// <para>
-        /// Such events should be handled very quickly (typically by queuing a projection of the
-        /// data or the data itself in a concurrent queue or a channel).
+        /// Such events should be handled very quickly (typically by queuing a <see cref="ActivityMonitorExternalLogData"/> or
+        /// a projection of the data in a concurrent queue or a channel).
         /// </para>
         /// <para>
         /// This is a static event: the callbacks registered here will be referenced until removed: care should be

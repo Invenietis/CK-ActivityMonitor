@@ -94,6 +94,10 @@ namespace CK.Core
             {
                 DumpException( w, _prefix + ' ', !data.IsTextTheExceptionMessage, data.Exception );
             }
+            else
+            {
+                data.ExceptionData?.ToStringBuilder( w, _prefix );
+            }
             Writer( w.ToString() );
         }
 
@@ -110,6 +114,10 @@ namespace CK.Core
             if( data.Exception != null )
             {
                 DumpException( w, _prefix + ' ', !data.IsTextTheExceptionMessage, data.Exception );
+            }
+            else
+            {
+                data.ExceptionData?.ToStringBuilder( w, _prefix );
             }
             Writer( _buffer.ToString() );
         }
@@ -139,6 +147,10 @@ namespace CK.Core
             if( g.Data.Exception != null )
             {
                 DumpException( w, _prefix, !g.Data.IsTextTheExceptionMessage, g.Data.Exception );
+            }
+            else
+            {
+                g.Data.ExceptionData?.ToStringBuilder( w, _prefix );
             }
             Writer( _buffer.ToString() );
         }

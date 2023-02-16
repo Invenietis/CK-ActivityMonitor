@@ -28,14 +28,22 @@ namespace CK.Core
         /// </summary>
         public const int MaximalCapacity = 2000;
 
+        /// <summary>
+        /// Gets the current number of <see cref="ActivityMonitorExternalLogData"/> that are alive (not yet released).
+        /// When there is no log activity and no entries have been cached, this must be 0.
+        /// </summary>
+        public static int AliveCount => _aliveItems;
+
         static readonly ConcurrentQueue<ActivityMonitorExternalLogData> _items = new();
         static ActivityMonitorExternalLogData? _fastItem;
         static int _numItems;
         static int _currentCapacity = 200;
+        static int _aliveItems;
         static DateTime _nextPoolError;
 
         internal static ActivityMonitorExternalLogData Acquire( ref ActivityMonitorLogData data )
         {
+            Interlocked.Increment( ref _aliveItems );
             var item = _fastItem;
             if( item == null || Interlocked.CompareExchange( ref _fastItem, null, item ) != item )
             {
@@ -54,6 +62,7 @@ namespace CK.Core
 
         static void Release( ActivityMonitorExternalLogData c )
         {
+            Interlocked.Decrement( ref _aliveItems );
             if( _fastItem != null || Interlocked.CompareExchange( ref _fastItem, c, null ) != null )
             {
                 int poolCount = Interlocked.Increment( ref _numItems );

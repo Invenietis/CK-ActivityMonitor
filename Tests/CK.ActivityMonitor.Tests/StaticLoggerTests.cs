@@ -2,6 +2,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,7 +16,11 @@ namespace CK.Core.Tests.Monitoring
         public void Log_and_receive()
         {
             var received = new List<string>();
-            ActivityMonitor.StaticLogHandler h = delegate ( ref ActivityMonitorLogData d ) { received.Add( d.Text ); };
+            ActivityMonitor.StaticLogHandler h = delegate ( ref ActivityMonitorLogData d )
+            {
+                d.LogTime.TimeUtc.Should().NotBe( Util.UtcMinValue ).And.BeOnOrBefore( DateTime.UtcNow );
+                received.Add( d.Text );
+            };
             ActivityMonitor.OnStaticLog += h;
             ActivityMonitor.StaticLogger.UnfilteredLog( LogLevel.Debug, null, "text", null );
             received.Should().ContainSingle( "text" );
@@ -47,7 +52,11 @@ namespace CK.Core.Tests.Monitoring
         public void level_and_tags_filtering()
         {
             var received = new List<string>();
-            ActivityMonitor.StaticLogHandler h = delegate ( ref ActivityMonitorLogData d ) { received.Add( d.Text ); };
+            ActivityMonitor.StaticLogHandler h = delegate ( ref ActivityMonitorLogData d )
+            {
+                d.LogTime.TimeUtc.Should().NotBe( Util.UtcMinValue ).And.BeOnOrBefore( DateTime.UtcNow );
+                received.Add( d.Text );
+            };
             ActivityMonitor.OnStaticLog += h;
 
             ActivityMonitor.DefaultFilter.Should().Be( LogFilter.Trace );
