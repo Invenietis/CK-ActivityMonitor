@@ -70,10 +70,10 @@ namespace CK.Core
         /// Sets the current topic for this monitor. This can be any non null string (null topic is mapped to the empty string) that describes
         /// the current activity.
         /// </summary>
+        /// <param name="newTopic">The new topic string to associate to this monitor.</param>
         /// <param name="fileName">The source code file name from which the topic is set.</param>
         /// <param name="lineNumber">The line number in the source from which the topic is set.</param>
-        /// <param name="newTopic">The new topic string to associate to this monitor.</param>
-        void SetTopic( string newTopic, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 );
+        void SetTopic( string? newTopic, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 );
 
         /// <summary>
         /// Opens a group regardless of <see cref="ActualFilter"/> level (except for <see cref="LogLevelFilter.Off"/>). 
@@ -128,10 +128,21 @@ namespace CK.Core
         IActivityMonitorOutput Output { get; }
 
         /// <summary>
-        /// Gets the last <see cref="DateTimeStamp"/> for this monitor.
+        /// Gets the thread safe <see cref="DateTimeStampProvider"/> of this monitor.
+        /// This is null if it has not been initialized to be able to relay thread safe <see cref="IActivityLogger"/>.
         /// </summary>
-        DateTimeStamp LastLogTime { get; }
+        DateTimeStampProvider? SafeStampProvider { get; }
 
+        /// <summary>
+        /// Returns a valid <see cref="DateTimeStamp"/> that can be used for a log: it is based on <see cref="DateTime.UtcNow"/> and has 
+        /// a <see cref="DateTimeStamp.Uniquifier"/> that will not be changed when emitting the next log.
+        /// <para>
+        /// This uses the <see cref="SafeStampProvider"/> or an internal, lock-free, current value. In both cases, this
+        /// value is ever increasing.
+        /// </para>
+        /// </summary>
+        /// <returns>The next stamp time to use for this monitor.</returns>
+        DateTimeStamp GetAndUpdateNextLogTime();
     }
 
 }

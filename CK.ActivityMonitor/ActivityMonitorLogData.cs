@@ -169,8 +169,8 @@ namespace CK.Core
 
         /// <summary>
         /// Acquires a cached data from this one, ensuring that the <see cref="LogTime"/> is set.
-        /// This must be used non concurrently by <see cref="IActivityLogger.UnfilteredLog(ref ActivityMonitorLogData)"/>
-        /// implementations.
+        /// This must be used by <see cref="IActivityLogger.UnfilteredLog(ref ActivityMonitorLogData)"/>
+        /// implementations on the target <see cref="IActivityMonitor.SafeStampProvider"/> (that must not be null).
         /// <para>
         /// The <paramref name="sequence"/> is provided by the "emitter" of the log: it guaranties that all log entries
         /// from a logger are stamped with an ever increasing (unique) date.
@@ -187,6 +187,7 @@ namespace CK.Core
         /// <returns>A cached log data for this.</returns>
         public ActivityMonitorExternalLogData AcquireExternalData( DateTimeStampProvider sequence, bool forceSetLogTime = false )
         {
+            Throw.CheckNotNullArgument( sequence );
             var e = _externalData;
             if( e == null )
             {

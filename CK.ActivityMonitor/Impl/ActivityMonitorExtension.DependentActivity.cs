@@ -31,7 +31,7 @@ namespace CK.Core
         {
             if( string.IsNullOrWhiteSpace( message ) ) message = null;
             if( string.IsNullOrWhiteSpace( dependentTopic ) ) dependentTopic = null;
-            var t = new ActivityMonitor.DependentToken( @this.UniqueId, @this.NextLogTime(), message, dependentTopic );
+            var t = new ActivityMonitor.DependentToken( @this.UniqueId, @this.GetAndUpdateNextLogTime(), message, dependentTopic );
             if( message != null )
             {
                 if( dependentTopic != null ) message += $" (With topic '{dependentTopic}'.)";

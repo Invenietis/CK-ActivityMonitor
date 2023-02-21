@@ -14,17 +14,6 @@ namespace CK.Core
     public static partial class ActivityMonitorExtension
     {
         /// <summary>
-        /// Returns a valid <see cref="DateTimeStamp"/> that will be used for a log: it is based on <see cref="DateTime.UtcNow"/> and has 
-        /// a <see cref="DateTimeStamp.Uniquifier"/> that will not be changed when emitting the next log.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <returns>The next log time for the monitor.</returns>
-        public static DateTimeStamp NextLogTime( this IActivityMonitor @this )
-        {
-            return new DateTimeStamp( @this.LastLogTime, DateTime.UtcNow );
-        }
-
-        /// <summary>
         /// Closes all opened groups and sends an unfiltered <see cref="ActivityMonitor.Tags.MonitorEnd"/> log.
         /// </summary>
         /// <param name="text">Optional log text (defaults to "Done.").</param>

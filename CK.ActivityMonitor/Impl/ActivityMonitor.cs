@@ -47,8 +47,7 @@ namespace CK.Core
 
         /// <summary>
         /// The automatic configuration actions.
-        /// Registers actions via += (or <see cref="Delegate.Combine(Delegate,Delegate)"/> if you like pain), unregister with -= operator
-        /// (or <see cref="Delegate.Remove"/>).
+        /// Registers actions via +=, unregister with -= operator.
         /// Simply sets it to null to clear all currently registered actions (this, of course, only from tests and not in real code).
         /// </summary>
         static public Action<IActivityMonitor>? AutoConfiguration;
@@ -96,6 +95,9 @@ namespace CK.Core
 
         readonly string _uniqueId;
         InternalMonitor? _internalMonitor;
+
+        // The provider has the priority if it is not null.
+        readonly DateTimeStampProvider? _stampProvider;
         DateTimeStamp _lastLogTime;
 
         /// <summary>
@@ -103,16 +105,29 @@ namespace CK.Core
         /// and has an empty <see cref="Topic"/> initially set.
         /// </summary>
         public ActivityMonitor()
-            : this( _generatorId.GetNextString(), Tags.Empty, true )
+            : this( _generatorId.GetNextString(), Tags.Empty, true, null )
         {
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="ActivityMonitor"/> that applies all <see cref="AutoConfiguration"/>,
+        /// has an empty <see cref="Topic"/> initially set and is intended to relay logs from a thread safe <see cref="IActivityLogger"/>.
+        /// </summary>
+        public ActivityMonitor( DateTimeStampProvider stampProvider )
+            : this( _generatorId.GetNextString(), Tags.Empty, true, stampProvider )
+        {
+            Throw.CheckNotNullArgument( stampProvider );
         }
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitor"/> that applies all <see cref="AutoConfiguration"/> and has an initial <see cref="Topic"/> set.
         /// </summary>
         /// <param name="topic">Initial topic (can be null).</param>
-        public ActivityMonitor( string topic )
-            : this( _generatorId.GetNextString(), Tags.Empty, true )
+        /// <param name="stampProvider">
+        /// Optional thread safe time stamp provider that must be used when this monitor will accept logs from a thread safe <see cref="IActivityLogger"/>.
+        /// </param>
+        public ActivityMonitor( string topic, DateTimeStampProvider? stampProvider = null )
+            : this( _generatorId.GetNextString(), Tags.Empty, true, stampProvider )
         {
             if( topic != null ) SetTopic( topic );
         }
@@ -122,22 +137,29 @@ namespace CK.Core
         /// </summary>
         /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
         /// <param name="topic">Optional initial topic (can be null).</param>
-        public ActivityMonitor( bool applyAutoConfigurations, string? topic = null )
-            : this( _generatorId.GetNextString(), Tags.Empty, applyAutoConfigurations )
+        /// <param name="stampProvider">
+        /// Optional thread safe time stamp provider that must be used when this monitor will accept logs from a thread safe <see cref="IActivityLogger"/>.
+        /// </param>
+        public ActivityMonitor( bool applyAutoConfigurations, string? topic = null, DateTimeStampProvider? stampProvider = null )
+            : this( _generatorId.GetNextString(), Tags.Empty, applyAutoConfigurations, stampProvider )
         {
             if( topic != null ) SetTopic( topic );
         }
 
         /// <summary>
-        /// Initializes a new <see cref="ActivityMonitor"/> bound to a specific <see cref="DateTimeStampProvider"/>,
-        /// a unique identifier, initial <see cref="AutoTags"/> and that optionally applies <see cref="AutoConfiguration"/>.
+        /// Initializes a new <see cref="ActivityMonitor"/> bound to a unique identifier, initial <see cref="AutoTags"/>,
+        /// optionally applies <see cref="AutoConfiguration"/> and/or uses an optional <see cref="DateTimeStampProvider"/>.
         /// </summary>
         /// <param name="uniqueId">This monitor unique identifier.</param>
         /// <param name="tags">Initial tags.</param>
         /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
+        /// <param name="stampProvider">
+        /// Optional thread safe time stamp provider that must be used when this monitor will accept logs from a thread safe <see cref="IActivityLogger"/>.
+        /// </param>
         protected ActivityMonitor( string uniqueId,
                                    CKTrait tags,
-                                   bool applyAutoConfigurations )
+                                   bool applyAutoConfigurations,
+                                   DateTimeStampProvider? stampProvider )
         {
             if( uniqueId == null
                 || uniqueId.Length < MinMonitorUniqueIdLength
@@ -145,6 +167,7 @@ namespace CK.Core
             {
                 Throw.ArgumentException( nameof( uniqueId ), $"Monitor UniqueId must be at least {MinMonitorUniqueIdLength} long and not contain any whitespace." );
             }
+            _stampProvider = stampProvider;
             _uniqueId = uniqueId;
             _groups = new Group[8];
             for( int i = 0; i < _groups.Length; ++i ) _groups[i] = new Group( this, i );
@@ -158,33 +181,17 @@ namespace CK.Core
             }
         }
 
-        /// <summary>
-        /// Gets the unique identifier for this monitor.
-        /// </summary>
+        /// <inheritdoc />
         public string UniqueId => _uniqueId;
 
-        /// <summary>
-        /// Gets the <see cref="IActivityMonitorOutput"/> for this monitor.
-        /// </summary>
+        /// <inheritdoc />
         public IActivityMonitorOutput Output => _output;
 
-        /// <summary>
-        /// Gets the last <see cref="DateTimeStamp"/> for this monitor.
-        /// </summary>
-        public DateTimeStamp LastLogTime => _lastLogTime;
-
-        /// <summary>
-        /// Gets the current topic for this monitor. This can be any non null string (null topic is mapped to the empty string) that describes
-        /// the current activity. It must be set with <see cref="SetTopic"/> and unlike <see cref="MinimalFilter"/> and <see cref="AutoTags"/>, 
-        /// the topic is not reseted when groups are closed.
-        /// </summary>
+        /// <inheritdoc />
         public string Topic => _topic;
 
-        /// <summary>
-        /// Sets the current topic for this monitor. This can be any non null string (null topic is mapped to the empty string) that describes
-        /// the current activity.
-        /// </summary>
-        public void SetTopic( string newTopic, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
+        /// <inheritdoc />
+        public void SetTopic( string? newTopic, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
             if( newTopic == null ) newTopic = String.Empty;
             if( _topic != newTopic )
@@ -223,12 +230,7 @@ namespace CK.Core
             DoUnfilteredLog( ref d );
         }
 
-        /// <summary>
-        /// Gets or sets the tags of this monitor: any subsequent logs will be tagged by these tags.
-        /// The <see cref="CKTrait"/> must be registered in <see cref="ActivityMonitor.Tags"/>.
-        /// Modifications to this property are scoped to the current Group since when a Group is closed, this
-        /// property (like <see cref="MinimalFilter"/>) is automatically restored to its original value (captured when the Group was opened).
-        /// </summary>
+        /// <inheritdoc />
         [AllowNull]
         public CKTrait AutoTags
         {
@@ -273,11 +275,7 @@ namespace CK.Core
             if( newTags != null && _autoTags != newTags ) DoSetAutoTags( newTags );
         }
 
-        /// <summary>
-        /// Gets or sets a filter based for the log level.
-        /// Modifications to this property are scoped to the current Group since when a Group is closed, this
-        /// property (like <see cref="AutoTags"/>) is automatically restored to its original value (captured when the Group was opened).
-        /// </summary>
+        /// <inheritdoc />
         public LogFilter MinimalFilter
         {
             get { return _configuredFilter; }
@@ -298,15 +296,7 @@ namespace CK.Core
             }
         }
 
-        /// <summary>
-        /// Gets the actual filter level for logs: this combines the configured <see cref="MinimalFilter"/> and the minimal requirements
-        /// of any <see cref="IActivityMonitorBoundClient"/> that specifies such a minimal filter level.
-        /// </summary>
-        /// <remarks>
-        /// This does NOT take into account the static (application-domain) <see cref="ActivityMonitor.DefaultFilter"/>.
-        /// This global default must be used if this ActualFilter is <see cref="LogFilter.Undefined"/> for <see cref="LogFilter.Line"/> or <see cref="LogFilter.Group"/>: 
-        /// the <see cref="ActivityMonitorExtension.ShouldLogLine">ShouldLog</see> extension method takes it into account.
-        /// </remarks>
+        /// <inheritdoc />
         public LogFilter ActualFilter
         {
             get
@@ -446,22 +436,7 @@ namespace CK.Core
             }
         }
 
-        /// <summary>
-        /// Logs a text regardless of <see cref="MinimalFilter"/> level (except for <see cref="LogLevelFilter.Off"/>). 
-        /// Each call to log is considered as a unit of text: depending on the rendering engine, a line or a 
-        /// paragraph separator (or any appropriate separator) should be appended between each text if 
-        /// the level is the same as the previous one.
-        /// See remarks.
-        /// </summary>
-        /// <param name="data">
-        /// Data that describes the log. When <see cref="ActivityMonitorLogData.MaskedLevel"/> 
-        /// is <see cref="LogLevel.None"/>, nothing happens (whereas for group, a rejected group is recorded and returned).
-        /// </param>
-        /// <remarks>
-        /// A null or empty <see cref="ActivityMonitorLogData.Text"/> is logged as <see cref="ActivityMonitor.NoLogText"/>.
-        /// If needed, the special text <see cref="ActivityMonitor.ParkLevel"/> ("PARK-LEVEL") breaks the current <see cref="LogLevel"/>
-        /// and resets it: the next log, even with the same LogLevel, will be treated as if a different LogLevel is used.
-        /// </remarks>
+        /// <inheritdoc />
         public void UnfilteredLog( ref ActivityMonitorLogData data )
         {
             if( data.MaskedLevel == LogLevel.None ) return;
@@ -498,7 +473,9 @@ namespace CK.Core
 
             if( !data.LogTime.IsKnown )
             {
-                _lastLogTime = data.SetLogTime( new DateTimeStamp( _lastLogTime, DateTime.UtcNow ) );
+                data.SetLogTime( _stampProvider != null
+                                    ? _stampProvider.GetNextNow()
+                                    : (_lastLogTime = new DateTimeStamp( _lastLogTime, DateTime.UtcNow )) );
             }
 
             List<IActivityMonitorClient>? buggyClients = null;
@@ -519,33 +496,8 @@ namespace CK.Core
             }
         }
 
-        /// <summary>
-        /// Opens a group regardless of <see cref="ActualFilter"/> level (except for <see cref="LogLevelFilter.Off"/>). 
-        /// The group is open even if <paramref name="data"/> is null or its <see cref="ActivityMonitorLogData.MaskedLevel"/>
-        /// is <see cref="LogLevel.None"/>: either <see cref="CloseGroup"/> must be called and/or the returned object must
-        /// be disposed (both can be called on the same group: when the group is closed with CloseGroup, the dispose action is
-        /// ignored).
-        /// </summary>
-        /// <param name="data">
-        /// Data that describes the log. When <see cref="ActivityMonitorLogData.MaskedLevel"/> 
-        /// is <see cref="LogLevel.None"/> a <see cref="IActivityLogGroup.IsRejectedGroup"/> is recorded and returned and must be closed.
-        /// </param>
-        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        /// <remarks>
-        /// <para>
-        /// Opening a group does not change the current <see cref="MinimalFilter"/>, except when opening a <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/> group:
-        /// in such case, the MinimalFilter is automatically sets to <see cref="LogFilter.Debug"/> to capture all potential information inside the error group.
-        /// </para>
-        /// <para>
-        /// Changes to the monitor's current Filter or AutoTags that occur inside a group are automatically restored to their original values when the group is closed.
-        /// This behavior guaranties that a local modification (deep inside unknown called code) does not impact caller code: groups are a way to easily isolate such 
-        /// configuration changes.
-        /// </para>
-        /// <para>
-        /// Note that this automatic configuration restoration works even if the group has been filtered and rejected.
-        /// </para>
-        /// </remarks>
-        public virtual IDisposableGroup UnfilteredOpenGroup( ref ActivityMonitorLogData data )
+        /// <inheritdoc />
+        public IDisposableGroup UnfilteredOpenGroup( ref ActivityMonitorLogData data )
         {
             ReentrantAndConcurrentCheck();
             try
@@ -590,9 +542,10 @@ namespace CK.Core
             }
             if( !data.LogTime.IsKnown )
             {
-                _lastLogTime = data.SetLogTime( new DateTimeStamp( _lastLogTime, DateTime.UtcNow ) );
+                data.SetLogTime( _stampProvider != null
+                                    ? _stampProvider.GetNextNow()
+                                    : (_lastLogTime = new DateTimeStamp( _lastLogTime, DateTime.UtcNow )) );
             }
-
             _current.Initialize( ref data );
             _currentUnfiltered = _current;
             MonoParameterSafeCall( ( client, group ) => client.OnOpenGroup( group ), _current );
@@ -600,7 +553,7 @@ namespace CK.Core
         }
 
         /// <inheritdoc />
-        public virtual bool CloseGroup( object? userConclusion = null, DateTimeStamp explicitLogTime = default )
+        public bool CloseGroup( object? userConclusion = null, DateTimeStamp explicitLogTime = default )
         {
             bool isNoReentrant = ConcurrentOnlyCheck();
             try
@@ -636,7 +589,9 @@ namespace CK.Core
                 }
                 else
                 {
-                    g.CloseLogTime = _lastLogTime = new DateTimeStamp( _lastLogTime, DateTime.UtcNow );
+                    g.CloseLogTime = _stampProvider != null
+                                        ? _stampProvider.GetNextNow()
+                                        : (_lastLogTime = new DateTimeStamp( _lastLogTime, DateTime.UtcNow ));
                 }
                 List<ActivityLogGroupConclusion>? conclusions = userConclusion as List<ActivityLogGroupConclusion>;
                 if( conclusions == null && userConclusion != null )
@@ -712,6 +667,15 @@ namespace CK.Core
             return true;
         }
 
+        /// <inheritdoc />
+        public DateTimeStampProvider? SafeStampProvider => _stampProvider;
+
+        /// <inheritdoc />
+        public DateTimeStamp GetAndUpdateNextLogTime()
+        {
+            return _stampProvider != null ? _stampProvider.GetNextNow() : (_lastLogTime = new DateTimeStamp( _lastLogTime, DateTime.UtcNow ));
+        }
+
         /// <summary>
         /// Generalizes calls to IActivityMonitorClient methods that have only one parameter.
         /// </summary>
@@ -735,7 +699,6 @@ namespace CK.Core
                 HandleBuggyClients( buggyClients );
             }
         }
-
 
         class RAndCChecker : IDisposable
         {

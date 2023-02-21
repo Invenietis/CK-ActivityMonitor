@@ -53,7 +53,9 @@ namespace CK.Core
                 {
                     // This ensures that an InternalMonitor's log won't clash with the primary
                     // monitor stamps.
-                    data.SetLogTime( new DateTimeStamp( _primary._lastLogTime, data.LogTime ) );
+                    data.SetLogTime( _primary._stampProvider != null
+                                        ? _primary._stampProvider.GetNext( data.LogTime.TimeUtc )
+                                        : (_primary._lastLogTime = new DateTimeStamp( _primary._lastLogTime, data.LogTime )) );
                     History.Add( data );
                 }
             }
@@ -62,7 +64,9 @@ namespace CK.Core
             {
                 if( !_replaying )
                 {
-                    group.Data.SetLogTime( new DateTimeStamp( _primary._lastLogTime, group.Data.LogTime ) );
+                    group.Data.SetLogTime( _primary._stampProvider != null
+                                            ? _primary._stampProvider.GetNext( group.Data.LogTime.TimeUtc )
+                                            : (_primary._lastLogTime = new DateTimeStamp( _primary._lastLogTime, group.Data.LogTime )) );
                     History.Add( Tuple.Create( group.Data ) );
                 }
             }
@@ -75,7 +79,9 @@ namespace CK.Core
             {
                 if( !_replaying )
                 {
-                    var closeTime = new DateTimeStamp( _primary._lastLogTime, group.CloseLogTime );
+                    var closeTime = _primary._stampProvider != null
+                                    ? _primary._stampProvider.GetNext( group.CloseLogTime.TimeUtc )
+                                    : (_primary._lastLogTime = new DateTimeStamp( _primary._lastLogTime, group.CloseLogTime ));
                     History.Add( Tuple.Create( closeTime, conclusions ) );
                 }
             }
@@ -104,7 +110,7 @@ namespace CK.Core
             public readonly LogsRecorder Recorder;
 
             public InternalMonitor( ActivityMonitor primary )
-                : base( _generatorId.GetNextString(), Tags.Empty, false )
+                : base( _generatorId.GetNextString(), Tags.Empty, false, primary._stampProvider )
             {
                 Recorder = Output.RegisterClient( new LogsRecorder( primary ) );
             }

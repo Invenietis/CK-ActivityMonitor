@@ -25,8 +25,8 @@ namespace CK.Core.Tests.Monitoring
         /// <param name="name">This logger's name.</param>
         public ThreadSafeLogger( string name )
         {
-            _monitor = new ActivityMonitor( name );
             _sequenceStamp = new DateTimeStampProvider();
+            _monitor = new ActivityMonitor( name, _sequenceStamp );
             _channel = Channel.CreateUnbounded<ActivityMonitorExternalLogData?>( new UnboundedChannelOptions { SingleReader = true } );
             Stopped = Task.Run( RunAsync );
         }
