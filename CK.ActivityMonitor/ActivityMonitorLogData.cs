@@ -147,7 +147,7 @@ namespace CK.Core
 
         /// <summary>
         /// Acquires a cached data from this one (this locks this data, the <see cref="LogTime"/> must be <see cref="DateTimeStamp.IsKnown"/>).
-        /// Use <see cref="AcquireExternalData(ref DateTimeStamp,bool)"/> to set the <see cref="LogTime"/>.
+        /// Use <see cref="AcquireExternalData(DateTimeStampProvider,bool)"/> to set the <see cref="LogTime"/>.
         /// <para>
         /// The acquired object MUST be <see cref="ActivityMonitorExternalLogData.Release()"/>.
         /// </para>
@@ -247,7 +247,7 @@ namespace CK.Core
 
         /// <summary>
         /// Explicitly sets the <see cref="LogTime"/>.
-        /// This should obviously be used with care and cannot be called after <see cref="AcquireExternalData"/> has been called.
+        /// This should obviously be used with care and cannot be called after <see cref="AcquireExternalData()"/> has been called.
         /// </summary>
         /// <param name="logTime">The time log.</param>
         public void SetExplicitLogTime( DateTimeStamp logTime )
@@ -258,7 +258,7 @@ namespace CK.Core
 
         /// <summary>
         /// Explicitly sets the <see cref="Tags"/>.
-        /// This should obviously be used with care and cannot be called after <see cref="AcquireExternalData"/> has been called.
+        /// This should obviously be used with care and cannot be called after <see cref="AcquireExternalData()"/> has been called.
         /// </summary>
         /// <param name="tags">The tags.</param>
         public void SetExplicitTags( CKTrait tags )

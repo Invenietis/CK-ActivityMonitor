@@ -9,8 +9,8 @@ namespace CK.Core
     /// Cached <see cref="ActivityMonitorLogData"/>: these objects are pooled.
     /// See <see cref="CurrentPoolCapacity"/> and <see cref="MaximalCapacity"/>.
     /// <para>
-    /// The only way to acquire such cached data is to call <see cref="ActivityMonitorLogData.AcquireExternalData"/>
-    /// or <see cref="ActivityMonitorLogData.AcquireExternalData(ref DateTimeStamp, bool)"/>.
+    /// The only way to acquire such cached data is to call <see cref="ActivityMonitorLogData.AcquireExternalData()"/>
+    /// or <see cref="ActivityMonitorLogData.AcquireExternalData(DateTimeStampProvider, bool)"/>.
     /// </para>
     /// </summary>
     public sealed partial class ActivityMonitorExternalLogData
