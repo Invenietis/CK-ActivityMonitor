@@ -17,7 +17,7 @@ namespace CK.Core.Tests.Monitoring
         readonly Channel<ActivityMonitorExternalLogData?> _channel;
         // This guaranties that LogTime of all logs received by this logger
         // are ever increasing and unique.
-        DateTimeStampProvider _sequenceStamp;
+        readonly DateTimeStampProvider _sequenceStamp;
 
         /// <summary>
         /// Initializes a new Logger with a name (that is the <see cref="IActivityMonitor.Topic"/>.
