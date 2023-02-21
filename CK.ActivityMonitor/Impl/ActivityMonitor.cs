@@ -94,28 +94,16 @@ namespace CK.Core
         LogFilter _clientFilter;
         bool _trackStackTrace;
 
-        /// <summary>
-        /// Simple box around <see cref="DateTimeStamp"/> to be able to share it as needed
-        /// or to use it as a lock.
-        /// </summary>
-        protected sealed class DateTimeStampProvider
-        {
-            /// <summary>
-            /// Exposes the actual value.
-            /// </summary>
-            public DateTimeStamp Value = DateTimeStamp.MinValue;
-        }
-
-        readonly DateTimeStampProvider _lastLogTime;
         readonly string _uniqueId;
         InternalMonitor? _internalMonitor;
+        DateTimeStamp _lastLogTime;
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitor"/> that applies all <see cref="AutoConfiguration"/>
         /// and has an empty <see cref="Topic"/> initially set.
         /// </summary>
         public ActivityMonitor()
-            : this( new DateTimeStampProvider(), _generatorId.GetNextString(), Tags.Empty, true )
+            : this( _generatorId.GetNextString(), Tags.Empty, true )
         {
         }
 
@@ -124,7 +112,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="topic">Initial topic (can be null).</param>
         public ActivityMonitor( string topic )
-            : this( new DateTimeStampProvider(), _generatorId.GetNextString(), Tags.Empty, true )
+            : this( _generatorId.GetNextString(), Tags.Empty, true )
         {
             if( topic != null ) SetTopic( topic );
         }
@@ -135,7 +123,7 @@ namespace CK.Core
         /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
         /// <param name="topic">Optional initial topic (can be null).</param>
         public ActivityMonitor( bool applyAutoConfigurations, string? topic = null )
-            : this( new DateTimeStampProvider(), _generatorId.GetNextString(), Tags.Empty, applyAutoConfigurations )
+            : this( _generatorId.GetNextString(), Tags.Empty, applyAutoConfigurations )
         {
             if( topic != null ) SetTopic( topic );
         }
@@ -144,12 +132,10 @@ namespace CK.Core
         /// Initializes a new <see cref="ActivityMonitor"/> bound to a specific <see cref="DateTimeStampProvider"/>,
         /// a unique identifier, initial <see cref="AutoTags"/> and that optionally applies <see cref="AutoConfiguration"/>.
         /// </summary>
-        /// <param name="stampProvider">The stamp provider to use.</param>
         /// <param name="uniqueId">This monitor unique identifier.</param>
         /// <param name="tags">Initial tags.</param>
         /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
-        protected ActivityMonitor( DateTimeStampProvider stampProvider,
-                                   string uniqueId,
+        protected ActivityMonitor( string uniqueId,
                                    CKTrait tags,
                                    bool applyAutoConfigurations )
         {
@@ -160,7 +146,6 @@ namespace CK.Core
                 Throw.ArgumentException( nameof( uniqueId ), $"Monitor UniqueId must be at least {MinMonitorUniqueIdLength} long and not contain any whitespace." );
             }
             _uniqueId = uniqueId;
-            _lastLogTime = stampProvider;
             _groups = new Group[8];
             for( int i = 0; i < _groups.Length; ++i ) _groups[i] = new Group( this, i );
             _autoTags = tags ?? Tags.Empty;
@@ -186,7 +171,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the last <see cref="DateTimeStamp"/> for this monitor.
         /// </summary>
-        public DateTimeStamp LastLogTime => _lastLogTime.Value;
+        public DateTimeStamp LastLogTime => _lastLogTime;
 
         /// <summary>
         /// Gets the current topic for this monitor. This can be any non null string (null topic is mapped to the empty string) that describes
@@ -513,7 +498,7 @@ namespace CK.Core
 
             if( !data.LogTime.IsKnown )
             {
-                _lastLogTime.Value = data.SetLogTime( new DateTimeStamp( _lastLogTime.Value, DateTime.UtcNow ) );
+                _lastLogTime = data.SetLogTime( new DateTimeStamp( _lastLogTime, DateTime.UtcNow ) );
             }
 
             List<IActivityMonitorClient>? buggyClients = null;
@@ -605,7 +590,7 @@ namespace CK.Core
             }
             if( !data.LogTime.IsKnown )
             {
-                _lastLogTime.Value = data.SetLogTime( new DateTimeStamp( _lastLogTime.Value, DateTime.UtcNow ) );
+                _lastLogTime = data.SetLogTime( new DateTimeStamp( _lastLogTime, DateTime.UtcNow ) );
             }
 
             _current.Initialize( ref data );
@@ -651,7 +636,7 @@ namespace CK.Core
                 }
                 else
                 {
-                    g.CloseLogTime = _lastLogTime.Value = new DateTimeStamp( _lastLogTime.Value, DateTime.UtcNow );
+                    g.CloseLogTime = _lastLogTime = new DateTimeStamp( _lastLogTime, DateTime.UtcNow );
                 }
                 List<ActivityLogGroupConclusion>? conclusions = userConclusion as List<ActivityLogGroupConclusion>;
                 if( conclusions == null && userConclusion != null )

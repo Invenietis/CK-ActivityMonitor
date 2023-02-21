@@ -179,20 +179,20 @@ namespace CK.Core
         /// The acquired object MUST be <see cref="ActivityMonitorExternalLogData.Release()"/>.
         /// </para>
         /// </summary>
-        /// <param name="sequence">The base time to use.</param>
+        /// <param name="sequence">The thread safe <see cref="DateTimeStampProvider"/> to use.</param>
         /// <param name="forceSetLogTime">
         /// Optionally sets the LogTime even if it is already <see cref="DateTimeStamp.IsKnown"/>.
         /// Note that if AcquireExternalData() has already been called, this is ignored (the LogTime is definitely settled).
         /// </param>
         /// <returns>A cached log data for this.</returns>
-        public ActivityMonitorExternalLogData AcquireExternalData( ref DateTimeStamp sequence, bool forceSetLogTime = false )
+        public ActivityMonitorExternalLogData AcquireExternalData( DateTimeStampProvider sequence, bool forceSetLogTime = false )
         {
             var e = _externalData;
             if( e == null )
             {
                 if( !_logTime.IsKnown || forceSetLogTime )
                 {
-                    sequence = SetLogTime( new DateTimeStamp( sequence, DateTime.UtcNow ) );
+                    SetLogTime( sequence.GetNextNow() );
                 }
                 return _externalData = ActivityMonitorExternalLogData.Acquire( ref this );
             }

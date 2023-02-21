@@ -3,7 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Threading;
+using static CK.Core.ActivityMonitor;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace CK.Core
 {
@@ -25,13 +28,13 @@ namespace CK.Core
         /// </summary>
         sealed class LogsRecorder : IActivityMonitorBoundClient
         {
-            readonly InternalMonitor _owner;
+            readonly ActivityMonitor _primary;
             public readonly List<object> History = new List<object>();
             bool _replaying;
 
-            public LogsRecorder( InternalMonitor owner )
+            public LogsRecorder( ActivityMonitor primary )
             {
-                _owner = owner;
+                _primary = primary;
             }
 
             public bool Replaying => _replaying;
@@ -46,12 +49,22 @@ namespace CK.Core
 
             void IActivityMonitorClient.OnUnfilteredLog( ref ActivityMonitorLogData data )
             {
-                if( !_replaying ) History.Add( data );
+                if( !_replaying )
+                {
+                    // This ensures that an InternalMonitor's log won't clash with the primary
+                    // monitor stamps.
+                    data.SetLogTime( new DateTimeStamp( _primary._lastLogTime, data.LogTime ) );
+                    History.Add( data );
+                }
             }
 
             void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group )
             {
-                if( !_replaying ) History.Add( Tuple.Create( group.Data ) );
+                if( !_replaying )
+                {
+                    group.Data.SetLogTime( new DateTimeStamp( _primary._lastLogTime, group.Data.LogTime ) );
+                    History.Add( Tuple.Create( group.Data ) );
+                }
             }
 
             void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions )
@@ -60,7 +73,11 @@ namespace CK.Core
 
             void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
             {
-                if( !_replaying ) History.Add( Tuple.Create( group.CloseLogTime, conclusions ) );
+                if( !_replaying )
+                {
+                    var closeTime = new DateTimeStamp( _primary._lastLogTime, group.CloseLogTime );
+                    History.Add( Tuple.Create( closeTime, conclusions ) );
+                }
             }
 
             void IActivityMonitorClient.OnTopicChanged( string newTopic, string? fileName, int lineNumber )
@@ -76,7 +93,9 @@ namespace CK.Core
 
             void IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl? source, bool forceBuggyRemove )
             {
-                if( source != _owner ) ActivityMonitorClient.ThrowMultipleRegisterOnBoundClientException( this );
+                // Do not check here that the source is _primary._internalMonitor because this is called from the
+                // InternalMonitor's constructor: _internalMonitor is still null.
+                // This is not an issue since all of this is totally internal.
             }
         }
 
@@ -84,10 +103,10 @@ namespace CK.Core
         {
             public readonly LogsRecorder Recorder;
 
-            public InternalMonitor( ActivityMonitor main )
-                : base( main._lastLogTime, _generatorId.GetNextString(), Tags.Empty, false )
+            public InternalMonitor( ActivityMonitor primary )
+                : base( _generatorId.GetNextString(), Tags.Empty, false )
             {
-                Recorder = Output.RegisterClient( new LogsRecorder( this ) );
+                Recorder = Output.RegisterClient( new LogsRecorder( primary ) );
             }
         }
 
@@ -105,7 +124,7 @@ namespace CK.Core
         /// <returns>True to continue, false to throw the error.</returns>
         bool InternalLogUnhandledClientError( Exception ex, IActivityMonitorClient culprit, ref List<IActivityMonitorClient>? buggyClients )
         {
-            if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
+            buggyClients ??= new List<IActivityMonitorClient>();
             buggyClients.Add( culprit );
 
             if( _internalMonitor != null )

@@ -8,7 +8,7 @@ in the corner case of the [ActivityMonitor.InternalMonitor](Impl/ActivityMonitor
 where we don't care if some allocations happen.
 
 Groups (see [Impl/ActimvityMonitor.Groups.cs](Impl/ActivityMonitor.Group.cs)) are pooled by each monitor and reused: their life
-cycle is directly driven by the Open/CloseGroup of the monitor API and their memory is reused. 
+cycle is directly driven by the Open/CloseGroup of the monitor API and their memory is reused.
 
 ## Towards Zero allocation: the ActivityMonitorExternalLogData pool
 

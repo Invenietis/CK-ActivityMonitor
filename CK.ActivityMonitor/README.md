@@ -144,5 +144,12 @@ The `IActivityLogger.AutoTags` and `ActualFilter` cannot be changed at this leve
 - For StaticLogger, the tags are empty and the ActualFilter is the static default `ActivityMonitor.DefaultFilter.Line` value.
 - For `IMonitoredWorker`, these are the current values of the internal worker monitor.
 
+------------
+
+Please take the time to have a look at the [`ThreadSafeLogger` sample](../Tests/CK.ActivityMonitor.Tests/DataPool/ThreadSafeLogger.cs)
+and understand [how memory is managed](ActivityMonitorLogData.md) before implementing such beasts.
+
+------------
+
 
 

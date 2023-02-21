@@ -20,15 +20,7 @@ namespace CK.Core
 
             public void UnfilteredLog( ref ActivityMonitorLogData data )
             {
-                if( !data.LogTime.IsKnown )
-                {
-                    // There should be very few contentions here (the operation is fast),
-                    // so we keep it simple (lock is efficient when there is no contention).
-                    lock( _stamp )
-                    {
-                        _stamp.Value = data.SetLogTime( new DateTimeStamp( _stamp.Value, DateTime.UtcNow ) );
-                    }
-                }
+                if( !data.LogTime.IsKnown ) data.SetLogTime( _stamp.GetNextNow() );
                 OnStaticLog?.Invoke( ref data );
             }
         }

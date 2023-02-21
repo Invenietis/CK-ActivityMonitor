@@ -15,8 +15,9 @@ namespace CK.Core.Tests.Monitoring
         // We use a nullable ActivityMonitorExternalLogData to signal the Stop here
         // (no need for a cancellation token source).
         readonly Channel<ActivityMonitorExternalLogData?> _channel;
-        // This guaranties that LogTime of all logs sent by this logger are ever increasing and unique.
-        DateTimeStamp _sequenceStamp;
+        // This guaranties that LogTime of all logs received by this logger
+        // are ever increasing and unique.
+        DateTimeStampProvider _sequenceStamp;
 
         /// <summary>
         /// Initializes a new Logger with a name (that is the <see cref="IActivityMonitor.Topic"/>.
@@ -25,6 +26,7 @@ namespace CK.Core.Tests.Monitoring
         public ThreadSafeLogger( string name )
         {
             _monitor = new ActivityMonitor( name );
+            _sequenceStamp = new DateTimeStampProvider();
             _channel = Channel.CreateUnbounded<ActivityMonitorExternalLogData?>( new UnboundedChannelOptions { SingleReader = true } );
             Stopped = Task.Run( RunAsync );
         }
@@ -70,7 +72,7 @@ namespace CK.Core.Tests.Monitoring
         {
             // Acquires the data and if the channel is completed, release
             // it immediately.
-            var e = data.AcquireExternalData( ref _sequenceStamp );
+            var e = data.AcquireExternalData( _sequenceStamp );
             if( !_channel.Writer.TryWrite( e ) )
             {
                 e.Release();
