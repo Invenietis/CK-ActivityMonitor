@@ -553,12 +553,12 @@ namespace CK.Core
         }
 
         /// <inheritdoc />
-        public bool CloseGroup( object? userConclusion = null, DateTimeStamp explicitLogTime = default )
+        public bool CloseGroup( object? userConclusion = null )
         {
             bool isNoReentrant = ConcurrentOnlyCheck();
             try
             {
-                return DoCloseGroup( userConclusion, explicitLogTime );
+                return DoCloseGroup( userConclusion );
             }
             finally
             {
