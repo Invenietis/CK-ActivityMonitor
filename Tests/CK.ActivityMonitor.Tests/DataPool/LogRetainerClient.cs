@@ -2,6 +2,9 @@ using System.Collections.Generic;
 
 namespace CK.Core.Tests.Monitoring
 {
+    /// <summary>
+    /// Test artifact that plays with <see cref="ActivityMonitorLogData.AcquireExternalData()"/>.
+    /// </summary>
     public sealed class LogRetainerClient : ActivityMonitorClient
     {
         readonly List<ActivityMonitorExternalLogData> _retained;

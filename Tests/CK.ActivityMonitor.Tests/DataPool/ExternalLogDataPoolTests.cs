@@ -149,7 +149,6 @@ namespace CK.Core.Tests.Monitoring
             {
                 ActivityMonitor.OnStaticLog -= h;
             }
-
         }
 
         [Test]

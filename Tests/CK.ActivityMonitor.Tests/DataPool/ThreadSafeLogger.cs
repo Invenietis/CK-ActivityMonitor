@@ -7,6 +7,11 @@ namespace CK.Core.Tests.Monitoring
 
     /// <summary>
     /// Demo of a thread safe, non blocking logger without thread.
+    /// <para>
+    /// This logger is a pattern rather than an actual helper. In practice such beast offer
+    /// other services than being only a IActivityLogger, they usually are "Loops" or "Micro Agents"
+    /// that handle sync-to-async calls or background processes.
+    /// </para>
     /// </summary>
     public sealed class ThreadSafeLogger : IActivityLogger
     {
@@ -15,9 +20,6 @@ namespace CK.Core.Tests.Monitoring
         // We use a nullable ActivityMonitorExternalLogData to signal the Stop here
         // (no need for a cancellation token source).
         readonly Channel<ActivityMonitorExternalLogData?> _channel;
-        // This guaranties that LogTime of all logs received by this logger
-        // are ever increasing and unique.
-        readonly DateTimeStampProvider _sequenceStamp;
 
         /// <summary>
         /// Initializes a new Logger with a name (that is the <see cref="IActivityMonitor.Topic"/>.
@@ -25,8 +27,10 @@ namespace CK.Core.Tests.Monitoring
         /// <param name="name">This logger's name.</param>
         public ThreadSafeLogger( string name )
         {
-            _sequenceStamp = new DateTimeStampProvider();
-            _monitor = new ActivityMonitor( name, _sequenceStamp );
+            // We need the monitor to have a thread safe DateTimeStampProvider.
+            // This guaranties that LogTime of all logs received by this logger
+            // are ever increasing and unique.
+            _monitor = new ActivityMonitor( name, new DateTimeStampProvider() );
             _channel = Channel.CreateUnbounded<ActivityMonitorExternalLogData?>( new UnboundedChannelOptions { SingleReader = true } );
             Stopped = Task.Run( RunAsync );
         }
@@ -72,7 +76,8 @@ namespace CK.Core.Tests.Monitoring
         {
             // Acquires the data and if the channel is completed, release
             // it immediately.
-            var e = data.AcquireExternalData( _sequenceStamp );
+            Debug.Assert( _monitor.SafeStampProvider != null, "Using the stamp provider of the monitor." );
+            var e = data.AcquireExternalData( _monitor.SafeStampProvider );
             if( !_channel.Writer.TryWrite( e ) )
             {
                 e.Release();
