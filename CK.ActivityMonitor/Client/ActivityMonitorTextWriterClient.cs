@@ -96,7 +96,7 @@ namespace CK.Core
             }
             else
             {
-                data.ExceptionData?.ToStringBuilder( w, _prefix );
+                data.ExceptionData?.ToStringBuilder( w, _prefix, data.IsTextTheExceptionMessage );
             }
             Writer( w.ToString() );
         }
@@ -117,7 +117,7 @@ namespace CK.Core
             }
             else
             {
-                data.ExceptionData?.ToStringBuilder( w, _prefix );
+                data.ExceptionData?.ToStringBuilder( w, _prefix, data.IsTextTheExceptionMessage );
             }
             Writer( _buffer.ToString() );
         }
@@ -150,7 +150,7 @@ namespace CK.Core
             }
             else
             {
-                g.Data.ExceptionData?.ToStringBuilder( w, _prefix );
+                g.Data.ExceptionData?.ToStringBuilder( w, _prefix, g.Data.IsTextTheExceptionMessage );
             }
             Writer( _buffer.ToString() );
         }
@@ -212,7 +212,7 @@ namespace CK.Core
         {
             if( ex is CKException ckEx && ckEx.ExceptionData != null )
             {
-                ckEx.ExceptionData.ToStringBuilder( w, prefix );
+                ckEx.ExceptionData.ToStringBuilder( w, prefix, !displayMessage );
                 return;
             }
             string header = String.Format( " ┌──────────────────────────■ Exception : {0} ■──────────────────────────", ex.GetType().Name );
