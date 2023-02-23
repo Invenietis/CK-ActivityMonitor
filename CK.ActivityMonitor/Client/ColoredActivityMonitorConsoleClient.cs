@@ -125,8 +125,8 @@ namespace CK.Core
         /// Writes group conclusion and updates internally managed line prefix.
         /// </summary>
         /// <param name="g">Group that must be closed.</param>
-        /// <param name="conclusions">Conclusions for the group.</param>
-        protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
+        /// <param name="conclusions">Conclusions for the group. Never null but can be empty.</param>
+        protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             _currentLogLevel = g.Data.MaskedLevel;
             base.OnGroupClose( g, conclusions );

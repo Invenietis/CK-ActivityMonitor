@@ -94,6 +94,10 @@ namespace CK.Core
             {
                 DumpException( w, _prefix + ' ', !data.IsTextTheExceptionMessage, data.Exception );
             }
+            else
+            {
+                data.ExceptionData?.ToStringBuilder( w, _prefix, data.IsTextTheExceptionMessage );
+            }
             Writer( w.ToString() );
         }
 
@@ -110,6 +114,10 @@ namespace CK.Core
             if( data.Exception != null )
             {
                 DumpException( w, _prefix + ' ', !data.IsTextTheExceptionMessage, data.Exception );
+            }
+            else
+            {
+                data.ExceptionData?.ToStringBuilder( w, _prefix, data.IsTextTheExceptionMessage );
             }
             Writer( _buffer.ToString() );
         }
@@ -140,6 +148,10 @@ namespace CK.Core
             {
                 DumpException( w, _prefix, !g.Data.IsTextTheExceptionMessage, g.Data.Exception );
             }
+            else
+            {
+                g.Data.ExceptionData?.ToStringBuilder( w, _prefix, g.Data.IsTextTheExceptionMessage );
+            }
             Writer( _buffer.ToString() );
         }
 
@@ -148,7 +160,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="g">Group that must be closed.</param>
         /// <param name="conclusions">Conclusions for the group.</param>
-        protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
+        protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             Debug.Assert( _depthPadding.Length == 2 );
             _prefix = _prefix.Remove( _prefix.Length - 2 );
@@ -200,7 +212,7 @@ namespace CK.Core
         {
             if( ex is CKException ckEx && ckEx.ExceptionData != null )
             {
-                ckEx.ExceptionData.ToStringBuilder( w, prefix );
+                ckEx.ExceptionData.ToStringBuilder( w, prefix, !displayMessage );
                 return;
             }
             string header = String.Format( " ┌──────────────────────────■ Exception : {0} ■──────────────────────────", ex.GetType().Name );

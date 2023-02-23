@@ -211,7 +211,7 @@ namespace CK.Core
             Throw.CheckNotNullArgument( monitor );
             if( _current == monitor.Output )
             {
-                if( _policy == LockRecursionPolicy.NoRecursion ) throw new LockRecursionException( Name );
+                if( _policy == LockRecursionPolicy.NoRecursion ) ThrowLockRecursion( Name );
                 ++_recCount;
                 Gate.O( monitor )?.UnfilteredLog( LogLevel.Warn | LogLevel.IsFiltered,
                                                   ActivityMonitor.Tags.Empty,
@@ -278,7 +278,7 @@ namespace CK.Core
             Throw.CheckNotNullArgument( monitor );
             if( _current == monitor.Output )
             {
-                if( _policy == LockRecursionPolicy.NoRecursion ) throw new LockRecursionException( Name );
+                if( _policy == LockRecursionPolicy.NoRecursion ) ThrowLockRecursion( Name );
                 ++_recCount;
                 Gate.O( monitor )?.UnfilteredLog( LogLevel.Warn | LogLevel.IsFiltered,
                                                   ActivityMonitor.Tags.Empty,
@@ -318,7 +318,8 @@ namespace CK.Core
             if( _current != monitor.Output )
             {
                 var msg = $"Attempt to Release AsyncLock '{_name}' that has {(_current == null ? "never been acquired" : $"been aquired by another monitor")}.";
-                throw new SynchronizationLockException( msg );
+                ThrowSynchronizationLockException( msg );
+                return;
             }
             Debug.Assert( _recCount >= 0 );
             if( _recCount == 0 )
@@ -345,6 +346,18 @@ namespace CK.Core
         /// </summary>
         /// <returns>The name of this lock.</returns>
         public override string ToString() => _name;
+
+        static void ThrowLockRecursion( string name )
+        {
+            throw new LockRecursionException( name );
+        }
+
+
+        static void ThrowSynchronizationLockException( string msg )
+        {
+            throw new SynchronizationLockException( msg );
+        }
+
     }
 
 }

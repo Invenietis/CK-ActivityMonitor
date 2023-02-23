@@ -14,7 +14,7 @@ namespace CK.Core
         /// <param name="monitor">The activity monitor to use. Must not be null.</param>
         public EventMonitoredArgs( IActivityMonitor monitor )
         {
-            if( monitor == null ) throw new ArgumentNullException( nameof( monitor ) );
+            Throw.CheckNotNullArgument( monitor );
             Monitor = monitor;
         }
 

@@ -94,14 +94,14 @@ namespace CK.Core
         static public readonly LogFilter Invalid = new LogFilter( LogLevelFilter.Invalid, LogLevelFilter.Invalid );
 
         /// <summary>
-        /// The filter that applies to groups. 
-        /// </summary>
-        public readonly LogLevelFilter Group;
-
-        /// <summary>
         /// The filter that applies to log lines (Debug, Trace, Info, Warn, Error and Fatal). 
         /// </summary>
         public readonly LogLevelFilter Line;
+
+        /// <summary>
+        /// The filter that applies to groups. 
+        /// </summary>
+        public readonly LogLevelFilter Group;
 
         /// <summary>
         /// Initializes a new <see cref="LogFilter"/> with a level for <see cref="Group"/>s and <see cref="Line"/> logs.

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using CK.Core.Impl;
 
@@ -159,8 +160,8 @@ namespace CK.Core
                         Group? g = Monitor._current;
                         while( g != this )
                         {
-                            // The current group cannot be null (or this object would have been already disposed). We bang!
-                            ((IDisposable)g!).Dispose();
+                            Debug.Assert( g != null, "The current group cannot be null (or this object would have been already disposed)." );
+                            ((IDisposable)g).Dispose();
                             g = Monitor._current;
                         }
                         Monitor.CloseGroup( null );
@@ -174,7 +175,7 @@ namespace CK.Core
 
             internal void GroupClosing( ref List<ActivityLogGroupConclusion>? conclusions )
             {
-                if( !_isOpen ) ThrowOnGroupOrDataNotInitialized();
+                Debug.Assert( _isOpen );
                 if( _getConclusion != null )
                 {
                     string? auto = null;
@@ -189,7 +190,7 @@ namespace CK.Core
                     _getConclusion = null;
                     if( auto != null )
                     {
-                        if( conclusions == null ) conclusions = new List<ActivityLogGroupConclusion>();
+                        conclusions ??= new List<ActivityLogGroupConclusion>();
                         conclusions.Add( new ActivityLogGroupConclusion( ActivityMonitor.Tags.GetTextConclusion, auto ) );
                     }
                 }

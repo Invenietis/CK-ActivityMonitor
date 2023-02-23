@@ -65,7 +65,7 @@ This is described in more details in [Client](Client/README.md).
 A [LogFilter](LogFilter.cs) must apply to Groups of logs and to Lines of logs. It can be expressed as **{Group,Line}** strings
 like `"{Error,Trace}"` or predefined couples `"Debug"`.
 
-A `LogFilter` is usually used as a "Minimal Filter": multiple participants declare their "MinimalFiler" and the resulting filter
+A `LogFilter` is usually used as a "Minimal Filter": multiple participants declare their "MinimalFilter" and the resulting filter
 is the lowest one: combining 2 LogFilters results in a `LogFilter` that satisfies both of them: “{Error,Trace}” combined
 with “{Warn,Warn}” is “{Warn,Trace}”.
 
@@ -98,5 +98,58 @@ Before this recommendation appears we used:
 |`Release`    | `{Error,Error}`|
 
 Those names are supported but the .Net standard ones should be preferred.
+
+## IActivityLogger vs. IActivityMonitor
+A `IActivityLogger` is close to classical logging solutions: only lines can be emitted. Since it exposes an `AutoTags`
+and an `ActualFilter`, any filtering/sender extension methods are possible. 
+
+```csharp
+/// <summary>
+/// Ultimate possible abstraction of a <see cref="IActivityMonitor"/>: it is context-less and can
+/// only log lines (not groups).
+/// <para>
+/// This unifies context-less loggers like <see cref="ActivityMonitor.StaticLogger"/> and regular
+/// contextual <see cref="ActivityMonitor"/>: filtered extension methods and any other extension
+/// methods that deals only with log lines uniformly apply to regular monitors and context-less loggers.
+/// </para>
+/// </summary>
+public interface IActivityLogger
+{
+    /// <summary>
+    /// Gets the tags that will be combined to the logged ones before filtering
+    /// by <see cref="ActivityMonitorExtension.ShouldLogLine(IActivityLogger, LogLevel, CKTrait?, out CKTrait)"/>
+    /// or by sender with interpolated string handlers.
+    /// </summary>
+    CKTrait AutoTags { get; }
+
+    /// <summary>
+    /// Gets the line filter level to apply.
+    /// </summary>
+    LogLevelFilter ActualFilter { get; }
+
+    /// <summary>
+    /// Logs an already filtered line. 
+    /// </summary>
+    /// <param name="data">Data that describes the log. </param>
+    void UnfilteredLog( ref ActivityMonitorLogData data );
+}
+```
+
+The [`IActivityMonitor`](IActivityMonitor.cs) interface extends this logger interface to support groups and, more importantly, the `Output`
+where `IActivityMonitorClient` listeners/sinks can be registered and unregistered.
+> Note that the `IActivityMonitor.ActualFilter` is a `LogFilter` (with a line and group `LogLevelFilter`).
+
+The `IActivityLogger.AutoTags` and `ActualFilter` cannot be changed at this level. They take their values from:
+- The actual monitor when implemented by a `IActivityMonitor`.
+- For StaticLogger, the tags are empty and the ActualFilter is the static default `ActivityMonitor.DefaultFilter.Line` value.
+- For `IMonitoredWorker`, these are the current values of the internal worker monitor.
+
+------------
+
+Please take the time to have a look at the [`ThreadSafeLogger` sample](../Tests/CK.ActivityMonitor.Tests/DataPool/ThreadSafeLogger.cs)
+and understand [how memory is managed](ActivityMonitorLogData.md) before implementing such beasts.
+
+------------
+
 
 

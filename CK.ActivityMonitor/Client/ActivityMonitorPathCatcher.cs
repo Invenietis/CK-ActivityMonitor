@@ -67,8 +67,8 @@ namespace CK.Core
         {
             if( !forceBuggyRemove )
             {
-                if( source != null && _source != null ) throw CreateMultipleRegisterOnBoundClientException( this );
-                if( _locked && _source != null ) throw CreateBoundClientIsLockedException( this );
+                if( source != null && _source != null ) ThrowMultipleRegisterOnBoundClientException(this);
+                if( _locked && _source != null ) ThrowMultipleRegisterOnBoundClientException(this);
             }
             _source = source;
         }
@@ -165,7 +165,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="group">The closed group.</param>
         /// <param name="conclusions">Texts that conclude the group. Never null but can be empty.</param>
-        protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
+        protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             if( _currentIsGroupClosed ) HandleCurrentGroupIsClosed();
             if( _path.Count > 0 )

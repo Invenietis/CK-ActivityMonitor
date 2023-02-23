@@ -66,7 +66,7 @@ namespace CK.Core.Tests.Monitoring
             else
             {
                 IsDead = true;
-                if( _source == null ) throw new InvalidOperationException( nameof( IActivityMonitorBoundClient.SetMonitor ) + " was not called." );
+                if( _source == null ) Throw.InvalidOperationException( nameof( IActivityMonitorBoundClient.SetMonitor ) + " was not called." );
                 _source.SignalChange();
             }
             lock( o )
@@ -78,7 +78,7 @@ namespace CK.Core.Tests.Monitoring
 
         void IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl? source, bool forceBuggyRemove )
         {
-            if( source != null && _source != null ) throw ActivityMonitorClient.CreateMultipleRegisterOnBoundClientException( this );
+            if( source != null && _source != null ) ActivityMonitorClient.ThrowMultipleRegisterOnBoundClientException( this );
             if( source != null )
             {
                 Interlocked.Exchange( ref _text, Array.Empty<string>() );
@@ -104,7 +104,7 @@ namespace CK.Core.Tests.Monitoring
         {
         }
 
-        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
+        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
         }
 

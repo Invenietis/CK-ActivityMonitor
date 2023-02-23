@@ -97,7 +97,7 @@ When no `IActivityMonitor` exists in a given context, there are 2 possibilities:
 used anymore, calling `monitor.MonitorEnd()` is welcome).
 - If there is only one (or very few) things to log, then you can use the [`ActivityMonitor.StaticLogger`](CK.ActivityMonitor/Impl/ActivityMonitor.StaticLogger.cs) 
 simple static API. Such log events are not tied to a monitor, their monitor identifier will be "§ext" and they are
-collectible by any external components: the `CK.Monitoring.GrandOuput` will catch and collect them.
+collectible by any external components: the `CK.Monitoring.GrandOuput` will collect and dispatch them.
 
 The `StaticLogger` should be used in very specific cases, in low level zone of code that are not
 yet "monitored" such as callbacks from timers for instance:
@@ -116,13 +116,13 @@ relates to which Open. Also, there is not the special support for Type names tha
 interpolated strings handled by the [CK.ActivityMonitor.SimpleSender](#SimpleSender).
 
 In hot paths, if you want to be able to totally remove logging overhead (while preserving the capability to
-log things), use a [StaticGate](CK.ActivityMonitor/StaticGates/README).
+log things), use a [StaticGate](CK.ActivityMonitor/StaticGate/README).
 
 ### Consuming logs
 
 Logs received by the `IActivityMonitor` façade are routed to its clients (see [Clients](CK.ActivityMonitor/Client/README) for a basic console output sample).
 
-In practice, more powerful logs management than this simple direct clients is required and we use the packages from
+In practice, more powerful logs management than simple direct clients is required and we use the packages from
 [CK-Monitoring](https://github.com/Invenietis/CK-Monitoring) repository (that implements the `GrandOutput` central collector) and, for tests,
 the [CK.Testing.Monitoring](https://github.com/Invenietis/CK-Testing/tree/master/CK.Testing.Monitoring) package that adds a Monitor property on the **TestHelper**
 mix-in: it's easy to use `TestHelper.Monitor` from any tests.
@@ -178,7 +178,7 @@ The core abstractions, and default implementation of `ActivityMonitor`. Also con
 - The [AsyncLock](CK.ActivityMonitor/AsyncLock.md) that can detect, handles or reject asynchronous lock reentrancy 
 without any awful [AsyncLocal](https://docs.microsoft.com/en-us/dotnet/api/system.threading.asynclocal-1) 
 thanks to the `IActivityMonitor` ubiquitous parameter. 
-- The [StaticGate](CK.ActivityMonitor/StaticGates/README) that can optimally control log emission.
+- The [StaticGate](CK.ActivityMonitor/StaticGate/README.md) that can optimally control log emission.
 
 ### <a name="SimpleSender"></a>CK.ActivityMonitor.SimpleSender [![Nuget](https://img.shields.io/nuget/vpre/CK.ActivityMonitor.SimpleSender.svg)](https://www.nuget.org/packages/CK.ActivityMonitor.SimpleSender/)
 

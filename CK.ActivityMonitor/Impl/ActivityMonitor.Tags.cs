@@ -13,7 +13,7 @@ namespace CK.Core
         /// Thread-safe context for tags used to categorize log entries (and group conclusions).
         /// All tags used in monitoring must be <see cref="Register"/>ed here.
         /// <para>
-        /// This nested static class also manages tags filtering.
+        /// This also manages tags filtering.
         /// </para>
         /// </summary>
         /// <remarks>
@@ -300,22 +300,22 @@ namespace CK.Core
 
             /// <summary>
             /// Finds a <see cref="LogClamper"/> to consider for a line that has tags and a current filter
-            /// and updates the filter.
+            /// and computes whether the log must be emitted or not.
             /// </summary>
             /// <param name="logLevel">The current log level.</param>
-            /// <param name="tags">The log's tags.</param>
+            /// <param name="finalTags">The log's tags.</param>
             /// <param name="filter">The current filter applied to the line.</param>
             /// <returns>Whether the log must be emitted or not.</returns>
-            internal static bool ApplyForLine( int logLevel, CKTrait tags, int filter )
+            public static bool ApplyForLine( LogLevel logLevel, CKTrait finalTags, LogLevelFilter filter )
             {
-                Debug.Assert( tags != null );
+                Debug.Assert( finalTags != null );
                 var filters = _finalFilters;
-                if( !tags.IsEmpty )
+                if( !finalTags.IsEmpty )
                 {
                     foreach( var (T, F) in filters )
                     {
-                        int iTag;
-                        if( tags.IsSupersetOf( T ) && (iTag = (int)F.Filter.Line) > 0 )
+                        LogLevelFilter iTag;
+                        if( finalTags.IsSupersetOf( T ) && (iTag = F.Filter.Line) > 0 )
                         {
                             if( iTag != filter )
                             {
@@ -325,25 +325,33 @@ namespace CK.Core
                                 }
                                 else
                                 {
-                                    if( filter <= 0 ) filter = (int)ActivityMonitor.DefaultFilter.Line;
-                                    filter = Math.Min( filter, iTag );
+                                    if( filter <= 0 ) filter = ActivityMonitor.DefaultFilter.Line;
+                                    filter = (LogLevelFilter)Math.Min((int)filter, (int)iTag);
                                 }
                             }
-                            return (logLevel & (int)LogLevel.Mask) >= filter;
+                            return (int)(logLevel & LogLevel.Mask) >= (int)filter;
                         }
                     }
                 }
-                if( filter <= 0 ) filter = (int)ActivityMonitor.DefaultFilter.Line;
-                return (logLevel & (int)LogLevel.Mask) >= filter;
+                if( filter <= 0 ) filter = ActivityMonitor.DefaultFilter.Line;
+                return (int)(logLevel & LogLevel.Mask) >= (int)filter;
             }
 
-            internal static bool ApplyForGroup( CKTrait tags, int filter, int logLevel )
+            /// <summary>
+            /// Finds a <see cref="LogClamper"/> to consider for a group that has tags and a current filter
+            /// and computes whether the log must be emitted or not.
+            /// </summary>
+            /// <param name="logLevel">The current log level.</param>
+            /// <param name="finalTags">The groups's tags.</param>
+            /// <param name="filter">The current filter applied to the group.</param>
+            /// <returns>Whether the log must be emitted or not.</returns>
+            public static bool ApplyForGroup( LogLevel logLevel, CKTrait finalTags, LogLevelFilter filter )
             {
                 var filters = _finalFilters;
                 foreach( var (T, F) in filters )
                 {
-                    int iTag;
-                    if( tags.IsSupersetOf( T ) && (iTag = (int)F.Filter.Group) > 0 )
+                    LogLevelFilter iTag;
+                    if( finalTags.IsSupersetOf( T ) && (iTag = F.Filter.Group) > 0 )
                     {
                         if( iTag != filter )
                         {
@@ -355,16 +363,16 @@ namespace CK.Core
                                 }
                                 else
                                 {
-                                    if( filter <= 0 ) filter = (int)ActivityMonitor.DefaultFilter.Group;
-                                    filter = Math.Min( filter, iTag );
+                                    if( filter <= 0 ) filter = ActivityMonitor.DefaultFilter.Group;
+                                    filter = (LogLevelFilter)Math.Min( (int)filter, (int)iTag );
                                 }
                             }
                         }
-                        return (logLevel & (int)LogLevel.Mask) >= filter;
+                        return (int)(logLevel & LogLevel.Mask) >= (int)filter;
                     }
                 }
-                if( filter <= 0 ) filter = (int)ActivityMonitor.DefaultFilter.Line;
-                return (logLevel & (int)LogLevel.Mask) >= filter;
+                if( filter <= 0 ) filter = ActivityMonitor.DefaultFilter.Group;
+                return (int)(logLevel & LogLevel.Mask) >= (int)filter;
             }
         }
     }

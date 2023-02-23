@@ -34,7 +34,7 @@ namespace CK.Core.Tests.Monitoring
             {
             }
 
-            public void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
+            public void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
             {
                 if( group.CloseLogTime <= _lastOne ) ++NbClash;
                 _lastOne = group.CloseLogTime;

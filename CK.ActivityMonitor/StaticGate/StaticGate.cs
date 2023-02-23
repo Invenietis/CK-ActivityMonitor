@@ -16,7 +16,6 @@ namespace CK.Core
     /// </summary>
     public sealed partial class StaticGate
     {
-        readonly static Logger _gateLogger = new Logger();
         static object _registerLock;
         static StaticGate? _first;
         static StaticGate? _last;
@@ -238,9 +237,9 @@ namespace CK.Core
         public T? O<T>( T instance ) where T : class => _isOpen ? instance : null;
 
         /// <summary>
-        /// Gets a <see cref="ActivityMonitor.StaticLogger"/> relay if this gate is opened, null otherwise.
+        /// Gets the <see cref="ActivityMonitor.StaticLogger"/> if this gate is opened, null otherwise.
         /// </summary>
-        public Logger? StaticLogger => _isOpen ? _gateLogger : null;
+        public IActivityLogger? StaticLogger => _isOpen ? ActivityMonitor.StaticLogger : null;
     }
 
 }

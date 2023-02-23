@@ -28,7 +28,7 @@ namespace CK.Core
         public virtual LogFilter MinimalFilter { get { return LogFilter.Undefined; } }
 
         /// <summary>
-        /// Called for each <see cref="IActivityMonitor.UnfilteredLog"/>. Does nothing by default.
+        /// Called for each <see cref="IActivityLogger.UnfilteredLog"/>. Does nothing by default.
         /// The <see cref="ActivityMonitorLogData.Exception"/> is always null since exceptions
         /// are carried by groups.
         /// </summary>
@@ -66,8 +66,8 @@ namespace CK.Core
         /// Does nothing by default.
         /// </summary>
         /// <param name="group">The closed group.</param>
-        /// <param name="conclusions">Text that conclude the group. Never null but can be empty.</param>
-        protected virtual void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
+        /// <param name="conclusions">Text that conclude the group.</param>
+        protected virtual void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
         }
 
@@ -92,23 +92,21 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Creates a standardized exception that can be thrown by <see cref="IActivityMonitorBoundClient.SetMonitor"/>.
+        /// Throws a standardized exception. Can be called from <see cref="IActivityMonitorBoundClient.SetMonitor"/>.
         /// </summary>
         /// <param name="boundClient">The bound client.</param>
-        /// <returns>An exception with an explicit message.</returns>
-        static public InvalidOperationException CreateMultipleRegisterOnBoundClientException( IActivityMonitorBoundClient boundClient )
+        static public void ThrowMultipleRegisterOnBoundClientException( IActivityMonitorBoundClient boundClient )
         {
-            return new InvalidOperationException( String.Format( Impl.ActivityMonitorResources.ActivityMonitorBoundClientMultipleRegister, boundClient != null ? boundClient.GetType().FullName : String.Empty ) );
+            throw new InvalidOperationException( String.Format( Impl.ActivityMonitorResources.ActivityMonitorBoundClientMultipleRegister, boundClient != null ? boundClient.GetType().FullName : String.Empty ) );
         }
 
         /// <summary>
-        /// Creates a standardized exception that can be thrown by <see cref="IActivityMonitorBoundClient.SetMonitor"/>.
+        /// Throws standardized exception. Can be called by <see cref="IActivityMonitorBoundClient.SetMonitor"/>.
         /// </summary>
         /// <param name="boundClient">The bound client.</param>
-        /// <returns>An exception with an explicit message.</returns>
-        static public InvalidOperationException CreateBoundClientIsLockedException( IActivityMonitorBoundClient boundClient )
+        static public void ThrowBoundClientIsLockedException( IActivityMonitorBoundClient boundClient )
         {
-            return new InvalidOperationException( String.Format( Impl.ActivityMonitorResources.ActivityMonitorBoundClientIsLocked, boundClient != null ? boundClient.GetType().FullName : String.Empty ) );
+            throw new InvalidOperationException( String.Format( Impl.ActivityMonitorResources.ActivityMonitorBoundClientIsLocked, boundClient != null ? boundClient.GetType().FullName : String.Empty ) );
         }
 
         #region IActivityMonitorClient Members
@@ -128,7 +126,7 @@ namespace CK.Core
             OnGroupClosing( group, ref conclusions );
         }
 
-        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions )
+        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             OnGroupClosed( group, conclusions );
         }

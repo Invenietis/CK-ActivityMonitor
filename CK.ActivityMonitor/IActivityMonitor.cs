@@ -14,9 +14,9 @@ namespace CK.Core
     /// It can be seen as a "Story Writer": its output can be displayed to an end user (even if some structured information 
     /// can easily be injected).
     /// Furthermore, activities can be tracked (with the help of the developer of course and the <see cref="ActivityMonitor.DependentToken"/>)
-    /// across threads, tasks or application domain.
+    /// across threads, tasks or application domains.
     /// </remarks>
-    public interface IActivityMonitor
+    public interface IActivityMonitor : IActivityLogger
     {
         /// <summary>
         /// Gets the unique identifier for this monitor.
@@ -34,7 +34,7 @@ namespace CK.Core
         /// </para>
         /// </summary>
         [AllowNull]
-        CKTrait AutoTags { get; set; }
+        new CKTrait AutoTags { get; set; }
 
         /// <summary>
         /// Gets or sets a minimal filter for the log level that contributes to the value of the <see cref="ActualFilter"/>.
@@ -53,7 +53,7 @@ namespace CK.Core
         /// the <see cref="ActivityMonitorExtension.ShouldLogLine">ShouldLog</see> extension method takes it into account.
         /// </remarks>
         /// </summary>
-        LogFilter ActualFilter { get; }
+        new LogFilter ActualFilter { get; }
 
         /// <summary>
         /// Gets the current topic for this monitor. This can be any non null string (null topic is mapped to the empty string) that describes
@@ -70,16 +70,10 @@ namespace CK.Core
         /// Sets the current topic for this monitor. This can be any non null string (null topic is mapped to the empty string) that describes
         /// the current activity.
         /// </summary>
+        /// <param name="newTopic">The new topic string to associate to this monitor.</param>
         /// <param name="fileName">The source code file name from which the topic is set.</param>
         /// <param name="lineNumber">The line number in the source from which the topic is set.</param>
-        /// <param name="newTopic">The new topic string to associate to this monitor.</param>
-        void SetTopic( string newTopic, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 );
-
-        /// <summary>
-        /// Logs a line regardless of <see cref="ActualFilter"/> level (except for <see cref="LogLevelFilter.Off"/>). 
-        /// </summary>
-        /// <param name="data">Data that describes the log. </param>
-        void UnfilteredLog( ref ActivityMonitorLogData data );
+        void SetTopic( string? newTopic, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 );
 
         /// <summary>
         /// Opens a group regardless of <see cref="ActualFilter"/> level (except for <see cref="LogLevelFilter.Off"/>). 
@@ -134,9 +128,21 @@ namespace CK.Core
         IActivityMonitorOutput Output { get; }
 
         /// <summary>
-        /// Gets the last <see cref="DateTimeStamp"/> for this monitor.
+        /// Gets the thread safe <see cref="DateTimeStampProvider"/> of this monitor.
+        /// This is null if it has not been initialized to be able to relay thread safe <see cref="IActivityLogger"/>.
         /// </summary>
-        DateTimeStamp LastLogTime { get; }
+        DateTimeStampProvider? SafeStampProvider { get; }
+
+        /// <summary>
+        /// Returns a valid <see cref="DateTimeStamp"/> that can be used for a log: it is based on <see cref="DateTime.UtcNow"/> and has 
+        /// a <see cref="DateTimeStamp.Uniquifier"/> that will not be changed when emitting the next log.
+        /// <para>
+        /// This uses the <see cref="SafeStampProvider"/> or an internal, lock-free, current value. In both cases, this
+        /// value is ever increasing.
+        /// </para>
+        /// </summary>
+        /// <returns>The next stamp time to use for this monitor.</returns>
+        DateTimeStamp GetAndUpdateNextLogTime();
     }
 
 }

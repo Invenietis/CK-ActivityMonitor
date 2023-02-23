@@ -21,7 +21,7 @@ namespace CK.Core.Tests.Monitoring
                 IReadOnlyList<(string Name, EventLevel? Level)> all = DotNetEventSourceCollector.GetSources();
                 TestHelper.Monitor.Info( all.Select( s => s.ToString() ).Concatenate() );
 
-                ActivityMonitor.StaticLogger.OnStaticLog += StaticLogger_OnStaticLog;
+                ActivityMonitor.OnStaticLog += StaticLogger_OnStaticLog;
 
                 RecyclableMemoryStreamManager.Events.Writer.IsEnabled( EventLevel.Verbose, EventKeywords.All ).Should().BeFalse();
 

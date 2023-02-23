@@ -11,9 +11,25 @@ namespace CK.Core.LogHandler
 
         public CKTrait FinalTags;
 
-        public InternalHandler( bool isGroup, int literalLength, int formattedCount, IActivityMonitor monitor, LogLevel level, CKTrait? traits, out bool shouldAppend )
+        public InternalHandler( int literalLength, int formattedCount, IActivityLogger logger, LogLevel level, CKTrait? traits, out bool shouldAppend )
         {
-            if( isGroup ? monitor.ShouldLogGroup( level, traits, out FinalTags ) : monitor.ShouldLogLine( level, traits, out FinalTags ) )
+            if( logger.ShouldLogLine( level, traits, out FinalTags ) )
+            {
+                _builder = StringBuilderCache.Acquire( literalLength, formattedCount );
+                _stringBuilderHandler = new StringBuilder.AppendInterpolatedStringHandler( literalLength, formattedCount, _builder );
+                shouldAppend = true;
+            }
+            else
+            {
+                _stringBuilderHandler = default;
+                _builder = null;
+                shouldAppend = false;
+            }
+        }
+
+        public InternalHandler( int literalLength, int formattedCount, IActivityMonitor monitor, LogLevel level, CKTrait? traits, out bool shouldAppend )
+        {
+            if( monitor.ShouldLogGroup( level, traits, out FinalTags ) )
             {
                 _builder = StringBuilderCache.Acquire( literalLength, formattedCount );
                 _stringBuilderHandler = new StringBuilder.AppendInterpolatedStringHandler( literalLength, formattedCount, _builder );

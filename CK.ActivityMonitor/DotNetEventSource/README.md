@@ -33,7 +33,7 @@ another one `EventLevel.Critical`, the EventSource will honor the Verbose (but w
 "Participants" here are [EventListener](https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.tracing.eventlistener) instances that have
 been created so far in the system (a kind of global `IActivityMonitorClient`).
 
-The [EventLevel](https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.tracing.eventlevel) has 4
+The [EventLevel](https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.tracing.eventlevel) has 4 real levels:
 
 | Level         |   |           Description |
 |---------------|---|---------------------------------------------|

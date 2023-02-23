@@ -8,7 +8,7 @@ namespace CK.Core
     public interface IActivityMonitorClient
     {
         /// <summary>
-        /// Called for each <see cref="IActivityMonitor.UnfilteredLog"/>.
+        /// Called for each <see cref="IActivityLogger.UnfilteredLog"/>.
         /// The <see cref="ActivityMonitorLogData.Exception"/> is always null since exceptions
         /// are carried by groups.
         /// </summary>
@@ -39,7 +39,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="group">The closed group.</param>
         /// <param name="conclusions">Texts that conclude the group. Never null but can be empty.</param>
-        void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion>? conclusions );
+        void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions );
 
         /// <summary>
         /// Called when a new <see cref="IActivityMonitor.Topic"/> is set.
