@@ -1,18 +1,14 @@
 
 using Cake.Common.IO;
-using Cake.Common.Tools.DotNetCore;
-using Cake.Common.Tools.DotNetCore.Publish;
 using Cake.Core;
 using Cake.Core.Diagnostics;
-using SimpleGitVersion;
-using Code.Cake;
 
 namespace CodeCake
 {
     /// <summary>
     /// Standard build "script".
     /// </summary>
-    
+
     public partial class Build : CodeCakeHost
     {
         public Build()
