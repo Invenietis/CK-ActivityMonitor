@@ -53,7 +53,7 @@ namespace CK.Core
         {
             _semaphore = new SemaphoreSlim( initialCount: 1, maxCount: 1 );
             _policy = recursionPolicy;
-            _name = filePath + '@' + lineNmber.ToString( CultureInfo.InvariantCulture );
+            _name = $"{filePath}@{lineNmber}";
         }
 
         /// <summary>
@@ -158,6 +158,12 @@ namespace CK.Core
             Throw.CheckNotNullArgument( monitor );
             return _current == monitor.Output;
         }
+
+        /// <summary>
+        /// Gets whether this lock is currently held.
+        /// Of course, no sensible decision should be made on this value.
+        /// </summary>
+        public bool IsEntered => _current != null;
 
         /// <summary>
         /// Asynchronously waits to enter this <see cref="AsyncLock"/>.

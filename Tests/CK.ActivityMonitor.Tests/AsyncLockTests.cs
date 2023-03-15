@@ -50,11 +50,13 @@ namespace CK.Core.Tests.Monitoring
             var l = new AsyncLock( LockRecursionPolicy.SupportsRecursion );
 
             l.IsEnteredBy( m ).Should().BeFalse();
+            l.IsEntered.Should().BeFalse();
 
             if( firstAsync ) await l.EnterAsync( m );
             else l.Enter( m );
 
             l.IsEnteredBy( m ).Should().BeTrue();
+            l.IsEntered.Should().BeTrue();
 
             if( secondAsync ) await l.EnterAsync( m );
             else l.Enter( m );
@@ -79,6 +81,7 @@ namespace CK.Core.Tests.Monitoring
 
             l.Leave( m );
             l.IsEnteredBy( m ).Should().BeFalse();
+            l.IsEntered.Should().BeFalse();
 
             using( await l.LockAsync( m ) )
             {
