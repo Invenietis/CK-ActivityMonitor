@@ -9,7 +9,7 @@ namespace CK.Core
         /// <summary>
         /// Tags for warning and errors related to <see cref="CurrentPoolCapacity"/>.
         /// </summary>
-        public static CKTrait LogDataPoolAlertTag = ActivityMonitor.Tags.Register( "ActivityMonitorLogDataPoolAlert" );
+        public static readonly CKTrait LogDataPoolAlertTag = ActivityMonitor.Tags.Register( "ActivityMonitorLogDataPoolAlert" );
 
         /// <summary>
         /// Gets the current pool capacity. It starts at 200 and increases (with a warning) until <see cref="MaximalCapacity"/>
