@@ -156,7 +156,7 @@ namespace CK.Core.Tests.Monitoring
         {
             var logger = new AlternateThreadSafeLogger( "Test" );
             var retainer = new LogRetainerClient( 100 );
-            logger.InternalMonitor.Output.RegisterClient( retainer );
+            logger.Monitor.Output.RegisterClient( retainer );
 
             var sender1 = Task.Run( () => Send( logger, "Sender1" ) );
             var sender2 = Task.Run( () => Send( logger, "Sender2" ) );

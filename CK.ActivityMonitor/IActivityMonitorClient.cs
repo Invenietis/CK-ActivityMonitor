@@ -4,6 +4,10 @@ namespace CK.Core
 {
     /// <summary>
     /// Listener for <see cref="IActivityMonitor"/> registered in a <see cref="IActivityMonitorOutput"/>.
+    /// <para>
+    /// Note that log lines sent through <see cref="IActivityMonitor.ThreadSafeLogger"/> will not be routed
+    /// to <see cref="OnUnfilteredLog"/>.
+    /// </para>
     /// </summary>
     public interface IActivityMonitorClient
     {

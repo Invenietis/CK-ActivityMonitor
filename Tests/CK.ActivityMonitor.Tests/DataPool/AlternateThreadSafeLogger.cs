@@ -5,28 +5,29 @@ using System.Threading.Tasks;
 
 namespace CK.Core.Tests.Monitoring
 {
-
     /// <summary>
     /// Demo of a thread safe, non blocking logger without thread.
-    /// This logger is not the same as the <see cref="IActivityMonitor.Logger"/>:
+    /// This logger is not the same as the <see cref="IActivityMonitor.ThreadSafeLogger"/>:
     /// <list type="bullet">
     /// <item>
-    /// It doesn't relay its logs to the <see cref="ActivityMonitor.StaticLogger"/>, rather it posts the logs on a
-    /// channel and logs are eventually sent as usual through its <see cref="InternalMonitor"/>: they can be observed by any
+    /// It doesn't emits its logs like the <see cref="ActivityMonitor.StaticLogger"/>, rather it posts the logs on a
+    /// channel and logs are eventually sent as usual through its <see cref="Monitor"/>: they can be observed by any
     /// <see cref="IActivityMonitorClient"/> on the internal monitor's <see cref="IActivityMonitor.Output"/>.
     /// </item>
     /// <item>
     /// The drawback is that the emitted logs are desynchronized: even if their <see cref="ActivityMonitorLogData.LogTime"/> is
     /// accurate, the "tread safe" logs will appear later in the stream of log entries. 
     /// </item>
-    /// The <see cref="IActivityMonitor.Logger"/> that is available when a <see cref="DateTimeStampProvider"/> is used in the
-    /// ActivityMonitor's constructor send its logs through the StaticLogger, not through the <see cref="IActivityMonitor.Output"/>:
-    /// the logs are then sequentially sent BUT cannot be observed by the monitor's clients.
+    /// The <see cref="IActivityMonitor.ThreadSafeLogger"/> that is available when a <see cref="DateTimeStampProvider"/> is used in the
+    /// ActivityMonitor's constructor sends its log lines through the <see cref="ActivityMonitor.OnStaticLog"/> event,
+    /// not through the <see cref="IActivityMonitor.Output"/>: the logs ordering relative to the monitor is preserved BUT these thread safe
+    /// logs cannot be observed by the monitor's output <see cref="IActivityMonitorClient"/>.
     /// </list>
     /// <para>
     /// This logger is a pattern rather than an actual helper. In practice such beast offer
     /// other services than being only a IActivityLogger, they usually are "Loops" or "Micro Agents"
-    /// that handle sync-to-async calls or background processes.
+    /// that handle sync-to-async calls or background processes. The fact that the logged lines go through the Output and
+    /// are handled by the Clients may be a good point but the resulting unordered logs is painful...
     /// </para>
     /// </summary>
     public sealed class AlternateThreadSafeLogger : IActivityLogger
@@ -54,7 +55,7 @@ namespace CK.Core.Tests.Monitoring
         /// <summary>
         /// Gets the internal monitor used by this logger.
         /// </summary>
-        public IActivityMonitor InternalMonitor => _monitor;
+        public IActivityMonitor Monitor => _monitor;
 
         /// <summary>
         /// Stops this logger: no more logs will be received.
@@ -85,7 +86,7 @@ namespace CK.Core.Tests.Monitoring
         LogLevelFilter IActivityLogger.ActualFilter => _monitor.ActualFilter.Line;
 
         /// <summary>
-        /// Gets this logger identifier: it is the same as the <see cref="InternalMonitor"/>'s identifier.
+        /// Gets this logger identifier: it is the same as the <see cref="Monitor"/>'s identifier.
         /// </summary>
         public string UniqueId => _monitor.UniqueId;
 

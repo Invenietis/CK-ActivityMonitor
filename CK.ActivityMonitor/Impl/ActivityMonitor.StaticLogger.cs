@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace CK.Core
 {
-    public partial class ActivityMonitor
+    public sealed partial class ActivityMonitor
     {
         sealed class LoggerStatic : IActivityLogger
         {

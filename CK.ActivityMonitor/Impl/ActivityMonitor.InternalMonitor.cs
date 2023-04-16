@@ -10,14 +10,18 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace CK.Core
 {
-    public partial class ActivityMonitor
+    public sealed partial class ActivityMonitor
     {
         IActivityMonitor IActivityMonitorImpl.InternalMonitor
         {
             get
             {
                 RentrantOnlyCheck();
-                return _internalMonitor ??= new InternalMonitor( this );
+                if( _recorder == null )
+                {
+                    _recorder = new LogsRecorder( this );
+                }
+                return _recorder.InternalMonitor;
             }
         }
 
@@ -29,12 +33,16 @@ namespace CK.Core
         sealed class LogsRecorder : IActivityMonitorBoundClient
         {
             readonly ActivityMonitor _primary;
-            public readonly List<object> History = new List<object>();
+            public readonly List<object> History;
+            public readonly ActivityMonitor InternalMonitor;
             bool _replaying;
 
             public LogsRecorder( ActivityMonitor primary )
             {
                 _primary = primary;
+                History = new List<object>();
+                InternalMonitor = new ActivityMonitor( _generatorId.GetNextString(), Tags.Empty, false, primary._stampProvider, primary._logger );
+                InternalMonitor.Output.RegisterClient( this );
             }
 
             public bool Replaying => _replaying;
@@ -105,17 +113,6 @@ namespace CK.Core
             }
         }
 
-        sealed class InternalMonitor : ActivityMonitor
-        {
-            public readonly LogsRecorder Recorder;
-
-            public InternalMonitor( ActivityMonitor primary )
-                : base( _generatorId.GetNextString(), Tags.Empty, false, primary._stampProvider )
-            {
-                Recorder = Output.RegisterClient( new LogsRecorder( primary ) );
-            }
-        }
-
         /// <summary>
         /// Called when a client fails. When this returns false, it means that we are
         /// currently replaying such errors: in such case the exception must be thrown, it will
@@ -133,9 +130,9 @@ namespace CK.Core
             buggyClients ??= new List<IActivityMonitorClient>();
             buggyClients.Add( culprit );
 
-            if( _internalMonitor != null )
+            if( _recorder != null )
             {
-                if( _internalMonitor.Recorder.Replaying )
+                if( _recorder.Replaying )
                 {
                     // Since we will throw, we must remove the culprit right now
                     // (and we can because the loop on the clients will break).
@@ -147,9 +144,9 @@ namespace CK.Core
             }
             else
             {
-                _internalMonitor = new InternalMonitor( this );
+                _recorder = new LogsRecorder( this );
             }
-            _internalMonitor.UnfilteredLog( LogLevel.Fatal, Tags.Empty, $"Unhandled error in IActivityMonitorClient '{culprit.GetType().FullName}'.", ex );
+            _recorder.InternalMonitor.UnfilteredLog( LogLevel.Fatal, Tags.Empty, $"Unhandled error in IActivityMonitorClient '{culprit.GetType().FullName}'.", ex );
             return true;
         }
 
@@ -160,8 +157,8 @@ namespace CK.Core
                 var ex = _output.ForceRemoveCondemnedClient( l );
                 if( ex != null )
                 {
-                    _internalMonitor ??= new InternalMonitor( this );
-                    _internalMonitor.UnfilteredLog( LogLevel.Fatal, Tags.Empty, text: $"IActivityMonitorBoundClient.SetMonitor '{l.GetType().FullName}' failure.", ex );
+                    _recorder ??= new LogsRecorder( this );
+                    _recorder.InternalMonitor.UnfilteredLog( LogLevel.Fatal, Tags.Empty, text: $"IActivityMonitorBoundClient.SetMonitor '{l.GetType().FullName}' failure.", ex );
                 }
             }
             _clientFilter = HandleBoundClientsSignal();
@@ -170,7 +167,7 @@ namespace CK.Core
 
         void DoReplayInternalLogs()
         {
-            Debug.Assert( _internalMonitor != null && _internalMonitor.Recorder.History.Count > 0 );
+            Debug.Assert( _recorder != null && _recorder.History.Count > 0 );
             Debug.Assert( Environment.CurrentManagedThreadId == _enteredThreadId );
             CKTrait savedTags = _autoTags;
             string changedTopic = _topic;
@@ -180,12 +177,12 @@ namespace CK.Core
             try
             {
                 // Secure any unclosed groups.
-                while( _internalMonitor.CloseGroup() ) ;
+                while( _recorder.InternalMonitor.CloseGroup() ) ;
                 // Replay the history, trusting the existing data time but
                 // changing the monitor identifier from the internal one to the
                 // actual monitor's identifier.
-                _internalMonitor.Recorder.OnStartReplay();
-                foreach( var o in _internalMonitor.Recorder.History )
+                _recorder.OnStartReplay();
+                foreach( var o in _recorder.History )
                 {
                     switch( o )
                     {
@@ -219,12 +216,12 @@ namespace CK.Core
                     DoUnfilteredLog( ref d );
                     SendTopicLogLine();
                 }
-                _internalMonitor.Recorder.OnStopReplay();
+                _recorder.OnStopReplay();
             }
             catch( Exception ex )
             {
                 // We first stop the replay: the history is cleared and the Recorder records.
-                _internalMonitor.Recorder.OnStopReplay();
+                _recorder.OnStopReplay();
                 // We close groups opened. If errors occur here they will be recorded.
                 while( balancedGroup > 0 ) DoCloseGroup( ActivityMonitorResources.ErrorWhileReplayingInternalLogs );
                 // This will be recorded and replayed by the next call to ReentrantAndConcurrentRelease().

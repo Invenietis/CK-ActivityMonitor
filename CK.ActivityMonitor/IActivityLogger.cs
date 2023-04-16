@@ -32,10 +32,6 @@ namespace CK.Core
 
         /// <summary>
         /// Logs a text regardless of any filter (except for <see cref="LogLevelFilter.Off"/>). 
-        /// Each call to log is considered as a unit of text: depending on the rendering engine, a line or a 
-        /// paragraph separator (or any appropriate separator) should be appended between each text if 
-        /// the level is the same as the previous one.
-        /// See remarks.
         /// </summary>
         /// <param name="data">
         /// Data that describes the log. When <see cref="ActivityMonitorLogData.MaskedLevel"/> 
@@ -43,8 +39,6 @@ namespace CK.Core
         /// </param>
         /// <remarks>
         /// A null or empty <see cref="ActivityMonitorLogData.Text"/> is logged as <see cref="ActivityMonitor.NoLogText"/>.
-        /// If needed, the special text <see cref="ActivityMonitor.ParkLevel"/> ("PARK-LEVEL") breaks the current <see cref="LogLevel"/>
-        /// and resets it: the next log, even with the same LogLevel, should be treated as if a different LogLevel is used.
         /// </remarks>
         void UnfilteredLog( ref ActivityMonitorLogData data );
 
