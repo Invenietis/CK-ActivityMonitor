@@ -106,7 +106,7 @@ and an `ActualFilter`, any filtering/sender extension methods are possible.
 ```csharp
 /// <summary>
 /// Ultimate possible abstraction of a <see cref="IActivityMonitor"/>: it is context-less and can
-/// only log lines (not groups).
+/// only log lines (not groups), there is no local <see cref="IActivityMonitor.Output"/>.
 /// <para>
 /// This unifies context-less loggers like <see cref="ActivityMonitor.StaticLogger"/> and regular
 /// contextual <see cref="ActivityMonitor"/>: filtered extension methods and any other extension
@@ -115,6 +115,11 @@ and an `ActualFilter`, any filtering/sender extension methods are possible.
 /// </summary>
 public interface IActivityLogger
 {
+    /// <summary>
+    /// Gets the unique identifier for this logger or monitor.
+    /// </summary>
+    string UniqueId { get; }
+
     /// <summary>
     /// Gets the tags that will be combined to the logged ones before filtering
     /// by <see cref="ActivityMonitorExtension.ShouldLogLine(IActivityLogger, LogLevel, CKTrait?, out CKTrait)"/>
@@ -128,10 +133,27 @@ public interface IActivityLogger
     LogLevelFilter ActualFilter { get; }
 
     /// <summary>
-    /// Logs an already filtered line. 
+    /// Logs a text regardless of any filter (except for <see cref="LogLevelFilter.Off"/>). 
     /// </summary>
-    /// <param name="data">Data that describes the log. </param>
+    /// <param name="data">
+    /// Data that describes the log. When <see cref="ActivityMonitorLogData.MaskedLevel"/> 
+    /// is <see cref="LogLevel.None"/>, nothing happens (whereas for group, a rejected group is recorded and returned).
+    /// </param>
+    /// <remarks>
+    /// A null or empty <see cref="ActivityMonitorLogData.Text"/> is logged as <see cref="ActivityMonitor.NoLogText"/>.
+    /// </remarks>
     void UnfilteredLog( ref ActivityMonitorLogData data );
+
+    /// <summary>
+    /// Returns a valid <see cref="DateTimeStamp"/> that can be used for a log: it is based on <see cref="DateTime.UtcNow"/> and has 
+    /// a <see cref="DateTimeStamp.Uniquifier"/> that will not be changed when emitting the next log.
+    /// <para>
+    /// This uses the <see cref="DateTimeStampProvider"/> or an internal, lock-free, current value. In both cases, this
+    /// value is ever increasing.
+    /// </para>
+    /// </summary>
+    /// <returns>The next stamp time to use for this logger or monitor.</returns>
+    DateTimeStamp GetAndUpdateNextLogTime();
 }
 ```
 
@@ -141,13 +163,24 @@ where `IActivityMonitorClient` listeners/sinks can be registered and unregistere
 
 The `IActivityLogger.AutoTags` and `ActualFilter` cannot be changed at this level. They take their values from:
 - The actual monitor when implemented by a `IActivityMonitor`.
-- For StaticLogger, the tags are empty and the ActualFilter is the static default `ActivityMonitor.DefaultFilter.Line` value.
-- For `IMonitoredWorker`, these are the current values of the internal worker monitor.
+- For the `ActivityMonitor.StaticLogger`, the tags are empty and the ActualFilter is the static default `ActivityMonitor.DefaultFilter.Line` value.
+- For `IActivityLogger` implementations, these are the current values of the internal monitor.
+
+Starting with version v19.0.0, each `ActivityMonitor` can expose a `IActivityMonitor.ThreadSafeLogger`:
+this is available when a thread safe `DateTimeStampProvider` is used in the ActivityMonitor's constructor
+and sends its log lines through the <see cref="ActivityMonitor.OnStaticLog"/> event,
+not through the `IActivityMonitor.Output`: the logs ordering relative to the monitor is preserved BUT these thread safe
+logs cannot be observed by the monitor's output `IActivityMonitorClient`.
 
 ------------
 
-Please take the time to have a look at the [`ThreadSafeLogger` sample](../Tests/CK.ActivityMonitor.Tests/DataPool/ThreadSafeLogger.cs)
-and understand [how memory is managed](ActivityMonitorLogData.md) before implementing such beasts.
+Having "thread safe lines" to be both ordered in a final sink and be seen by the monitor's output would require a
+lock protecting the logging. This is not an option: contention will be too high.
+
+If all log lines, even the one emitted by independent threads, must be routed to the monitor's Output and its Clients,
+an alternate implementation is possible that is available as a sample: please take the time to have a look at
+the [`AlternateThreadSafeLogger` sample](../Tests/CK.ActivityMonitor.Tests/DataPool/AlternateThreadSafeLogger.cs)
+(and understand [how memory is managed](ActivityMonitorLogData.md) before implementing such beasts).
 
 ------------
 

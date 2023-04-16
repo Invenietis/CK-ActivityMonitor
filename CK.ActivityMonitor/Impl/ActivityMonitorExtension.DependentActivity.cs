@@ -18,12 +18,12 @@ namespace CK.Core
         /// target monitor otherwise the target topic will not be changed.
         /// </para>
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/>.</param>
         /// <param name="message">Optional message for the token creation log.</param>
-        /// <param name="dependentTopic">Optional dependent topic (can be this monitor's <see cref="IActivityMonitor.Topic"/>).</param>
+        /// <param name="dependentTopic">Optional dependent topic.</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
-        static public ActivityMonitor.DependentToken CreateDependentToken( this IActivityMonitor @this,
+        static public ActivityMonitor.DependentToken CreateDependentToken( this IActivityLogger @this,
                                                                            string? message = null,
                                                                            string? dependentTopic = null,
                                                                            [CallerFilePath] string? fileName = null,
@@ -41,7 +41,7 @@ namespace CK.Core
                 message = $"(With topic '{dependentTopic}'.)";
             }
             Debug.Assert( message == null || t.ToString().EndsWith( message ), "Checking that inline magic strings are the same." );
-            var d = new ActivityMonitorLogData( LogLevel.Info, ActivityMonitor.Tags.CreateDependentToken, message, null, fileName, lineNumber );
+            var d = new ActivityMonitorLogData( @this.UniqueId, LogLevel.Info, ActivityMonitor.Tags.CreateDependentToken, message, null, fileName, lineNumber );
             d.SetExplicitLogTime( t.CreationDate );
             @this.UnfilteredLog( ref d );
             return t;
@@ -89,7 +89,7 @@ namespace CK.Core
                 else doOpen = @this.ShouldLogGroup( groupLevel, ActivityMonitor.Tags.StartDependentActivity, out finalTags );
                 if( doOpen )
                 {
-                    var d = new ActivityMonitorLogData( groupLevel | LogLevel.IsFiltered, finalTags, msg, null, fileName, lineNumber );
+                    var d = new ActivityMonitorLogData( @this.UniqueId, groupLevel | LogLevel.IsFiltered, finalTags, msg, null, fileName, lineNumber );
                     var g = @this.UnfilteredOpenGroup( ref d );
                     if( currentTopic != null )
                     {

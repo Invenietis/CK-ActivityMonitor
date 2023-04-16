@@ -20,19 +20,22 @@ namespace CK.Core
         /// Direct with no check constructor except that if <paramref name="text"/> is null or empty
         /// the text is set to the exception's message or to <see cref="ActivityMonitor.NoLogText"/>.
         /// </summary>
+        /// <param name="monitorId">The monitor identifier.</param>
         /// <param name="level">The log level that may be flagged with <see cref="LogLevel.IsFiltered"/> or not.</param>
         /// <param name="finalTags">The final tags (combines the monitors and the line's ones).</param>
         /// <param name="text">The text.</param>
         /// <param name="exception">Optional exception.</param>
         /// <param name="fileName">Optional file name.</param>
         /// <param name="lineNumber">Line number.</param>
-        public ActivityMonitorLogData( LogLevel level,
+        public ActivityMonitorLogData( string monitorId,
+                                       LogLevel level,
                                        CKTrait finalTags,
                                        string? text,
                                        Exception? exception,
                                        [CallerFilePath] string? fileName = null,
                                        [CallerLineNumber] int lineNumber = 0 )
         {
+            Throw.CheckArgument( monitorId != null && monitorId.Length >= ActivityMonitor.MinMonitorUniqueIdLength );
             Throw.CheckArgument( finalTags != null && finalTags.Context == ActivityMonitor.Tags.Context );
             if( text == null || text.Length == 0 )
             {
@@ -50,6 +53,7 @@ namespace CK.Core
             _logTime = default;
             Debug.Assert( (int)LogLevel.NumberOfBits == 7 );
             level &= (LogLevel)0b1111111;
+            _monitorId = monitorId;
             Level = level;
         }
 
@@ -74,6 +78,7 @@ namespace CK.Core
             Exception = null;
             FileName = data.FileName;
             LineNumber = data.LineNumber;
+            _monitorId = data.MonitorId;
             if( resetLogTime )
             {
                 _logTime = default;
@@ -91,6 +96,15 @@ namespace CK.Core
         /// </summary>
         public readonly string Text;
 
+        // This is changed only while replaying logs from the InternalMonitor.
+        string _monitorId;
+
+        /// <summary>
+        /// Monitor identifier.
+        /// </summary>
+        public string MonitorId => _monitorId;
+
+        // Tags and LogTime can be changed.
         CKTrait _tags;
 
         /// <summary>
@@ -228,6 +242,7 @@ namespace CK.Core
         /// </summary>
         public readonly LogLevel MaskedLevel => Level & LogLevel.Mask;
 
+        // Tags and LogTime can be changed.
         DateTimeStamp _logTime;
 
         /// <summary>
@@ -275,6 +290,12 @@ namespace CK.Core
             // and DoUnfilteredLog or DoOpenGroup don't call this.
             Debug.Assert( _externalData == null, "No external data must have been acquired." );
             return _logTime = logTime;
+        }
+
+        internal void SetMonitorId( string uniqueId )
+        {
+            // Only called when replaying logs from the InternalMonitor.
+            _monitorId = uniqueId;
         }
     }
 }

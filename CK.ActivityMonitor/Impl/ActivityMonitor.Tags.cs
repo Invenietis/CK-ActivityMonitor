@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace CK.Core
 {
-    public partial class ActivityMonitor
+    public sealed partial class ActivityMonitor
     {
         /// <summary>
         /// Thread-safe context for tags used to categorize log entries (and group conclusions).

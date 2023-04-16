@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core
 {
-    public partial class ActivityMonitor
+    public sealed partial class ActivityMonitor
     {
         /// <summary>
         /// Describes the origin of a dependent activity: it is created by <see cref="ActivityMonitorExtension.CreateDependentToken(IActivityMonitor, string, string?, string?, int)">IActivityMonitor.CreateDependentToken</see> 

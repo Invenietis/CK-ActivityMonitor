@@ -9,13 +9,13 @@ namespace CK.Core
     /// <summary>
     /// Concrete implementation of <see cref="IActivityMonitor"/>.
     /// </summary>
-    public partial class ActivityMonitor
+    public sealed partial class ActivityMonitor
     {
         /// <summary>
         /// Groups are bound to an <see cref="ActivityMonitor"/> and are linked together from 
         /// the current one to the very first one (a kind of stack).
         /// </summary>
-        protected sealed class Group : IActivityLogGroup, IDisposableGroup
+        sealed class Group : IActivityLogGroup, IDisposableGroup
         {
             /// <summary>
             /// The monitor that owns this group.
@@ -200,12 +200,5 @@ namespace CK.Core
         }
 
         IActivityLogGroup? IActivityMonitorImpl.CurrentGroup => _current;
-
-        /// <summary>
-        /// Gets the currently opened group.
-        /// Null when no group is currently opened.
-        /// </summary>
-        protected IActivityLogGroup? CurrentGroup => _current;
-
     }
 }

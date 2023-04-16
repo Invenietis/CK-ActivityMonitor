@@ -15,7 +15,7 @@ namespace CK.Core
     /// <summary>
     /// Concrete implementation of <see cref="IActivityMonitor"/>.
     /// </summary>
-    public partial class ActivityMonitor : IActivityMonitorImpl
+    public sealed partial class ActivityMonitor : IActivityMonitorImpl
     {
         /// <summary>
         /// Prefix used by <see cref="IActivityMonitor.SetTopic"/> is "Topic: ".
@@ -94,8 +94,11 @@ namespace CK.Core
         bool _trackStackTrace;
 
         readonly string _uniqueId;
-        InternalMonitor? _internalMonitor;
+        // The recorder holds the InternalMonitor.
+        LogsRecorder? _recorder;
 
+        // The logger exists when the _stampProvider exists.
+        readonly Logger? _logger;
         // The provider has the priority if it is not null.
         readonly DateTimeStampProvider? _stampProvider;
         DateTimeStamp _lastLogTime;
@@ -111,7 +114,7 @@ namespace CK.Core
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitor"/> that applies all <see cref="AutoConfiguration"/>,
-        /// has an empty <see cref="Topic"/> initially set and is intended to relay logs from a thread safe <see cref="IActivityLogger"/>.
+        /// has an empty <see cref="Topic"/> initially set and provides a thread safe <see cref="ThreadSafeLogger"/>.
         /// </summary>
         public ActivityMonitor( DateTimeStampProvider stampProvider )
             : this( _generatorId.GetNextString(), Tags.Empty, true, stampProvider )
@@ -124,7 +127,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="topic">Initial topic (can be null).</param>
         /// <param name="stampProvider">
-        /// Optional thread safe time stamp provider that must be used when this monitor will accept logs from a thread safe <see cref="IActivityLogger"/>.
+        /// Optional thread safe time stamp provider that must be used when this monitor must provide a thread safe <see cref="ThreadSafeLogger"/>.
         /// </param>
         public ActivityMonitor( string topic, DateTimeStampProvider? stampProvider = null )
             : this( _generatorId.GetNextString(), Tags.Empty, true, stampProvider )
@@ -138,7 +141,7 @@ namespace CK.Core
         /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
         /// <param name="topic">Optional initial topic (can be null).</param>
         /// <param name="stampProvider">
-        /// Optional thread safe time stamp provider that must be used when this monitor will accept logs from a thread safe <see cref="IActivityLogger"/>.
+        /// Optional thread safe time stamp provider that must be used when this monitor must provide a thread safe <see cref="ThreadSafeLogger"/>.
         /// </param>
         public ActivityMonitor( bool applyAutoConfigurations, string? topic = null, DateTimeStampProvider? stampProvider = null )
             : this( _generatorId.GetNextString(), Tags.Empty, applyAutoConfigurations, stampProvider )
@@ -146,20 +149,11 @@ namespace CK.Core
             if( topic != null ) SetTopic( topic );
         }
 
-        /// <summary>
-        /// Initializes a new <see cref="ActivityMonitor"/> bound to a unique identifier, initial <see cref="AutoTags"/>,
-        /// optionally applies <see cref="AutoConfiguration"/> and/or uses an optional <see cref="DateTimeStampProvider"/>.
-        /// </summary>
-        /// <param name="uniqueId">This monitor unique identifier.</param>
-        /// <param name="tags">Initial tags.</param>
-        /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
-        /// <param name="stampProvider">
-        /// Optional thread safe time stamp provider that must be used when this monitor will accept logs from a thread safe <see cref="IActivityLogger"/>.
-        /// </param>
-        protected ActivityMonitor( string uniqueId,
-                                   CKTrait tags,
-                                   bool applyAutoConfigurations,
-                                   DateTimeStampProvider? stampProvider )
+        ActivityMonitor( string uniqueId,
+                         CKTrait tags,
+                         bool applyAutoConfigurations,
+                         DateTimeStampProvider? stampProvider,
+                         Logger? logger = null )
         {
             if( uniqueId == null
                 || uniqueId.Length < MinMonitorUniqueIdLength
@@ -167,8 +161,12 @@ namespace CK.Core
             {
                 Throw.ArgumentException( nameof( uniqueId ), $"Monitor UniqueId must be at least {MinMonitorUniqueIdLength} long and not contain any whitespace." );
             }
-            _stampProvider = stampProvider;
             _uniqueId = uniqueId;
+            if( (_stampProvider = stampProvider) != null )
+            {
+                // logger parameter is used only by the LogRecoreder internal monitor constructor.
+                _logger = logger ?? new Logger( this, stampProvider! );
+            }
             _groups = new Group[8];
             for( int i = 0; i < _groups.Length; ++i ) _groups[i] = new Group( this, i );
             _autoTags = tags ?? Tags.Empty;
@@ -189,6 +187,9 @@ namespace CK.Core
 
         /// <inheritdoc />
         public string Topic => _topic;
+
+        /// <inheritdoc />
+        public IActivityLogger? ThreadSafeLogger => _logger;
 
         /// <inheritdoc />
         public void SetTopic( string? newTopic, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
@@ -221,7 +222,8 @@ namespace CK.Core
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         void SendTopicLogLine( [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
-            var d = new ActivityMonitorLogData( LogLevel.Info,
+            var d = new ActivityMonitorLogData( _uniqueId,
+                                                LogLevel.Info,
                                                 _autoTags | Tags.MonitorTopicChanged,
                                                 SetTopicPrefix + _topic,
                                                 null,
@@ -725,7 +727,7 @@ namespace CK.Core
         /// Gets a disposable object that checks for reentrant and concurrent calls.
         /// </summary>
         /// <returns>A disposable object (that must be disposed).</returns>
-        protected IDisposable ReentrancyAndConcurrencyLock()
+        IDisposable ReentrancyAndConcurrencyLock()
         {
             return new RAndCChecker( this );
         }
@@ -800,7 +802,7 @@ namespace CK.Core
 
         void ReentrantAndConcurrentRelease()
         {
-            if( _internalMonitor != null && _internalMonitor.Recorder.History.Count > 0 )
+            if( _recorder != null && _recorder.History.Count > 0 )
             {
                 DoReplayInternalLogs();
             }
