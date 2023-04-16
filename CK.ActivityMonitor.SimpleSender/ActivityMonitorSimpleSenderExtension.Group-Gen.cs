@@ -1195,8 +1195,8 @@ namespace CK.Core
 
 			}
 
-    namespace LogHandler
-    {
+  namespace LogHandler
+  {
        	 
     /// <summary>
     /// Provides an interpolated string handler Debug lines that only performs formatting if the log must be emitted.

@@ -222,8 +222,8 @@ namespace CK.Core
 		#>
 	}
 
-    namespace LogHandler
-    {
+  namespace LogHandler
+  {
        	<#
 		foreach( var level in new[]{ "Debug", "Trace", "Info", "Warn", "Error", "Fatal" } )
 		{
@@ -241,7 +241,7 @@ namespace CK.Core
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public Group<#= level #>( int literalLength, int formattedCount, IActivityMonitor monitor, out bool shouldAppend )
         {
-            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.<#= level #>, null, out shouldAppend );
+            _handler = new InternalHandler( literalLength, formattedCount, monitor, LogLevel.<#= level #>, null, out shouldAppend );
         }
 
         public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
@@ -281,7 +281,7 @@ namespace CK.Core
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public Group<#= level #>WithTags( int literalLength, int formattedCount, IActivityMonitor monitor, CKTrait tags, out bool shouldAppend )
         {
-            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.<#= level #>, tags, out shouldAppend );
+            _handler = new InternalHandler( literalLength, formattedCount, monitor, LogLevel.<#= level #>, tags, out shouldAppend );
         }
 
         public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );

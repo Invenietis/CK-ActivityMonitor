@@ -33,7 +33,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Debug"/> string if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -70,7 +70,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Debug"/> string associated to an exception if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
         /// and may also depend on <see cref="IActivityLogger.AutoTags"/>).
@@ -116,7 +116,7 @@ namespace CK.Core
 
         #region Debug with tags.
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Debug"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -142,7 +142,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Debug"/> string and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -185,7 +185,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Debug"/> string associated to an exception and tags if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
         /// also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
@@ -255,7 +255,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Trace"/> string if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -292,7 +292,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Trace"/> string associated to an exception if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
         /// and may also depend on <see cref="IActivityLogger.AutoTags"/>).
@@ -338,7 +338,7 @@ namespace CK.Core
 
         #region Trace with tags.
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Trace"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -364,7 +364,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Trace"/> string and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -407,7 +407,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Trace"/> string associated to an exception and tags if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
         /// also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
@@ -477,7 +477,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Info"/> string if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -514,7 +514,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Info"/> string associated to an exception if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
         /// and may also depend on <see cref="IActivityLogger.AutoTags"/>).
@@ -560,7 +560,7 @@ namespace CK.Core
 
         #region Info with tags.
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Info"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -586,7 +586,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Info"/> string and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -629,7 +629,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Info"/> string associated to an exception and tags if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
         /// also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
@@ -699,7 +699,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Warn"/> string if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -736,7 +736,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Warn"/> string associated to an exception if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
         /// and may also depend on <see cref="IActivityLogger.AutoTags"/>).
@@ -782,7 +782,7 @@ namespace CK.Core
 
         #region Warn with tags.
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Warn"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -808,7 +808,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Warn"/> string and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -851,7 +851,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Warn"/> string associated to an exception and tags if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
         /// also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
@@ -921,7 +921,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Error"/> string if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -958,7 +958,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Error"/> string associated to an exception if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
         /// and may also depend on <see cref="IActivityLogger.AutoTags"/>).
@@ -1004,7 +1004,7 @@ namespace CK.Core
 
         #region Error with tags.
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Error"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -1030,7 +1030,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Error"/> string and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -1073,7 +1073,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Error"/> string associated to an exception and tags if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
         /// also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
@@ -1143,7 +1143,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Fatal"/> string if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -1180,7 +1180,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Fatal"/> string associated to an exception if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
         /// and may also depend on <see cref="IActivityLogger.AutoTags"/>).
@@ -1226,7 +1226,7 @@ namespace CK.Core
 
         #region Fatal with tags.
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Fatal"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -1252,7 +1252,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Fatal"/> string and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -1295,7 +1295,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Fatal"/> string associated to an exception and tags if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
         /// also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).

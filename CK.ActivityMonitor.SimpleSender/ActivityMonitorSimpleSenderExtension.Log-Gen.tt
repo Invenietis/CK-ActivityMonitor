@@ -42,7 +42,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.<#= level #>"/> string if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -79,7 +79,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.<#= level #>"/> string associated to an exception if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
         /// and may also depend on <see cref="IActivityLogger.AutoTags"/>).
@@ -125,7 +125,7 @@ namespace CK.Core
 
         #region <#= level #> with tags.
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.<#= level #>"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -151,7 +151,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.<#= level #>"/> string and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -194,7 +194,7 @@ namespace CK.Core
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.<#= level #>"/> string associated to an exception and tags if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
         /// also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
@@ -266,7 +266,7 @@ namespace CK.Core
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public Line<#= level #>( int literalLength, int formattedCount, IActivityLogger logger, out bool shouldAppend )
         {
-            _handler = new InternalHandler(false, literalLength, formattedCount, logger, LogLevel.<#= level #>, null, out shouldAppend );
+            _handler = new InternalHandler( literalLength, formattedCount, logger, LogLevel.<#= level #>, null, out shouldAppend );
         }
 
         public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
@@ -306,7 +306,7 @@ namespace CK.Core
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public Line<#= level #>WithTags( int literalLength, int formattedCount, IActivityLogger logger, CKTrait tags, out bool shouldAppend )
         {
-            _handler = new InternalHandler(false, literalLength, formattedCount, logger, LogLevel.<#= level #>, tags, out shouldAppend );
+            _handler = new InternalHandler( literalLength, formattedCount, logger, LogLevel.<#= level #>, tags, out shouldAppend );
         }
 
         public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
