@@ -18,11 +18,15 @@ namespace CK.Core
 
             public LogLevelFilter ActualFilter => DefaultFilter.Line;
 
+            public string UniqueId => ExternalLogMonitorUniqueId;
+
             public void UnfilteredLog( ref ActivityMonitorLogData data )
             {
                 if( !data.LogTime.IsKnown ) data.SetLogTime( _stamp.GetNextNow() );
                 OnStaticLog?.Invoke( ref data );
             }
+
+            DateTimeStamp IActivityLogger.GetAndUpdateNextLogTime() => _stamp.GetNextNow();
         }
 
         static readonly LoggerStatic _staticLogger;

@@ -96,6 +96,8 @@ namespace CK.Core
         readonly string _uniqueId;
         InternalMonitor? _internalMonitor;
 
+        // The logger exists when the _stampProvider exists.
+        readonly ThreadSafeLogger? _logger;
         // The provider has the priority if it is not null.
         readonly DateTimeStampProvider? _stampProvider;
         DateTimeStamp _lastLogTime;
@@ -111,7 +113,7 @@ namespace CK.Core
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitor"/> that applies all <see cref="AutoConfiguration"/>,
-        /// has an empty <see cref="Topic"/> initially set and is intended to relay logs from a thread safe <see cref="IActivityLogger"/>.
+        /// has an empty <see cref="Topic"/> initially set and provides a thread safe <see cref="Logger"/>.
         /// </summary>
         public ActivityMonitor( DateTimeStampProvider stampProvider )
             : this( _generatorId.GetNextString(), Tags.Empty, true, stampProvider )
@@ -124,7 +126,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="topic">Initial topic (can be null).</param>
         /// <param name="stampProvider">
-        /// Optional thread safe time stamp provider that must be used when this monitor will accept logs from a thread safe <see cref="IActivityLogger"/>.
+        /// Optional thread safe time stamp provider that must be used when this monitor must provide a thread safe <see cref="Logger"/>.
         /// </param>
         public ActivityMonitor( string topic, DateTimeStampProvider? stampProvider = null )
             : this( _generatorId.GetNextString(), Tags.Empty, true, stampProvider )
@@ -138,7 +140,7 @@ namespace CK.Core
         /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
         /// <param name="topic">Optional initial topic (can be null).</param>
         /// <param name="stampProvider">
-        /// Optional thread safe time stamp provider that must be used when this monitor will accept logs from a thread safe <see cref="IActivityLogger"/>.
+        /// Optional thread safe time stamp provider that must be used when this monitor must provide a thread safe <see cref="Logger"/>.
         /// </param>
         public ActivityMonitor( bool applyAutoConfigurations, string? topic = null, DateTimeStampProvider? stampProvider = null )
             : this( _generatorId.GetNextString(), Tags.Empty, applyAutoConfigurations, stampProvider )
@@ -167,8 +169,11 @@ namespace CK.Core
             {
                 Throw.ArgumentException( nameof( uniqueId ), $"Monitor UniqueId must be at least {MinMonitorUniqueIdLength} long and not contain any whitespace." );
             }
-            _stampProvider = stampProvider;
             _uniqueId = uniqueId;
+            if( (_stampProvider = stampProvider) != null )
+            {
+                _logger = new ThreadSafeLogger( this, stampProvider! );
+            }
             _groups = new Group[8];
             for( int i = 0; i < _groups.Length; ++i ) _groups[i] = new Group( this, i );
             _autoTags = tags ?? Tags.Empty;
@@ -189,6 +194,9 @@ namespace CK.Core
 
         /// <inheritdoc />
         public string Topic => _topic;
+
+        /// <inheritdoc />
+        public ThreadSafeLogger? Logger => _logger;
 
         /// <inheritdoc />
         public void SetTopic( string? newTopic, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
@@ -221,7 +229,8 @@ namespace CK.Core
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         void SendTopicLogLine( [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
-            var d = new ActivityMonitorLogData( LogLevel.Info,
+            var d = new ActivityMonitorLogData( _uniqueId,
+                                                LogLevel.Info,
                                                 _autoTags | Tags.MonitorTopicChanged,
                                                 SetTopicPrefix + _topic,
                                                 null,

@@ -20,7 +20,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void ActivityMonitorExternalLogData_cannot_be_obtained_until_LogTime_is_set()
         {
-            var d = new ActivityMonitorLogData( LogLevel.Info, ActivityMonitor.Tags.Empty, "nop", null );
+            var d = new ActivityMonitorLogData( "external", LogLevel.Info, ActivityMonitor.Tags.Empty, "nop", null );
             FluentActions.Invoking( () => d.AcquireExternalData() ).Should().Throw<InvalidOperationException>();
             d.SetExplicitLogTime( DateTimeStamp.UtcNow );
             ActivityMonitorExternalLogData e = d.AcquireExternalData();
@@ -50,14 +50,14 @@ namespace CK.Core.Tests.Monitoring
                 var externalLogData = new List<ActivityMonitorExternalLogData>();
                 for( int i = 0; i < ActivityMonitorExternalLogData.CurrentPoolCapacity; ++i )
                 {
-                    var d = new ActivityMonitorLogData( LogLevel.Info, ActivityMonitor.Tags.Empty, "nop", null );
+                    var d = new ActivityMonitorLogData( "external", LogLevel.Info, ActivityMonitor.Tags.Empty, "nop", null );
                     d.SetExplicitLogTime( DateTimeStamp.UtcNow );
                     externalLogData.Add( d.AcquireExternalData() );
                 }
                 staticLogs.Should().BeEmpty();
 
                 // First warning.
-                var dInExcess1 = new ActivityMonitorLogData( LogLevel.Info, ActivityMonitor.Tags.Empty, "in excess", null );
+                var dInExcess1 = new ActivityMonitorLogData( "external", LogLevel.Info, ActivityMonitor.Tags.Empty, "in excess", null );
                 dInExcess1.SetExplicitLogTime( DateTimeStamp.UtcNow );
                 externalLogData.Add( dInExcess1.AcquireExternalData() );
 
@@ -73,13 +73,13 @@ namespace CK.Core.Tests.Monitoring
                 // One more warning.
                 for( int i = 0; i < capacity; ++i )
                 {
-                    var d = new ActivityMonitorLogData( LogLevel.Info, ActivityMonitor.Tags.Empty, "nop", null );
+                    var d = new ActivityMonitorLogData( "external", LogLevel.Info, ActivityMonitor.Tags.Empty, "nop", null );
                     d.SetExplicitLogTime( DateTimeStamp.UtcNow );
                     externalLogData.Add( d.AcquireExternalData() );
                 }
                 staticLogs.Should().BeEmpty();
 
-                var dInExcess2 = new ActivityMonitorLogData( LogLevel.Info, ActivityMonitor.Tags.Empty, "in excess", null );
+                var dInExcess2 = new ActivityMonitorLogData( "external", LogLevel.Info, ActivityMonitor.Tags.Empty, "in excess", null );
                 dInExcess2.SetExplicitLogTime( DateTimeStamp.UtcNow );
                 externalLogData.Add( dInExcess2.AcquireExternalData() );
 
@@ -93,7 +93,7 @@ namespace CK.Core.Tests.Monitoring
                 // Fill the pool up to the max.
                 for( int i = 0; i < ActivityMonitorExternalLogData.MaximalCapacity; ++i )
                 {
-                    var d = new ActivityMonitorLogData( LogLevel.Info, ActivityMonitor.Tags.Empty, "nop", null );
+                    var d = new ActivityMonitorLogData( "monitorId", LogLevel.Info, ActivityMonitor.Tags.Empty, "nop", null );
                     d.SetExplicitLogTime( DateTimeStamp.UtcNow );
                     externalLogData.Add( d.AcquireExternalData() );
                 }
@@ -112,7 +112,7 @@ namespace CK.Core.Tests.Monitoring
                 // Fill the pool up to the max again.
                 for( int i = 0; i < ActivityMonitorExternalLogData.MaximalCapacity; ++i )
                 {
-                    var d = new ActivityMonitorLogData( LogLevel.Info, ActivityMonitor.Tags.Empty, "nop", null );
+                    var d = new ActivityMonitorLogData( "monitorId", LogLevel.Info, ActivityMonitor.Tags.Empty, "nop", null );
                     d.SetExplicitLogTime( DateTimeStamp.UtcNow );
                     externalLogData.Add( d.AcquireExternalData() );
                 }
@@ -129,7 +129,7 @@ namespace CK.Core.Tests.Monitoring
                 // Fill the pool up to the max again.
                 for( int i = 0; i < ActivityMonitorExternalLogData.MaximalCapacity; ++i )
                 {
-                    var d = new ActivityMonitorLogData( LogLevel.Info, ActivityMonitor.Tags.Empty, "nop", null );
+                    var d = new ActivityMonitorLogData( "monitorId", LogLevel.Info, ActivityMonitor.Tags.Empty, "nop", null );
                     d.SetExplicitLogTime( DateTimeStamp.UtcNow );
                     externalLogData.Add( d.AcquireExternalData() );
                 }
@@ -154,7 +154,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public async Task ThreadSafeLogger_and_LogRetainer_Async()
         {
-            var logger = new ThreadSafeLogger( "Test" );
+            var logger = new AlternateThreadSafeLogger( "Test" );
             var retainer = new LogRetainerClient( 100 );
             logger.InternalMonitor.Output.RegisterClient( retainer );
 

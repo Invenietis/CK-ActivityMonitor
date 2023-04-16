@@ -181,7 +181,9 @@ namespace CK.Core
             {
                 // Secure any unclosed groups.
                 while( _internalMonitor.CloseGroup() ) ;
-                // Replay the history, trusting the existing data time.
+                // Replay the history, trusting the existing data time but
+                // changing the monitor identifier from the internal one to the
+                // actual monitor's identifier.
                 _internalMonitor.Recorder.OnStartReplay();
                 foreach( var o in _internalMonitor.Recorder.History )
                 {
@@ -191,6 +193,7 @@ namespace CK.Core
                             var d = group.Item1;
                             // Don't use SetExplicitTags here.
                             d.SetTags( d.Tags | Tags.InternalMonitor );
+                            d.SetMonitorId( _uniqueId );
                             DoOpenGroup( ref d );
                             ++balancedGroup;
                             break;
@@ -201,6 +204,7 @@ namespace CK.Core
                             }
                             // Don't use SetExplicitTags here.
                             line.SetTags( line.Tags | Tags.InternalMonitor );
+                            line.SetMonitorId( _uniqueId );
                             DoUnfilteredLog( ref line );
                             break;
                         case Tuple<DateTimeStamp, IReadOnlyList<ActivityLogGroupConclusion>?> close:
@@ -211,7 +215,7 @@ namespace CK.Core
                 }
                 if( changedTopic != _topic )
                 {
-                    var d = new ActivityMonitorLogData( LogLevel.Info, Tags.InternalMonitor, ActivityMonitorResources.ReplayRestoreTopic, null );
+                    var d = new ActivityMonitorLogData( _uniqueId, LogLevel.Info, Tags.InternalMonitor, ActivityMonitorResources.ReplayRestoreTopic, null );
                     DoUnfilteredLog( ref d );
                     SendTopicLogLine();
                 }

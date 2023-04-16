@@ -27,7 +27,7 @@ namespace CK.Core
         public static IDisposableGroup OpenDebug( this IActivityMonitor monitor, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Debug, null, out var finalTags )
-                                                ? new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                                ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Debug | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
                                                 : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -47,7 +47,7 @@ namespace CK.Core
         public static IDisposableGroup OpenDebug( this IActivityMonitor monitor, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Debug, null, out var finalTags )
-                                                ? new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                                ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
                                                 : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -60,7 +60,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -85,7 +85,7 @@ namespace CK.Core
                                                          [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Debug, null, out var finalTags )
-                                                ? new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                                ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
                                                 : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -99,7 +99,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -126,7 +126,7 @@ namespace CK.Core
                                                     [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Debug, tags, out var finalTags )
-                                               ? new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                               ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Debug | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -146,7 +146,7 @@ namespace CK.Core
         public static IDisposableGroup OpenDebug( this IActivityMonitor monitor, CKTrait tags, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Debug, tags, out var finalTags )
-                                               ? new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                               ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -160,7 +160,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -185,7 +185,7 @@ namespace CK.Core
                                                 [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Debug, tags, out var finalTags )
-                                               ? new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                               ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -201,7 +201,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -224,7 +224,7 @@ namespace CK.Core
         public static IDisposableGroup OpenTrace( this IActivityMonitor monitor, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Trace, null, out var finalTags )
-                                                ? new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                                ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Trace | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
                                                 : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -244,7 +244,7 @@ namespace CK.Core
         public static IDisposableGroup OpenTrace( this IActivityMonitor monitor, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Trace, null, out var finalTags )
-                                                ? new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                                ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
                                                 : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -257,7 +257,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -282,7 +282,7 @@ namespace CK.Core
                                                          [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Trace, null, out var finalTags )
-                                                ? new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                                ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
                                                 : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -296,7 +296,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -323,7 +323,7 @@ namespace CK.Core
                                                     [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Trace, tags, out var finalTags )
-                                               ? new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                               ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Trace | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -343,7 +343,7 @@ namespace CK.Core
         public static IDisposableGroup OpenTrace( this IActivityMonitor monitor, CKTrait tags, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Trace, tags, out var finalTags )
-                                               ? new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                               ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -357,7 +357,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -382,7 +382,7 @@ namespace CK.Core
                                                 [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Trace, tags, out var finalTags )
-                                               ? new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                               ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -398,7 +398,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -421,7 +421,7 @@ namespace CK.Core
         public static IDisposableGroup OpenInfo( this IActivityMonitor monitor, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Info, null, out var finalTags )
-                                                ? new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                                ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Info | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
                                                 : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -441,7 +441,7 @@ namespace CK.Core
         public static IDisposableGroup OpenInfo( this IActivityMonitor monitor, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Info, null, out var finalTags )
-                                                ? new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                                ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Info | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
                                                 : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -454,7 +454,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -479,7 +479,7 @@ namespace CK.Core
                                                          [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Info, null, out var finalTags )
-                                                ? new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                                ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Info | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
                                                 : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -493,7 +493,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -520,7 +520,7 @@ namespace CK.Core
                                                     [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Info, tags, out var finalTags )
-                                               ? new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                               ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Info | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -540,7 +540,7 @@ namespace CK.Core
         public static IDisposableGroup OpenInfo( this IActivityMonitor monitor, CKTrait tags, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Info, tags, out var finalTags )
-                                               ? new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                               ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Info | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -554,7 +554,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -579,7 +579,7 @@ namespace CK.Core
                                                 [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Info, tags, out var finalTags )
-                                               ? new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                               ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Info | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -595,7 +595,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -618,7 +618,7 @@ namespace CK.Core
         public static IDisposableGroup OpenWarn( this IActivityMonitor monitor, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Warn, null, out var finalTags )
-                                                ? new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                                ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Warn | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
                                                 : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -638,7 +638,7 @@ namespace CK.Core
         public static IDisposableGroup OpenWarn( this IActivityMonitor monitor, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Warn, null, out var finalTags )
-                                                ? new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                                ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
                                                 : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -651,7 +651,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -676,7 +676,7 @@ namespace CK.Core
                                                          [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Warn, null, out var finalTags )
-                                                ? new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                                ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
                                                 : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -690,7 +690,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -717,7 +717,7 @@ namespace CK.Core
                                                     [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Warn, tags, out var finalTags )
-                                               ? new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                               ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Warn | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -737,7 +737,7 @@ namespace CK.Core
         public static IDisposableGroup OpenWarn( this IActivityMonitor monitor, CKTrait tags, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Warn, tags, out var finalTags )
-                                               ? new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                               ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -751,7 +751,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -776,7 +776,7 @@ namespace CK.Core
                                                 [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Warn, tags, out var finalTags )
-                                               ? new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                               ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -792,7 +792,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -815,7 +815,7 @@ namespace CK.Core
         public static IDisposableGroup OpenError( this IActivityMonitor monitor, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Error, null, out var finalTags )
-                                                ? new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                                ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Error | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
                                                 : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -835,7 +835,7 @@ namespace CK.Core
         public static IDisposableGroup OpenError( this IActivityMonitor monitor, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Error, null, out var finalTags )
-                                                ? new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                                ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Error | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
                                                 : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -848,7 +848,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -873,7 +873,7 @@ namespace CK.Core
                                                          [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Error, null, out var finalTags )
-                                                ? new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                                ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Error | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
                                                 : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -887,7 +887,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -914,7 +914,7 @@ namespace CK.Core
                                                     [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Error, tags, out var finalTags )
-                                               ? new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                               ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Error | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -934,7 +934,7 @@ namespace CK.Core
         public static IDisposableGroup OpenError( this IActivityMonitor monitor, CKTrait tags, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Error, tags, out var finalTags )
-                                               ? new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                               ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Error | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -948,7 +948,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -973,7 +973,7 @@ namespace CK.Core
                                                 [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Error, tags, out var finalTags )
-                                               ? new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                               ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Error | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -989,7 +989,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -1012,7 +1012,7 @@ namespace CK.Core
         public static IDisposableGroup OpenFatal( this IActivityMonitor monitor, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Fatal, null, out var finalTags )
-                                                ? new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                                ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Fatal | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
                                                 : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -1032,7 +1032,7 @@ namespace CK.Core
         public static IDisposableGroup OpenFatal( this IActivityMonitor monitor, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Fatal, null, out var finalTags )
-                                                ? new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                                ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
                                                 : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -1045,7 +1045,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -1070,7 +1070,7 @@ namespace CK.Core
                                                          [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Fatal, null, out var finalTags )
-                                                ? new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                                ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
                                                 : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -1084,7 +1084,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -1111,7 +1111,7 @@ namespace CK.Core
                                                     [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Fatal, tags, out var finalTags )
-                                               ? new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                               ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Fatal | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -1131,7 +1131,7 @@ namespace CK.Core
         public static IDisposableGroup OpenFatal( this IActivityMonitor monitor, CKTrait tags, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Fatal, tags, out var finalTags )
-                                               ? new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                               ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -1145,7 +1145,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -1170,7 +1170,7 @@ namespace CK.Core
                                                 [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.Fatal, tags, out var finalTags )
-                                               ? new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                               ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -1186,7 +1186,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    ? new ActivityMonitorLogData( monitor.UniqueId, LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -1195,8 +1195,8 @@ namespace CK.Core
 
 			}
 
-    namespace LogHandler
-    {
+  namespace LogHandler
+  {
        	 
     /// <summary>
     /// Provides an interpolated string handler Debug lines that only performs formatting if the log must be emitted.

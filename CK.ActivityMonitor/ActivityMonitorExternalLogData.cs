@@ -17,6 +17,7 @@ namespace CK.Core
     {
         [AllowNull] string _text;
         [AllowNull] CKTrait _tags;
+        [AllowNull] string _monitorId;
         CKExceptionData? _exceptionData;
         string? _fileName;
         int _lineNumber;
@@ -26,6 +27,9 @@ namespace CK.Core
 
         /// <inheritdoc cref="ActivityMonitorLogData.Text"/>
         public string Text => _text;
+
+        /// <inheritdoc cref="ActivityMonitorLogData.MonitorId"/>
+        public string MonitorId => _monitorId;
 
         /// <inheritdoc cref="ActivityMonitorLogData.Tags"/>
         public CKTrait Tags => _tags;
@@ -65,6 +69,7 @@ namespace CK.Core
             _level = data.Level;
             _refCount = 1;
             _logTime = data.LogTime;
+            _monitorId = data.MonitorId;
         }
 
         /// <summary>

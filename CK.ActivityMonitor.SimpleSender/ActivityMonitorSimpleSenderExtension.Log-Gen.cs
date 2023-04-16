@@ -26,14 +26,14 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Debug, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Debug | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Debug"/> string if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -47,7 +47,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Debug, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -63,14 +63,14 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Debug"/> string associated to an exception if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
         /// and may also depend on <see cref="IActivityLogger.AutoTags"/>).
@@ -90,7 +90,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Debug, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -107,7 +107,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -116,7 +116,7 @@ namespace CK.Core
 
         #region Debug with tags.
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Debug"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -135,14 +135,14 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Debug, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Debug | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Debug"/> string and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -161,7 +161,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Debug, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -178,14 +178,14 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Debug"/> string associated to an exception and tags if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
         /// also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
@@ -206,7 +206,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Debug, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -224,7 +224,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -248,14 +248,14 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Trace, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Trace | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Trace"/> string if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -269,7 +269,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Trace, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -285,14 +285,14 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Trace"/> string associated to an exception if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
         /// and may also depend on <see cref="IActivityLogger.AutoTags"/>).
@@ -312,7 +312,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Trace, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -329,7 +329,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -338,7 +338,7 @@ namespace CK.Core
 
         #region Trace with tags.
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Trace"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -357,14 +357,14 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Trace, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Trace | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Trace"/> string and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -383,7 +383,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Trace, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -400,14 +400,14 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Trace"/> string associated to an exception and tags if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
         /// also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
@@ -428,7 +428,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Trace, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -446,7 +446,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -470,14 +470,14 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Info, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Info | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Info"/> string if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -491,7 +491,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Info, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Info | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -507,14 +507,14 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Info"/> string associated to an exception if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
         /// and may also depend on <see cref="IActivityLogger.AutoTags"/>).
@@ -534,7 +534,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Info, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Info | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -551,7 +551,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -560,7 +560,7 @@ namespace CK.Core
 
         #region Info with tags.
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Info"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -579,14 +579,14 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Info, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Info | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Info"/> string and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -605,7 +605,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Info, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Info | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -622,14 +622,14 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Info"/> string associated to an exception and tags if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
         /// also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
@@ -650,7 +650,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Info, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Info | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -668,7 +668,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -692,14 +692,14 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Warn, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Warn | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Warn"/> string if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -713,7 +713,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Warn, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -729,14 +729,14 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Warn"/> string associated to an exception if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
         /// and may also depend on <see cref="IActivityLogger.AutoTags"/>).
@@ -756,7 +756,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Warn, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -773,7 +773,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -782,7 +782,7 @@ namespace CK.Core
 
         #region Warn with tags.
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Warn"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -801,14 +801,14 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Warn, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Warn | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Warn"/> string and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -827,7 +827,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Warn, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -844,14 +844,14 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Warn"/> string associated to an exception and tags if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
         /// also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
@@ -872,7 +872,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Warn, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -890,7 +890,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -914,14 +914,14 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Error, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Error | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Error"/> string if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -935,7 +935,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Error, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Error | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -951,14 +951,14 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Error"/> string associated to an exception if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
         /// and may also depend on <see cref="IActivityLogger.AutoTags"/>).
@@ -978,7 +978,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Error, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Error | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -995,7 +995,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -1004,7 +1004,7 @@ namespace CK.Core
 
         #region Error with tags.
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Error"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -1023,14 +1023,14 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Error, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Error | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Error"/> string and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -1049,7 +1049,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Error, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Error | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -1066,14 +1066,14 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Error"/> string associated to an exception and tags if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
         /// also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
@@ -1094,7 +1094,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Error, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Error | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -1112,7 +1112,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -1136,14 +1136,14 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Fatal, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Fatal | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Fatal"/> string if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -1157,7 +1157,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Fatal, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -1173,14 +1173,14 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Fatal"/> string associated to an exception if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
         /// and may also depend on <see cref="IActivityLogger.AutoTags"/>).
@@ -1200,7 +1200,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Fatal, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -1217,7 +1217,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -1226,7 +1226,7 @@ namespace CK.Core
 
         #region Fatal with tags.
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Fatal"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -1245,14 +1245,14 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Fatal, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Fatal | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Fatal"/> string and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
         /// </summary>
@@ -1271,7 +1271,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Fatal, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -1288,14 +1288,14 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Fatal"/> string associated to an exception and tags if it must be emitted 
         /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
         /// also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
@@ -1316,7 +1316,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Fatal, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -1334,7 +1334,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = new ActivityMonitorLogData( logger.UniqueId, LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }

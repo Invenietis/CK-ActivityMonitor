@@ -41,7 +41,7 @@ namespace CK.Core
                 message = $"(With topic '{dependentTopic}'.)";
             }
             Debug.Assert( message == null || t.ToString().EndsWith( message ), "Checking that inline magic strings are the same." );
-            var d = new ActivityMonitorLogData( LogLevel.Info, ActivityMonitor.Tags.CreateDependentToken, message, null, fileName, lineNumber );
+            var d = new ActivityMonitorLogData( @this.UniqueId, LogLevel.Info, ActivityMonitor.Tags.CreateDependentToken, message, null, fileName, lineNumber );
             d.SetExplicitLogTime( t.CreationDate );
             @this.UnfilteredLog( ref d );
             return t;
@@ -89,7 +89,7 @@ namespace CK.Core
                 else doOpen = @this.ShouldLogGroup( groupLevel, ActivityMonitor.Tags.StartDependentActivity, out finalTags );
                 if( doOpen )
                 {
-                    var d = new ActivityMonitorLogData( groupLevel | LogLevel.IsFiltered, finalTags, msg, null, fileName, lineNumber );
+                    var d = new ActivityMonitorLogData( @this.UniqueId, groupLevel | LogLevel.IsFiltered, finalTags, msg, null, fileName, lineNumber );
                     var g = @this.UnfilteredOpenGroup( ref d );
                     if( currentTopic != null )
                     {
