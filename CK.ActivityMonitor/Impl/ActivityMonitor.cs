@@ -705,7 +705,7 @@ namespace CK.Core
             }
         }
 
-        class RAndCChecker : IDisposable
+        sealed class RAndCChecker : IDisposable
         {
             readonly ActivityMonitor _m;
 
@@ -722,15 +722,6 @@ namespace CK.Core
         }
 
         IDisposable IActivityMonitorImpl.ReentrancyAndConcurrencyLock()
-        {
-            return new RAndCChecker( this );
-        }
-
-        /// <summary>
-        /// Gets a disposable object that checks for reentrant and concurrent calls.
-        /// </summary>
-        /// <returns>A disposable object (that must be disposed).</returns>
-        IDisposable ReentrancyAndConcurrencyLock()
         {
             return new RAndCChecker( this );
         }

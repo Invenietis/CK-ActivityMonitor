@@ -31,10 +31,10 @@ namespace CK.Core
 
             CKTrait _savedMonitorTags;
             Group? _unfilteredParent;
-            int _depth;
+            ActivityMonitorLogData _data;
             DateTimeStamp _closeLogTime;
             bool _isOpen;
-            ActivityMonitorLogData _data;
+            int _depth;
 
             /// <summary>
             /// Initialized a new Group at a given index.
