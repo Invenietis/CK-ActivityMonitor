@@ -7,7 +7,7 @@ namespace CK.Core.Tests.Monitoring
 {
     /// <summary>
     /// Demo of a thread safe, non blocking logger without thread.
-    /// This logger is not the same as the <see cref="IActivityMonitor.ThreadSafeLogger"/>:
+    /// This logger is not the same as the <see cref="IActivityMonitor.ParralelLogger"/>:
     /// <list type="bullet">
     /// <item>
     /// It doesn't emits its logs like the <see cref="ActivityMonitor.StaticLogger"/>, rather it posts the logs on a
@@ -18,7 +18,7 @@ namespace CK.Core.Tests.Monitoring
     /// The drawback is that the emitted logs are desynchronized: even if their <see cref="ActivityMonitorLogData.LogTime"/> is
     /// accurate, the "tread safe" logs will appear later in the stream of log entries. 
     /// </item>
-    /// The <see cref="IActivityMonitor.ThreadSafeLogger"/> that is available when a <see cref="DateTimeStampProvider"/> is used in the
+    /// The <see cref="IActivityMonitor.ParralelLogger"/> that is available when a <see cref="DateTimeStampProvider"/> is used in the
     /// ActivityMonitor's constructor sends its log lines through the <see cref="ActivityMonitor.OnStaticLog"/> event,
     /// not through the <see cref="IActivityMonitor.Output"/>: the logs ordering relative to the monitor is preserved BUT these thread safe
     /// logs cannot be observed by the monitor's output <see cref="IActivityMonitorClient"/>.

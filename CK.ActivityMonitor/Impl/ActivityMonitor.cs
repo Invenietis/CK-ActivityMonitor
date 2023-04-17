@@ -104,8 +104,8 @@ namespace CK.Core
         DateTimeStamp _lastLogTime;
 
         /// <summary>
-        /// Initializes a new <see cref="ActivityMonitor"/> that applies all <see cref="AutoConfiguration"/>
-        /// and has an empty <see cref="Topic"/> initially set.
+        /// Initializes a new <see cref="ActivityMonitor"/> that applies all <see cref="AutoConfiguration"/>,
+        /// has an empty <see cref="Topic"/> initially set and no <see cref="ParallelLogger"/>.
         /// </summary>
         public ActivityMonitor()
             : this( _generatorId.GetNextString(), Tags.Empty, true, null )
@@ -114,7 +114,7 @@ namespace CK.Core
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitor"/> that applies all <see cref="AutoConfiguration"/>,
-        /// has an empty <see cref="Topic"/> initially set and provides a thread safe <see cref="ThreadSafeLogger"/>.
+        /// has an empty <see cref="Topic"/> initially set and provides a thread safe <see cref="ParallelLogger"/>.
         /// </summary>
         public ActivityMonitor( DateTimeStampProvider stampProvider )
             : this( _generatorId.GetNextString(), Tags.Empty, true, stampProvider )
@@ -127,7 +127,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="topic">Initial topic (can be null).</param>
         /// <param name="stampProvider">
-        /// Optional thread safe time stamp provider that must be used when this monitor must provide a thread safe <see cref="ThreadSafeLogger"/>.
+        /// Optional thread safe time stamp provider that must be used when this monitor must provide a thread safe <see cref="ParallelLogger"/>.
         /// </param>
         public ActivityMonitor( string topic, DateTimeStampProvider? stampProvider = null )
             : this( _generatorId.GetNextString(), Tags.Empty, true, stampProvider )
@@ -141,7 +141,7 @@ namespace CK.Core
         /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
         /// <param name="topic">Optional initial topic (can be null).</param>
         /// <param name="stampProvider">
-        /// Optional thread safe time stamp provider that must be used when this monitor must provide a thread safe <see cref="ThreadSafeLogger"/>.
+        /// Optional thread safe time stamp provider that must be used when this monitor must provide a thread safe <see cref="ParallelLogger"/>.
         /// </param>
         public ActivityMonitor( bool applyAutoConfigurations, string? topic = null, DateTimeStampProvider? stampProvider = null )
             : this( _generatorId.GetNextString(), Tags.Empty, applyAutoConfigurations, stampProvider )
@@ -151,8 +151,7 @@ namespace CK.Core
 
         ActivityMonitor( string uniqueId,
                          CKTrait tags,
-                         bool applyAutoConfigurations,
-                         DateTimeStampProvider? stampProvider,
+                         ActivityMonitorOptions options,
                          Logger? logger = null )
         {
             if( uniqueId == null
@@ -162,6 +161,10 @@ namespace CK.Core
                 Throw.ArgumentException( nameof( uniqueId ), $"Monitor UniqueId must be at least {MinMonitorUniqueIdLength} long and not contain any whitespace." );
             }
             _uniqueId = uniqueId;
+            if( (options & ActivityMonitorOptions.WithParallel) != 0 )
+            {
+                
+            }
             if( (_stampProvider = stampProvider) != null )
             {
                 // logger parameter is used only by the LogRecoreder internal monitor constructor.
@@ -189,7 +192,7 @@ namespace CK.Core
         public string Topic => _topic;
 
         /// <inheritdoc />
-        public IActivityLogger? ThreadSafeLogger => _logger;
+        public IActivityLogger? ParallelLogger => _logger;
 
         /// <inheritdoc />
         public void SetTopic( string? newTopic, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )

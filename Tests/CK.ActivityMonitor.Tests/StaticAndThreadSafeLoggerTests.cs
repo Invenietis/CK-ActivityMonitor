@@ -125,17 +125,17 @@ namespace CK.Core.Tests.Monitoring
             ActivityMonitor.OnStaticLog += h;
 
             var noLogger = new ActivityMonitor( false, null );
-            noLogger.ThreadSafeLogger.Should().BeNull( "No DateTimeStampProvider." );
+            noLogger.ParallelLogger.Should().BeNull( "No DateTimeStampProvider." );
 
             var m = new ActivityMonitor( false, null, new DateTimeStampProvider() );
-            m.ThreadSafeLogger.Should().NotBeNull();
+            m.ParallelLogger.Should().NotBeNull();
             using( m.CollectTexts( out var logs ) )
             {
                 m.Debug( "NOSHOW - Regular log." );
-                m.ThreadSafeLogger!.Debug( "NOSHOW - Thread safe log." );
+                m.ParallelLogger!.Debug( "NOSHOW - Thread safe log." );
 
                 m.Trace( "Regular log." );
-                m.ThreadSafeLogger!.Trace( "Thread safe log." );
+                m.ParallelLogger!.Trace( "Thread safe log." );
 
                 logs.Should().BeEquivalentTo( new[] { "Regular log." } );
                 received.Should().BeEquivalentTo( new[] { "Thread safe log." } );
