@@ -105,8 +105,8 @@ namespace CK.Core
         DateTimeStamp _lastLogTime;
 
         /// <summary>
-        /// Initializes a new <see cref="ActivityMonitor"/> that applies all <see cref="AutoConfiguration"/>
-        /// and has an empty <see cref="Topic"/> initially set.
+        /// Initializes a new <see cref="ActivityMonitor"/> that applies all <see cref="AutoConfiguration"/>,
+        /// has an empty <see cref="Topic"/> initially set and no <see cref="ParallelLogger"/>.
         /// </summary>
         public ActivityMonitor()
             : this( _generatorId.GetNextString(), Tags.Empty, true, null )
@@ -152,8 +152,7 @@ namespace CK.Core
 
         ActivityMonitor( string uniqueId,
                          CKTrait tags,
-                         bool applyAutoConfigurations,
-                         DateTimeStampProvider? stampProvider,
+                         ActivityMonitorOptions options,
                          Logger? logger = null )
         {
             if( uniqueId == null
@@ -163,6 +162,10 @@ namespace CK.Core
                 Throw.ArgumentException( nameof( uniqueId ), $"Monitor UniqueId must be at least {MinMonitorUniqueIdLength} long and not contain any whitespace." );
             }
             _uniqueId = uniqueId;
+            if( (options & ActivityMonitorOptions.WithParallel) != 0 )
+            {
+                
+            }
             _groups = new Group[8];
             for( int i = 0; i < _groups.Length; ++i ) _groups[i] = new Group( this, i );
             _autoTags = tags ?? Tags.Empty;
@@ -700,7 +703,7 @@ namespace CK.Core
             }
         }
 
-        class RAndCChecker : IDisposable
+        sealed class RAndCChecker : IDisposable
         {
             readonly ActivityMonitor _m;
 
@@ -717,15 +720,6 @@ namespace CK.Core
         }
 
         IDisposable IActivityMonitorImpl.ReentrancyAndConcurrencyLock()
-        {
-            return new RAndCChecker( this );
-        }
-
-        /// <summary>
-        /// Gets a disposable object that checks for reentrant and concurrent calls.
-        /// </summary>
-        /// <returns>A disposable object (that must be disposed).</returns>
-        IDisposable ReentrancyAndConcurrencyLock()
         {
             return new RAndCChecker( this );
         }

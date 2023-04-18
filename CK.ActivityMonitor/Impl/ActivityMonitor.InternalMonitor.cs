@@ -17,10 +17,7 @@ namespace CK.Core
             get
             {
                 RentrantOnlyCheck();
-                if( _recorder == null )
-                {
-                    _recorder = new LogsRecorder( this );
-                }
+                _recorder ??= new LogsRecorder( this );
                 return _recorder.InternalMonitor;
             }
         }
