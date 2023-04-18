@@ -61,10 +61,8 @@ namespace CK.Core
                 {
                     // This ensures that an InternalMonitor's log won't clash with the primary
                     // monitor stamps.
-                    data.SetLogTime( _primary._stampProvider != null
-                                        ? _primary._stampProvider.GetNext( data.LogTime.TimeUtc )
-                                        : (_primary._lastLogTime = new DateTimeStamp( _primary._lastLogTime, data.LogTime )) );
-                    History.Add( data );
+                    var copy = _primary.DataFactory.CreateLogData( data.Level, data.Tags, data.Text, data.Exception, data.FileName, data.LineNumber );
+                    History.Add( copy );
                 }
             }
 
@@ -72,10 +70,9 @@ namespace CK.Core
             {
                 if( !_replaying )
                 {
-                    group.Data.SetLogTime( _primary._stampProvider != null
-                                            ? _primary._stampProvider.GetNext( group.Data.LogTime.TimeUtc )
-                                            : (_primary._lastLogTime = new DateTimeStamp( _primary._lastLogTime, group.Data.LogTime )) );
-                    History.Add( Tuple.Create( group.Data ) );
+                    var data = group.Data;
+                    var copy = _primary.DataFactory.CreateLogData( data.Level, data.Tags, data.Text, data.Exception, data.FileName, data.LineNumber );
+                    History.Add( Tuple.Create( copy ) );
                 }
             }
 
@@ -87,6 +84,7 @@ namespace CK.Core
             {
                 if( !_replaying )
                 {
+                    throw new NotImplementedException();
                     var closeTime = _primary._stampProvider != null
                                     ? _primary._stampProvider.GetNext( group.CloseLogTime.TimeUtc )
                                     : (_primary._lastLogTime = new DateTimeStamp( _primary._lastLogTime, group.CloseLogTime ));
@@ -188,9 +186,7 @@ namespace CK.Core
                     {
                         case Tuple<ActivityMonitorLogData> group:
                             var d = group.Item1;
-                            // Don't use SetExplicitTags here.
-                            d.SetTags( d.Tags | Tags.InternalMonitor );
-                            d.SetMonitorId( _uniqueId );
+                            d.MutateForReplay( _uniqueId, _currentDepth );
                             DoOpenGroup( ref d );
                             ++balancedGroup;
                             break;
@@ -199,9 +195,7 @@ namespace CK.Core
                             {
                                 changedTopic = line.Text.Substring( SetTopicPrefix.Length );
                             }
-                            // Don't use SetExplicitTags here.
-                            line.SetTags( line.Tags | Tags.InternalMonitor );
-                            line.SetMonitorId( _uniqueId );
+                            line.MutateForReplay( _uniqueId, _currentDepth );
                             DoUnfilteredLog( ref line );
                             break;
                         case Tuple<DateTimeStamp, IReadOnlyList<ActivityLogGroupConclusion>?> close:
@@ -212,8 +206,6 @@ namespace CK.Core
                 }
                 if( changedTopic != _topic )
                 {
-                    var d = new ActivityMonitorLogData( _uniqueId, LogLevel.Info, Tags.InternalMonitor, ActivityMonitorResources.ReplayRestoreTopic, null );
-                    DoUnfilteredLog( ref d );
                     SendTopicLogLine();
                 }
                 _recorder.OnStopReplay();

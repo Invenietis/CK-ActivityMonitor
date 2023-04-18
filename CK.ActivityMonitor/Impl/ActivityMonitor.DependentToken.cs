@@ -1,14 +1,15 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace CK.Core
 {
     public sealed partial class ActivityMonitor
     {
         /// <summary>
-        /// Describes the origin of a dependent activity: it is created by <see cref="ActivityMonitorExtension.CreateDependentToken(IActivityMonitor, string, string?, string?, int)">IActivityMonitor.CreateDependentToken</see> 
-        /// (extension method).
+        /// Describes the origin of a dependent activity: it is created by <see cref="CreateDependentToken(string, string?, string?, int)"/>.
         /// </summary>
         public sealed class DependentToken : ICKSimpleBinarySerializable
         {
@@ -212,5 +213,40 @@ namespace CK.Core
             }
 
         }
+
+        /// <inheritdoc />
+        public DependentToken CreateDependentToken( string? message = null, string? dependentTopic = null, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
+        {
+            if( string.IsNullOrWhiteSpace( message ) ) message = null;
+            var data = DataFactory.CreateLogData( LogLevel.Info | LogLevel.IsFiltered, Tags.CreateDependentToken, message, null, fileName, lineNumber );
+            DependentToken t = CreateDependentToken( ref data, message, dependentTopic );
+            UnfilteredLog( ref data );
+            return t;
+        }
+
+        DependentToken CreateDependentToken( ref ActivityMonitorLogData data, string? message, string? dependentTopic )
+        {
+            if( string.IsNullOrWhiteSpace( dependentTopic ) ) dependentTopic = null;
+            if( dependentTopic != null )
+            {
+                var m = $"{(message != null ? message + ' ' : "")}(With topic '{dependentTopic}'.)";
+                data.SetText( m );
+            }
+            var t = new DependentToken( _uniqueId, data.LogTime, message, dependentTopic );
+            if( dependentTopic != null )
+            {
+                if( message != null )
+                {
+                    message += $" (With topic '{dependentTopic}'.)";
+                }
+                else
+                {
+                    message = $"(With topic '{dependentTopic}'.)";
+                }
+            }
+            Debug.Assert( message == null || t.ToString().EndsWith( message ), "Checking that inline magic strings are the same." );
+            return t;
+        }
+
     }
 }

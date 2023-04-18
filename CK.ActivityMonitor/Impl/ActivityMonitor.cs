@@ -81,7 +81,8 @@ namespace CK.Core
         Group[] _groups;
         Group? _current;
         Group? _currentUnfiltered;
-        readonly ActivityMonitorOutput _output;
+        int _currentDepth;
+        readonly OutputImpl _output;
         string _topic;
         //
         volatile StackTrace? _currentStackTrace;
@@ -97,8 +98,8 @@ namespace CK.Core
         // The recorder holds the InternalMonitor.
         LogsRecorder? _recorder;
 
-        // The logger exists when the _stampProvider exists.
         readonly Logger? _logger;
+        readonly ActivityMonitorLogData.IFactory _dataFactory;
         // The provider has the priority if it is not null.
         readonly DateTimeStampProvider? _stampProvider;
         DateTimeStamp _lastLogTime;
@@ -114,7 +115,7 @@ namespace CK.Core
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitor"/> that applies all <see cref="AutoConfiguration"/>,
-        /// has an empty <see cref="Topic"/> initially set and provides a thread safe <see cref="ThreadSafeLogger"/>.
+        /// has an empty <see cref="Topic"/> initially set and provides a thread safe <see cref="ParallelLogger"/>.
         /// </summary>
         public ActivityMonitor( DateTimeStampProvider stampProvider )
             : this( _generatorId.GetNextString(), Tags.Empty, true, stampProvider )
@@ -127,7 +128,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="topic">Initial topic (can be null).</param>
         /// <param name="stampProvider">
-        /// Optional thread safe time stamp provider that must be used when this monitor must provide a thread safe <see cref="ThreadSafeLogger"/>.
+        /// Optional thread safe time stamp provider that must be used when this monitor must provide a thread safe <see cref="ParallelLogger"/>.
         /// </param>
         public ActivityMonitor( string topic, DateTimeStampProvider? stampProvider = null )
             : this( _generatorId.GetNextString(), Tags.Empty, true, stampProvider )
@@ -141,7 +142,7 @@ namespace CK.Core
         /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
         /// <param name="topic">Optional initial topic (can be null).</param>
         /// <param name="stampProvider">
-        /// Optional thread safe time stamp provider that must be used when this monitor must provide a thread safe <see cref="ThreadSafeLogger"/>.
+        /// Optional thread safe time stamp provider that must be used when this monitor must provide a thread safe <see cref="ParallelLogger"/>.
         /// </param>
         public ActivityMonitor( bool applyAutoConfigurations, string? topic = null, DateTimeStampProvider? stampProvider = null )
             : this( _generatorId.GetNextString(), Tags.Empty, applyAutoConfigurations, stampProvider )
@@ -162,17 +163,22 @@ namespace CK.Core
                 Throw.ArgumentException( nameof( uniqueId ), $"Monitor UniqueId must be at least {MinMonitorUniqueIdLength} long and not contain any whitespace." );
             }
             _uniqueId = uniqueId;
-            if( (_stampProvider = stampProvider) != null )
-            {
-                // logger parameter is used only by the LogRecoreder internal monitor constructor.
-                _logger = logger ?? new Logger( this, stampProvider! );
-            }
             _groups = new Group[8];
             for( int i = 0; i < _groups.Length; ++i ) _groups[i] = new Group( this, i );
             _autoTags = tags ?? Tags.Empty;
             _trackStackTrace = _autoTags.AtomicTraits.Contains( Tags.StackTrace );
             _topic = String.Empty;
-            _output = new ActivityMonitorOutput( this );
+            _output = new OutputImpl( this );
+            if( (_stampProvider = stampProvider) != null )
+            {
+                // logger parameter is used only by the LogRecorder internal monitor constructor.
+                _logger = logger ?? new Logger( this );
+                _dataFactory = _logger.FactoryForMonitor;
+            }
+            else
+            {
+                _dataFactory = _output;
+            }
             if( applyAutoConfigurations )
             {
                 AutoConfiguration?.Invoke( this );
@@ -189,7 +195,9 @@ namespace CK.Core
         public string Topic => _topic;
 
         /// <inheritdoc />
-        public IActivityLogger? ThreadSafeLogger => _logger;
+        public IActivityLogger? ParallelLogger => _logger;
+
+        public ActivityMonitorLogData.IFactory DataFactory => (ActivityMonitorLogData.IFactory?)_logger ?? _output;
 
         /// <inheritdoc />
         public void SetTopic( string? newTopic, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
@@ -222,13 +230,12 @@ namespace CK.Core
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         void SendTopicLogLine( [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
-            var d = new ActivityMonitorLogData( _uniqueId,
-                                                LogLevel.Info,
-                                                _autoTags | Tags.MonitorTopicChanged,
-                                                SetTopicPrefix + _topic,
-                                                null,
-                                                fileName,
-                                                lineNumber );
+            var d = DataFactory.CreateLogData( LogLevel.Info | LogLevel.IsFiltered,
+                                               _autoTags | Tags.MonitorTopicChanged,
+                                               SetTopicPrefix + _topic,
+                                               null,
+                                               fileName,
+                                               lineNumber );
             DoUnfilteredLog( ref d );
         }
 
@@ -458,6 +465,7 @@ namespace CK.Core
             Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
             Debug.Assert( data.Level != LogLevel.None );
             Debug.Assert( !String.IsNullOrEmpty( data.Text ) );
+            Debug.Assert( !data.IsParallel );
 
             // We consider that as long has the log IsFiltered, the decision has already
             // being taken and UnfilteredLog must do its job: handling the dispatch of the log.
@@ -471,13 +479,6 @@ namespace CK.Core
                 {
                     return;
                 }
-            }
-
-            if( !data.LogTime.IsKnown )
-            {
-                data.SetLogTime( _stampProvider != null
-                                    ? _stampProvider.GetNextNow()
-                                    : (_lastLogTime = new DateTimeStamp( _lastLogTime, DateTime.UtcNow )) );
             }
 
             List<IActivityMonitorClient>? buggyClients = null;
@@ -515,6 +516,7 @@ namespace CK.Core
         IDisposableGroup DoOpenGroup( ref ActivityMonitorLogData data )
         {
             Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
+            Debug.Assert( !data.IsParallel );
 
             int idxNext = _current != null ? _current.Index + 1 : 0;
             if( idxNext == _groups.Length )
@@ -542,15 +544,10 @@ namespace CK.Core
                     return _current;
                 }
             }
-            if( !data.LogTime.IsKnown )
-            {
-                data.SetLogTime( _stampProvider != null
-                                    ? _stampProvider.GetNextNow()
-                                    : (_lastLogTime = new DateTimeStamp( _lastLogTime, DateTime.UtcNow )) );
-            }
             _current.Initialize( ref data );
             _currentUnfiltered = _current;
             MonoParameterSafeCall( ( client, group ) => client.OnOpenGroup( group ), _current );
+            ++_currentDepth;
             return _current;
         }
 
@@ -646,6 +643,7 @@ namespace CK.Core
                 _trackStackTrace = g.SavedTrackStackTrace;
                 _current = g.Index > 0 ? _groups[g.Index - 1] : null;
                 _currentUnfiltered = (Group?)g.Parent;
+                --_currentDepth;
 
                 var sentConclusions = conclusions ?? (IReadOnlyList<ActivityLogGroupConclusion>)Array.Empty<ActivityLogGroupConclusion>();
                 foreach( var l in _output.Clients )
@@ -838,5 +836,6 @@ namespace CK.Core
             }
             return b.ToString();
         }
+
     }
 }

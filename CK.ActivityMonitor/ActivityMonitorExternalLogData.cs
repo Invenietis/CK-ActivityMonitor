@@ -21,9 +21,11 @@ namespace CK.Core
         CKExceptionData? _exceptionData;
         string? _fileName;
         int _lineNumber;
-        LogLevel _level;
+        int _depth;
         int _refCount;
         DateTimeStamp _logTime;
+        LogLevel _level;
+        bool _isParallel;
 
         /// <inheritdoc cref="ActivityMonitorLogData.Text"/>
         public string Text => _text;
@@ -48,11 +50,17 @@ namespace CK.Core
         /// <inheritdoc cref="ActivityMonitorLogData.Level"/>
         public LogLevel Level => _level;
 
+        /// <inheritdoc cref="ActivityMonitorLogData.Depth"/>
+        public int Depth => _depth;
+
         /// <inheritdoc cref="ActivityMonitorLogData.MaskedLevel"/>
         public LogLevel MaskedLevel => _level & LogLevel.Mask;
 
         /// <inheritdoc cref="ActivityMonitorLogData.LogTime"/>
         public DateTimeStamp LogTime => _logTime;
+
+        /// <inheritdoc cref="ActivityMonitorLogData.IsParallel"/>
+        public bool IsParallel => _isParallel;
 
         // Private constructor.
         ActivityMonitorExternalLogData()
@@ -66,10 +74,12 @@ namespace CK.Core
             _exceptionData = data.ExceptionData;
             _fileName = data.FileName;
             _lineNumber = data.LineNumber;
-            _level = data.Level;
+            _depth = data.Depth;
             _refCount = 1;
             _logTime = data.LogTime;
             _monitorId = data.MonitorId;
+            _level = data.Level;
+            _isParallel = data.IsParallel;
         }
 
         /// <summary>

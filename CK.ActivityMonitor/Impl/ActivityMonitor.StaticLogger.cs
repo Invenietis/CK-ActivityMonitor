@@ -10,9 +10,10 @@ namespace CK.Core
 {
     public sealed partial class ActivityMonitor
     {
-        sealed class LoggerStatic : IActivityLogger
+        sealed class LoggerStatic : IActivityLogger, ActivityMonitorLogData.IFactory
         {
-            static readonly DateTimeStampProvider _stamp = new DateTimeStampProvider();
+            static DateTimeStamp _lastLogTime = DateTimeStamp.MinValue;
+            static readonly object _lock = new object();
 
             public CKTrait AutoTags => Tags.Empty;
 
@@ -20,13 +21,27 @@ namespace CK.Core
 
             public string UniqueId => ExternalLogMonitorUniqueId;
 
-            public void UnfilteredLog( ref ActivityMonitorLogData data )
+            public ActivityMonitorLogData.IFactory DataFactory => this;
+
+            public ActivityMonitorLogData CreateLogData( LogLevel level,
+                                                         CKTrait finalTags,
+                                                         string? text,
+                                                         Exception? exception,
+                                                         string? fileName = null,
+                                                         int lineNumber = 0 )
             {
-                if( !data.LogTime.IsKnown ) data.SetLogTime( _stamp.GetNextNow() );
-                OnStaticLog?.Invoke( ref data );
+                DateTimeStamp logTime;
+                lock( _lock )
+                {
+                    _lastLogTime = logTime = new DateTimeStamp( _lastLogTime, DateTime.UtcNow );
+                }
+                return new ActivityMonitorLogData( ExternalLogMonitorUniqueId, logTime, 0, true, level, finalTags, text, exception, fileName, lineNumber );
             }
 
-            DateTimeStamp IActivityLogger.GetAndUpdateNextLogTime() => _stamp.GetNextNow();
+            public void UnfilteredLog( ref ActivityMonitorLogData data )
+            {
+                OnStaticLog?.Invoke( ref data );
+            }
         }
 
         static readonly LoggerStatic _staticLogger;
@@ -34,9 +49,7 @@ namespace CK.Core
         /// <summary>
         /// The handler signature of static logs.
         /// <para>
-        /// The "by ref" argument here is to avoid any copy of the data. The data should not be altered by calling one of
-        /// the 2 mutating methods <see cref="ActivityMonitorLogData.SetExplicitLogTime(DateTimeStamp)"/> or <see cref="ActivityMonitorLogData.SetExplicitTags(CKTrait)"/>
-        /// unless you absolutely know what you are doing.
+        /// The "by ref" argument here is to avoid any copy of the data.
         /// </para>
         /// </summary>
         /// <param name="data">The log data payload.</param>
@@ -63,7 +76,6 @@ namespace CK.Core
         /// </para>
         /// <para>
         /// This is to be used rarely: only if there's really no way to bind the calling context to a real <see cref="IActivityMonitor"/>.
-        /// Handlers of the OnStaticLog event should use the <see cref="ExternalLogMonitorUniqueId"/> as the monitor identifier.
         /// </para>
         /// </summary>
         public static IActivityLogger StaticLogger => _staticLogger;

@@ -10,44 +10,6 @@ namespace CK.Core
     public static partial class ActivityMonitorExtension
     {
         /// <summary>
-        /// Creates a token for a dependent activity that will set a specified topic (or that will not change the dependent monitor's topic
-        /// if null is specified).
-        /// <para>
-        /// The extension method <see cref="StartDependentActivity(IActivityMonitor, ActivityMonitor.DependentToken, bool, LogLevel, bool, string?, int)">StartDependentActivity( token )</see>
-        /// must be used on the target monitor to open and close the activity. If not null, the provided topic will be temporarily set on the
-        /// target monitor otherwise the target topic will not be changed.
-        /// </para>
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityLogger"/>.</param>
-        /// <param name="message">Optional message for the token creation log.</param>
-        /// <param name="dependentTopic">Optional dependent topic.</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
-        static public ActivityMonitor.DependentToken CreateDependentToken( this IActivityLogger @this,
-                                                                           string? message = null,
-                                                                           string? dependentTopic = null,
-                                                                           [CallerFilePath] string? fileName = null,
-                                                                           [CallerLineNumber] int lineNumber = 0 )
-        {
-            if( string.IsNullOrWhiteSpace( message ) ) message = null;
-            if( string.IsNullOrWhiteSpace( dependentTopic ) ) dependentTopic = null;
-            var t = new ActivityMonitor.DependentToken( @this.UniqueId, @this.GetAndUpdateNextLogTime(), message, dependentTopic );
-            if( message != null )
-            {
-                if( dependentTopic != null ) message += $" (With topic '{dependentTopic}'.)";
-            }
-            else if( dependentTopic != null )
-            {
-                message = $"(With topic '{dependentTopic}'.)";
-            }
-            Debug.Assert( message == null || t.ToString().EndsWith( message ), "Checking that inline magic strings are the same." );
-            var d = new ActivityMonitorLogData( @this.UniqueId, LogLevel.Info, ActivityMonitor.Tags.CreateDependentToken, message, null, fileName, lineNumber );
-            d.SetExplicitLogTime( t.CreationDate );
-            @this.UnfilteredLog( ref d );
-            return t;
-        }
-
-        /// <summary>
         /// Starts a dependent activity. This temporarily sets the <see cref="ActivityMonitor.DependentToken.Topic"/> if it is not null and opens a group
         /// tagged with <see cref="ActivityMonitor.Tags.StartDependentActivity"/> and a message that can be parsed back thanks
         /// to <see cref="ActivityMonitor.DependentToken.TryParseStartMessage"/>.
@@ -89,8 +51,7 @@ namespace CK.Core
                 else doOpen = @this.ShouldLogGroup( groupLevel, ActivityMonitor.Tags.StartDependentActivity, out finalTags );
                 if( doOpen )
                 {
-                    var d = new ActivityMonitorLogData( @this.UniqueId, groupLevel | LogLevel.IsFiltered, finalTags, msg, null, fileName, lineNumber );
-                    var g = @this.UnfilteredOpenGroup( ref d );
+                    var g = @this.UnfilteredOpenGroup( groupLevel | LogLevel.IsFiltered, finalTags, msg, null, fileName, lineNumber );
                     if( currentTopic != null )
                     {
                         return Util.CreateDisposableAction( () => { g.Dispose(); @this.SetTopic( currentTopic, fileName, lineNumber ); } );

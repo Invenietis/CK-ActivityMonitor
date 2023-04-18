@@ -20,6 +20,5 @@ namespace CK.Core.Impl
         public static readonly string LogFileRootLogPathSetOnlyOnce = "Root log path must be set once and only once.";
         public static readonly string RootLogPathMustBeSet = @"A Root log path must be set: LogFile.RootLogPath = ""<absolute path>""; It is currently null.";
         public static readonly string ErrorWhileReplayingInternalLogs = @"Error while replaying internal monitor logs.";
-        public static readonly string ReplayRestoreTopic = @"Restoring changed Topic.";
     }
 }

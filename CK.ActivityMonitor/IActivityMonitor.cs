@@ -16,7 +16,7 @@ namespace CK.Core
     /// Furthermore, activities can be tracked (with the help of the developer of course and the <see cref="ActivityMonitor.DependentToken"/>)
     /// across threads, tasks or application domains.
     /// </remarks>
-    public interface IActivityMonitor : IActivityLogger
+    public interface IActivityMonitor : IParallelLogger
     {
         /// <summary>
         /// Gets or sets the tags of this monitor: any subsequent logs will be tagged by these tags.
@@ -129,7 +129,7 @@ namespace CK.Core
         /// not through the <see cref="IActivityMonitor.Output"/>: the logs ordering relative to this monitor is preserved BUT these thread safe
         /// logs cannot be observed by the monitor's output <see cref="IActivityMonitorClient"/>.
         /// </summary>
-        IActivityLogger? ThreadSafeLogger { get; }
+        IActivityLogger? ParallelLogger { get; }
     }
 
 }

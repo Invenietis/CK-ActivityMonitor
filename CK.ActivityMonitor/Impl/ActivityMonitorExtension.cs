@@ -92,7 +92,7 @@ namespace CK.Core
                                           [CallerFilePath] string? fileName = null,
                                           [CallerLineNumber] int lineNumber = 0 )
         {
-            var d = new ActivityMonitorLogData( @this.UniqueId, level, @this.AutoTags | tags, text, ex, fileName, lineNumber );
+            var d = @this.DataFactory.CreateLogData( level, @this.AutoTags | tags, text, ex, fileName, lineNumber );
             @this.UnfilteredLog( ref d );
         }
 
@@ -133,7 +133,7 @@ namespace CK.Core
                                                        [CallerFilePath] string? fileName = null,
                                                        [CallerLineNumber] int lineNumber = 0 )
         {
-            var d = new ActivityMonitorLogData( @this.UniqueId, level, @this.AutoTags | tags, text, ex, fileName, lineNumber );
+            var d = @this.DataFactory.CreateLogData( level, @this.AutoTags | tags, text, ex, fileName, lineNumber );
             return @this.UnfilteredOpenGroup( ref d );
         }
 

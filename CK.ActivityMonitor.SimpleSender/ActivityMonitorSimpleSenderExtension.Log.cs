@@ -21,11 +21,11 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Log( this IActivityLogger logger, LogLevel level, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Log( this IActivityLogger logger, LogLevel level, Exception ex, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string? fileName = null )
         {
             if( logger.ShouldLogLine( level, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( logger.UniqueId, level | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = logger.DataFactory.CreateLogData( level | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -47,7 +47,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( level, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( logger.UniqueId, level | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = logger.DataFactory.CreateLogData( level | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -57,14 +57,14 @@ namespace CK.Core
         /// <inheritdoc cref="Log(IActivityLogger,LogLevel,string,int,string?)"/>
         public static bool Log( this IActivityLogger logger,
                                 LogLevel level,
-                                [InterpolatedStringHandlerArgument( nameof(logger), nameof(level) )] LogHandler.LineLog text,
+                                [InterpolatedStringHandlerArgument( nameof( logger ), nameof( level ) )] LogHandler.LineLog text,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
         {
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( logger.UniqueId, level | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = logger.DataFactory.CreateLogData( level | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -93,17 +93,17 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( level, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( logger.UniqueId, level | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = logger.DataFactory.CreateLogData( level | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
-            return false;   
+            return false;
         }
 
         /// <inheritdoc cref="Log(IActivityLogger,LogLevel,string,Exception,int,string?)"/>
         public static bool Log( this IActivityLogger logger,
                                 LogLevel level,
-                                [InterpolatedStringHandlerArgument( nameof(logger), nameof(level) )] LogHandler.LineLog text,
+                                [InterpolatedStringHandlerArgument( nameof( logger ), nameof( level ) )] LogHandler.LineLog text,
                                 Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
@@ -111,7 +111,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var d = new ActivityMonitorLogData( logger.UniqueId, level | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var d = logger.DataFactory.CreateLogData( level | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -141,7 +141,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( level, tags, out var finalTags ) )
             {
-                var line = new ActivityMonitorLogData( logger.UniqueId, level | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var line = logger.DataFactory.CreateLogData( level | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -164,7 +164,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( level, tags, out var finalTags ) )
             {
-                var line = new ActivityMonitorLogData( logger.UniqueId, level | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var line = logger.DataFactory.CreateLogData( level | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -175,14 +175,14 @@ namespace CK.Core
         public static bool Log( this IActivityLogger logger,
                                 LogLevel level,
                                 CKTrait tags,
-                                [InterpolatedStringHandlerArgument( nameof(logger), nameof(level), nameof(tags) )] LogHandler.LineLogWithTags text,
+                                [InterpolatedStringHandlerArgument( nameof( logger ), nameof( level ), nameof( tags ) )] LogHandler.LineLogWithTags text,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
         {
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( logger.UniqueId, level | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = logger.DataFactory.CreateLogData( level | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -210,9 +210,9 @@ namespace CK.Core
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
         {
-            if(logger.ShouldLogLine( level, tags, out var finalTags ) )
+            if( logger.ShouldLogLine( level, tags, out var finalTags ) )
             {
-                var line = new ActivityMonitorLogData( logger.UniqueId, level | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var line = logger.DataFactory.CreateLogData( level | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -223,7 +223,7 @@ namespace CK.Core
         public static bool Log( this IActivityLogger logger,
                                 LogLevel level,
                                 CKTrait tags,
-                                [InterpolatedStringHandlerArgument( nameof(logger), nameof(level), nameof(tags) )] LogHandler.LineLogWithTags text,
+                                [InterpolatedStringHandlerArgument( nameof( logger ), nameof( level ), nameof( tags ) )] LogHandler.LineLogWithTags text,
                                 Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
@@ -231,13 +231,12 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( logger.UniqueId, level | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = logger.DataFactory.CreateLogData( level | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
         #endregion
-
     }
 }

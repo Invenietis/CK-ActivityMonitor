@@ -1,15 +1,14 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace CK.Core
 {
+
     /// <summary>
-    /// Ultimate possible abstraction of a <see cref="IActivityMonitor"/>: it is context-less and can
-    /// only log lines (not groups), there is no local <see cref="IActivityMonitor.Output"/>.
-    /// <para>
-    /// This unifies context-less loggers like <see cref="ActivityMonitor.StaticLogger"/> and regular
-    /// contextual <see cref="ActivityMonitor"/>: filtered extension methods and any other extension
-    /// methods that deals only with log lines uniformly apply to regular monitors and context-less loggers.
-    /// </para>
+    /// Ultimate possible abstraction of <see cref="IActivityMonitor"/> and <see cref="IParallelLogger"/>:
+    /// it is context-less and can only log lines (not groups), there is no local <see cref="IActivityMonitor.Output"/>
+    /// and no <see cref="IParallelLogger.CreateDependentToken(string?, string?, string?, int)"/> capability.
     /// </summary>
     public interface IActivityLogger
     {
@@ -31,26 +30,14 @@ namespace CK.Core
         LogLevelFilter ActualFilter { get; }
 
         /// <summary>
-        /// Logs a text regardless of any filter (except for <see cref="LogLevelFilter.Off"/>). 
+        /// Low level factory of log data.
         /// </summary>
-        /// <param name="data">
-        /// Data that describes the log. When <see cref="ActivityMonitorLogData.MaskedLevel"/> 
-        /// is <see cref="LogLevel.None"/>, nothing happens (whereas for group, a rejected group is recorded and returned).
-        /// </param>
-        /// <remarks>
-        /// A null or empty <see cref="ActivityMonitorLogData.Text"/> is logged as <see cref="ActivityMonitor.NoLogText"/>.
-        /// </remarks>
-        void UnfilteredLog( ref ActivityMonitorLogData data );
+        ActivityMonitorLogData.IFactory DataFactory { get; }
 
         /// <summary>
-        /// Returns a valid <see cref="DateTimeStamp"/> that can be used for a log: it is based on <see cref="DateTime.UtcNow"/> and has 
-        /// a <see cref="DateTimeStamp.Uniquifier"/> that will not be changed when emitting the next log.
-        /// <para>
-        /// This uses the <see cref="DateTimeStampProvider"/> or an internal, lock-free, current value. In both cases, this
-        /// value is ever increasing.
-        /// </para>
+        /// Sends a line of logs regardless of any filter. 
         /// </summary>
-        /// <returns>The next stamp time to use for this logger or monitor.</returns>
-        DateTimeStamp GetAndUpdateNextLogTime();
+        /// <param name="data">Data that describes the log.</param>
+        void UnfilteredLog( ref ActivityMonitorLogData data );
     }
 }
