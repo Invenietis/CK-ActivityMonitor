@@ -80,7 +80,7 @@ namespace CK.Core.Tests.Monitoring
         [TestCase( "CollectorClientFirst" )]
         public void InternalMonitor_works_by_replaying_its_logs_into_its_primary_monitor( string order )
         {
-            var m = new ActivityMonitor( false );
+            var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             TalkingClient c;
             StupidStringClient logs;
             if( order == "TalkingClientFirst" )
@@ -111,7 +111,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void InternalMonitor_tags_its_logs_with_InternalMonitor_tag()
         {
-            var m = new ActivityMonitor( false );
+            var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             // Register the output first and then the talking client.
             var logs = m.Output.RegisterClient( new StupidStringClient() );
             var c = m.Output.RegisterClient( new TalkingClient() );
@@ -128,7 +128,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void Unclosed_Groups_in_InternalMonitor_are_automatically_closed()
         {
-            var m = new ActivityMonitor( false );
+            var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var logs = m.Output.RegisterClient( new StupidStringClient() );
             var c = m.Output.RegisterClient( new TalkingClient() );
             using( m.OpenInfo( "TalkingClient MUST leave an opened Group on the InternalMonitor." ) )
@@ -172,7 +172,7 @@ namespace CK.Core.Tests.Monitoring
 
         static void GetTextAndTimes( TimeSpan beforeLogs, TimeSpan beforeTalk, out string[] texts, out DateTime[] times )
         {
-            var m = new ActivityMonitor( false );
+            var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var c = m.Output.RegisterClient( new TalkingClient() { SleepTime = beforeTalk } );
             var logs = m.Output.RegisterClient( new StupidStringClient() );
             using( m.OpenInfo( "Group" ) )

@@ -79,7 +79,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void RegisterUniqueClient_skips_null_client_from_factory_and_returns_null()
         {
-            var monitor = new ActivityMonitor( applyAutoConfigurations: false );
+            var monitor = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             monitor.Output.RegisterUniqueClient<ActivityMonitorConsoleClient>( c => false, () => null ).Should().BeNull();
         }
 
@@ -108,7 +108,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void Off_FilterLevel_prevents_all_logs_even_UnfilteredLogs()
         {
-            var m = new ActivityMonitor( false );
+            var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var c = m.Output.RegisterClient( new StupidStringClient() );
             m.Trace( "Trace1" );
             m.MinimalFilter = LogFilter.Off;
@@ -129,7 +129,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void sending_a_null_or_empty_text_is_transformed_into_no_log_text()
         {
-            var m = new ActivityMonitor( false );
+            var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var c = m.Output.RegisterClient( new StupidStringClient() );
             m.Trace( "" );
             m.UnfilteredLog( LogLevel.Error, null, null, null );
@@ -143,7 +143,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void display_conclusions()
         {
-            IActivityMonitor monitor = new ActivityMonitor( false );
+            IActivityMonitor monitor = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             monitor.Output.RegisterClients( new StupidStringClient(), new StupidXmlClient( new StringWriter() ) );
             monitor.Output.Clients.Should().HaveCount( 2 );
 
@@ -198,7 +198,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void exceptions_are_deeply_dumped()
         {
-            IActivityMonitor l = new ActivityMonitor( applyAutoConfigurations: false );
+            IActivityMonitor l = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var wLogLovely = new StringBuilder();
             var rawLog = new StupidStringClient();
             l.Output.RegisterClient( rawLog );
@@ -231,7 +231,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void ending_a_monitor_send_an_unfilitered_MonitorEnd_tagged_info()
         {
-            IActivityMonitor m = new ActivityMonitor( applyAutoConfigurations: false );
+            IActivityMonitor m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var rawLog = new StupidStringClient();
             m.Output.RegisterClient( rawLog );
             m.OpenFatal( "a group" );
@@ -250,7 +250,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void AggregatedException_are_handled_specifically()
         {
-            IActivityMonitor l = new ActivityMonitor( applyAutoConfigurations: false );
+            IActivityMonitor l = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var wLogLovely = new StringBuilder();
             var logLovely = new ActivityMonitorTextWriterClient( ( s ) => wLogLovely.Append( s ) );
             l.Output.RegisterClient( logLovely );
@@ -287,7 +287,7 @@ namespace CK.Core.Tests.Monitoring
             LogFilter FatalFatal = new LogFilter( LogLevelFilter.Fatal, LogLevelFilter.Fatal );
             LogFilter WarnWarn = new LogFilter( LogLevelFilter.Warn, LogLevelFilter.Warn );
 
-            IActivityMonitor l = new ActivityMonitor( false );
+            IActivityMonitor l = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var log = l.Output.RegisterClient( new StupidStringClient() );
             using( l.TemporarilySetMinimalFilter( LogLevelFilter.Error, LogLevelFilter.Error ) )
             {
@@ -446,7 +446,7 @@ namespace CK.Core.Tests.Monitoring
         public void ActivityMonitorPathCatcher_tests()
         {
 
-            var monitor = new ActivityMonitor( applyAutoConfigurations: false );
+            var monitor = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             ActivityMonitorPathCatcher p = new ActivityMonitorPathCatcher();
             monitor.Output.RegisterClient( p );
 
@@ -589,7 +589,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void ActivityMonitorErrorCounter_and_ActivityMonitorPathCatcher_Clients_work_together()
         {
-            var monitor = new ActivityMonitor( applyAutoConfigurations: false );
+            var monitor = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             // Registers the ErrorCounter first: it will be the last one to be called, but
             // this does not prevent the PathCatcher to work: the path elements reference the group
             // so that any conclusion arriving after PathCatcher.OnClosing are available.
@@ -689,7 +689,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void ActivityMonitorSimpleCollector_is_a_Client_that_filters_and_stores_its_Capacity_count_of_last_log_entries()
         {
-            IActivityMonitor d = new ActivityMonitor( applyAutoConfigurations: false );
+            IActivityMonitor d = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var c = new ActivityMonitorSimpleCollector();
             d.Output.RegisterClient( c );
             d.Warn( "1" );
@@ -776,7 +776,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void OnError_fires_synchronously()
         {
-            var m = new ActivityMonitor( false );
+            var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             bool hasError = false;
             using( m.OnError( () => hasError = true ) )
             using( m.OpenInfo( "Handling StObj objects." ) )
@@ -817,7 +817,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void setting_the_MininimalFilter_of_a_bound_Client_is_thread_safe()
         {
-            ActivityMonitor m = new ActivityMonitor( false );
+            ActivityMonitor m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var tester = m.Output.RegisterClient( new ActivityMonitorClientTester() );
 
             m.ActualFilter.Should().Be( LogFilter.Undefined );
@@ -828,7 +828,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void BoundClient_IsDead_flag_is_handled()
         {
-            ActivityMonitor m = new ActivityMonitor( false );
+            ActivityMonitor m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var tester = m.Output.RegisterClient( new ActivityMonitorClientTester() );
 
             m.Error( "Hello World!" );
@@ -848,7 +848,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void BoundClient_IsDead_flag_must_use_SignalChange_to_signal_its_change()
         {
-            ActivityMonitor m = new ActivityMonitor( false );
+            ActivityMonitor m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var tester = m.Output.RegisterClient( new ActivityMonitorClientTester() );
 
             m.Error( "Hello World!" );
@@ -878,7 +878,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void in_a_OpenError_or_OpenFatal_group_level_is_automatically_sets_to_Debug()
         {
-            ActivityMonitor m = new ActivityMonitor( false );
+            ActivityMonitor m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var tester = m.Output.RegisterClient( new ActivityMonitorClientTester() );
             m.MinimalFilter = LogFilter.Release;
             m.Debug( "Here I am in NOT in Debug." );
@@ -898,7 +898,7 @@ namespace CK.Core.Tests.Monitoring
             var ex = new Exception( null );
             ex.Message.Should().Be( "Exception of type 'System.Exception' was thrown." );
 
-            ActivityMonitor m = new ActivityMonitor( false );
+            ActivityMonitor m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var tester = m.Output.RegisterClient( new ActivityMonitorClientTester() );
             m.Fatal( new Exception( "" ) );
             tester.ReceivedTexts

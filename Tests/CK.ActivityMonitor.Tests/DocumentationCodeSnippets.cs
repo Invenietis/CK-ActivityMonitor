@@ -146,7 +146,7 @@ namespace CK.Core.Tests.Monitoring
                 var m = new ActivityMonitor();
             }
             {
-                var m = new ActivityMonitor( applyAutoConfigurations: false );
+                var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             }
             {
                 IActivityMonitor m = new ActivityMonitor();

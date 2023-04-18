@@ -23,7 +23,7 @@ namespace CK.Core.Tests.Monitoring
             bool isNormalizedNullMessage = string.IsNullOrWhiteSpace( message );
             bool isNormalizedNullTopic = string.IsNullOrWhiteSpace( topic );
 
-            var monitor = new ActivityMonitor( applyAutoConfigurations: false );
+            var monitor = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             monitor.SetTopic( "This is the monitor's topic." );
 
             ActivityMonitor.DependentToken token;
@@ -80,7 +80,7 @@ namespace CK.Core.Tests.Monitoring
         {
             TestHelper.LogsToConsole = true;
 
-            ActivityMonitor m = new ActivityMonitor( applyAutoConfigurations: false );
+            ActivityMonitor m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             StupidStringClient cCreate = m.Output.RegisterClient( new StupidStringClient() );
 
             // Generates a token with time collision.

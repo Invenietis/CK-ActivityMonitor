@@ -27,7 +27,7 @@ namespace CK.Core
         /// this allocates objects but it's easier to inject the struct back and we don't care here
         /// since we are in an edge case.
         /// </summary>
-        sealed class LogsRecorder : IActivityMonitorBoundClient
+        sealed class LogsRecorder : IActivityMonitorClient
         {
             readonly ActivityMonitor _primary;
             public readonly List<object> History;
@@ -38,7 +38,7 @@ namespace CK.Core
             {
                 _primary = primary;
                 History = new List<object>();
-                InternalMonitor = new ActivityMonitor( _generatorId.GetNextString(), Tags.Empty, false, primary._stampProvider, primary._logger );
+                InternalMonitor = new ActivityMonitor( _primary._uniqueId, Tags.Empty, ActivityMonitorOptions.SkipAutoConfiguration, primary._dataFactory );
                 InternalMonitor.Output.RegisterClient( this );
             }
 
@@ -56,10 +56,7 @@ namespace CK.Core
             {
                 if( !_replaying )
                 {
-                    // This ensures that an InternalMonitor's log won't clash with the primary
-                    // monitor stamps.
-                    var copy = _primary.DataFactory.CreateLogData( data.Level, data.Tags, data.Text, data.Exception, data.FileName, data.LineNumber );
-                    History.Add( copy );
+                    History.Add( data );
                 }
             }
 
@@ -67,9 +64,7 @@ namespace CK.Core
             {
                 if( !_replaying )
                 {
-                    var data = group.Data;
-                    var copy = _primary.DataFactory.CreateLogData( data.Level, data.Tags, data.Text, data.Exception, data.FileName, data.LineNumber );
-                    History.Add( Tuple.Create( copy ) );
+                    History.Add( Tuple.Create( group.Data ) );
                 }
             }
 
@@ -81,11 +76,7 @@ namespace CK.Core
             {
                 if( !_replaying )
                 {
-                    throw new NotImplementedException();
-                    var closeTime = _primary._stampProvider != null
-                                    ? _primary._stampProvider.GetNext( group.CloseLogTime.TimeUtc )
-                                    : (_primary._lastLogTime = new DateTimeStamp( _primary._lastLogTime, group.CloseLogTime ));
-                    History.Add( Tuple.Create( closeTime, conclusions ) );
+                    History.Add( Tuple.Create( group.CloseLogTime, conclusions ) );
                 }
             }
 
@@ -95,16 +86,6 @@ namespace CK.Core
 
             void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )
             {
-            }
-            LogFilter IActivityMonitorBoundClient.MinimalFilter => LogFilter.Undefined;
-
-            bool IActivityMonitorBoundClient.IsDead => false;
-
-            void IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl? source, bool forceBuggyRemove )
-            {
-                // Do not check here that the source is _primary._internalMonitor because this is called from the
-                // InternalMonitor's constructor: _internalMonitor is still null.
-                // This is not an issue since all of this is totally internal.
             }
         }
 
@@ -171,11 +152,10 @@ namespace CK.Core
             int balancedGroup = 0;
             try
             {
-                // Secure any unclosed groups.
+                // Secure any unclosed groups. This is not like the LogsRecorder here since
+                // we manage the recorded monitor we can reset its groups.
                 while( _recorder.InternalMonitor.CloseGroup() ) ;
-                // Replay the history, trusting the existing data time but
-                // changing the monitor identifier from the internal one to the
-                // actual monitor's identifier.
+                // Replay the history. 
                 _recorder.OnStartReplay();
                 foreach( var o in _recorder.History )
                 {
@@ -195,8 +175,8 @@ namespace CK.Core
                             line.MutateForReplay( _uniqueId, _currentDepth );
                             DoUnfilteredLog( ref line );
                             break;
-                        case Tuple<DateTimeStamp, IReadOnlyList<ActivityLogGroupConclusion>?> close:
-                            DoCloseGroup( close.Item2, close.Item1 );
+                        case Tuple<DateTimeStamp, IReadOnlyList<ActivityLogGroupConclusion>> close:
+                            ReplayClosedGroup( close.Item1, close.Item2 );
                             --balancedGroup;
                             break;
                     }

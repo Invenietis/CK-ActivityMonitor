@@ -21,6 +21,8 @@ namespace CK.Core
                 {
                     return _logger.CreateLogData( false, level, finalTags, text, exception, fileName, lineNumber );
                 }
+
+                public DateTimeStamp GetLogTime() => _logger.GetLogTime();
             }
 
             readonly ActivityMonitor _monitor;
@@ -54,6 +56,14 @@ namespace CK.Core
                 return CreateLogData( true, level, finalTags, text, exception, fileName, lineNumber );
             }
 
+            public DateTimeStamp GetLogTime()
+            {
+                lock( _lock )
+                {
+                    return _monitor._lastLogTime = new DateTimeStamp( _monitor._lastLogTime, DateTime.UtcNow );
+                }
+            }
+
             internal ActivityMonitorLogData CreateLogData( bool isParallel,
                                                            LogLevel level,
                                                            CKTrait finalTags,
@@ -62,6 +72,12 @@ namespace CK.Core
                                                            string? fileName,
                                                            int lineNumber )
             {
+                // Taking the depth here in the critical section guaranties that the data's depth
+                // of parallel data is coherent with the regular activity.
+                // That doesn't mean that the final ordering is guaranteed: it's up to the log sink
+                // to reorder the log entries if it wants. The time window is rather narrow: unordered
+                // entries can appear between CreateLogData -> Output -> Client -> Sink vs.
+                // CreateLogData -> OnStaticLog -> Sink.
                 DateTimeStamp logTime;
                 int depth;
                 lock( _lock )

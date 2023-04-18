@@ -173,7 +173,7 @@ namespace CK.Core
                 }
             }
 
-            internal void GroupClosing( ref List<ActivityLogGroupConclusion>? conclusions )
+            internal void AddGetConclusionText( ref List<ActivityLogGroupConclusion>? conclusions )
             {
                 Debug.Assert( _isOpen );
                 if( _getConclusion != null )

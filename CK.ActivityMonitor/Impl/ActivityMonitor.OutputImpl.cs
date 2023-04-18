@@ -43,11 +43,12 @@ namespace CK.Core
                                                    lineNumber );
             }
 
+            DateTimeStamp ActivityMonitorLogData.IFactory.GetLogTime() => _monitor._lastLogTime = new DateTimeStamp( _monitor._lastLogTime, DateTime.UtcNow );
 
             public IActivityMonitorClient RegisterClient( IActivityMonitorClient client, out bool added )
             {
                 Throw.CheckNotNullArgument( client );
-                using( _monitor.ReentrancyAndConcurrencyLock() )
+                using( ((IActivityMonitorImpl)_monitor).ReentrancyAndConcurrencyLock() )
                 {
                     added = false;
                     return DoRegisterClient( client, ref added );
@@ -102,7 +103,7 @@ namespace CK.Core
             {
                 Throw.CheckNotNullArgument( tester );
                 Throw.CheckNotNullArgument( factory );
-                using( _monitor.ReentrancyAndConcurrencyLock() )
+                using( ((IActivityMonitorImpl)_monitor).ReentrancyAndConcurrencyLock() )
                 {
                     T? e = _clients.OfType<T>().FirstOrDefault( tester );
                     if( e == null )
@@ -127,7 +128,7 @@ namespace CK.Core
             public IActivityMonitorClient? UnregisterClient( IActivityMonitorClient client )
             {
                 Throw.CheckNotNullArgument( client );
-                using( _monitor.ReentrancyAndConcurrencyLock() )
+                using( ((IActivityMonitorImpl)_monitor).ReentrancyAndConcurrencyLock() )
                 {
                     int idx;
                     if( (idx = _clients.IndexOf( client )) >= 0 )

@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace CK.Core
@@ -26,13 +27,18 @@ namespace CK.Core
             /// <param name="exception">Optional exception.</param>
             /// <param name="fileName">Source file name of the log.</param>
             /// <param name="lineNumber">Source line number of the log.</param>
-            /// 
+            /// <returns>The ready to send data.</returns>
             ActivityMonitorLogData CreateLogData( LogLevel level,
                                                   CKTrait finalTags,
                                                   string? text,
                                                   Exception? exception,
                                                   string? fileName,
                                                   int lineNumber );
+            /// <summary>
+            /// Updates and obtain a current log time. 
+            /// </summary>
+            /// <returns>The log time to use now.</returns>
+            DateTimeStamp GetLogTime();
         }
 
         string _text;

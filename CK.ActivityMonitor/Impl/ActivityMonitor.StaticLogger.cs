@@ -38,6 +38,14 @@ namespace CK.Core
                 return new ActivityMonitorLogData( ExternalLogMonitorUniqueId, logTime, 0, true, level, finalTags, text, exception, fileName, lineNumber );
             }
 
+            public DateTimeStamp GetLogTime()
+            {
+                lock( _lock )
+                {
+                    return _lastLogTime = new DateTimeStamp( _lastLogTime, DateTime.UtcNow );
+                }
+            }
+
             public void UnfilteredLog( ref ActivityMonitorLogData data )
             {
                 OnStaticLog?.Invoke( ref data );

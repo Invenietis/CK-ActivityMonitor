@@ -12,7 +12,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void single_tag_configuration()
         {
-            var m = new ActivityMonitor( applyAutoConfigurations: false );
+            var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var c = m.Output.RegisterClient( new StupidStringClient() );
 
             ActivityMonitor.DefaultFilter.Should().Be( LogFilter.Trace );
@@ -41,7 +41,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void tags_configuration_orders_matters_since_first_subset_matched_wins()
         {
-            var m = new ActivityMonitor( applyAutoConfigurations: false );
+            var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var c = m.Output.RegisterClient( new StupidStringClient() );
 
             int hole = Environment.TickCount % 10;
