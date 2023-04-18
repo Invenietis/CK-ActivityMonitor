@@ -4,11 +4,13 @@ using System.Runtime.CompilerServices;
 
 namespace CK.Core
 {
-
     /// <summary>
     /// Ultimate possible abstraction of <see cref="IActivityMonitor"/> and <see cref="IParallelLogger"/>:
     /// it is context-less and can only log lines (not groups), there is no local <see cref="IActivityMonitor.Output"/>
-    /// and no <see cref="IParallelLogger.CreateDependentToken(string?, string?, string?, int)"/> capability.
+    /// and no <see cref="IParallelLogger.CreateDependentToken"/> capability.
+    /// <para>
+    /// Most of the methods commonly used are extension methods.
+    /// </para>
     /// </summary>
     public interface IActivityLogger
     {

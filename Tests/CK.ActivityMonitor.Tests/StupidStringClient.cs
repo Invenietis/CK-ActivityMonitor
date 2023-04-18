@@ -137,7 +137,7 @@ namespace CK.Core.Tests.Monitoring
         {
             Entries.Add( new Entry( g ) );
             Writer.WriteLine();
-            Writer.Write( new String( '+', g.Depth ) );
+            Writer.Write( new String( '+', g.Data.Depth + 1 ) );
             Writer.Write( "{1} ({0})", g.Data.MaskedLevel, g.Data.Text );
             if( g.Data.Exception != null ) Writer.Write( "Exception: " + g.Data.Exception.Message );
             if( WriteTags ) Writer.Write( "-[{0}]", g.Data.Tags.ToString() );
@@ -147,7 +147,7 @@ namespace CK.Core.Tests.Monitoring
         {
             Entries.Last( e => e.GroupForConclusions == g ).Conclusions = conclusions;
             Writer.WriteLine();
-            Writer.Write( new String( '-', g.Depth ) );
+            Writer.Write( new String( '-', g.Data.Depth + 1 ) );
             if( conclusions != null )
             {
                 if( WriteConclusionTraits )

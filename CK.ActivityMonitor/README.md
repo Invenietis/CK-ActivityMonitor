@@ -100,17 +100,18 @@ Before this recommendation appears we used:
 Those names are supported but the .Net standard ones should be preferred.
 
 ## IActivityLogger vs. IActivityMonitor
-A `IActivityLogger` is close to classical logging solutions: only lines can be emitted. Since it exposes an `AutoTags`
-and an `ActualFilter`, any filtering/sender extension methods are possible. 
+A `IActivityLogger` is close to more classical logging solutions: only lines can be emitted. Since it exposes an `AutoTags`
+and an `ActualFilter`, any filtering/sender extension methods are possible.
+
+The `ActivityMonitor.StaticLogger` is a `IActivityLogger`.  
 
 ```csharp
 /// <summary>
-/// Ultimate possible abstraction of a <see cref="IActivityMonitor"/>: it is context-less and can
-/// only log lines (not groups), there is no local <see cref="IActivityMonitor.Output"/>.
+/// Ultimate possible abstraction of <see cref="IActivityMonitor"/> and <see cref="IParallelLogger"/>:
+/// it is context-less and can only log lines (not groups), there is no local <see cref="IActivityMonitor.Output"/>
+/// and no <see cref="IParallelLogger.CreateDependentToken"/> capability.
 /// <para>
-/// This unifies context-less loggers like <see cref="ActivityMonitor.StaticLogger"/> and regular
-/// contextual <see cref="ActivityMonitor"/>: filtered extension methods and any other extension
-/// methods that deals only with log lines uniformly apply to regular monitors and context-less loggers.
+/// Most of the methods commonly used are extension methods.
 /// </para>
 /// </summary>
 public interface IActivityLogger
@@ -133,27 +134,15 @@ public interface IActivityLogger
     LogLevelFilter ActualFilter { get; }
 
     /// <summary>
-    /// Logs a text regardless of any filter (except for <see cref="LogLevelFilter.Off"/>). 
+    /// Low level factory of log data.
     /// </summary>
-    /// <param name="data">
-    /// Data that describes the log. When <see cref="ActivityMonitorLogData.MaskedLevel"/> 
-    /// is <see cref="LogLevel.None"/>, nothing happens (whereas for group, a rejected group is recorded and returned).
-    /// </param>
-    /// <remarks>
-    /// A null or empty <see cref="ActivityMonitorLogData.Text"/> is logged as <see cref="ActivityMonitor.NoLogText"/>.
-    /// </remarks>
-    void UnfilteredLog( ref ActivityMonitorLogData data );
+    ActivityMonitorLogData.IFactory DataFactory { get; }
 
     /// <summary>
-    /// Returns a valid <see cref="DateTimeStamp"/> that can be used for a log: it is based on <see cref="DateTime.UtcNow"/> and has 
-    /// a <see cref="DateTimeStamp.Uniquifier"/> that will not be changed when emitting the next log.
-    /// <para>
-    /// This uses the <see cref="DateTimeStampProvider"/> or an internal, lock-free, current value. In both cases, this
-    /// value is ever increasing.
-    /// </para>
+    /// Sends a line of logs regardless of any filter. 
     /// </summary>
-    /// <returns>The next stamp time to use for this logger or monitor.</returns>
-    DateTimeStamp GetAndUpdateNextLogTime();
+    /// <param name="data">Data that describes the log.</param>
+    void UnfilteredLog( ref ActivityMonitorLogData data );
 }
 ```
 
@@ -166,23 +155,42 @@ The `IActivityLogger.AutoTags` and `ActualFilter` cannot be changed at this leve
 - For the `ActivityMonitor.StaticLogger`, the tags are empty and the ActualFilter is the static default `ActivityMonitor.DefaultFilter.Line` value.
 - For `IActivityLogger` implementations, these are the current values of the internal monitor.
 
-Starting with version v19.0.0, each `ActivityMonitor` can expose a `IActivityMonitor.ThreadSafeLogger`:
-this is available when a thread safe `DateTimeStampProvider` is used in the ActivityMonitor's constructor
-and sends its log lines through the <see cref="ActivityMonitor.OnStaticLog"/> event,
+Starting with version v19.0.0, each `ActivityMonitor` can expose a `IActivityMonitor.ParallelLogger`:
+available when the ActivityMonitor's constructor is called with the [`ActivityMonitorOptions.WithParallel`](ActivityMonitorOptions.cs).
+options.
+
+It sends its log lines through the <see cref="ActivityMonitor.OnStaticLog"/> event,
 not through the `IActivityMonitor.Output`: the logs ordering relative to the monitor is preserved BUT these thread safe
 logs cannot be observed by the monitor's output `IActivityMonitorClient`.
 
-------------
+A `IParallelLogger` can create DependentToken since it is bound to its monitor.
 
-Having "thread safe lines" to be both ordered in a final sink and be seen by the monitor's output would require a
-lock protecting the logging. This is not an option: contention will be too high.
-
-If all log lines, even the one emitted by independent threads, must be routed to the monitor's Output and its Clients,
-an alternate implementation is possible that is available as a sample: please take the time to have a look at
-the [`AlternateThreadSafeLogger` sample](../Tests/CK.ActivityMonitor.Tests/DataPool/AlternateThreadSafeLogger.cs)
-(and understand [how memory is managed](ActivityMonitorLogData.md) before implementing such beasts).
-
-------------
-
+```csharp
+/// <summary>
+/// Parallel logger can be provided by <see cref="IActivityMonitor.ParallelLogger"/>.
+/// They cannot manage structured logging (no groups), just like <see cref="IActivityLogger"/>, only lines
+/// can be emitted but this adds the capability to create dependent tokens.
+/// </summary>
+public interface IParallelLogger : IActivityLogger
+{
+    /// <summary>
+    /// Creates a token for a dependent activity that will set a specified topic (or that will not change the dependent monitor's topic
+    /// if null is specified).
+    /// <para>
+    /// The extension method <see cref="ActivityMonitorExtension.StartDependentActivity"/>
+    /// must be used on the target monitor to open and close the activity. If not null, the provided topic will be temporarily set on the
+    /// target monitor otherwise the target topic will not be changed.
+    /// </para>
+    /// </summary>
+    /// <param name="message">Optional message for the token creation log.</param>
+    /// <param name="dependentTopic">Optional dependent topic.</param>
+    /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
+    /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
+    ActivityMonitor.DependentToken CreateDependentToken( string? message = null,
+                                                          string? dependentTopic = null,
+                                                          [CallerFilePath] string? fileName = null,
+                                                          [CallerLineNumber] int lineNumber = 0 );
+}
+```
 
 

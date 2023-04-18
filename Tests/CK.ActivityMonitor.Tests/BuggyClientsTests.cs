@@ -60,7 +60,7 @@ namespace CK.Core.Tests.Monitoring
                 {
                     var old = _minimalFilter;
                     _minimalFilter = value;
-                    if( _source != null ) _source.OnClientMinimalFilterChanged( old, value );
+                    if( _source != null ) _source.SignalChange();
                 }
             }
 

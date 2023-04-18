@@ -12,8 +12,6 @@ using System.Runtime.CompilerServices;
 
 namespace CK.Core.Tests.Monitoring
 {
-
-
     public class ActivityMonitorTests
     {
         [SetUp]
@@ -892,7 +890,7 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Test]
-        [SetCulture("en-US")]
+        [SetCulture( "en-US" )]
         public void an_empty_exception_message_is_handled_with_no_log_string()
         {
             var ex = new Exception( null );
@@ -905,5 +903,28 @@ namespace CK.Core.Tests.Monitoring
                 .Should().Match( e => e.Any( t => t.Contains( "[no-log]" ) ) );
 
         }
+
+        [Test]
+        public void rejected_groups_test()
+        {
+            ActivityMonitor m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
+            m.MinimalFilter = LogFilter.Minimal;
+            using( m.CollectTexts( out var logs ) )
+            {
+                using( m.OpenTrace( "NOSHOW" ) )
+                {
+                    using( m.OpenInfo( "G1" ) )
+                    {
+                        using( m.OpenTrace( "NOSHOW" ) )
+                        {
+                            m.Warn( "Warn" );
+                        }
+                    }
+                }
+                logs.Concatenate().Should().Be( "G1, Warn" );
+            }
+        }
+
+
     }
 }

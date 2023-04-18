@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using CK.Core.Impl;
@@ -17,54 +18,46 @@ namespace CK.Core
         /// </summary>
         sealed class Group : IActivityLogGroup, IDisposableGroup
         {
-            /// <summary>
-            /// The monitor that owns this group.
-            /// </summary>
             public readonly ActivityMonitor Monitor;
-
-            /// <summary>
-            /// The raw index of the group. 
-            /// </summary>
-            public readonly int Index;
-
+            public readonly Group? Parent;
+            Group? _next;
             Func<string?>? _getConclusion;
 
             CKTrait _savedMonitorTags;
-            Group? _unfilteredParent;
+            LogFilter _savedMonitorFilter;
+            bool _savedTrackStackTrace;
             ActivityMonitorLogData _data;
             DateTimeStamp _closeLogTime;
             bool _isOpen;
-            int _depth;
+            bool _isRejected;
 
-            /// <summary>
-            /// Initialized a new Group at a given index.
-            /// </summary>
-            /// <param name="monitor">Monitor.</param>
-            /// <param name="index">Index of the group.</param>
-            internal Group( ActivityMonitor monitor, int index )
+            internal Group( ActivityMonitor monitor, Group? parent )
             {
                 _savedMonitorTags = ActivityMonitor.Tags.Empty;
                 Monitor = monitor;
-                Index = index;
+                Parent = parent;
             }
+
+            internal Group? EnsureNext() => _next ??= new Group( Monitor, this );
 
             /// <summary>
             /// Initializes or reinitializes this group (if it has been disposed). 
             /// </summary>
             internal void Initialize( ref ActivityMonitorLogData data )
             {
+                data.Freeze();
                 _data = data;
+                _savedMonitorFilter = Monitor._configuredFilter;
+                _savedMonitorTags = Monitor._autoTags;
+                _savedTrackStackTrace = Monitor._trackStackTrace;
 
-                SavedMonitorFilter = Monitor._configuredFilter;
-                SavedMonitorTags = Monitor._autoTags;
-                SavedTrackStackTrace = Monitor._trackStackTrace;
-                if( (_unfilteredParent = Monitor._currentUnfiltered) != null ) _depth = _unfilteredParent._depth + 1;
-                else _depth = 1;
                 // Logs everything when a Group is a fatal or an error: we then have full details available without
                 // requiring to log all with Error or Fatal level.
                 if( data.MaskedLevel >= LogLevel.Error && Monitor._configuredFilter != LogFilter.Debug ) Monitor.DoSetConfiguredFilter( LogFilter.Debug );
                 _closeLogTime = default;
                 _isOpen = true;
+                _isRejected = false;
+                ++Monitor._currentDepth;
             }
 
             /// <summary>
@@ -73,18 +66,17 @@ namespace CK.Core
             internal void InitializeRejectedGroup()
             {
                 _data = default;
-                SavedMonitorFilter = Monitor._configuredFilter;
-                SavedMonitorTags = Monitor._autoTags;
-                SavedTrackStackTrace = Monitor._trackStackTrace;
-                _unfilteredParent = Monitor._currentUnfiltered;
-                _depth = 0;
+                _savedMonitorFilter = Monitor._configuredFilter;
+                _savedMonitorTags = Monitor._autoTags;
+                _savedTrackStackTrace = Monitor._trackStackTrace;
                 _isOpen = true;
+                _isRejected = true;
             }
 
             /// <summary>
             /// Gets whether the group is rejected.
             /// </summary>
-            public bool IsRejectedGroup => _depth == 0;
+            public bool IsRejectedGroup => _isRejected;
 
             /// <summary>
             /// Gets the log time of the group closing.
@@ -96,42 +88,19 @@ namespace CK.Core
                 internal set { _closeLogTime = value; }
             }
 
-            /// <summary>
-            /// Get the previous group in its origin monitor. Null if this group is a top level group.
-            /// </summary>
-            public IActivityLogGroup? Parent => _unfilteredParent;
+            IActivityLogGroup? IActivityLogGroup.Parent => Parent;
 
-            /// <summary>
-            /// Gets the depth of this group in its origin monitor (1 for top level groups).
-            /// </summary>
-            public int Depth => _depth;
-
-            /// <summary>
-            /// Gets the log data itself.
-            /// </summary>
             public ref ActivityMonitorLogData Data => ref _data;
 
-            /// <summary>
-            /// Gets or sets the <see cref="IActivityMonitor.MinimalFilter"/> that will be restored when group will be closed.
-            /// Initialized with the current value of IActivityMonitor.Filter when the group has been opened.
-            /// </summary>
-            public LogFilter SavedMonitorFilter { get; private set; }
+            public LogFilter SavedMonitorFilter => _savedMonitorFilter;
 
             /// <summary>
             /// Internal memory of whether the <see cref="Tags.StackTrace"/> tag exists in <see cref="IActivityMonitor.AutoTags"/>
             /// that will be restored when the group is closed.
             /// </summary>
-            internal bool SavedTrackStackTrace { get; private set; }
+            internal bool SavedTrackStackTrace => _savedTrackStackTrace;
 
-            /// <summary>
-            /// Gets or sets the <see cref="IActivityMonitor.AutoTags"/> that will be restored when group will be closed.
-            /// Initialized with the current value of IActivityMonitor.Tags when the group has been opened.
-            /// </summary>
-            public CKTrait SavedMonitorTags
-            {
-                get => _savedMonitorTags;
-                private set => _savedMonitorTags = value;
-            }
+            public CKTrait SavedMonitorTags => _savedMonitorTags;
 
             IDisposable IDisposableGroup.ConcludeWith( Func<string?> getConclusionText )
             {
@@ -152,24 +121,21 @@ namespace CK.Core
             /// </summary>
             void IDisposable.Dispose()
             {
-                bool isNotReentrant = Monitor.ConcurrentOnlyCheck();
+                Monitor.ReentrantAndConcurrentCheck();
                 try
                 {
                     if( _isOpen )
                     {
-                        Group? g = Monitor._current;
-                        while( g != this )
+                        while( Monitor._current != this )
                         {
-                            Debug.Assert( g != null, "The current group cannot be null (or this object would have been already disposed)." );
-                            ((IDisposable)g).Dispose();
-                            g = Monitor._current;
+                            Monitor.CloseGroup( null );
                         }
                         Monitor.CloseGroup( null );
                     }
                 }
                 finally
                 {
-                    if( isNotReentrant ) Monitor.ReentrantAndConcurrentRelease();
+                    Monitor.ReentrantAndConcurrentRelease();
                 }
             }
 
@@ -196,9 +162,15 @@ namespace CK.Core
                 }
             }
 
-            internal void GroupClosed() => _isOpen = false;
+            internal void CloseGroup()
+            {
+                if( _savedMonitorFilter != Monitor._configuredFilter ) Monitor.DoSetConfiguredFilter( _savedMonitorFilter );
+                Monitor._autoTags = _savedMonitorTags;
+                Monitor._trackStackTrace = _savedTrackStackTrace;
+                Monitor._current = Parent;
+                if( !_isRejected ) --Monitor._currentDepth;
+                _isOpen = false;
+            }
         }
-
-        IActivityLogGroup? IActivityMonitorImpl.CurrentGroup => _current;
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace CK.Core
 {
@@ -26,10 +26,10 @@ namespace CK.Core
         SkipAutoConfiguration = 2,
 
         /// <summary>
-        /// Ignores <see cref="ActivityMonitor.AutoConfiguration"/> and
-        /// provides a <see cref="IActivityMonitor.ParallelLogger"/>.
+        /// Captures initial logs and replays them into each new registered <see cref="IActivityMonitorClient"/>.
         /// </summary>
-        WithParallelAndSkipAutoConfiguration = 3,
+        WithInitialReplay = 4
+        
     }
 
 }

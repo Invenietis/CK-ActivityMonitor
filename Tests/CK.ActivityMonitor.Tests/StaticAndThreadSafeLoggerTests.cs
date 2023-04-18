@@ -127,7 +127,7 @@ namespace CK.Core.Tests.Monitoring
             var noLogger = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration, null );
             noLogger.ParallelLogger.Should().BeNull( "No DateTimeStampProvider." );
 
-            var m = new ActivityMonitor( ActivityMonitorOptions.WithParallelAndSkipAutoConfiguration );
+            var m = new ActivityMonitor( ActivityMonitorOptions.WithParallel| ActivityMonitorOptions.SkipAutoConfiguration );
             m.ParallelLogger.Should().NotBeNull();
             using( m.CollectTexts( out var logs ) )
             {

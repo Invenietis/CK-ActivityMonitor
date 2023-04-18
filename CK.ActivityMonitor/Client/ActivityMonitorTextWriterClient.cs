@@ -172,7 +172,7 @@ namespace CK.Core
             {
                 if( c.Text.Contains( '\n' ) )
                 {
-                    if( withMultiLines == null ) withMultiLines = new List<ActivityLogGroupConclusion>();
+                    withMultiLines ??= new List<ActivityLogGroupConclusion>();
                     withMultiLines.Add( c );
                 }
                 else

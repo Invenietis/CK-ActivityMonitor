@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 
 namespace CK.Core
 {
@@ -13,7 +13,7 @@ namespace CK.Core
         /// Creates a token for a dependent activity that will set a specified topic (or that will not change the dependent monitor's topic
         /// if null is specified).
         /// <para>
-        /// The extension method <see cref="StartDependentActivity(IActivityMonitor, ActivityMonitor.DependentToken, bool, LogLevel, bool, string?, int)">StartDependentActivity( token )</see>
+        /// The extension method <see cref="ActivityMonitorExtension.StartDependentActivity"/>
         /// must be used on the target monitor to open and close the activity. If not null, the provided topic will be temporarily set on the
         /// target monitor otherwise the target topic will not be changed.
         /// </para>

@@ -175,9 +175,8 @@ namespace CK.Core
             get { return _filter; }
             set
             {
-                LogFilter oldFilter = _filter.Filter;
                 _filter = value;
-                _source?.OnClientMinimalFilterChanged( oldFilter, _filter.Filter );
+                _source?.SignalChange();
             }
         }
 

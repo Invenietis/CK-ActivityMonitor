@@ -61,7 +61,10 @@ namespace CK.Core
         /// the text is set to the exception's message or to <see cref="ActivityMonitor.NoLogText"/>.
         /// </summary>
         /// <param name="monitorId">The monitor identifier.</param>
+        /// <param name="logTime">The log time.</param>
+        /// <param name="depth">The log depth.</param>
         /// <param name="level">The log level that may be flagged with <see cref="LogLevel.IsFiltered"/> or not.</param>
+        /// <param name="isParallel">Whether the log is a parallel or emitted from a monitor.</param>
         /// <param name="finalTags">The final tags (combines the monitors and the line's ones).</param>
         /// <param name="text">The text.</param>
         /// <param name="exception">Optional exception.</param>
@@ -183,8 +186,7 @@ namespace CK.Core
 
 
         /// <summary>
-        /// Acquires a cached data from this one (this locks this data, the <see cref="LogTime"/> must be <see cref="DateTimeStamp.IsKnown"/>).
-        /// Use <see cref="AcquireExternalData(DateTimeStampProvider,bool)"/> to set the <see cref="LogTime"/>.
+        /// Acquires a cached data.
         /// <para>
         /// The acquired object MUST be <see cref="ActivityMonitorExternalLogData.Release()"/>.
         /// </para>
@@ -269,7 +271,7 @@ namespace CK.Core
         /// Resets the <see cref="Text"/>.
         /// This should obviously be used with care and cannot be called after <see cref="AcquireExternalData()"/> has been called.
         /// </summary>
-        /// <param name="logTime">The time log.</param>
+        /// <param name="text">The text.</param>
         public void SetText( string text )
         {
             Throw.CheckNotNullOrEmptyArgument( text );
@@ -289,10 +291,9 @@ namespace CK.Core
             _tags = tags;
         }
 
-        internal void MutateForReplay( string monitorId, int depth )
+        internal void MutateForReplay( int depth )
         {
             _tags |= ActivityMonitor.Tags.InternalMonitor;
-            _monitorId = monitorId;
             _depth = depth;
         }
     }

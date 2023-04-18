@@ -39,7 +39,9 @@ namespace CK.Core
         public static bool ShouldLogLine( this IActivityLogger @this, LogLevel level, CKTrait? tags, out CKTrait finalTags )
         {
             finalTags = @this.AutoTags + tags;
-            return ActivityMonitor.Tags.ApplyForLine( level, finalTags, @this.ActualFilter );
+            // Required to trigger the re-computation of the actual filter if it has been signaled.
+            var f = @this is IActivityMonitor m ? m.ActualFilter.Line : @this.ActualFilter;
+            return ActivityMonitor.Tags.ApplyForLine( level, finalTags, f );
         }
 
         /// <summary>

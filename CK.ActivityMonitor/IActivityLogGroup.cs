@@ -9,7 +9,7 @@ namespace CK.Core
     public interface IActivityLogGroup
     {
         /// <summary>
-        /// Gets the log data.
+        /// Gets the log data (<see cref="ActivityMonitorLogData.IsFrozen"/> is true).
         /// </summary>
         ref ActivityMonitorLogData Data { get; }
 
@@ -23,11 +23,6 @@ namespace CK.Core
         /// Get the previous group in its origin monitor. Null if this group is a top level group.
         /// </summary>
         IActivityLogGroup? Parent { get; }
-
-        /// <summary>
-        /// Gets the depth of this group in its origin monitor. (1 for top level groups).
-        /// </summary>
-        int Depth { get; }
 
         /// <summary>
         /// Gets the <see cref="IActivityMonitor.MinimalFilter"/> that will be restored when group will be closed.

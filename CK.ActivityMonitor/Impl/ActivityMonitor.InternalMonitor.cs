@@ -12,6 +12,8 @@ namespace CK.Core
 {
     public sealed partial class ActivityMonitor
     {
+
+
         IActivityMonitor IActivityMonitorImpl.InternalMonitor
         {
             get
@@ -161,19 +163,19 @@ namespace CK.Core
                 {
                     switch( o )
                     {
-                        case Tuple<ActivityMonitorLogData> group:
-                            var d = group.Item1;
-                            d.MutateForReplay( _uniqueId, _currentDepth );
-                            DoOpenGroup( ref d );
-                            ++balancedGroup;
-                            break;
                         case ActivityMonitorLogData line:
                             if( line.Tags.AtomicTraits.Contains( Tags.MonitorTopicChanged ) )
                             {
                                 changedTopic = line.Text.Substring( SetTopicPrefix.Length );
                             }
-                            line.MutateForReplay( _uniqueId, _currentDepth );
-                            DoUnfilteredLog( ref line );
+                            line.MutateForReplay( _currentDepth );
+                            ReplayUnfilteredLog( ref line );
+                            break;
+                        case Tuple<ActivityMonitorLogData> group:
+                            var d = group.Item1;
+                            d.MutateForReplay( _currentDepth );
+                            ReplayOpenGroup( ref d );
+                            ++balancedGroup;
                             break;
                         case Tuple<DateTimeStamp, IReadOnlyList<ActivityLogGroupConclusion>> close:
                             ReplayClosedGroup( close.Item1, close.Item2 );

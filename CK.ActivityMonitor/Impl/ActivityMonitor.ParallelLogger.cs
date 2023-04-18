@@ -36,11 +36,13 @@ namespace CK.Core
                 _forMonitor = new ForMonitor( this );
             }
 
-            public string UniqueId => _monitor.UniqueId;
+            public string UniqueId => _monitor._uniqueId;
 
-            public CKTrait AutoTags => _monitor.AutoTags;
+            public CKTrait AutoTags => _monitor._autoTags;
 
-            public LogLevelFilter ActualFilter => _monitor.ActualFilter.Line;
+            // Don't use the ActualFiler property here because it updates the level
+            // if it has been signaled (and calls ReentrantAndConcurrentCheck).
+            public LogLevelFilter ActualFilter => _monitor._actualFilter.Line;
 
             public ActivityMonitorLogData.IFactory DataFactory => this;
 

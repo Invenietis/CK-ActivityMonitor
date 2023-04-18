@@ -48,10 +48,15 @@ namespace CK.Core
             public IActivityMonitorClient RegisterClient( IActivityMonitorClient client, out bool added )
             {
                 Throw.CheckNotNullArgument( client );
-                using( ((IActivityMonitorImpl)_monitor).ReentrancyAndConcurrencyLock() )
+                _monitor.ReentrantAndConcurrentCheck();
+                try
                 {
                     added = false;
                     return DoRegisterClient( client, ref added );
+                }
+                finally
+                {
+                    _monitor.ReentrantAndConcurrentRelease();
                 }
             }
 
@@ -60,18 +65,13 @@ namespace CK.Core
                 if( (forceAdded |= (_clients.IndexOf( client ) < 0)) )
                 {
                     IActivityMonitorBoundClient? bound = client as IActivityMonitorBoundClient;
-                    if( bound != null )
-                    {
-                        // Calling SetMonitor before adding it to the client first:
-                        // - Enables the monitor to initialize itself before being solicited.
-                        // - If SetMonitor method calls InitializeTopicAndAutoTags, it does not
-                        //   receive a "stupid" OnTopic/AutoTagsChanged.
-                        // - Any exceptions like the ones created by CreateMultipleRegisterOnBoundClientException or
-                        //   CreateBoundClientIsLockedException flow to the caller and have no impacts.
-                        bound.SetMonitor( _monitor, false );
-                    }
+                    // Calling SetMonitor before adding it to the client first:
+                    // - Enables the monitor to initialize itself before being solicited.
+                    // - Any exceptions like the ones created by CreateMultipleRegisterOnBoundClientException or
+                    //   CreateBoundClientIsLockedException flow to the caller and have no impacts.
+                    bound?.SetMonitor( _monitor, false );
                     _clients.Add( client );
-                    if( bound != null ) ((IActivityMonitorImpl)_monitor).OnClientMinimalFilterChanged( LogFilter.Undefined, bound.MinimalFilter );
+                    if( bound != null ) _monitor.OnClientMinimalFilterChanged( LogFilter.Undefined, bound.MinimalFilter );
                 }
                 return client;
             }
@@ -103,7 +103,8 @@ namespace CK.Core
             {
                 Throw.CheckNotNullArgument( tester );
                 Throw.CheckNotNullArgument( factory );
-                using( ((IActivityMonitorImpl)_monitor).ReentrancyAndConcurrencyLock() )
+                _monitor.ReentrantAndConcurrentCheck();
+                try
                 {
                     T? e = _clients.OfType<T>().FirstOrDefault( tester );
                     if( e == null )
@@ -117,6 +118,10 @@ namespace CK.Core
                     }
                     return e;
                 }
+                finally
+                {
+                    _monitor.ReentrantAndConcurrentRelease();
+                }
             }
 
             /// <summary>
@@ -128,7 +133,8 @@ namespace CK.Core
             public IActivityMonitorClient? UnregisterClient( IActivityMonitorClient client )
             {
                 Throw.CheckNotNullArgument( client );
-                using( ((IActivityMonitorImpl)_monitor).ReentrancyAndConcurrencyLock() )
+                _monitor.ReentrantAndConcurrentCheck();
+                try
                 {
                     int idx;
                     if( (idx = _clients.IndexOf( client )) >= 0 )
@@ -143,10 +149,14 @@ namespace CK.Core
                             filter = bound.MinimalFilter;
                             bound.SetMonitor( null, false );
                         }
-                        if( filter != LogFilter.Undefined ) ((IActivityMonitorImpl)_monitor).OnClientMinimalFilterChanged( filter, LogFilter.Undefined );
+                        if( filter != LogFilter.Undefined ) _monitor.OnClientMinimalFilterChanged( filter, LogFilter.Undefined );
                         return client;
                     }
                     return null;
+                }
+                finally
+                {
+                    _monitor.ReentrantAndConcurrentRelease();
                 }
             }
 

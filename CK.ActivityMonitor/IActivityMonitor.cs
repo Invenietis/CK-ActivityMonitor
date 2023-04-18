@@ -105,6 +105,7 @@ namespace CK.Core
         /// <param name="userConclusion">
         /// Optional string, ActivityLogGroupConclusion object, enumerable of ActivityLogGroupConclusion or object to
         /// conclude the group. See remarks.
+        /// </param>
         /// <returns>True if a group has actually been closed, false if there is no more opened group.</returns>
         /// <remarks>
         /// An untyped object is used here to easily and efficiently accommodate both string and already existing ActivityLogGroupConclusion.
