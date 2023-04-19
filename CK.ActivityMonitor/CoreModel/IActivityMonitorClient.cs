@@ -12,7 +12,7 @@ namespace CK.Core
     public interface IActivityMonitorClient
     {
         /// <summary>
-        /// Called for each <see cref="IActivityLogger.UnfilteredLog"/>.
+        /// Called for each <see cref="IActivityLineEmitter.UnfilteredLog"/>.
         /// The <see cref="ActivityMonitorLogData.Exception"/> is always null since exceptions
         /// are carried by groups.
         /// </summary>

@@ -25,6 +25,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CK.ActivityMonitor.SimpleSe
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Doc", "Doc", "{17FDB5B1-BA57-44F1-BCDB-71F0186442CA}"
 	ProjectSection(SolutionItems) = preProject
+		Doc\ActivityModel.png = Doc\ActivityModel.png
 		Common\Doc\ColoredConsoleOutput.png = Common\Doc\ColoredConsoleOutput.png
 	EndProjectSection
 EndProject

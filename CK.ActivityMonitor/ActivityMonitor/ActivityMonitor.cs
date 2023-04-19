@@ -15,7 +15,7 @@ namespace CK.Core
     /// <summary>
     /// Concrete implementation of <see cref="IActivityMonitor"/>.
     /// </summary>
-    public sealed partial class ActivityMonitor : IActivityMonitorImpl
+    public sealed partial class ActivityMonitor : IActivityMonitor, IActivityMonitorImpl
     {
         /// <summary>
         /// Prefix used by <see cref="IActivityMonitor.SetTopic"/> is "Topic: ".
@@ -60,7 +60,7 @@ namespace CK.Core
         public const string NoLogText = "[no-log]";
 
         /// <summary>
-        /// <see cref="IActivityLogger.UniqueId"/> must be at least 4 characters long
+        /// A monitor identifier must be at least 4 characters long
         /// and not contain any <see cref="Char.IsWhiteSpace(char)"/>.
         /// </summary>
         public const int MinMonitorUniqueIdLength = 4;
@@ -69,6 +69,11 @@ namespace CK.Core
         /// The name of the fake monitor for external logs.
         /// </summary>
         public const string ExternalLogMonitorUniqueId = "§ext";
+
+        /// <summary>
+        /// The name for <see cref="StaticLogger"/> logs.
+        /// </summary>
+        public const string StaticLogMonitorUniqueId = "§§§§";
 
         static readonly FastUniqueIdGenerator _generatorId;
 
@@ -97,6 +102,7 @@ namespace CK.Core
         readonly string _uniqueId;
         // The recorder holds the InternalMonitor.
         LogsRecorder? _recorder;
+        InitialLogsReplayPseudoClient? _initialReplay;
 
         readonly Logger? _logger;
         readonly ActivityMonitorLogData.IFactory _dataFactory;
@@ -162,6 +168,10 @@ namespace CK.Core
                 else
                 {
                     _dataFactory = _output;
+                }
+                if( (options & ActivityMonitorOptions.WithInitialReplay) != 0 )
+                {
+                    _initialReplay = new InitialLogsReplayPseudoClient( this );
                 }
                 if( (options & ActivityMonitorOptions.SkipAutoConfiguration) == 0 )
                 {
@@ -279,8 +289,7 @@ namespace CK.Core
             }
         }
 
-        // No resynchronization when using the IActivityLogger interface.
-        LogLevelFilter IActivityLogger.ActualFilter => _actualFilter.Line;
+        LogLevelFilter IActivityLineEmitter.ActualFilter => ActualFilter.Line;
 
         /// <inheritdoc />
         public LogFilter ActualFilter
@@ -440,7 +449,7 @@ namespace CK.Core
             Debug.Assert( !data.IsParallel );
 
             // We consider that as long has the log IsFiltered, the decision has already
-            // being taken and UnfilteredLog must do its job: handling the dispatch of the log.
+            // been taken and UnfilteredLog must do its job: handling the dispatch of the log.
             // But for logs that do not claim to have been filtered, we ensure here that the ultimate
             // level Off is not the current one.
             if( !data.IsFilteredLog )
@@ -484,6 +493,7 @@ namespace CK.Core
         void SendUnfilteredLog( ref ActivityMonitorLogData data )
         {
             List<IActivityMonitorClient>? buggyClients = null;
+            _initialReplay?.OnUnfilteredLog( ref data );
             foreach( var l in _output.Clients )
             {
                 try
@@ -541,6 +551,7 @@ namespace CK.Core
                 }
             }
             _current.Initialize( ref data );
+            _initialReplay?.OnOpenGroup( ref data );
             MonoParameterSafeCall( static ( client, group ) => client.OnOpenGroup( group ), _current );
             return _current;
         }
@@ -553,6 +564,7 @@ namespace CK.Core
             _current.Initialize( ref data );
             if( single == null )
             {
+                _initialReplay?.OnOpenGroup( ref data );
                 MonoParameterSafeCall( static ( client, group ) => client.OnOpenGroup( group ), _current );
             }
             else
@@ -689,6 +701,7 @@ namespace CK.Core
         void SendClosedGroup( Group g, IReadOnlyList<ActivityLogGroupConclusion> sentConclusions )
         {
             Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
+            _initialReplay?.OnGroupClosed( g.CloseLogTime, sentConclusions );
             List<IActivityMonitorClient>? buggyClients = null;
             foreach( var l in _output.Clients )
             {

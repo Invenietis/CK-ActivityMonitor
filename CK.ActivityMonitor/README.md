@@ -99,98 +99,28 @@ Before this recommendation appears we used:
 
 Those names are supported but the .Net standard ones should be preferred.
 
-## IActivityLogger vs. IActivityMonitor
-A `IActivityLogger` is close to more classical logging solutions: only lines can be emitted. Since it exposes an `AutoTags`
-and an `ActualFilter`, any filtering/sender extension methods are possible.
+## IStaticLogger, IParallelLogger and IActivityMonitor
+The `IStaticLogger` is exposed by the static `ActivityMonitor.StaticLogger` property. It is close to
+more classical logging solutions: only lines can be emitted by any thread at any time and its emitted lines
+are not structured (their Depth is always 0).
+Since it exposes an `AutoTags` and an `ActualFilter`, any filtering/sender extension methods are possible.
 
-The `ActivityMonitor.StaticLogger` is a `IActivityLogger`.  
-
-```csharp
-/// <summary>
-/// Ultimate possible abstraction of <see cref="IActivityMonitor"/> and <see cref="IParallelLogger"/>:
-/// it is context-less and can only log lines (not groups), there is no local <see cref="IActivityMonitor.Output"/>
-/// and no <see cref="IParallelLogger.CreateDependentToken"/> capability.
-/// <para>
-/// Most of the methods commonly used are extension methods.
-/// </para>
-/// </summary>
-public interface IActivityLogger
-{
-    /// <summary>
-    /// Gets the unique identifier for this logger or monitor.
-    /// </summary>
-    string UniqueId { get; }
-
-    /// <summary>
-    /// Gets the tags that will be combined to the logged ones before filtering
-    /// by <see cref="ActivityMonitorExtension.ShouldLogLine(IActivityLogger, LogLevel, CKTrait?, out CKTrait)"/>
-    /// or by sender with interpolated string handlers.
-    /// </summary>
-    CKTrait AutoTags { get; }
-
-    /// <summary>
-    /// Gets the line filter level to apply.
-    /// </summary>
-    LogLevelFilter ActualFilter { get; }
-
-    /// <summary>
-    /// Low level factory of log data.
-    /// </summary>
-    ActivityMonitorLogData.IFactory DataFactory { get; }
-
-    /// <summary>
-    /// Sends a line of logs regardless of any filter. 
-    /// </summary>
-    /// <param name="data">Data that describes the log.</param>
-    void UnfilteredLog( ref ActivityMonitorLogData data );
-}
-```
-
-The [`IActivityMonitor`](IActivityMonitor.cs) interface extends this logger interface to support groups and, more importantly, the `Output`
-where `IActivityMonitorClient` listeners/sinks can be registered and unregistered.
-> Note that the `IActivityMonitor.ActualFilter` is a `LogFilter` (with a line and group `LogLevelFilter`).
-
-The `IActivityLogger.AutoTags` and `ActualFilter` cannot be changed at this level. They take their values from:
-- The actual monitor when implemented by a `IActivityMonitor`.
-- For the `ActivityMonitor.StaticLogger`, the tags are empty and the ActualFilter is the static default `ActivityMonitor.DefaultFilter.Line` value.
-- For `IActivityLogger` implementations, these are the current values of the internal monitor.
-
-Starting with version v19.0.0, each `ActivityMonitor` can expose a `IActivityMonitor.ParallelLogger`:
-available when the ActivityMonitor's constructor is called with the [`ActivityMonitorOptions.WithParallel`](ActivityMonitorOptions.cs).
-options.
-
+The `IParallelLogger` is like the static logger but is bound to a monitor: lines emitted by a parallel logger
+are bound to the originating `IActivityMonitor`: even if this is a thread safe logger, the log time
+and the depth (in opened groups) are synchronized with the monitor states.
+- The LogTime uniquely identify the log line for the monitor identifier.
+- The line Depth is accurate regarding the opened groups at the time the log is emitted.
 It sends its log lines through the <see cref="ActivityMonitor.OnStaticLog"/> event,
 not through the `IActivityMonitor.Output`: the logs ordering relative to the monitor is preserved BUT these thread safe
 logs cannot be observed by the monitor's output `IActivityMonitorClient`.
 
 A `IParallelLogger` can create DependentToken since it is bound to its monitor.
 
-```csharp
-/// <summary>
-/// Parallel logger can be provided by <see cref="IActivityMonitor.ParallelLogger"/>.
-/// They cannot manage structured logging (no groups), just like <see cref="IActivityLogger"/>, only lines
-/// can be emitted but this adds the capability to create dependent tokens.
-/// </summary>
-public interface IParallelLogger : IActivityLogger
-{
-    /// <summary>
-    /// Creates a token for a dependent activity that will set a specified topic (or that will not change the dependent monitor's topic
-    /// if null is specified).
-    /// <para>
-    /// The extension method <see cref="ActivityMonitorExtension.StartDependentActivity"/>
-    /// must be used on the target monitor to open and close the activity. If not null, the provided topic will be temporarily set on the
-    /// target monitor otherwise the target topic will not be changed.
-    /// </para>
-    /// </summary>
-    /// <param name="message">Optional message for the token creation log.</param>
-    /// <param name="dependentTopic">Optional dependent topic.</param>
-    /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
-    /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
-    ActivityMonitor.DependentToken CreateDependentToken( string? message = null,
-                                                          string? dependentTopic = null,
-                                                          [CallerFilePath] string? fileName = null,
-                                                          [CallerLineNumber] int lineNumber = 0 );
-}
-```
+The [`IActivityMonitor`](IActivityMonitor.cs) interface is a logger that groups and, more importantly, the `Output`
+where `IActivityMonitorClient` listeners/sinks can be registered and unregistered.
 
+For a monitor to expose a non null `IActivityMonitor.ParallelLogger`, the `ActivityMonitor` constructor must
+be called with the [`ActivityMonitorOptions.WithParallel`](ActivityMonitorOptions.cs) option.
+
+![Core logger model](../Doc/ActivityModel.png)
 

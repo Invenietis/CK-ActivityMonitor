@@ -11,7 +11,7 @@ namespace CK.Core.LogHandler
 
         public CKTrait FinalTags;
 
-        public InternalHandler( int literalLength, int formattedCount, IActivityLogger logger, LogLevel level, CKTrait? traits, out bool shouldAppend )
+        public InternalHandler( int literalLength, int formattedCount, IActivityLineEmitter logger, LogLevel level, CKTrait? traits, out bool shouldAppend )
         {
             if( logger.ShouldLogLine( level, traits, out FinalTags ) )
             {

@@ -10,7 +10,7 @@ namespace CK.Core
 {
     public sealed partial class ActivityMonitor
     {
-        sealed class LoggerStatic : IActivityLogger, ActivityMonitorLogData.IFactory
+        sealed class LoggerStatic : IStaticLogger, ActivityMonitorLogData.IFactory
         {
             static DateTimeStamp _lastLogTime = DateTimeStamp.MinValue;
             static readonly object _lock = new object();
@@ -18,8 +18,6 @@ namespace CK.Core
             public CKTrait AutoTags => Tags.Empty;
 
             public LogLevelFilter ActualFilter => DefaultFilter.Line;
-
-            public string UniqueId => ExternalLogMonitorUniqueId;
 
             public ActivityMonitorLogData.IFactory DataFactory => this;
 
@@ -35,7 +33,7 @@ namespace CK.Core
                 {
                     _lastLogTime = logTime = new DateTimeStamp( _lastLogTime, DateTime.UtcNow );
                 }
-                return new ActivityMonitorLogData( ExternalLogMonitorUniqueId, logTime, 0, true, level, finalTags, text, exception, fileName, lineNumber );
+                return new ActivityMonitorLogData( StaticLogMonitorUniqueId, logTime, 0, true, level, finalTags, text, exception, fileName, lineNumber );
             }
 
             public DateTimeStamp GetLogTime()
@@ -78,15 +76,16 @@ namespace CK.Core
         static public event StaticLogHandler? OnStaticLog;
 
         /// <summary>
-        /// A static <see cref="IActivityLogger"/> that immediately relay log data to <see cref="OnStaticLog"/> event.
+        /// Gets a static logger that immediately relay log data to <see cref="OnStaticLog"/> event.
         /// <para>
         /// Nothing is done with these logs at this level: this is to be used by client code of this library, typically CK.Monitoring.
         /// </para>
         /// <para>
-        /// This is to be used rarely: only if there's really no way to bind the calling context to a real <see cref="IActivityMonitor"/>.
+        /// This is to be used rarely: only if there's really no way to bind the calling context to a <see cref="IActivityMonitor"/>
+        /// or a <see cref="IParallelLogger"/>.
         /// </para>
         /// </summary>
-        public static IActivityLogger StaticLogger => _staticLogger;
+        public static IStaticLogger StaticLogger => _staticLogger;
 
     }
 }

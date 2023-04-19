@@ -53,6 +53,15 @@ namespace CK.Core
         /// </summary>
         IReadOnlyList<IActivityMonitorClient> Clients { get; }
 
+        /// <summary>
+        /// Gets or sets the current maximal logs that are initially replayed.
+        /// This is null when the monitor has not been instantiated <see cref="ActivityMonitorOptions.WithInitialReplay"/> or
+        /// if the initial replay has stopped. Default to 1000.
+        /// <para>
+        /// To stop the initial replay (when all clients are registered) sets this to null or 0.
+        /// </para>
+        /// </summary>
+        int? MaxInitialReplayCount { get; set; }
     }
 
 }

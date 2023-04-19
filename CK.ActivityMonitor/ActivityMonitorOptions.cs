@@ -27,9 +27,10 @@ namespace CK.Core
 
         /// <summary>
         /// Captures initial logs and replays them into each new registered <see cref="IActivityMonitorClient"/>.
+        /// The maximal number of replayed logs defaults to 1000: it can be changed thanks to <see cref="IActivityMonitorOutput.MaxInitialReplayCount"/>
+        /// that can also be used to stop the log replay.
         /// </summary>
         WithInitialReplay = 4
-        
     }
 
 }

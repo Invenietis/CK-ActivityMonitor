@@ -45,6 +45,35 @@ namespace CK.Core
 
             DateTimeStamp ActivityMonitorLogData.IFactory.GetLogTime() => _monitor._lastLogTime = new DateTimeStamp( _monitor._lastLogTime, DateTime.UtcNow );
 
+            public int? MaxInitialReplayCount
+            {
+                get => _monitor._initialReplay?._maxCount;
+                set
+                {
+                    Throw.CheckArgument( value is null || value >= 0 );
+                    _monitor.ReentrantAndConcurrentCheck();
+                    try
+                    {
+                        var r = _monitor._initialReplay;
+                        if( r != null )
+                        {
+                            if( value is null || value <= r._count )
+                            {
+                                _monitor.DoStopInitialReplay();
+                            }
+                            else
+                            {
+                                r._maxCount = value.Value;
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        _monitor.ReentrantAndConcurrentRelease();
+                    }
+                }
+            }
+
             public IActivityMonitorClient RegisterClient( IActivityMonitorClient client, out bool added )
             {
                 Throw.CheckNotNullArgument( client );
@@ -65,12 +94,15 @@ namespace CK.Core
                 if( (forceAdded |= (_clients.IndexOf( client ) < 0)) )
                 {
                     IActivityMonitorBoundClient? bound = client as IActivityMonitorBoundClient;
-                    // Calling SetMonitor before adding it to the client first:
-                    // - Enables the monitor to initialize itself before being solicited.
-                    // - Any exceptions like the ones created by CreateMultipleRegisterOnBoundClientException or
-                    //   CreateBoundClientIsLockedException flow to the caller and have no impacts.
-                    bound?.SetMonitor( _monitor, false );
+                    if( bound != null )
+                    {
+                        Throw.CheckArgument( "Cannot register a dead client.", !bound.IsDead );
+                        // Calling SetMonitor before adding it to the client first: exceptions flow to
+                        // the caller and have no impacts.
+                        bound.SetMonitor( _monitor, false );
+                    }
                     _clients.Add( client );
+                    _monitor._initialReplay?.Replay( client );
                     if( bound != null ) _monitor.OnClientMinimalFilterChanged( LogFilter.Undefined, bound.MinimalFilter );
                 }
                 return client;

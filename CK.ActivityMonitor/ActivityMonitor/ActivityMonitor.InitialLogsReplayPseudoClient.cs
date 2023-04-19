@@ -1,38 +1,63 @@
+using CK.Core.Impl;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace CK.Core
 {
     public sealed partial class ActivityMonitor
     {
-        sealed class InitialLogsReplayClient : IActivityMonitorClient
+
+        internal void DoStopInitialReplay()
+        {
+            if( _initialReplay != null )
+            {
+                _initialReplay.Release();
+                _initialReplay = null;
+            }
+        }
+
+        sealed class InitialLogsReplayPseudoClient
         {
             readonly List<object> _logs = new List<object>();
             readonly ActivityMonitor _monitor;
+            internal int _maxCount;
+            internal int _count;
 
-            public InitialLogsReplayClient( ActivityMonitor monitor )
+            public InitialLogsReplayPseudoClient( ActivityMonitor monitor )
             {
                 _monitor = monitor;
+                _maxCount = 1000;
             }
-
-            public void OnAutoTagsChanged( CKTrait newTrait ) { }
-            public void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions ) { }
-            public void OnTopicChanged( string newTopic, string? fileName, int lineNumber ) { }
 
             public void OnUnfilteredLog( ref ActivityMonitorLogData data )
             {
                 _logs.Add( data.AcquireExternalData() );
+                CheckAutoStop();
             }
 
-            public void OnOpenGroup( IActivityLogGroup group )
+            public void OnOpenGroup( ref ActivityMonitorLogData data )
             {
-                _logs.Add( Tuple.Create( group.Data.AcquireExternalData() ) );
+                _logs.Add( Tuple.Create( data.AcquireExternalData() ) );
+                CheckAutoStop();
             }
 
-            public void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+            void CheckAutoStop()
             {
-                _logs.Add( Tuple.Create( group.CloseLogTime, conclusions ) );
+                if( ++_count > _maxCount )
+                {
+                    _monitor.DoStopInitialReplay();
+                    ((IActivityMonitorImpl)_monitor).InternalMonitor.UnfilteredLog( LogLevel.Warn | LogLevel.IsFiltered,
+                                                                                    null,
+                                                                                    $"Replay logs reached its maximal count ({_maxCount}). It is stopped.",
+                                                                                    null );
+                }
+            }
+
+            public void OnGroupClosed( DateTimeStamp closeTime, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+            {
+                _logs.Add( Tuple.Create( closeTime, conclusions ) );
             }
 
             public void Replay( IActivityMonitorClient client )
@@ -43,7 +68,7 @@ namespace CK.Core
                     {
                         case ActivityMonitorExternalLogData line:
                             var dLine = new ActivityMonitorLogData( line );
-                            _monitor.ReplayUnfilteredLog( ref dLine );
+                            _monitor.ReplayUnfilteredLog( ref dLine, client );
                             break;
                         case Tuple<ActivityMonitorExternalLogData> group:
                             var dGroup = new ActivityMonitorLogData( group.Item1 );

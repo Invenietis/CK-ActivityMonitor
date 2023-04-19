@@ -30,18 +30,16 @@ namespace CK.Core
         /// Challenges <see cref="ActivityMonitor.Tags"/> and <see cref="IActivityMonitor.ActualFilter">this logger's actual filter</see> and application 
         /// domain's <see cref="ActivityMonitor.DefaultFilter"/> filters to test whether a log line should actually be emitted.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityLogger"/>.</param>
+        /// <param name="this">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="level">Log level.</param>
         /// <param name="tags">Optional tags on the line.</param>
         /// <param name="finalTags">Combined monitor's and line's tag.</param>
         /// <returns>True if the log should be emitted.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]  
-        public static bool ShouldLogLine( this IActivityLogger @this, LogLevel level, CKTrait? tags, out CKTrait finalTags )
+        public static bool ShouldLogLine( this IActivityLineEmitter @this, LogLevel level, CKTrait? tags, out CKTrait finalTags )
         {
             finalTags = @this.AutoTags + tags;
-            // Required to trigger the re-computation of the actual filter if it has been signaled.
-            var f = @this is IActivityMonitor m ? m.ActualFilter.Line : @this.ActualFilter;
-            return ActivityMonitor.Tags.ApplyForLine( level, finalTags, f );
+            return ActivityMonitor.Tags.ApplyForLine( level, finalTags, @this.ActualFilter );
         }
 
         /// <summary>
@@ -61,12 +59,12 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Logs a text regardless of <see cref="IActivityLogger.ActualFilter"/> level. 
+        /// Logs a text regardless of <see cref="IActivityLineEmitter.ActualFilter"/> level. 
         /// </summary>
-        /// <param name="this">This <see cref="IActivityLogger"/>.</param>
+        /// <param name="this">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="tags">
         /// Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. 
-        /// These tags will be union-ed with the current <see cref="IActivityLogger.AutoTags"/>.
+        /// These tags will be union-ed with the current <see cref="IActivityLineEmitter.AutoTags"/>.
         /// </param>
         /// <param name="level">Log level. Must not be <see cref="LogLevel.None"/>.</param>
         /// <param name="text">Text to log. Must not be null or empty.</param>
@@ -86,7 +84,7 @@ namespace CK.Core
         /// </para>
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static public void UnfilteredLog( this IActivityLogger @this,
+        static public void UnfilteredLog( this IActivityLineEmitter @this,
                                           LogLevel level,
                                           CKTrait? tags,
                                           string? text,

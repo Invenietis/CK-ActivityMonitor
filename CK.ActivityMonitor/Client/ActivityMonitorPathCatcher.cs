@@ -48,7 +48,7 @@ namespace CK.Core
 
         readonly List<PathElement> _path;
         PathElement? _current;
-        IActivityMonitor? _source;
+        IActivityMonitorImpl? _source;
         bool _currentIsGroup;
         bool _currentIsGroupClosed;
         bool _locked;

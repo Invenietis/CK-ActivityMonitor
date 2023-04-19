@@ -3,11 +3,9 @@ using System.Runtime.CompilerServices;
 namespace CK.Core
 {
     /// <summary>
-    /// Parallel logger can be provided by <see cref="IActivityMonitor.ParallelLogger"/>.
-    /// They cannot manage structured logging (no groups), just like <see cref="IActivityLogger"/>, only lines
-    /// can be emitted but this adds the capability to create dependent tokens.
+    /// Applies to <see cref="IParallelLogger"/> and <see cref="IActivityMonitor"/>.
     /// </summary>
-    public interface IParallelLogger : IActivityLogger
+    public interface IActivityDependentTokenFactory
     {
         /// <summary>
         /// Creates a token for a dependent activity that will set a specified topic (or that will not change the dependent monitor's topic

@@ -7,7 +7,7 @@ namespace CK.Core
 {
 
     /// <summary>
-    /// Data required by <see cref="IActivityLogger.UnfilteredLog"/> and <see cref="IActivityMonitor.UnfilteredOpenGroup"/>.
+    /// Data required by <see cref="IActivityLineEmitter.UnfilteredLog"/> and <see cref="IActivityMonitor.UnfilteredOpenGroup"/>.
     /// </summary>
     public struct ActivityMonitorLogData
     {
@@ -22,7 +22,7 @@ namespace CK.Core
             /// the text is set to the exception's message or to <see cref="ActivityMonitor.NoLogText"/>.
             /// </summary>
             /// <param name="level">The log level that may be flagged with <see cref="LogLevel.IsFiltered"/> or not.</param>
-            /// <param name="finalTags">The final tags that should already be combined with the source <see cref="IActivityLogger.AutoTags"/>.</param>
+            /// <param name="finalTags">The final tags that should already be combined with the source <see cref="IActivityLineEmitter.AutoTags"/>.</param>
             /// <param name="text">The text.</param>
             /// <param name="exception">Optional exception.</param>
             /// <param name="fileName">Source file name of the log.</param>
@@ -247,7 +247,7 @@ namespace CK.Core
         public readonly bool IsFilteredLog => (Level & LogLevel.IsFiltered) != 0;
 
         /// <summary>
-        /// Gets whether this is a log line emitted by <see cref="IActivityLogger"/> or <see cref="IParallelLogger"/>.
+        /// Gets whether this is a log line emitted by <see cref="IActivityLineEmitter"/> or <see cref="IParallelLogger"/>.
         /// </summary>
         public readonly bool IsParallel => _isParallel;
 

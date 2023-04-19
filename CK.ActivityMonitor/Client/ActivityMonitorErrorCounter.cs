@@ -174,7 +174,7 @@ namespace CK.Core
 
         State _root;
         State _current;
-        IActivityMonitor? _source;
+        IActivityMonitorImpl? _source;
 
         /// <summary>
         /// Initializes a new error counter with <see cref="GenerateConclusion"/> sets to false.

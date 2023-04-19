@@ -7,7 +7,7 @@ namespace CK.Core.Impl
     /// Defines required aspects that an actual monitor implementation must support.
     /// This interface is available to any <see cref="IActivityMonitorBoundClient"/>.
     /// </summary>
-    public interface IActivityMonitorImpl : IActivityMonitor
+    public interface IActivityMonitorImpl
     {
         /// <summary>
         /// Gets a monitor that can be used

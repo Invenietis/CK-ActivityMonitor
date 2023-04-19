@@ -12,6 +12,7 @@ using System.Runtime.CompilerServices;
 
 namespace CK.Core.Tests.Monitoring
 {
+    [TestFixture]
     public class ActivityMonitorTests
     {
         [SetUp]

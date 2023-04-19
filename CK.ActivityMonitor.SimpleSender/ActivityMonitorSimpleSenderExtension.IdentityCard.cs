@@ -21,7 +21,7 @@ namespace CK.Core
         /// <param name="logger">This logger.</param>
         /// <param name="key">The identity key. Must not be null, empty or white space or contain any line delimiter.</param>
         /// <param name="value">The identity information. Must not be empty.</param>
-        public static void AddIdentityInformation( this IActivityLogger logger, string key, string value )
+        public static void AddIdentityInformation( this IActivityLineEmitter logger, string key, string value )
         {
             logger.UnfilteredLog( LogLevel.Info | LogLevel.IsFiltered, IdentityCard.IdentityCardUpdate, IdentityCard.Pack( key, value ), null );
         }

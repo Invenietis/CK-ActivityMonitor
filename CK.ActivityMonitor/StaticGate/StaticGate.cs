@@ -239,7 +239,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the <see cref="ActivityMonitor.StaticLogger"/> if this gate is opened, null otherwise.
         /// </summary>
-        public IActivityLogger? StaticLogger => _isOpen ? ActivityMonitor.StaticLogger : null;
+        public IActivityLineEmitter? StaticLogger => _isOpen ? ActivityMonitor.StaticLogger : null;
     }
 
 }

@@ -28,7 +28,7 @@ namespace CK.Core
         public virtual LogFilter MinimalFilter { get { return LogFilter.Undefined; } }
 
         /// <summary>
-        /// Called for each <see cref="IActivityLogger.UnfilteredLog"/>. Does nothing by default.
+        /// Called for each <see cref="IActivityLineEmitter.UnfilteredLog"/>. Does nothing by default.
         /// The <see cref="ActivityMonitorLogData.Exception"/> is always null since exceptions
         /// are carried by groups.
         /// </summary>

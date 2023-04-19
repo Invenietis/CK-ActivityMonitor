@@ -30,7 +30,7 @@ namespace CK.Core
         public static void ApplyConfiguration( IActivityMonitor? monitor, string configuration )
         {
             var (names, states) = CreateConfig( configuration );
-            var logger = monitor ?? ActivityMonitor.StaticLogger;
+            var logger = (IActivityLineEmitter?)monitor ?? ActivityMonitor.StaticLogger;
             if( logger.ShouldLogLine( LogLevel.Info, null, out var finalTags ) )
             {
                 logger.UnfilteredLog( LogLevel.Info | LogLevel.IsFiltered, finalTags, $"Applying StaticGate configuration: '{configuration}'.", null );

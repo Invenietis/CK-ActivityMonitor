@@ -4,24 +4,18 @@ using System.Runtime.CompilerServices;
 
 namespace CK.Core
 {
+
     /// <summary>
-    /// Ultimate possible abstraction of <see cref="IActivityMonitor"/> and <see cref="IParallelLogger"/>:
-    /// it is context-less and can only log lines (not groups), there is no local <see cref="IActivityMonitor.Output"/>
-    /// and no <see cref="IParallelLogger.CreateDependentToken"/> capability.
+    /// Ultimate possible abstraction of <see cref="IActivityMonitor"/>, <see cref="IParallelLogger"/> and <see cref="IStaticLogger"/>.
     /// <para>
-    /// Most of the methods commonly used are extension methods.
+    /// This should not be used directly: this is intended to support commonly used are extension methods.
     /// </para>
     /// </summary>
-    public interface IActivityLogger
+    public interface IActivityLineEmitter
     {
         /// <summary>
-        /// Gets the unique identifier for this logger or monitor.
-        /// </summary>
-        string UniqueId { get; }
-
-        /// <summary>
         /// Gets the tags that will be combined to the logged ones before filtering
-        /// by <see cref="ActivityMonitorExtension.ShouldLogLine(IActivityLogger, LogLevel, CKTrait?, out CKTrait)"/>
+        /// by <see cref="ActivityMonitorExtension.ShouldLogLine(IActivityLineEmitter, LogLevel, CKTrait?, out CKTrait)"/>
         /// or by sender with interpolated string handlers.
         /// </summary>
         CKTrait AutoTags { get; }
