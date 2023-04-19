@@ -128,7 +128,7 @@ namespace CK.Core
         static public IDisposable UnfilteredOpenGroup( this IActivityMonitor @this,
                                                        LogLevel level,
                                                        CKTrait? tags,
-                                                       string text,
+                                                       string? text,
                                                        object? error,
                                                        [CallerFilePath] string? fileName = null,
                                                        [CallerLineNumber] int lineNumber = 0 )
