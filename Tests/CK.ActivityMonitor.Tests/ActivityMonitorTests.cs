@@ -143,7 +143,8 @@ namespace CK.Core.Tests.Monitoring
         public void display_conclusions()
         {
             IActivityMonitor monitor = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
-            monitor.Output.RegisterClients( new StupidStringClient(), new StupidXmlClient( new StringWriter() ) );
+            monitor.Output.RegisterClient( new StupidStringClient() );
+            monitor.Output.RegisterClient( new StupidXmlClient( new StringWriter() ) );
             monitor.Output.Clients.Should().HaveCount( 2 );
 
             var tag1 = ActivityMonitor.Tags.Register( "Product" );

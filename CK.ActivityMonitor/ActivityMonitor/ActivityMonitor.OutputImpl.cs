@@ -74,14 +74,14 @@ namespace CK.Core
                 }
             }
 
-            public IActivityMonitorClient RegisterClient( IActivityMonitorClient client, out bool added )
+            public IActivityMonitorClient RegisterClient( IActivityMonitorClient client, out bool added, bool replayInitialLogs )
             {
                 Throw.CheckNotNullArgument( client );
                 _monitor.ReentrantAndConcurrentCheck();
                 try
                 {
                     added = false;
-                    return DoRegisterClient( client, ref added );
+                    return DoRegisterClient( client, ref added, replayInitialLogs );
                 }
                 finally
                 {
@@ -89,7 +89,7 @@ namespace CK.Core
                 }
             }
 
-            IActivityMonitorClient DoRegisterClient( IActivityMonitorClient client, ref bool forceAdded )
+            IActivityMonitorClient DoRegisterClient( IActivityMonitorClient client, ref bool forceAdded, bool replayInitialLogs )
             {
                 if( (forceAdded |= (_clients.IndexOf( client ) < 0)) )
                 {
@@ -102,36 +102,18 @@ namespace CK.Core
                         bound.SetMonitor( _monitor, false );
                     }
                     _clients.Add( client );
-                    _monitor._initialReplay?.Replay( client );
+                    if( replayInitialLogs ) _monitor._initialReplay?.Replay( client );
                     if( bound != null ) _monitor.OnClientMinimalFilterChanged( LogFilter.Undefined, bound.MinimalFilter );
                 }
                 return client;
             }
 
-            /// <summary>
-            /// Registers a typed <see cref="IActivityMonitorClient"/>.
-            /// </summary>
-            /// <typeparam name="T">Any type that specializes <see cref="IActivityMonitorClient"/>.</typeparam>
-            /// <param name="client">Clients to register.</param>
-            /// <param name="added">True if the client has been added, false if it was already registered.</param>
-            /// <returns>The registered client.</returns>
-            public T RegisterClient<T>( T client, out bool added ) where T : IActivityMonitorClient
+            public T RegisterClient<T>( T client, out bool added, bool replayInitialLogs = false ) where T : IActivityMonitorClient
             {
-                return (T)RegisterClient( (IActivityMonitorClient)client, out added );
+                return (T)RegisterClient( (IActivityMonitorClient)client, out added, replayInitialLogs );
             }
 
-            /// <summary>
-            /// Registers a <see cref="IActivityMonitorClient"/> that must be unique in a sense.
-            /// </summary>
-            /// <param name="tester">Predicate that must be satisfied for at least one registered client.</param>
-            /// <param name="factory">Factory that will be called if no existing client satisfies <paramref name="tester"/>.</param>
-            /// <returns>The existing or newly created client or null if the factory returned null.</returns>
-            /// <remarks>
-            /// The factory function MUST return null OR a client that satisfies the tester function otherwise a <see cref="InvalidOperationException"/> is thrown.
-            /// When null is returned by the factory function, nothing is added and null is returned. 
-            /// The factory is called only when no client satisfy the tester function: this makes the 'added' out parameter useless.
-            /// </remarks>
-            public T? RegisterUniqueClient<T>( Func<T, bool> tester, Func<T?> factory ) where T : IActivityMonitorClient
+            public T? RegisterUniqueClient<T>( Func<T, bool> tester, Func<T?> factory, bool replayInitialLogs ) where T : IActivityMonitorClient
             {
                 Throw.CheckNotNullArgument( tester );
                 Throw.CheckNotNullArgument( factory );
@@ -144,7 +126,7 @@ namespace CK.Core
                         bool forceAdded = true;
                         if( (e = factory()) != null )
                         {
-                            e = (T)DoRegisterClient( e, ref forceAdded );
+                            e = (T)DoRegisterClient( e, ref forceAdded, replayInitialLogs );
                             if( !tester( e ) ) Throw.InvalidOperationException( Impl.CoreResources.FactoryTesterMismatch );
                         }
                     }

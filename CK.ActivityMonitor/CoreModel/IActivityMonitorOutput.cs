@@ -14,8 +14,9 @@ namespace CK.Core
         /// </summary>
         /// <param name="client">An <see cref="IActivityMonitorClient"/> implementation.</param>
         /// <param name="added">True if the client has been added, false if it was already registered.</param>
+        /// <param name="replayInitialLogs">True to immediately replay initial logs if any (see <see cref="ActivityMonitorOptions.WithInitialReplay"/>)</param>
         /// <returns>The registered client.</returns>
-        IActivityMonitorClient RegisterClient( IActivityMonitorClient client, out bool added );
+        IActivityMonitorClient RegisterClient( IActivityMonitorClient client, out bool added, bool replayInitialLogs = false );
 
         /// <summary>
         /// Registers a typed <see cref="IActivityMonitorClient"/>.
@@ -24,8 +25,9 @@ namespace CK.Core
         /// <typeparam name="T">Any type that specializes <see cref="IActivityMonitorClient"/>.</typeparam>
         /// <param name="client">Client to register.</param>
         /// <param name="added">True if the client has been added, false if it was already registered.</param>
+        /// <param name="replayInitialLogs">True to immediately replay initial logs if any (see <see cref="ActivityMonitorOptions.WithInitialReplay"/>)</param>
         /// <returns>The registered client.</returns>
-        T RegisterClient<T>( T client, out bool added ) where T : IActivityMonitorClient;
+        T RegisterClient<T>( T client, out bool added, bool replayInitialLogs = false ) where T : IActivityMonitorClient;
 
         /// <summary>
         /// Unregisters the given <see cref="IActivityMonitorClient"/> from the <see cref="Clients"/> list.
@@ -40,13 +42,14 @@ namespace CK.Core
         /// </summary>
         /// <param name="tester">Predicate that checks for an already registered client.</param>
         /// <param name="factory">Factory that will be called if no existing client satisfies <paramref name="tester"/>.</param>
+        /// <param name="replayInitialLogs">True to immediately replay initial logs if any (see <see cref="ActivityMonitorOptions.WithInitialReplay"/>)</param>
         /// <returns>The existing or newly created client or null if the factory returned null.</returns>
         /// <remarks>
         /// The factory function MUST return null OR a client that satisfies the tester function otherwise a <see cref="InvalidOperationException"/> is thrown.
         /// When null is returned by the factory function, nothing is added and null is returned. 
         /// The factory is called only when no client satisfy the tester function: this makes the 'added' out parameter useless.
         /// </remarks>
-        T? RegisterUniqueClient<T>( Func<T, bool> tester, Func<T?> factory ) where T : IActivityMonitorClient;
+        T? RegisterUniqueClient<T>( Func<T, bool> tester, Func<T?> factory, bool replayInitialLogs = false ) where T : IActivityMonitorClient;
 
         /// <summary>
         /// Gets the list of registered <see cref="IActivityMonitorClient"/>.

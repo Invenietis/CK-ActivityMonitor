@@ -484,7 +484,7 @@ namespace CK.Core
         {
             return new TagsSentinel( @this, @this.AutoTags.Apply( tags, operation ) );
         }
-        
+
         #endregion
 
 
@@ -496,10 +496,11 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitorOutput"/> object.</param>
         /// <param name="client">An <see cref="IActivityMonitorClient"/> implementation.</param>
+        /// <param name="replayInitialLogs">True to immediately replay initial logs if any (see <see cref="ActivityMonitorOptions.WithInitialReplay"/>)</param>
         /// <returns>The registered client.</returns>
-        public static IActivityMonitorClient RegisterClient( this IActivityMonitorOutput @this, IActivityMonitorClient client )
+        public static IActivityMonitorClient RegisterClient( this IActivityMonitorOutput @this, IActivityMonitorClient client, bool replayInitialLogs = false )
         {
-            return @this.RegisterClient( client, out _ );
+            return @this.RegisterClient( client, out _, replayInitialLogs );
         }
 
         /// <summary>
@@ -509,35 +510,11 @@ namespace CK.Core
         /// <typeparam name="T">Any type that specializes <see cref="IActivityMonitorClient"/>.</typeparam>
         /// <param name="this">This <see cref="IActivityMonitorOutput"/> object.</param>
         /// <param name="client">Client to register.</param>
+        /// <param name="replayInitialLogs">True to immediately replay initial logs if any (see <see cref="ActivityMonitorOptions.WithInitialReplay"/>)</param>
         /// <returns>The registered client.</returns>
-        public static T RegisterClient<T>( this IActivityMonitorOutput @this, T client ) where T : IActivityMonitorClient
+        public static T RegisterClient<T>( this IActivityMonitorOutput @this, T client, bool replayInitialLogs = false ) where T : IActivityMonitorClient
         {
-            return @this.RegisterClient<T>( client, out _ );
-        }
-
-        /// <summary>
-        /// Registers multiple <see cref="IActivityMonitorClient"/>.
-        /// Duplicate IActivityMonitorClient instances are ignored.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitorOutput"/> object.</param>
-        /// <param name="clients">Multiple clients to register.</param>
-        /// <returns>This registrar to enable fluent syntax.</returns>
-        public static IActivityMonitorOutput RegisterClients( this IActivityMonitorOutput @this, IEnumerable<IActivityMonitorClient> clients )
-        {
-            foreach( var c in clients ) @this.RegisterClient( c );
-            return @this;
-        }
-
-        /// <summary>
-        /// Registers multiple <see cref="IActivityMonitorClient"/>.
-        /// Duplicate IActivityMonitorClient instances are ignored.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitorOutput"/> object.</param>
-        /// <param name="clients">Multiple clients to register.</param>
-        /// <returns>This registrar to enable fluent syntax.</returns>
-        public static IActivityMonitorOutput RegisterClients( this IActivityMonitorOutput @this, params IActivityMonitorClient[] clients )
-        {
-            return RegisterClients( @this, (IEnumerable<IActivityMonitorClient>)clients );
+            return @this.RegisterClient<T>( client, out _, replayInitialLogs );
         }
 
         /// <summary>
@@ -545,9 +522,9 @@ namespace CK.Core
         /// <see cref="Activator.CreateInstance{T}()"/> is called if necessary.
         /// </summary>
         /// <returns>The found or newly created client.</returns>
-        public static T RegisterUniqueClient<T>( this IActivityMonitorOutput @this ) where T : IActivityMonitorClient, new()
+        public static T RegisterUniqueClient<T>( this IActivityMonitorOutput @this, bool replayInitialLogs = false ) where T : IActivityMonitorClient, new()
         {
-            return @this.RegisterUniqueClient( c => true, () => Activator.CreateInstance<T>() )!;
+            return @this.RegisterUniqueClient( c => true, () => Activator.CreateInstance<T>(), replayInitialLogs )!;
         }
 
         /// <summary>

@@ -11,26 +11,26 @@ namespace CK.Core.Tests.Monitoring
         {
             var m = new ActivityMonitor( ActivityMonitorOptions.WithInitialReplay, "YES!" );
             var c0 = new StupidStringClient();
-            m.Output.RegisterClient( c0 );
+            m.Output.RegisterClient( c0, true );
             c0.ToString().Should().Contain( "Topic: YES!" );
 
             for( int i = 0; i < 10; ++i ) m.UnfilteredLog( LogLevel.Info, null, $"a{i}", null );
 
             var c1 = new StupidStringClient();
-            m.Output.RegisterClient( c1 );
+            m.Output.RegisterClient( c1, true );
             c1.ToString().Should().Contain( "Topic: YES!" );
 
             for( int i = 0; i < 10; ++i ) m.UnfilteredLog( LogLevel.Info, null, $"b{i}", null );
 
             var c2 = new StupidStringClient();
-            m.Output.RegisterClient( c2 );
+            m.Output.RegisterClient( c2, true);
             c2.ToString().Should().Contain( "Topic: YES!" );
 
             m.Output.MaxInitialReplayCount = 0;
             for( int i = 0; i < 10; ++i ) m.UnfilteredLog( LogLevel.Info, null, $"c{i}", null );
 
             var cNo = new StupidStringClient();
-            m.Output.RegisterClient( cNo );
+            m.Output.RegisterClient( cNo, true );
 
             c2.ToString().Should().Contain( "a0" ).And.Contain( "a9" )
                               .And.Contain( "b0" ).And.Contain( "b9" )
@@ -53,11 +53,11 @@ namespace CK.Core.Tests.Monitoring
             m.Output.MaxInitialReplayCount = maxCount;
 
             var c0 = new StupidStringClient();
-            m.Output.RegisterClient( c0 );
+            m.Output.RegisterClient( c0, true );
             for( int i = 0; i < maxCount; ++i ) m.UnfilteredLog( LogLevel.Info, null, $"x{i}", null );
 
             var c1 = new StupidStringClient();
-            m.Output.RegisterClient( c1 );
+            m.Output.RegisterClient( c1, true );
             c1.ToString().Should().Contain( "x0" ).And.EndWith( $"x{maxCount-1}" );
 
             m.UnfilteredLog( LogLevel.Info, null, $"LAST", null );
@@ -66,7 +66,7 @@ namespace CK.Core.Tests.Monitoring
                               .And.Be( c0.ToString() );
             
             var cNo = new StupidStringClient();
-            m.Output.RegisterClient( cNo );
+            m.Output.RegisterClient( cNo, true );
             cNo.ToString().Should().BeEmpty();
         }
     }
