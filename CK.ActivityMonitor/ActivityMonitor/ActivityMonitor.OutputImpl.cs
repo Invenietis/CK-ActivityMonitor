@@ -27,7 +27,7 @@ namespace CK.Core
             ActivityMonitorLogData ActivityMonitorLogData.IFactory.CreateLogData( LogLevel level,
                                                                                   CKTrait finalTags,
                                                                                   string? text,
-                                                                                  Exception? exception,
+                                                                                  object? exception,
                                                                                   string? fileName,
                                                                                   int lineNumber )
             {

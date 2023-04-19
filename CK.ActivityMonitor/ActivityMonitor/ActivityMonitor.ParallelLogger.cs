@@ -17,7 +17,7 @@ namespace CK.Core
                     _logger = logger;
                 }
 
-                public ActivityMonitorLogData CreateLogData( LogLevel level, CKTrait finalTags, string? text, Exception? exception, string? fileName, int lineNumber )
+                public ActivityMonitorLogData CreateLogData( LogLevel level, CKTrait finalTags, string? text, object? exception, string? fileName, int lineNumber )
                 {
                     return _logger.CreateLogData( false, level, finalTags, text, exception, fileName, lineNumber );
                 }
@@ -51,7 +51,7 @@ namespace CK.Core
             ActivityMonitorLogData ActivityMonitorLogData.IFactory.CreateLogData( LogLevel level,
                                                                                   CKTrait finalTags,
                                                                                   string? text,
-                                                                                  Exception? exception,
+                                                                                  object? exception,
                                                                                   string? fileName,
                                                                                   int lineNumber )
             {
@@ -70,7 +70,7 @@ namespace CK.Core
                                                            LogLevel level,
                                                            CKTrait finalTags,
                                                            string? text,
-                                                           Exception? exception,
+                                                           object? exception,
                                                            string? fileName,
                                                            int lineNumber )
             {

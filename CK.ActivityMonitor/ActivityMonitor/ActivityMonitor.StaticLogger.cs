@@ -24,7 +24,7 @@ namespace CK.Core
             public ActivityMonitorLogData CreateLogData( LogLevel level,
                                                          CKTrait finalTags,
                                                          string? text,
-                                                         Exception? exception,
+                                                         object? exception,
                                                          string? fileName = null,
                                                          int lineNumber = 0 )
             {

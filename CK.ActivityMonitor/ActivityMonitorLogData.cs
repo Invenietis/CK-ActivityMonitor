@@ -24,14 +24,14 @@ namespace CK.Core
             /// <param name="level">The log level that may be flagged with <see cref="LogLevel.IsFiltered"/> or not.</param>
             /// <param name="finalTags">The final tags that should already be combined with the source <see cref="IActivityLineEmitter.AutoTags"/>.</param>
             /// <param name="text">The text.</param>
-            /// <param name="exception">Optional exception.</param>
+            /// <param name="exception">Optional <see cref="Exception"/> or <see cref="CKExceptionData"/> (any other type throws an <see cref="ArgumentException"/>).</param>
             /// <param name="fileName">Source file name of the log.</param>
             /// <param name="lineNumber">Source line number of the log.</param>
             /// <returns>The ready to send data.</returns>
             ActivityMonitorLogData CreateLogData( LogLevel level,
                                                   CKTrait finalTags,
                                                   string? text,
-                                                  Exception? exception,
+                                                  object? exception,
                                                   string? fileName,
                                                   int lineNumber );
             /// <summary>
@@ -59,6 +59,7 @@ namespace CK.Core
         /// <summary>
         /// Direct with no check constructor except that if <paramref name="text"/> is null or empty
         /// the text is set to the exception's message or to <see cref="ActivityMonitor.NoLogText"/>.
+        /// If <paramref name="exception"/> is not null but not an Exception or a CKExceptionData an ArgumentException is thrown.
         /// </summary>
         /// <param name="monitorId">The monitor identifier.</param>
         /// <param name="logTime">The log time.</param>
@@ -77,22 +78,28 @@ namespace CK.Core
                                          LogLevel level,
                                          CKTrait finalTags,
                                          string? text,
-                                         Exception? exception,
+                                         object? exception,
                                          [CallerFilePath] string? fileName = null,
                                          [CallerLineNumber] int lineNumber = 0 )
         {
             Debug.Assert( monitorId.Length >= ActivityMonitor.MinMonitorUniqueIdLength && !monitorId.Any( c => char.IsWhiteSpace( c ) ) );
             Debug.Assert( finalTags != null && finalTags.Context == ActivityMonitor.Tags.Context );
+            Debug.Assert( exception is null || exception is Exception || exception is CKExceptionData );
+
+            _exception = exception as Exception;
+            _exceptionData = exception as CKExceptionData;
             if( text == null || text.Length == 0 )
             {
-                text = exception == null || exception.Message.Length == 0
+                text = _exception == null || _exception.Message.Length == 0
                         ? ActivityMonitor.NoLogText
-                        : exception.Message;
+                        : _exception.Message;
+            }
+            if( exception != null && _exception == null && _exceptionData == null )
+            {
+                Throw.ArgumentException( nameof( exception ), $"Invalid type '{exception.GetType().ToCSharpName()}'." );
             }
             _text = text;
             _tags = finalTags;
-            _exception = exception;
-            _exceptionData = null;
             _externalData = null;
             _logTime = logTime;
             _fileName = fileName;
