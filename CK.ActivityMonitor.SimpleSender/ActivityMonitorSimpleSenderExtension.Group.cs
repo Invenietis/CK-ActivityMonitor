@@ -184,7 +184,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Opens a given <see cref="LogLevel"/> group with a text message associated to an exception and tags. 
+        /// Opens a given <see cref="LogLevel"/> group with a text message associated to an <see cref="Exception"/> or <see cref="CKExceptionData"/> and tags. 
         /// Regardless of whether it will be emitted or not (this depends on <see cref="IActivityMonitor.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and
         /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
@@ -193,7 +193,7 @@ namespace CK.Core
         /// <param name="level">The log level.</param>
         /// <param name="tags">The tags for this log.</param>
         /// <param name="text">The text to log.</param>
-        /// <param name="ex">The exception to log.</param>
+        /// <param name="error">The <see cref="Exception"/> or <see cref="CKExceptionData"/> to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
@@ -202,12 +202,12 @@ namespace CK.Core
                                                   LogLevel level,
                                                   CKTrait tags,
                                                   string? text,
-                                                  Exception? ex,
+                                                  object? error,
                                                   [CallerLineNumber] int lineNumber = 0,
                                                   [CallerFilePath] string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( level, tags, out var finalTags )
-                                               ? monitor.DataFactory.CreateLogData( level | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                               ? monitor.DataFactory.CreateLogData( level | LogLevel.IsFiltered, finalTags, text, error, fileName, lineNumber )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }

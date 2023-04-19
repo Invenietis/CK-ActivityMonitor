@@ -29,7 +29,7 @@ namespace CK.Core
             var d = monitor.ShouldLogGroup( LogLevel.Debug, null, out var finalTags )
                                                 ? monitor.DataFactory.CreateLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
                                                 : default;
-            return monitor.UnfilteredOpenGroup( ref d );
+            return monitor.UnfilteredOpenGroup( ref d ); 
         }
 
 		/// <summary>
@@ -226,7 +226,7 @@ namespace CK.Core
             var d = monitor.ShouldLogGroup( LogLevel.Trace, null, out var finalTags )
                                                 ? monitor.DataFactory.CreateLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
                                                 : default;
-            return monitor.UnfilteredOpenGroup( ref d );
+            return monitor.UnfilteredOpenGroup( ref d ); 
         }
 
 		/// <summary>
@@ -423,7 +423,7 @@ namespace CK.Core
             var d = monitor.ShouldLogGroup( LogLevel.Info, null, out var finalTags )
                                                 ? monitor.DataFactory.CreateLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
                                                 : default;
-            return monitor.UnfilteredOpenGroup( ref d );
+            return monitor.UnfilteredOpenGroup( ref d ); 
         }
 
 		/// <summary>
@@ -620,7 +620,7 @@ namespace CK.Core
             var d = monitor.ShouldLogGroup( LogLevel.Warn, null, out var finalTags )
                                                 ? monitor.DataFactory.CreateLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
                                                 : default;
-            return monitor.UnfilteredOpenGroup( ref d );
+            return monitor.UnfilteredOpenGroup( ref d ); 
         }
 
 		/// <summary>
@@ -817,7 +817,7 @@ namespace CK.Core
             var d = monitor.ShouldLogGroup( LogLevel.Error, null, out var finalTags )
                                                 ? monitor.DataFactory.CreateLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
                                                 : default;
-            return monitor.UnfilteredOpenGroup( ref d );
+            return monitor.UnfilteredOpenGroup( ref d ); 
         }
 
 		/// <summary>
@@ -1014,7 +1014,7 @@ namespace CK.Core
             var d = monitor.ShouldLogGroup( LogLevel.Fatal, null, out var finalTags )
                                                 ? monitor.DataFactory.CreateLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
                                                 : default;
-            return monitor.UnfilteredOpenGroup( ref d );
+            return monitor.UnfilteredOpenGroup( ref d ); 
         }
 
 		/// <summary>
@@ -1198,7 +1198,7 @@ namespace CK.Core
   namespace LogHandler
   {
        	 
-    /// <summary>
+/// <summary>
     /// Provides an interpolated string handler Debug lines that only performs formatting if the log must be emitted.
     /// This supports the logging framework and must not be used directly.
     /// </summary>
@@ -1280,7 +1280,7 @@ namespace CK.Core
 
 
 		 
-    /// <summary>
+/// <summary>
     /// Provides an interpolated string handler Trace lines that only performs formatting if the log must be emitted.
     /// This supports the logging framework and must not be used directly.
     /// </summary>
@@ -1362,7 +1362,7 @@ namespace CK.Core
 
 
 		 
-    /// <summary>
+/// <summary>
     /// Provides an interpolated string handler Info lines that only performs formatting if the log must be emitted.
     /// This supports the logging framework and must not be used directly.
     /// </summary>
@@ -1444,7 +1444,7 @@ namespace CK.Core
 
 
 		 
-    /// <summary>
+/// <summary>
     /// Provides an interpolated string handler Warn lines that only performs formatting if the log must be emitted.
     /// This supports the logging framework and must not be used directly.
     /// </summary>
@@ -1526,7 +1526,7 @@ namespace CK.Core
 
 
 		 
-    /// <summary>
+/// <summary>
     /// Provides an interpolated string handler Error lines that only performs formatting if the log must be emitted.
     /// This supports the logging framework and must not be used directly.
     /// </summary>
@@ -1608,7 +1608,7 @@ namespace CK.Core
 
 
 		 
-    /// <summary>
+/// <summary>
     /// Provides an interpolated string handler Fatal lines that only performs formatting if the log must be emitted.
     /// This supports the logging framework and must not be used directly.
     /// </summary>

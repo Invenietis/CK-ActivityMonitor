@@ -190,14 +190,15 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Emits a <see cref="LogLevel"/> text message associated to an exception and tags if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLineEmitter.AutoTags"/>).
+        /// Emits a <see cref="LogLevel"/> text message associated to an <see cref="Exception"/> or <see cref="CKExceptionData"/>  and tags if it must be emitted
+        /// (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend
+        /// on <paramref name="tags"/> and <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
         /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="level">The log level.</param>
         /// <param name="tags">The tags for this log.</param>
         /// <param name="text">The text to log.</param>
-        /// <param name="ex">The exception to log.</param>
+        /// <param name="error">The <see cref="Exception"/> or <see cref="CKExceptionData"/> to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
@@ -206,13 +207,13 @@ namespace CK.Core
                                 LogLevel level,
                                 CKTrait tags,
                                 string? text,
-                                Exception? ex,
+                                object? error,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
         {
             if( logger.ShouldLogLine( level, tags, out var finalTags ) )
             {
-                var line = logger.DataFactory.CreateLogData( level | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var line = logger.DataFactory.CreateLogData( level | LogLevel.IsFiltered, finalTags, text, error, fileName, lineNumber );
                 logger.UnfilteredLog( ref line );
                 return true;
             }

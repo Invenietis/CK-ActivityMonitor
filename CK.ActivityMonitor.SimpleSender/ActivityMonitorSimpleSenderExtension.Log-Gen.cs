@@ -11,7 +11,6 @@ namespace CK.Core
 {
     public static partial class ActivityMonitorSimpleSenderExtension
     {
-		 
 		/// <summary>
         /// Emits a <see cref="LogLevel.Debug"/> with an exception if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).
@@ -233,7 +232,6 @@ namespace CK.Core
 
        #endregion
 
-		 
 		/// <summary>
         /// Emits a <see cref="LogLevel.Trace"/> with an exception if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).
@@ -455,7 +453,6 @@ namespace CK.Core
 
        #endregion
 
-		 
 		/// <summary>
         /// Emits a <see cref="LogLevel.Info"/> with an exception if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).
@@ -677,7 +674,6 @@ namespace CK.Core
 
        #endregion
 
-		 
 		/// <summary>
         /// Emits a <see cref="LogLevel.Warn"/> with an exception if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).
@@ -899,7 +895,6 @@ namespace CK.Core
 
        #endregion
 
-		 
 		/// <summary>
         /// Emits a <see cref="LogLevel.Error"/> with an exception if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).
@@ -1121,7 +1116,6 @@ namespace CK.Core
 
        #endregion
 
-		 
 		/// <summary>
         /// Emits a <see cref="LogLevel.Fatal"/> with an exception if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).

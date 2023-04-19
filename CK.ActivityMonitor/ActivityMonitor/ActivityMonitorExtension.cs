@@ -68,7 +68,7 @@ namespace CK.Core
         /// </param>
         /// <param name="level">Log level. Must not be <see cref="LogLevel.None"/>.</param>
         /// <param name="text">Text to log. Must not be null or empty.</param>
-        /// <param name="ex">Optional exception associated to the log. When not null, a Group is automatically created.</param>
+        /// <param name="error">Optional <see cref="Exception"/> or <see cref="CKExceptionData"/> associated to the log.</param>
         /// <param name="fileName">The source code file name from which the log is emitted.</param>
         /// <param name="lineNumber">The line number in the source from which the log is emitted.</param>
         /// <remarks>
@@ -88,11 +88,11 @@ namespace CK.Core
                                           LogLevel level,
                                           CKTrait? tags,
                                           string? text,
-                                          Exception? ex,
+                                          object? error,
                                           [CallerFilePath] string? fileName = null,
                                           [CallerLineNumber] int lineNumber = 0 )
         {
-            var d = @this.DataFactory.CreateLogData( level, @this.AutoTags | tags, text, ex, fileName, lineNumber );
+            var d = @this.DataFactory.CreateLogData( level, @this.AutoTags | tags, text, error, fileName, lineNumber );
             @this.UnfilteredLog( ref d );
         }
 
@@ -105,7 +105,7 @@ namespace CK.Core
         /// <param name="level">Log level. The <see cref="LogLevel.None"/> level is used to open a filtered group. See remarks.</param>
         /// <param name="tags">Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. It will be union-ed with current <see cref="IActivityMonitor.AutoTags">AutoTags</see>.</param>
         /// <param name="text">Text to log (the title of the group). Null text is valid and considered as <see cref="String.Empty"/> or assigned to the <see cref="Exception.Message"/> if it exists.</param>
-        /// <param name="ex">Optional exception associated to the group.</param>
+        /// <param name="error">Optional <see cref="Exception"/> or <see cref="CKExceptionData"/> associated to the group.</param>
         /// <param name="fileName">The source code file name from which the group is opened.</param>
         /// <param name="lineNumber">The line number in the source from which the group is opened.</param>
         /// <returns>A disposable object that can be used to close the group.</returns>
@@ -129,11 +129,11 @@ namespace CK.Core
                                                        LogLevel level,
                                                        CKTrait? tags,
                                                        string text,
-                                                       Exception? ex,
+                                                       object? error,
                                                        [CallerFilePath] string? fileName = null,
                                                        [CallerLineNumber] int lineNumber = 0 )
         {
-            var d = @this.DataFactory.CreateLogData( level, @this.AutoTags | tags, text, ex, fileName, lineNumber );
+            var d = @this.DataFactory.CreateLogData( level, @this.AutoTags | tags, text, error, fileName, lineNumber );
             return @this.UnfilteredOpenGroup( ref d );
         }
 
