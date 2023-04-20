@@ -391,7 +391,7 @@ namespace CK.Core
 
         #region IActivityMonitor.TemporarilySetMinimalFilter( ... )
 
-        class LogFilterSentinel : IDisposable
+        sealed class LogFilterSentinel : IDisposable
         {
             readonly IActivityMonitor _monitor;
             readonly LogFilter _prevLevel;
@@ -491,6 +491,21 @@ namespace CK.Core
         #region RegisterClients
 
         /// <summary>
+        /// Registers a typed <see cref="IActivityMonitorClient"/>.
+        /// Duplicate IActivityMonitorClient instances are ignored.
+        /// </summary>
+        /// <typeparam name="T">Any type that specializes <see cref="IActivityMonitorClient"/>.</typeparam>
+        /// <param name="this">This output.</param>
+        /// <param name="client">Client to register.</param>
+        /// <param name="added">True if the client has been added, false if it was already registered.</param>
+        /// <param name="replayInitialLogs">True to immediately replay initial logs if any (see <see cref="ActivityMonitorOptions.WithInitialReplay"/>)</param>
+        /// <returns>The registered client.</returns>
+        public static T RegisterClient<T>( this IActivityMonitorOutput @this, T client, out bool added, bool replayInitialLogs = false ) where T : IActivityMonitorClient
+        {
+            return (T)@this.RegisterClient( (IActivityMonitorClient)client, out added, replayInitialLogs );
+        }
+
+        /// <summary>
         /// Registers an <see cref="IActivityMonitorClient"/> to the <see cref="IActivityMonitorOutput.Clients">Clients</see> list.
         /// Duplicates IActivityMonitorClient are silently ignored.
         /// </summary>
@@ -521,25 +536,11 @@ namespace CK.Core
         /// Registers a unique client for a type that must have a public default constructor. 
         /// <see cref="Activator.CreateInstance{T}()"/> is called if necessary.
         /// </summary>
+        /// <param name="replayInitialLogs">True to immediately replay initial logs if any (see <see cref="ActivityMonitorOptions.WithInitialReplay"/>)</param>
         /// <returns>The found or newly created client.</returns>
         public static T RegisterUniqueClient<T>( this IActivityMonitorOutput @this, bool replayInitialLogs = false ) where T : IActivityMonitorClient, new()
         {
             return @this.RegisterUniqueClient( c => true, () => Activator.CreateInstance<T>(), replayInitialLogs )!;
-        }
-
-        /// <summary>
-        /// Unregisters the first <see cref="IActivityMonitorClient"/> from the <see cref="IActivityMonitorOutput.Clients"/> list
-        /// that satisfies the predicate.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>
-        /// <param name="predicate">A predicate that will be used to determine the first client to unregister.</param>
-        /// <returns>The unregistered client, or null if no client has been found.</returns>
-        public static T? UnregisterClient<T>( this IActivityMonitorOutput @this, Func<T, bool> predicate ) where T : IActivityMonitorClient
-        {
-            Throw.CheckNotNullArgument( predicate );
-            T? c = @this.Clients.OfType<T>().Where( predicate ).FirstOrDefault();
-            if( c != null ) @this.UnregisterClient( c );
-            return c;
         }
 
         #endregion

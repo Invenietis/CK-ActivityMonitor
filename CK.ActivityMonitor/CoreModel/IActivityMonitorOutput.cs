@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CK.Core
 {
@@ -19,23 +20,21 @@ namespace CK.Core
         IActivityMonitorClient RegisterClient( IActivityMonitorClient client, out bool added, bool replayInitialLogs = false );
 
         /// <summary>
-        /// Registers a typed <see cref="IActivityMonitorClient"/>.
-        /// Duplicate IActivityMonitorClient instances are ignored.
-        /// </summary>
-        /// <typeparam name="T">Any type that specializes <see cref="IActivityMonitorClient"/>.</typeparam>
-        /// <param name="client">Client to register.</param>
-        /// <param name="added">True if the client has been added, false if it was already registered.</param>
-        /// <param name="replayInitialLogs">True to immediately replay initial logs if any (see <see cref="ActivityMonitorOptions.WithInitialReplay"/>)</param>
-        /// <returns>The registered client.</returns>
-        T RegisterClient<T>( T client, out bool added, bool replayInitialLogs = false ) where T : IActivityMonitorClient;
-
-        /// <summary>
         /// Unregisters the given <see cref="IActivityMonitorClient"/> from the <see cref="Clients"/> list.
         /// Silently ignores an unregistered client.
         /// </summary>
         /// <param name="client">An <see cref="IActivityMonitorClient"/> implementation.</param>
         /// <returns>The unregistered client or null if it has not been found.</returns>
         IActivityMonitorClient? UnregisterClient( IActivityMonitorClient client );
+
+        /// <summary>
+        /// Unregisters the first <see cref="IActivityMonitorClient"/> from the <see cref="IActivityMonitorOutput.Clients"/> list
+        /// that satisfies the predicate.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>
+        /// <param name="predicate">A predicate that will be used to determine the first client to unregister.</param>
+        /// <returns>The unregistered client, or null if no client has been found.</returns>
+        T? UnregisterClient<T>( Func<T, bool> predicate ) where T : IActivityMonitorClient;
 
         /// <summary>
         /// Registers a <see cref="IActivityMonitorClient"/> that must be unique in a sense.
@@ -52,9 +51,9 @@ namespace CK.Core
         T? RegisterUniqueClient<T>( Func<T, bool> tester, Func<T?> factory, bool replayInitialLogs = false ) where T : IActivityMonitorClient;
 
         /// <summary>
-        /// Gets the list of registered <see cref="IActivityMonitorClient"/>.
+        /// Gets a snapshot of the registered <see cref="IActivityMonitorClient"/>.
         /// </summary>
-        IReadOnlyList<IActivityMonitorClient> Clients { get; }
+        IActivityMonitorClient[] Clients { get; }
 
         /// <summary>
         /// Gets or sets the current maximal logs that are initially replayed.

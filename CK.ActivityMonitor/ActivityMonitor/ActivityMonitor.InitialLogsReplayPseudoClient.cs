@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace CK.Core
 {
@@ -11,11 +12,8 @@ namespace CK.Core
 
         internal void DoStopInitialReplay()
         {
-            if( _initialReplay != null )
-            {
-                _initialReplay.Release();
-                _initialReplay = null;
-            }
+            var r = Interlocked.Exchange( ref _initialReplay, null );
+            if( r != null ) r.Release();
         }
 
         sealed class InitialLogsReplayPseudoClient

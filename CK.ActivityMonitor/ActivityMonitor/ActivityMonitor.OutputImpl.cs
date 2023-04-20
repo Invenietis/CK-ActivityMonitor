@@ -108,11 +108,6 @@ namespace CK.Core
                 return client;
             }
 
-            public T RegisterClient<T>( T client, out bool added, bool replayInitialLogs = false ) where T : IActivityMonitorClient
-            {
-                return (T)RegisterClient( (IActivityMonitorClient)client, out added, replayInitialLogs );
-            }
-
             public T? RegisterUniqueClient<T>( Func<T, bool> tester, Func<T?> factory, bool replayInitialLogs ) where T : IActivityMonitorClient
             {
                 Throw.CheckNotNullArgument( tester );
@@ -169,15 +164,22 @@ namespace CK.Core
                     return null;
                 }
                 finally
+            public T? UnregisterClient<T>( Func<T, bool> predicate ) where T : IActivityMonitorClient
+            {
+                Throw.CheckNotNullArgument( predicate );
+                T? c = Clients.OfType<T>().Where( predicate ).FirstOrDefault();
+                if( c != null ) UnregisterClient( c );
+                return c;
+            }
+
+            public IActivityMonitorClient[] Clients
+            {
+                get
                 {
-                    _monitor.ReentrantAndConcurrentRelease();
+                    return _clients.ToArray();
                 }
             }
 
-            /// <summary>
-            /// Gets the list of registered <see cref="IActivityMonitorClient"/>.
-            /// </summary>
-            public IReadOnlyList<IActivityMonitorClient> Clients => _clients;
 
             internal Exception? ForceRemoveCondemnedClient( IActivityMonitorClient client )
             {
