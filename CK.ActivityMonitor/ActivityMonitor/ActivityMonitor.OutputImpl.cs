@@ -164,6 +164,11 @@ namespace CK.Core
                     return null;
                 }
                 finally
+                {
+                    _monitor.ReentrantAndConcurrentRelease();
+                }
+            }
+
             public T? UnregisterClient<T>( Func<T, bool> predicate ) where T : IActivityMonitorClient
             {
                 Throw.CheckNotNullArgument( predicate );

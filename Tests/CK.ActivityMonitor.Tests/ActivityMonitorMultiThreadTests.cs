@@ -156,7 +156,7 @@ namespace CK.Core.Tests.Monitoring
         public void simple_reentrancy_detection()
         {
             IActivityMonitor monitor = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
-            int clientCount = monitor.Output.Clients.Count;
+            int clientCount = monitor.Output.Clients.Length;
             monitor.Output.Clients.Should().HaveCount( clientCount );
 
             BuggyActivityMonitorClient client = new BuggyActivityMonitorClient( monitor );
