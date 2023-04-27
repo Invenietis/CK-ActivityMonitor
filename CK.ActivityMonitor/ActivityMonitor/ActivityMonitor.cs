@@ -104,8 +104,7 @@ namespace CK.Core
         LogsRecorder? _recorder;
         InitialLogsReplayPseudoClient? _initialReplay;
 
-        readonly Logger? _logger;
-        readonly ActivityMonitorLogData.IFactory _dataFactory;
+        readonly Logger _logger;
         DateTimeStamp _lastLogTime;
 
         /// <summary>
@@ -145,7 +144,7 @@ namespace CK.Core
         ActivityMonitor( string uniqueId,
                          CKTrait? tags,
                          ActivityMonitorOptions options,
-                         ActivityMonitorLogData.IFactory? dataFactory = null )
+                         Logger? logger = null )
         {
             Debug.Assert( uniqueId != null && uniqueId.Length >= MinMonitorUniqueIdLength && !uniqueId.Any( c => Char.IsWhiteSpace( c ) ) );
             _uniqueId = uniqueId;
@@ -153,22 +152,14 @@ namespace CK.Core
             _trackStackTrace = _autoTags.AtomicTraits.Contains( Tags.StackTrace );
             _topic = String.Empty;
             _output = new OutputImpl( this );
-            if( dataFactory != null )
+            if( logger != null )
             {
-                // Explicit dataFactory parameter is used only for the LogRecorder internal monitor.
-                _dataFactory = dataFactory;
+                // Explicit logger parameter is used only for the LogRecorder internal monitor.
+                _logger = logger;
             }
             else
             {
-                if( (options & ActivityMonitorOptions.WithParallel) != 0 )
-                {
-                    _logger = new Logger( this );
-                    _dataFactory = _logger.FactoryForMonitor;
-                }
-                else
-                {
-                    _dataFactory = _output;
-                }
+                _logger = new Logger( this );
                 if( (options & ActivityMonitorOptions.WithInitialReplay) != 0 )
                 {
                     _initialReplay = new InitialLogsReplayPseudoClient( this );
@@ -190,10 +181,7 @@ namespace CK.Core
         public string Topic => _topic;
 
         /// <inheritdoc />
-        public IParallelLogger? ParallelLogger => _logger;
-
-        /// <inheritdoc />
-        public ActivityMonitorLogData.IFactory DataFactory => _dataFactory;
+        public IParallelLogger ParallelLogger => _logger;
 
         /// <inheritdoc />
         public void SetTopic( string? newTopic, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
@@ -226,7 +214,7 @@ namespace CK.Core
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         void SendTopicLogLine( [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
-            var d = DataFactory.CreateLogData( LogLevel.Info | LogLevel.IsFiltered,
+            var d = _logger.CreateLogData(false, LogLevel.Info | LogLevel.IsFiltered,
                                                _autoTags | Tags.MonitorTopicChanged,
                                                SetTopicPrefix + _topic,
                                                null,
@@ -294,7 +282,7 @@ namespace CK.Core
         /// <inheritdoc />
         public LogFilter ActualFilter
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            [MethodImpl( MethodImplOptions.AggressiveInlining )]
             get
             {
                 if( Interlocked.Exchange( ref _signalFlag, 0 ) == 1 )
@@ -529,7 +517,7 @@ namespace CK.Core
         {
             Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
             Debug.Assert( !data.IsParallel );
-
+            data.SetOpenGroup();
             _current = _current?.EnsureNext() ?? new Group( this, null );
             if( data.MaskedLevel == LogLevel.None )
             {
@@ -643,7 +631,7 @@ namespace CK.Core
             #endregion
 
             // Obtains the close log time.
-            g.CloseLogTime = _dataFactory.GetLogTime();
+            g.CloseLogTime = _logger.GetLogTime();
 
             List<IActivityMonitorClient>? buggyClients = null;
             foreach( var l in _output.Clients )
@@ -744,7 +732,7 @@ namespace CK.Core
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
         void RentrantOnlyCheck()
         {
             if( _enteredThreadId != Environment.CurrentManagedThreadId ) Throw.InvalidOperationException( ActivityMonitorResources.ActivityMonitorReentrancyCallOnly );
@@ -851,5 +839,7 @@ namespace CK.Core
             return b.ToString();
         }
 
+        ActivityMonitorLogData IActivityLineEmitter.CreateActivityMonitorLogData( LogLevel level, CKTrait finalTags, string? text, object? exception, string? fileName, int lineNumber ) =>
+            _logger.CreateLogData( false, level, finalTags, text, exception, fileName, lineNumber );
     }
 }

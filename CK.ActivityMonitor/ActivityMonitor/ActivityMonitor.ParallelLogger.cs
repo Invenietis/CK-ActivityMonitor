@@ -6,34 +6,15 @@ namespace CK.Core
 {
     public sealed partial class ActivityMonitor
     {
-        sealed class Logger : IParallelLogger, ActivityMonitorLogData.IFactory
+        sealed class Logger : IParallelLogger
         {
-            sealed class ForMonitor : ActivityMonitorLogData.IFactory
-            {
-                readonly Logger _logger;
-
-                public ForMonitor( Logger logger )
-                {
-                    _logger = logger;
-                }
-
-                public ActivityMonitorLogData CreateLogData( LogLevel level, CKTrait finalTags, string? text, object? exception, string? fileName, int lineNumber )
-                {
-                    return _logger.CreateLogData( false, level, finalTags, text, exception, fileName, lineNumber );
-                }
-
-                public DateTimeStamp GetLogTime() => _logger.GetLogTime();
-            }
-
             readonly ActivityMonitor _monitor;
-            readonly ForMonitor _forMonitor;
             readonly object _lock;
 
             internal Logger( ActivityMonitor monitor )
             {
                 _monitor = monitor;
                 _lock = new object();
-                _forMonitor = new ForMonitor( this );
             }
 
             public string UniqueId => _monitor._uniqueId;
@@ -44,11 +25,7 @@ namespace CK.Core
             // if it has been signaled (and calls ReentrantAndConcurrentCheck).
             public LogLevelFilter ActualFilter => _monitor._actualFilter.Line;
 
-            public ActivityMonitorLogData.IFactory DataFactory => this;
-
-            public ActivityMonitorLogData.IFactory FactoryForMonitor => _forMonitor;
-
-            ActivityMonitorLogData ActivityMonitorLogData.IFactory.CreateLogData( LogLevel level,
+            ActivityMonitorLogData IActivityLineEmitter.CreateActivityMonitorLogData( LogLevel level,
                                                                                   CKTrait finalTags,
                                                                                   string? text,
                                                                                   object? exception,
@@ -58,7 +35,7 @@ namespace CK.Core
                 return CreateLogData( true, level, finalTags, text, exception, fileName, lineNumber );
             }
 
-            public DateTimeStamp GetLogTime()
+            internal DateTimeStamp GetLogTime()
             {
                 lock( _lock )
                 {
@@ -87,7 +64,7 @@ namespace CK.Core
                     _monitor._lastLogTime = logTime = new DateTimeStamp( _monitor._lastLogTime, DateTime.UtcNow );
                     depth = _monitor._currentDepth;
                 }
-                return new ActivityMonitorLogData( _monitor._uniqueId, logTime, depth, isParallel, level, finalTags, text, exception, fileName, lineNumber );
+                return new ActivityMonitorLogData( _monitor._uniqueId, logTime, depth, isParallel, false, level, finalTags, text, exception, fileName, lineNumber );
             }
 
             public DependentToken CreateDependentToken( string? message,

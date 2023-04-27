@@ -133,7 +133,7 @@ namespace CK.Core
         /// logs cannot be observed by the monitor's output <see cref="IActivityMonitorClient"/>.
         /// </para>
         /// </summary>
-        IParallelLogger? ParallelLogger { get; }
+        IParallelLogger ParallelLogger { get; }
     }
 
 }

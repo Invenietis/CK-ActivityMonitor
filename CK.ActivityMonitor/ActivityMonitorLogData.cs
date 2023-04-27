@@ -11,36 +11,6 @@ namespace CK.Core
     /// </summary>
     public struct ActivityMonitorLogData
     {
-        /// <summary>
-        /// Advanced interface that is the only way to obtain a new log data.
-        /// It should not be used directly unless you know what you are doing.
-        /// </summary>
-        public interface IFactory
-        {
-            /// <summary>
-            /// Creates a <see cref="ActivityMonitorLogData"/>. If <paramref name="text"/> is null or empty
-            /// the text is set to the exception's message or to <see cref="ActivityMonitor.NoLogText"/>.
-            /// </summary>
-            /// <param name="level">The log level that may be flagged with <see cref="LogLevel.IsFiltered"/> or not.</param>
-            /// <param name="finalTags">The final tags that should already be combined with the source <see cref="IActivityLineEmitter.AutoTags"/>.</param>
-            /// <param name="text">The text.</param>
-            /// <param name="exception">Optional <see cref="Exception"/> or <see cref="CKExceptionData"/> (any other type throws an <see cref="ArgumentException"/>).</param>
-            /// <param name="fileName">Source file name of the log.</param>
-            /// <param name="lineNumber">Source line number of the log.</param>
-            /// <returns>The ready to send data.</returns>
-            ActivityMonitorLogData CreateLogData( LogLevel level,
-                                                  CKTrait finalTags,
-                                                  string? text,
-                                                  object? exception,
-                                                  string? fileName,
-                                                  int lineNumber );
-            /// <summary>
-            /// Updates and obtain a current log time. 
-            /// </summary>
-            /// <returns>The log time to use now.</returns>
-            DateTimeStamp GetLogTime();
-        }
-
         string _text;
         readonly Exception? _exception;
         CKExceptionData? _exceptionData;
@@ -51,10 +21,14 @@ namespace CK.Core
         CKTrait _tags;
         int _depth;
         readonly int _lineNumber;
-        DateTimeStamp _logTime;
         readonly LogLevel _level;
-        readonly bool _isParallel;
-        bool _isFrozen;
+        DateTimeStamp _logTime;
+        /// <summary>
+        /// bit 0: isParallel.
+        /// bit 1: isOpenGroup.
+        /// bit 2: isFrozen
+        /// </summary>
+        byte _flags;
 
         /// <summary>
         /// Direct with no check constructor except that if <paramref name="text"/> is null or empty
@@ -75,6 +49,7 @@ namespace CK.Core
                                          DateTimeStamp logTime,
                                          int depth,
                                          bool isParallel,
+                                         bool isOpenGroup,
                                          LogLevel level,
                                          CKTrait finalTags,
                                          string? text,
@@ -104,13 +79,13 @@ namespace CK.Core
             _logTime = logTime;
             _fileName = fileName;
             _depth = depth;
-            _isParallel = isParallel;
+            _flags = (byte)(isParallel ? 1 : 0);
+            _flags |= (byte)(isOpenGroup ? 2 : 0);
             _lineNumber = lineNumber;
             Debug.Assert( (int)LogLevel.NumberOfBits == 7 );
             _level = level & (LogLevel)0b1111111;
             _monitorId = monitorId;
             _level = level;
-            _isFrozen = false;
         }
 
         /// <summary>
@@ -130,8 +105,9 @@ namespace CK.Core
             _logTime = data.LogTime;
             _externalData = data;
             _level = data.Level;
-            _isParallel = data.IsParallel;
-            _isFrozen = true;
+            _flags = (byte)(data.IsParallel ? 1 : 0);
+            _flags |= (byte)(data.IsOpenGroup ? 2 : 0);
+            _flags |= 4;
         }
 
         /// <summary>
@@ -158,7 +134,7 @@ namespace CK.Core
         /// <summary>
         /// Gets whether this data is locked.
         /// </summary>
-        public readonly bool IsFrozen => _isFrozen;
+        public readonly bool IsFrozen => (_flags & 4) != 0;
 
         /// <summary>
         /// Gets the exception of the log.
@@ -204,7 +180,7 @@ namespace CK.Core
             var e = _externalData;
             if( e == null )
             {
-                _isFrozen = true;
+                Freeze();
                 return _externalData = ActivityMonitorExternalLogData.Acquire( ref this );
             }
             e.AddRef();
@@ -256,12 +232,14 @@ namespace CK.Core
         /// <summary>
         /// Gets whether this is a log line emitted by <see cref="IActivityLineEmitter"/> or <see cref="IParallelLogger"/>.
         /// </summary>
-        public readonly bool IsParallel => _isParallel;
+        public readonly bool IsParallel => (_flags & 1) != 0;
+
+        public readonly bool IsOpenGroup => (_flags & 2) != 0;
 
         /// <summary>
         /// Freezes this data.
         /// </summary>
-        public void Freeze() => _isFrozen = true;
+        public void Freeze() => _flags |= 4;
 
         /// <summary>
         /// Explicitly sets the <see cref="LogTime"/>.
@@ -302,6 +280,11 @@ namespace CK.Core
         {
             _tags |= ActivityMonitor.Tags.InternalMonitor;
             _depth = depth;
+        }
+
+        internal void SetOpenGroup()
+        {
+            _flags |= 2;
         }
     }
 }

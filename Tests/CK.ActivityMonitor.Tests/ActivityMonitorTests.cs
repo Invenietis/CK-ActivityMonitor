@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using FluentAssertions;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using CK.Core.Impl;
 
 namespace CK.Core.Tests.Monitoring
 {
@@ -927,6 +928,56 @@ namespace CK.Core.Tests.Monitoring
             }
         }
 
+
+        class TestClient : IActivityMonitorBoundClient
+        {
+            public LogFilter MinimalFilter => LogFilter.Debug;
+
+            public bool IsDead => false;
+
+            public void OnAutoTagsChanged( CKTrait newTrait )
+            {
+            }
+
+            public void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+            {
+                LastData = group.Data;
+            }
+
+            public void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions )
+            {
+                LastData = group.Data;
+            }
+
+            public void OnOpenGroup( IActivityLogGroup group )
+            {
+                LastData = group.Data;
+            }
+
+            public void OnTopicChanged( string newTopic, string? fileName, int lineNumber )
+            {
+            }
+            public ActivityMonitorLogData LastData { get; private set; }
+            public void OnUnfilteredLog( ref ActivityMonitorLogData data )
+            {
+                LastData = data;
+            }
+
+            public void SetMonitor( IActivityMonitorImpl? source, bool forceBuggyRemove )
+            {
+            }
+        }
+
+        [Test]
+        public void open_group_is_tagged()
+        {
+            ActivityMonitor m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
+            var tester = m.Output.RegisterClient( new TestClient() );
+            using( m.OpenTrace( "Hello" ) )
+            {
+                tester.LastData.IsOpenGroup.Should().BeTrue();
+            }
+        }
 
     }
 }

@@ -24,7 +24,7 @@ namespace CK.Core
         int _refCount;
         DateTimeStamp _logTime;
         LogLevel _level;
-        bool _isParallel;
+        byte _flags;
 
         /// <inheritdoc cref="ActivityMonitorLogData.Text"/>
         public string Text => _text;
@@ -59,7 +59,10 @@ namespace CK.Core
         public DateTimeStamp LogTime => _logTime;
 
         /// <inheritdoc cref="ActivityMonitorLogData.IsParallel"/>
-        public bool IsParallel => _isParallel;
+        public bool IsParallel => (_flags & 1) != 0;
+
+        /// <inheritdoc cref="ActivityMonitorLogData.IsParallel"/>
+        public bool IsOpenGroup => (_flags & 2) != 0;
 
         // Private constructor.
         ActivityMonitorExternalLogData()
@@ -78,7 +81,8 @@ namespace CK.Core
             _logTime = data.LogTime;
             _monitorId = data.MonitorId;
             _level = data.Level;
-            _isParallel = data.IsParallel;
+            _flags = (byte)(data.IsParallel ? 1 : 0);
+            _flags |= (byte)(data.IsOpenGroup ? 2 : 0);
         }
 
         /// <summary>

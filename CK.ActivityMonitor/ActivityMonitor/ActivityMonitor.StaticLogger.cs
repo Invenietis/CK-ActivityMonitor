@@ -10,7 +10,7 @@ namespace CK.Core
 {
     public sealed partial class ActivityMonitor
     {
-        sealed class LoggerStatic : IStaticLogger, ActivityMonitorLogData.IFactory
+        sealed class LoggerStatic : IStaticLogger
         {
             static DateTimeStamp _lastLogTime = DateTimeStamp.MinValue;
             static readonly object _lock = new object();
@@ -19,9 +19,7 @@ namespace CK.Core
 
             public LogLevelFilter ActualFilter => DefaultFilter.Line;
 
-            public ActivityMonitorLogData.IFactory DataFactory => this;
-
-            public ActivityMonitorLogData CreateLogData( LogLevel level,
+            public ActivityMonitorLogData CreateActivityMonitorLogData( LogLevel level,
                                                          CKTrait finalTags,
                                                          string? text,
                                                          object? exception,
@@ -33,15 +31,7 @@ namespace CK.Core
                 {
                     _lastLogTime = logTime = new DateTimeStamp( _lastLogTime, DateTime.UtcNow );
                 }
-                return new ActivityMonitorLogData( StaticLogMonitorUniqueId, logTime, 0, true, level, finalTags, text, exception, fileName, lineNumber );
-            }
-
-            public DateTimeStamp GetLogTime()
-            {
-                lock( _lock )
-                {
-                    return _lastLogTime = new DateTimeStamp( _lastLogTime, DateTime.UtcNow );
-                }
+                return new ActivityMonitorLogData( StaticLogMonitorUniqueId, logTime, 0, true, false, level, finalTags, text, exception, fileName, lineNumber );
             }
 
             public void UnfilteredLog( ref ActivityMonitorLogData data )

@@ -40,7 +40,7 @@ namespace CK.Core
             {
                 _primary = primary;
                 History = new List<object>();
-                InternalMonitor = new ActivityMonitor( _primary._uniqueId, Tags.Empty, ActivityMonitorOptions.SkipAutoConfiguration, primary._dataFactory );
+                InternalMonitor = new ActivityMonitor( _primary._uniqueId, Tags.Empty, ActivityMonitorOptions.SkipAutoConfiguration, primary._logger );
                 InternalMonitor.Output.RegisterClient( this );
             }
 

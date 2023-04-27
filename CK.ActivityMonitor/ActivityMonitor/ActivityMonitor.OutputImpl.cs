@@ -12,7 +12,7 @@ namespace CK.Core
         /// <summary>
         /// Implementation of <see cref="IActivityMonitorOutput"/> for <see cref="IActivityMonitor.Output"/>.
         /// </summary>
-        sealed class OutputImpl : IActivityMonitorOutput, ActivityMonitorLogData.IFactory
+        sealed class OutputImpl : IActivityMonitorOutput
         {
             readonly List<IActivityMonitorClient> _clients;
             readonly ActivityMonitor _monitor;
@@ -23,27 +23,6 @@ namespace CK.Core
                 _monitor = monitor;
                 _clients = new List<IActivityMonitorClient>();
             }
-
-            ActivityMonitorLogData ActivityMonitorLogData.IFactory.CreateLogData( LogLevel level,
-                                                                                  CKTrait finalTags,
-                                                                                  string? text,
-                                                                                  object? exception,
-                                                                                  string? fileName,
-                                                                                  int lineNumber )
-            {
-                return new ActivityMonitorLogData( _monitor._uniqueId,
-                                                   _monitor._lastLogTime = new DateTimeStamp( _monitor._lastLogTime, DateTime.UtcNow ),
-                                                   _monitor._currentDepth,
-                                                   false,
-                                                   level,
-                                                   finalTags,
-                                                   text,
-                                                   exception,
-                                                   fileName,
-                                                   lineNumber );
-            }
-
-            DateTimeStamp ActivityMonitorLogData.IFactory.GetLogTime() => _monitor._lastLogTime = new DateTimeStamp( _monitor._lastLogTime, DateTime.UtcNow );
 
             public int? MaxInitialReplayCount
             {

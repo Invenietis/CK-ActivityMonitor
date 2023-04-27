@@ -26,9 +26,22 @@ namespace CK.Core
         LogLevelFilter ActualFilter { get; }
 
         /// <summary>
-        /// Low level factory of log data.
+        /// Creates a <see cref="ActivityMonitorLogData"/>. If <paramref name="text"/> is null or empty
+        /// the text is set to the exception's message or to <see cref="ActivityMonitor.NoLogText"/>.
         /// </summary>
-        ActivityMonitorLogData.IFactory DataFactory { get; }
+        /// <param name="level">The log level that may be flagged with <see cref="LogLevel.IsFiltered"/> or not.</param>
+        /// <param name="finalTags">The final tags that should already be combined with the source <see cref="IActivityLineEmitter.AutoTags"/>.</param>
+        /// <param name="text">The text.</param>
+        /// <param name="exception">Optional <see cref="Exception"/> or <see cref="CKExceptionData"/> (any other type throws an <see cref="ArgumentException"/>).</param>
+        /// <param name="fileName">Source file name of the log.</param>
+        /// <param name="lineNumber">Source line number of the log.</param>
+        /// <returns>The ready to send data.</returns>
+        ActivityMonitorLogData CreateActivityMonitorLogData( LogLevel level,
+                                              CKTrait finalTags,
+                                              string? text,
+                                              object? exception,
+                                              string? fileName,
+                                              int lineNumber );
 
         /// <summary>
         /// Sends a line of logs regardless of any filter. 

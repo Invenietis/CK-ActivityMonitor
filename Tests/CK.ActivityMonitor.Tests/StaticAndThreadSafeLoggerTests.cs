@@ -124,18 +124,15 @@ namespace CK.Core.Tests.Monitoring
             };
             ActivityMonitor.OnStaticLog += h;
 
-            var noLogger = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration, null );
-            noLogger.ParallelLogger.Should().BeNull( "No DateTimeStampProvider." );
-
-            var m = new ActivityMonitor( ActivityMonitorOptions.WithParallel| ActivityMonitorOptions.SkipAutoConfiguration );
+            var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             m.ParallelLogger.Should().NotBeNull();
             using( m.CollectTexts( out var logs ) )
             {
                 m.Debug( "NOSHOW - Regular log." );
-                m.ParallelLogger!.Debug( "NOSHOW - Thread safe log." );
+                m.ParallelLogger.Debug( "NOSHOW - Thread safe log." );
 
                 m.Trace( "Regular log." );
-                m.ParallelLogger!.Trace( "Thread safe log." );
+                m.ParallelLogger.Trace( "Thread safe log." );
 
                 logs.Should().BeEquivalentTo( new[] { "Regular log." } );
                 received.Should().BeEquivalentTo( new[] { "Thread safe log." } );

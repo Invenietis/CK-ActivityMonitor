@@ -185,7 +185,7 @@ namespace CK.Core
             /// <param name="startMessage">The start message to parse.</param>
             /// <param name="token">The token parsed.</param>
             /// <returns>True on success.</returns>
-            static public bool TryParseStartMessage( ReadOnlySpan<char> startMessage, [NotNullWhen(true)]out DependentToken? token )
+            static public bool TryParseStartMessage( ReadOnlySpan<char> startMessage, [NotNullWhen( true )] out DependentToken? token )
             {
                 token = null;
                 if( !startMessage.StartsWith( "Starting: ", StringComparison.Ordinal ) ) return false;
@@ -218,7 +218,7 @@ namespace CK.Core
         public DependentToken CreateDependentToken( string? message = null, string? dependentTopic = null, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
             if( string.IsNullOrWhiteSpace( message ) ) message = null;
-            var data = DataFactory.CreateLogData( LogLevel.Info | LogLevel.IsFiltered, Tags.CreateDependentToken, message, null, fileName, lineNumber );
+            var data = _logger.CreateLogData( false, LogLevel.Info | LogLevel.IsFiltered, Tags.CreateDependentToken, message, null, fileName, lineNumber );
             DependentToken t = CreateDependentToken( ref data, message, dependentTopic );
             UnfilteredLog( ref data );
             return t;

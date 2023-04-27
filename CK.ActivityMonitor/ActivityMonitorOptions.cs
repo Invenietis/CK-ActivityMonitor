@@ -15,15 +15,9 @@ namespace CK.Core
         Default = 0,
 
         /// <summary>
-        /// <see cref="ActivityMonitor.AutoConfiguration"/> is applied and
-        /// the <see cref="IActivityMonitor.ParallelLogger"/> available.
-        /// </summary>
-        WithParallel = 1,
-
-        /// <summary>
         /// Ignores <see cref="ActivityMonitor.AutoConfiguration"/>.
         /// </summary>
-        SkipAutoConfiguration = 2,
+        SkipAutoConfiguration = 1,
 
         /// <summary>
         /// Captures initial logs and replays them into each new registered <see cref="IActivityMonitorClient"/>.
@@ -34,7 +28,7 @@ namespace CK.Core
         /// a true <c>replayInitialLogs</c> parameters.
         /// </para>
         /// </summary>
-        WithInitialReplay = 4
+        WithInitialReplay = 2
     }
 
 }
