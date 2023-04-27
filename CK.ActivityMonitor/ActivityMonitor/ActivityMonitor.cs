@@ -141,6 +141,19 @@ namespace CK.Core
             SetTopic( topic );
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="ActivityMonitor"/> with a <see cref="DependentToken"/>.
+        /// </summary>
+        /// <param name="topic">Initial topic.</param>
+        /// <param name="options">Optional creation options.</param>
+        /// <param name="initialTags">Optional initial tags.</param>
+        public ActivityMonitor( DependentToken token, ActivityMonitorOptions options = ActivityMonitorOptions.Default, CKTrait? initialTags = null )
+            : this( _generatorId.GetNextString(), initialTags, options )
+        {
+            Throw.CheckNotNullArgument( token );
+            _ = this.StartDependentActivity( token );
+        }
+
         ActivityMonitor( string uniqueId,
                          CKTrait? tags,
                          ActivityMonitorOptions options,
@@ -214,7 +227,7 @@ namespace CK.Core
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         void SendTopicLogLine( [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
-            var d = _logger.CreateLogData(false, LogLevel.Info | LogLevel.IsFiltered,
+            var d = _logger.CreateLogData( false, LogLevel.Info | LogLevel.IsFiltered,
                                                _autoTags | Tags.MonitorTopicChanged,
                                                SetTopicPrefix + _topic,
                                                null,
