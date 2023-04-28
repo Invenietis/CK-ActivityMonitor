@@ -142,9 +142,10 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Initializes a new <see cref="ActivityMonitor"/> with a <see cref="DependentToken"/>.
+        /// Initializes a new <see cref="ActivityMonitor"/> and calls <see cref="ActivityMonitorExtension.StartDependentActivity">StartDependentActivity</see>
+        /// with the <paramref name="token"/>.
         /// </summary>
-        /// <param name="topic">Initial topic.</param>
+        /// <param name="token">Dependent token that starts this activity.</param>
         /// <param name="options">Optional creation options.</param>
         /// <param name="initialTags">Optional initial tags.</param>
         public ActivityMonitor( DependentToken token, ActivityMonitorOptions options = ActivityMonitorOptions.Default, CKTrait? initialTags = null )
@@ -227,7 +228,8 @@ namespace CK.Core
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         void SendTopicLogLine( [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
-            var d = _logger.CreateLogData( false, LogLevel.Info | LogLevel.IsFiltered,
+            var d = _logger.CreateLogLineData( false,
+                                               LogLevel.Info | LogLevel.IsFiltered,
                                                _autoTags | Tags.MonitorTopicChanged,
                                                SetTopicPrefix + _topic,
                                                null,
@@ -448,26 +450,13 @@ namespace CK.Core
             Debug.Assert( data.Level != LogLevel.None );
             Debug.Assert( !String.IsNullOrEmpty( data.Text ) );
             Debug.Assert( !data.IsParallel );
-
-            // We consider that as long has the log IsFiltered, the decision has already
-            // been taken and UnfilteredLog must do its job: handling the dispatch of the log.
-            // But for logs that do not claim to have been filtered, we ensure here that the ultimate
-            // level Off is not the current one.
-            if( !data.IsFilteredLog )
-            {
-                if( Interlocked.Exchange( ref _signalFlag, 0 ) == 1 ) DoResyncActualFilter();
-                if( _actualFilter.Line == LogLevelFilter.Off
-                    || (_actualFilter.Line == LogLevelFilter.None && DefaultFilter.Line == LogLevelFilter.Off) )
-                {
-                    return;
-                }
-            }
-
+            Throw.CheckArgument( !data.IsOpenGroup );
             SendUnfilteredLog( ref data );
         }
 
         internal void ReplayUnfilteredLog( ref ActivityMonitorLogData data, IActivityMonitorClient? single = null )
         {
+            Debug.Assert( !data.IsOpenGroup );
             if( single == null )
             {
                 SendUnfilteredLog( ref data );
@@ -530,27 +519,13 @@ namespace CK.Core
         {
             Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
             Debug.Assert( !data.IsParallel );
-            data.SetOpenGroup();
             _current = _current?.EnsureNext() ?? new Group( this, null );
             if( data.MaskedLevel == LogLevel.None )
             {
                 _current.InitializeRejectedGroup();
                 return _current;
             }
-            // We consider that as long has the log IsFiltered, the decision has already
-            // being taken and UnfilteredLog must do its job: handling the dispatch of the log.
-            // But for logs that do not claim to have been filtered, we ensure here that the ultimate
-            // level Off is not the current one.
-            if( !data.IsFilteredLog )
-            {
-                if( Interlocked.Exchange( ref _signalFlag, 0 ) == 1 ) DoResyncActualFilter();
-                if( _actualFilter.Group == LogLevelFilter.Off
-                    || (_actualFilter.Group == LogLevelFilter.None && DefaultFilter.Group == LogLevelFilter.Off) )
-                {
-                    _current.InitializeRejectedGroup();
-                    return _current;
-                }
-            }
+            Throw.CheckArgument( data.IsOpenGroup );
             _current.Initialize( ref data );
             _initialReplay?.OnOpenGroup( ref data );
             MonoParameterSafeCall( static ( client, group ) => client.OnOpenGroup( group ), _current );
@@ -643,8 +618,8 @@ namespace CK.Core
             g.AddGetConclusionText( ref conclusions );
             #endregion
 
-            // Obtains the close log time.
-            g.CloseLogTime = _logger.GetLogTime();
+            // Obtains the close log time: this decrements the _currentDepth in the lock.
+            g.CloseLogTime = _logger.GetLogTimeForClosingGroup();
 
             List<IActivityMonitorClient>? buggyClients = null;
             foreach( var l in _output.Clients )
@@ -852,7 +827,17 @@ namespace CK.Core
             return b.ToString();
         }
 
-        ActivityMonitorLogData IActivityLineEmitter.CreateActivityMonitorLogData( LogLevel level, CKTrait finalTags, string? text, object? exception, string? fileName, int lineNumber ) =>
-            _logger.CreateLogData( false, level, finalTags, text, exception, fileName, lineNumber );
+        ActivityMonitorLogData IActivityLineEmitter.CreateActivityMonitorLogData( LogLevel level,
+                                                                                  CKTrait finalTags,
+                                                                                  string? text,
+                                                                                  object? exception,
+                                                                                  string? fileName,
+                                                                                  int lineNumber,
+                                                                                  bool isOpenGroup )
+        {
+            return isOpenGroup
+                    ? _logger.CreateOpenGroupData( false, level, finalTags, text, exception, fileName, lineNumber )
+                    : _logger.CreateLogLineData( false, level, finalTags, text, exception, fileName, lineNumber );
+        }
     }
 }

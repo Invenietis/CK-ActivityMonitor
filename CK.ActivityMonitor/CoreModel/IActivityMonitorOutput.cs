@@ -31,7 +31,6 @@ namespace CK.Core
         /// Unregisters the first <see cref="IActivityMonitorClient"/> from the <see cref="IActivityMonitorOutput.Clients"/> list
         /// that satisfies the predicate.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>
         /// <param name="predicate">A predicate that will be used to determine the first client to unregister.</param>
         /// <returns>The unregistered client, or null if no client has been found.</returns>
         T? UnregisterClient<T>( Func<T, bool> predicate ) where T : IActivityMonitorClient;

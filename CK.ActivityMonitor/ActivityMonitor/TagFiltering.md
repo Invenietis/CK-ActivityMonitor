@@ -5,7 +5,7 @@
 First, a log line or group has a [`LogLevel`](../LogLevel.cs): `Debug`, `Trace`, `Info`, `Warn`, `Error`, `Fatal` (in this order).
 This is a simple enum and this is this is decided by the developer (by the method she calls to emit it).
 
-A [`LogLevelFilter`](../LogLevelFilter.cs) is another simple enum that defines a filter for such a level (`Undefined`, `Debug`…`Fatal`, `Off`).
+A [`LogLevelFilter`](../LogLevelFilter.cs) is another simple enum that defines a filter for such a level (`Undefined`, `Debug`…`Fatal`).
 Since there’s two kind of logs in the ActivityMonitor: Groups (`using( monitor.OpenTrace( … ) )`, etc.) and Line (`monitor.Debug( … )`, etc.),
 a [`LogFilter`](../LogFilter.cs) (a simple struct) defines two `LogLevelFilter`: one for Group and one for Line.
 

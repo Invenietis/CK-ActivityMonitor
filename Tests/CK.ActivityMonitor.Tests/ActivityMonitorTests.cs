@@ -106,27 +106,6 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Test]
-        public void Off_FilterLevel_prevents_all_logs_even_UnfilteredLogs()
-        {
-            var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
-            var c = m.Output.RegisterClient( new StupidStringClient() );
-            m.Trace( "Trace1" );
-            m.MinimalFilter = LogFilter.Off;
-            m.UnfilteredLog( LogLevel.Fatal, ActivityMonitor.Tags.Empty, "NOSHOW-1", null );
-            m.UnfilteredOpenGroup( LogLevel.Fatal, ActivityMonitor.Tags.Empty, "NOSHOW-2", null );
-            m.UnfilteredLog( LogLevel.Error, ActivityMonitor.Tags.Empty, "NOSHOW-3", null );
-            // Off will be restored by the group closing.
-            m.MinimalFilter = LogFilter.Trace;
-            m.CloseGroup( "NOSHOW-4" );
-            m.MinimalFilter = LogFilter.Trace;
-            m.Trace( "Trace2" );
-
-            var s = c.ToString();
-            s.Should().Contain( "Trace1" ).And.Contain( "Trace2" );
-            s.Should().NotContain( "NOSHOW" );
-        }
-
-        [Test]
         public void sending_a_null_or_empty_text_is_transformed_into_no_log_text()
         {
             var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
@@ -704,24 +683,21 @@ namespace CK.Core.Tests.Monitoring
             c.MinimalFilter = LogLevelFilter.Fatal;
             String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "3" );
 
-            c.MinimalFilter = LogLevelFilter.Off;
-            String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "" );
-
             c.MinimalFilter = LogLevelFilter.Warn;
-            using( d.OpenWarn( "1" ) )
+            using( d.OpenWarn( "A1" ) )
             {
-                d.Error( "2" );
-                using( d.OpenFatal( "3" ) )
+                d.Error( "A2" );
+                using( d.OpenFatal( "A3" ) )
                 {
-                    d.Trace( "4" );
-                    d.Info( "5" );
+                    d.Trace( "A4" );
+                    d.Info( "A5" );
                 }
             }
-            d.Warn( "6" );
-            String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "1,2,3,6" );
+            d.Warn( "A6" );
+            String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "3,A1,A2,A3,A6" );
 
             c.MinimalFilter = LogLevelFilter.Fatal;
-            String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "3" );
+            String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "3,A3" );
 
             c.MinimalFilter = LogLevelFilter.Debug;
             d.MinimalFilter = LogFilter.Debug;
@@ -734,7 +710,7 @@ namespace CK.Core.Tests.Monitoring
                     d.Info( "i1" );
                 }
             }
-            String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "3,d1,d2,f1,d3,i1" );
+            String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "3,A3,d1,d2,f1,d3,i1" );
         }
 
         [Test]

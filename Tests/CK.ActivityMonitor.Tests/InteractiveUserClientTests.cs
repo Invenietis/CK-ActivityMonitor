@@ -43,7 +43,7 @@ namespace CK.Core.Tests.Monitoring
             var m = new ActivityMonitor();
             m.MinimalFilter = LogFilter.Debug;
             var c1 = m.Output.RegisterClient( new ConsoleLikeClient() );
-            var c2 = m.Output.RegisterClient( new ConsoleLikeClient() { MinimalFilter = new LogClamper( LogFilter.Off, true ) } );
+            var c2 = m.Output.RegisterClient( new ConsoleLikeClient() { MinimalFilter = new LogClamper( LogFilter.Fatal, true ) } );
             m.Trace( "A in 1" );
             using( m.TemporarilySetInteractiveUserFilter( new LogClamper( LogFilter.Terse, true ) ) )
             {
@@ -56,7 +56,7 @@ namespace CK.Core.Tests.Monitoring
                 m.Error( "C in both" );
                 m.Trace( "NOSHOW" );
             }
-            m.Fatal( "D in 1" );
+            m.Error( "D in 1" );
             c1.ToString().Should().Contain( "A in 1" ).And.Contain( "B in both" ).And.Contain( "C in both" ).And.Contain( "D in 1" ).And.NotContain( "NOSHOW" );
             c2.ToString().Should().Contain( "B in both" ).And.Contain( "C in both" ).And.NotContain( "NOSHOW" );
         }

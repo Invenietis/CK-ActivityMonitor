@@ -166,11 +166,11 @@ namespace CK.Core.Tests.Monitoring
                 {
                     m.Fatal( "An horrible error occurred." );
                 }
-                 errorCount.Should().Be(1 );
+                errorCount.Should().Be( 1 );
             }
             {
                 IActivityMonitor m = new ActivityMonitor();
-                m.MinimalFilter = LogFilter.Off;
+                m.MinimalFilter = LogFilter.Fatal;
                 // ...
                 m.MinimalFilter = LogFilter.Trace;
             }
@@ -179,21 +179,21 @@ namespace CK.Core.Tests.Monitoring
                 m.MinimalFilter = LogFilter.Terse;
                 using( m.TemporarilySetMinimalFilter( LogFilter.Trace ) )
                 {
-                     m.ActualFilter.Should().Be(LogFilter.Trace );
+                    m.ActualFilter.Should().Be( LogFilter.Trace );
                 }
-                 m.ActualFilter.Should().Be(LogFilter.Terse, "Filter has been restored to previous value." );
+                m.ActualFilter.Should().Be( LogFilter.Terse, "Filter has been restored to previous value." );
             }
             {
                 IActivityMonitor m = new ActivityMonitor();
-                m.MinimalFilter = LogFilter.Off;
+                m.MinimalFilter = LogFilter.Fatal;
                 // ...
                 using( m.OpenWarn( "Ouch..." ) )
                 {
-                     m.ActualFilter.Should().Be(LogFilter.Off );
+                    m.ActualFilter.Should().Be( LogFilter.Fatal );
                     m.MinimalFilter = LogFilter.Trace;
                     // ... in debug filter ...
                 }
-                 m.ActualFilter.Should().Be(LogFilter.Off, "Back to Off." );
+                m.ActualFilter.Should().Be( LogFilter.Fatal, "Back to Fatal." );
 
                 var strange = new LogFilter( LogLevelFilter.Fatal, LogLevelFilter.Trace );
             }

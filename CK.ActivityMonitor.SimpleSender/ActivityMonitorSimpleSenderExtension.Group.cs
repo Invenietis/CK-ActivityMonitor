@@ -25,7 +25,7 @@ namespace CK.Core
                                                   [CallerFilePath] string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( level, null, out var finalTags )
-                                                ? monitor.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                                ? monitor.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber, true )
                                                 : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -50,7 +50,7 @@ namespace CK.Core
                                                   [CallerFilePath] string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( level, null, out var finalTags )
-                                                ? monitor.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                                ? monitor.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber, true )
                                                 : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -64,7 +64,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? monitor.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    ? monitor.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber, true )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -92,7 +92,7 @@ namespace CK.Core
                                                   [CallerFilePath] string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( level, null, out var finalTags )
-                                                ? monitor.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                                ? monitor.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber, true )
                                                 : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -107,7 +107,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? monitor.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber )
+                    ? monitor.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber, true )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -136,7 +136,7 @@ namespace CK.Core
                                                   [CallerFilePath] string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( level, tags, out var finalTags )
-                                               ? monitor.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                               ? monitor.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber, true )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -163,7 +163,7 @@ namespace CK.Core
                                                   [CallerFilePath] string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( level, tags, out var finalTags )
-                                               ? monitor.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                               ? monitor.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber, true )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -178,7 +178,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? monitor.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    ? monitor.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber, true )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -207,12 +207,12 @@ namespace CK.Core
                                                   [CallerFilePath] string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( level, tags, out var finalTags )
-                                               ? monitor.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, text, error, fileName, lineNumber )
+                                               ? monitor.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, text, error, fileName, lineNumber, true )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
-        /// <inheritdoc cref="OpenGroup(IActivityMonitor, LogLevel, CKTrait, string, Exception, int, string?)"/>
+        /// <inheritdoc cref="OpenGroup(IActivityMonitor, LogLevel, CKTrait, Exception, int, string?)"/>
         public static IDisposableGroup OpenGroup( this IActivityMonitor monitor,
                                                   LogLevel level,
                                                   CKTrait tags,
@@ -223,7 +223,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? monitor.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber )
+                    ? monitor.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber, true )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }

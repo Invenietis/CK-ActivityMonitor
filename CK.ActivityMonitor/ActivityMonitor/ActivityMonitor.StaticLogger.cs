@@ -20,18 +20,20 @@ namespace CK.Core
             public LogLevelFilter ActualFilter => DefaultFilter.Line;
 
             public ActivityMonitorLogData CreateActivityMonitorLogData( LogLevel level,
-                                                         CKTrait finalTags,
-                                                         string? text,
-                                                         object? exception,
-                                                         string? fileName = null,
-                                                         int lineNumber = 0 )
+                                                                        CKTrait finalTags,
+                                                                        string? text,
+                                                                        object? exception,
+                                                                        string? fileName,
+                                                                        int lineNumber,
+                                                                        bool isOpenGroup )
             {
                 DateTimeStamp logTime;
+                var now = DateTime.UtcNow;
                 lock( _lock )
                 {
-                    _lastLogTime = logTime = new DateTimeStamp( _lastLogTime, DateTime.UtcNow );
+                    _lastLogTime = logTime = new DateTimeStamp( _lastLogTime, now );
                 }
-                return new ActivityMonitorLogData( StaticLogMonitorUniqueId, logTime, 0, true, false, level, finalTags, text, exception, fileName, lineNumber );
+                return new ActivityMonitorLogData( StaticLogMonitorUniqueId, logTime, 0, isParallel: true, isOpenGroup: false, level, finalTags, text, exception, fileName, lineNumber );
             }
 
             public void UnfilteredLog( ref ActivityMonitorLogData data )

@@ -218,7 +218,7 @@ namespace CK.Core
         public DependentToken CreateDependentToken( string? message = null, string? dependentTopic = null, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
             if( string.IsNullOrWhiteSpace( message ) ) message = null;
-            var data = _logger.CreateLogData( false, LogLevel.Info | LogLevel.IsFiltered, Tags.CreateDependentToken, message, null, fileName, lineNumber );
+            var data = _logger.CreateLogLineData( false, LogLevel.Info | LogLevel.IsFiltered, Tags.CreateDependentToken, message, null, fileName, lineNumber );
             DependentToken t = CreateDependentToken( ref data, message, dependentTopic );
             UnfilteredLog( ref data );
             return t;

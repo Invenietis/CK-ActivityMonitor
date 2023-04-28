@@ -68,9 +68,9 @@ namespace CK.Core
                         Debug.Assert( LogFilter.Quiet == LogFilter.Release );
                         f = LogFilter.Quiet;
                     }
-                    else if( m.TryMatch( "Off", StringComparison.OrdinalIgnoreCase ) )
+                    else if( m.TryMatch( "Fatal", StringComparison.OrdinalIgnoreCase ) )
                     {
-                        f = LogFilter.Off;
+                        f = LogFilter.Fatal;
                     }
                     else if( m.TryMatch( "Invalid", StringComparison.OrdinalIgnoreCase ) )
                     {
@@ -147,10 +147,6 @@ namespace CK.Core
                 else if( head.TryMatch( "Fatal", StringComparison.OrdinalIgnoreCase ) )
                 {
                     level = LogLevelFilter.Fatal;
-                }
-                else if( head.TryMatch( "Off", StringComparison.OrdinalIgnoreCase ) )
-                {
-                    level = LogLevelFilter.Off;
                 }
                 else if( head.TryMatch( "Invalid", StringComparison.OrdinalIgnoreCase ) )
                 {

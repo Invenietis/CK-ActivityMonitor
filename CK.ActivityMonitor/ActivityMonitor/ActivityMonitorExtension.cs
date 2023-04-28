@@ -92,7 +92,7 @@ namespace CK.Core
                                           [CallerFilePath] string? fileName = null,
                                           [CallerLineNumber] int lineNumber = 0 )
         {
-            var d = @this.CreateActivityMonitorLogData( level, @this.AutoTags | tags, text, error, fileName, lineNumber );
+            var d = @this.CreateActivityMonitorLogData( level, @this.AutoTags | tags, text, error, fileName, lineNumber, false );
             @this.UnfilteredLog( ref d );
         }
 
@@ -133,7 +133,7 @@ namespace CK.Core
                                                        [CallerFilePath] string? fileName = null,
                                                        [CallerLineNumber] int lineNumber = 0 )
         {
-            var d = @this.CreateActivityMonitorLogData( level, @this.AutoTags | tags, text, error, fileName, lineNumber );
+            var d = @this.CreateActivityMonitorLogData( level, @this.AutoTags | tags, text, error, fileName, lineNumber, true );
             return @this.UnfilteredOpenGroup( ref d );
         }
 
@@ -536,6 +536,7 @@ namespace CK.Core
         /// Registers a unique client for a type that must have a public default constructor. 
         /// <see cref="Activator.CreateInstance{T}()"/> is called if necessary.
         /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>
         /// <param name="replayInitialLogs">True to immediately replay initial logs if any (see <see cref="ActivityMonitorOptions.WithInitialReplay"/>)</param>
         /// <returns>The found or newly created client.</returns>
         public static T RegisterUniqueClient<T>( this IActivityMonitorOutput @this, bool replayInitialLogs = false ) where T : IActivityMonitorClient, new()

@@ -40,6 +40,7 @@ namespace CK.Core
         /// <param name="depth">The log depth.</param>
         /// <param name="level">The log level that may be flagged with <see cref="LogLevel.IsFiltered"/> or not.</param>
         /// <param name="isParallel">Whether the log is a parallel or emitted from a monitor.</param>
+        /// <param name="isOpenGroup">Whether the log is opens a group.</param>
         /// <param name="finalTags">The final tags (combines the monitors and the line's ones).</param>
         /// <param name="text">The text.</param>
         /// <param name="exception">Optional exception.</param>
@@ -132,11 +133,6 @@ namespace CK.Core
         public readonly CKTrait Tags => _tags;
 
         /// <summary>
-        /// Gets whether this data is locked.
-        /// </summary>
-        public readonly bool IsFrozen => (_flags & 4) != 0;
-
-        /// <summary>
         /// Gets the exception of the log.
         /// Note that this can be null but <see cref="ExceptionData"/> may not be null if this <see cref="ActivityMonitorLogData"/>
         /// has been built from a <see cref="ActivityMonitorExternalLogData"/>.
@@ -220,21 +216,24 @@ namespace CK.Core
         public readonly DateTimeStamp LogTime => _logTime;
 
         /// <summary>
-        /// Gets whether this data has been handled by a monitor (<see cref="LogTime"/>'s <see cref="DateTimeStamp.IsKnown"/> is false).
-        /// </summary>
-        public readonly bool IsLogged => _logTime.IsKnown;
-
-        /// <summary>
         /// Gets whether this log data has been successfully filtered (otherwise it is an unfiltered log).
         /// </summary>
         public readonly bool IsFilteredLog => (Level & LogLevel.IsFiltered) != 0;
 
         /// <summary>
-        /// Gets whether this is a log line emitted by <see cref="IActivityLineEmitter"/> or <see cref="IParallelLogger"/>.
+        /// Gets whether this is a log line emitted by a <see cref="IStaticLogger"/> or a <see cref="IParallelLogger"/>.
         /// </summary>
         public readonly bool IsParallel => (_flags & 1) != 0;
 
+        /// <summary>
+        /// Gets whether this lines opens a group.
+        /// </summary>
         public readonly bool IsOpenGroup => (_flags & 2) != 0;
+
+        /// <summary>
+        /// Gets whether this data is locked.
+        /// </summary>
+        public readonly bool IsFrozen => (_flags & 4) != 0;
 
         /// <summary>
         /// Freezes this data.
@@ -243,7 +242,7 @@ namespace CK.Core
 
         /// <summary>
         /// Explicitly sets the <see cref="LogTime"/>.
-        /// This should obviously be used with care and cannot be called after <see cref="AcquireExternalData()"/> has been called.
+        /// This should obviously be used with care and cannot be called if <see cref="IsFrozen"/> is true.
         /// </summary>
         /// <param name="logTime">The time log.</param>
         public void SetLogTime( DateTimeStamp logTime )
@@ -254,7 +253,7 @@ namespace CK.Core
 
         /// <summary>
         /// Resets the <see cref="Text"/>.
-        /// This should obviously be used with care and cannot be called after <see cref="AcquireExternalData()"/> has been called.
+        /// This should obviously be used with care and cannot be called if <see cref="IsFrozen"/> is true.
         /// </summary>
         /// <param name="text">The text.</param>
         public void SetText( string text )
@@ -266,7 +265,7 @@ namespace CK.Core
 
         /// <summary>
         /// Explicitly sets the <see cref="Tags"/>.
-        /// This should obviously be used with care and cannot be called if this <see cref="IsFrozen"/> is true.
+        /// This should obviously be used with care and cannot be called if <see cref="IsFrozen"/> is true.
         /// </summary>
         /// <param name="tags">The tags.</param>
         public void SetTags( CKTrait tags )
@@ -282,9 +281,5 @@ namespace CK.Core
             _depth = depth;
         }
 
-        internal void SetOpenGroup()
-        {
-            _flags |= 2;
-        }
     }
 }

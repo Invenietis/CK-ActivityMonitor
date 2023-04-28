@@ -25,7 +25,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( level, null, out var finalTags ) )
             {
-                var d = logger.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -47,7 +47,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( level, null, out var finalTags ) )
             {
-                var d = logger.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -64,7 +64,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = logger.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -93,7 +93,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( level, null, out var finalTags ) )
             {
-                var d = logger.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -111,7 +111,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var d = logger.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
@@ -141,7 +141,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( level, tags, out var finalTags ) )
             {
-                var line = logger.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -164,7 +164,7 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( level, tags, out var finalTags ) )
             {
-                var line = logger.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -182,7 +182,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = logger.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -213,14 +213,14 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( level, tags, out var finalTags ) )
             {
-                var line = logger.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, text, error, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, finalTags, text, error, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Log(IActivityLineEmitter,LogLevel,CKTrait,string,Exception,int,string?)"/>
+        /// <inheritdoc cref="Log(IActivityLineEmitter, LogLevel, CKTrait, Exception, int, string?)"/>
         public static bool Log( this IActivityLineEmitter logger,
                                 LogLevel level,
                                 CKTrait tags,
@@ -232,7 +232,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = logger.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( level | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }

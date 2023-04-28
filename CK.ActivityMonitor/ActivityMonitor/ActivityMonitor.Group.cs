@@ -57,7 +57,6 @@ namespace CK.Core
                 _closeLogTime = default;
                 _isOpen = true;
                 _isRejected = false;
-                ++Monitor._currentDepth;
             }
 
             /// <summary>
@@ -168,7 +167,6 @@ namespace CK.Core
                 Monitor._autoTags = _savedMonitorTags;
                 Monitor._trackStackTrace = _savedTrackStackTrace;
                 Monitor._current = Parent;
-                if( !_isRejected ) --Monitor._currentDepth;
                 _isOpen = false;
             }
         }

@@ -83,7 +83,7 @@ The standard LogFilter have been defined based on the [recommended verbosity opt
 |`Minimal`    |`{Info,Warn}` OpenInfo and Fatal, Error or Warn lines appear. Minimal should have enough context to understand issues. |
 |`Quiet`      |`{Error,Error}` Only errors are considered. This is our "minimal": errors should never be hidden. |
 
-To this list, the `Off` that ignores any log (`{Off,Off}`) is added. It should be avoided.
+To this list, the `Fatal` that is the strongest filter (`{Fatal,Fatal}`) is added. It should be avoided.
 
 ### Other names
 Before this recommendation appears we used:

@@ -93,14 +93,10 @@ namespace CK.Core
             {
                 if( value > _filter )
                 {
-                    if( value != LogLevelFilter.Off )
-                    {
-                        Entry[] exist = _entries.ToArray();
-                        _entries.Clear();
-                        foreach( var e in exist )
-                            if( (int)e.MaskedLevel >= (int)value ) _entries.Push( e );
-                    }
-                    else _entries.Clear();
+                    Entry[] exist = _entries.ToArray();
+                    _entries.Clear();
+                    foreach( var e in exist )
+                        if( (int)e.MaskedLevel >= (int)value ) _entries.Push( e );
                 }
                 _filter = value;
             }

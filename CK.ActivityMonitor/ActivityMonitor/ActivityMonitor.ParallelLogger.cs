@@ -26,30 +26,33 @@ namespace CK.Core
             public LogLevelFilter ActualFilter => _monitor._actualFilter.Line;
 
             ActivityMonitorLogData IActivityLineEmitter.CreateActivityMonitorLogData( LogLevel level,
-                                                                                  CKTrait finalTags,
-                                                                                  string? text,
-                                                                                  object? exception,
-                                                                                  string? fileName,
-                                                                                  int lineNumber )
+                                                                                      CKTrait finalTags,
+                                                                                      string? text,
+                                                                                      object? exception,
+                                                                                      string? fileName,
+                                                                                      int lineNumber,
+                                                                                      bool isOpenGroup )
             {
-                return CreateLogData( true, level, finalTags, text, exception, fileName, lineNumber );
+                return CreateLogLineData( true, level, finalTags, text, exception, fileName, lineNumber );
             }
 
-            internal DateTimeStamp GetLogTime()
+            internal DateTimeStamp GetLogTimeForClosingGroup()
             {
+                var now = DateTime.UtcNow;
                 lock( _lock )
                 {
-                    return _monitor._lastLogTime = new DateTimeStamp( _monitor._lastLogTime, DateTime.UtcNow );
+                    --_monitor._currentDepth;
+                    return _monitor._lastLogTime = new DateTimeStamp( _monitor._lastLogTime, now );
                 }
             }
 
-            internal ActivityMonitorLogData CreateLogData( bool isParallel,
-                                                           LogLevel level,
-                                                           CKTrait finalTags,
-                                                           string? text,
-                                                           object? exception,
-                                                           string? fileName,
-                                                           int lineNumber )
+            internal ActivityMonitorLogData CreateLogLineData( bool isParallel,
+                                                               LogLevel level,
+                                                               CKTrait finalTags,
+                                                               string? text,
+                                                               object? exception,
+                                                               string? fileName,
+                                                               int lineNumber )
             {
                 // Taking the depth here in the critical section guaranties that the data's depth
                 // of parallel data is coherent with the regular activity.
@@ -59,12 +62,36 @@ namespace CK.Core
                 // CreateLogData -> OnStaticLog -> Sink.
                 DateTimeStamp logTime;
                 int depth;
+                var now = DateTime.UtcNow;
                 lock( _lock )
                 {
-                    _monitor._lastLogTime = logTime = new DateTimeStamp( _monitor._lastLogTime, DateTime.UtcNow );
+                    _monitor._lastLogTime = logTime = new DateTimeStamp( _monitor._lastLogTime, now );
                     depth = _monitor._currentDepth;
                 }
                 return new ActivityMonitorLogData( _monitor._uniqueId, logTime, depth, isParallel, false, level, finalTags, text, exception, fileName, lineNumber );
+            }
+
+            internal ActivityMonitorLogData CreateOpenGroupData( bool isParallel,
+                                                                 LogLevel level,
+                                                                 CKTrait finalTags,
+                                                                 string? text,
+                                                                 object? exception,
+                                                                 string? fileName,
+                                                                 int lineNumber )
+            {
+                // Same as above except that data.IsOpenGroup is true and the depth
+                // is incremented in the critical section.
+                DateTimeStamp logTime;
+                int depth;
+                var now = DateTime.UtcNow;
+                lock( _lock )
+                {
+                    _monitor._lastLogTime = logTime = new DateTimeStamp( _monitor._lastLogTime, now );
+                    // Gets the current depth and then increments it.
+                    // It is decremented in GetLogTimeForClosingGroup().
+                    depth = _monitor._currentDepth++;
+                }
+                return new ActivityMonitorLogData( _monitor._uniqueId, logTime, depth, isParallel, true, level, finalTags, text, exception, fileName, lineNumber );
             }
 
             public DependentToken CreateDependentToken( string? message,
@@ -73,7 +100,7 @@ namespace CK.Core
                                                         int lineNumber )
             {
                 if( string.IsNullOrWhiteSpace( message ) ) message = null;
-                var data = CreateLogData( true, LogLevel.Info | LogLevel.IsFiltered, _monitor.AutoTags | Tags.CreateDependentToken, message, null, fileName, lineNumber );
+                var data = CreateLogLineData( true, LogLevel.Info | LogLevel.IsFiltered, _monitor.AutoTags | Tags.CreateDependentToken, message, null, fileName, lineNumber );
                 DependentToken t = _monitor.CreateDependentToken( ref data, message, dependentTopic );
                 OnStaticLog?.Invoke( ref data ); ;
                 return t;
