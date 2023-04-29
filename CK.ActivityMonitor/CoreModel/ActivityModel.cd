@@ -13,7 +13,7 @@
   <Interface Name="CK.Core.IActivityLineEmitter">
     <Position X="0.5" Y="0.5" Width="1.75" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAQAAAABBAAAAAAAAAAAAAAAAAAAIA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAQAAAABAAAAAAAAgAAAAAAAAAAAIA=</HashCode>
       <FileName>CoreModel\IActivityLineEmitter.cs</FileName>
     </TypeIdentifier>
   </Interface>
@@ -67,7 +67,7 @@
   <Interface Name="CK.Core.IActivityMonitorOutput">
     <Position X="3.25" Y="7.75" Width="2" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAACAAAAAAAAAAAASAAAAACAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAACAAAAAAAAAAAASAAAgACAAAAAA=</HashCode>
       <FileName>CoreModel\IActivityMonitorOutput.cs</FileName>
     </TypeIdentifier>
     <ShowAsCollectionAssociation>

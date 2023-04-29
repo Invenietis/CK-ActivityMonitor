@@ -10,7 +10,7 @@ namespace CK.Core
     {
         /// <summary>
         /// <see cref="ActivityMonitor.AutoConfiguration"/> is applied and
-        /// the monitor has no <see cref="IActivityMonitor.ParallelLogger"/>.
+        /// the monitor doesn't capture the initial logs (see <see cref="WithInitialReplay"/>).
         /// </summary>
         Default = 0,
 
@@ -24,7 +24,7 @@ namespace CK.Core
         /// The maximal number of replayed logs defaults to 1000: it can be changed thanks to <see cref="IActivityMonitorOutput.MaxInitialReplayCount"/>
         /// that can also be used to stop the log replay.
         /// <para>
-        /// Replaying logs is pot-in: <see cref="IActivityMonitorOutput.RegisterClient(IActivityMonitorClient, out bool, bool)"/> must specify
+        /// Replaying logs is opt-in: <see cref="IActivityMonitorOutput.RegisterClient(IActivityMonitorClient, out bool, bool)"/> must specify
         /// a true <c>replayInitialLogs</c> parameters.
         /// </para>
         /// </summary>

@@ -14,8 +14,8 @@ namespace CK.Core.Impl
         /// from inside clients methods (like <see cref="IActivityMonitorClient.OnUnfilteredLog"/>)
         /// logs will be replayed automatically after the initial log.
         /// <para>
-        /// This monitor has the same <see cref="IActivityMonitor.UniqueId"/> as the main one but it'q
-        /// a different instance and has no <see cref="IActivityMonitor.ParallelLogger"/>.
+        /// This monitor has the same <see cref="IActivityMonitor.UniqueId"/> as the main one but it's
+        /// a different instance that shares the same <see cref="IActivityMonitor.ParallelLogger"/>.
         /// It should be used only to log errors or warnings (including groups) if needed but no client should be
         /// added to its <see cref="IActivityMonitor.Output"/>.
         /// </para>

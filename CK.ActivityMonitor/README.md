@@ -119,8 +119,5 @@ A `IParallelLogger` can create DependentToken since it is bound to its monitor.
 The [`IActivityMonitor`](IActivityMonitor.cs) interface is a logger that groups and, more importantly, the `Output`
 where `IActivityMonitorClient` listeners/sinks can be registered and unregistered.
 
-For a monitor to expose a non null `IActivityMonitor.ParallelLogger`, the `ActivityMonitor` constructor must
-be called with the [`ActivityMonitorOptions.WithParallel`](ActivityMonitorOptions.cs) option.
-
 ![Core logger model](../Doc/ActivityModel.png)
 

@@ -109,7 +109,7 @@ namespace CK.Core
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitor"/> that applies all <see cref="AutoConfiguration"/>,
-        /// has an empty <see cref="Topic"/> initially set and no <see cref="ParallelLogger"/>.
+        /// has an empty <see cref="Topic"/> initially set.
         /// </summary>
         public ActivityMonitor()
             : this( _generatorId.GetNextString(), Tags.Empty, ActivityMonitorOptions.Default )
