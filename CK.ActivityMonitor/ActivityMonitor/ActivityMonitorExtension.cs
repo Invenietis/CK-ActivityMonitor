@@ -146,14 +146,14 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="entries">Collector for <see cref="ActivityMonitorSimpleCollector.Entry">entries</see>.</param>
         /// <param name="level">Defines the level of the collected entries (by default fatal or error entries).</param>
-        /// <param name="capacity">Capacity of the collector defaults to 50.</param>
+        /// <param name="capacity">Maximal number of entries kept. Defaults to 200.</param>
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
-        public static IDisposable CollectEntries( this IActivityMonitor @this, out IReadOnlyList<ActivityMonitorSimpleCollector.Entry> entries, LogLevelFilter level = LogLevelFilter.Error, int capacity = 50 )
+        public static IDisposable CollectEntries( this IActivityMonitor @this, out IReadOnlyList<ActivityMonitorSimpleCollector.Entry> entries, LogLevelFilter level = LogLevelFilter.Error, int capacity = 200 )
         {
-            ActivityMonitorSimpleCollector errorTracker = new ActivityMonitorSimpleCollector() { MinimalFilter = level, Capacity = capacity };
-            @this.Output.RegisterClient( errorTracker );
-            entries = errorTracker.Entries;
-            return Util.CreateDisposableAction( () => @this.Output.UnregisterClient( errorTracker ) );
+            ActivityMonitorSimpleCollector collector = new ActivityMonitorSimpleCollector() { MinimalFilter = level, Capacity = capacity };
+            @this.Output.RegisterClient( collector );
+            entries = collector.Entries;
+            return Util.CreateDisposableAction( () => @this.Output.UnregisterClient( collector ) );
         }
 
         sealed class TextCollector : IActivityMonitorClient

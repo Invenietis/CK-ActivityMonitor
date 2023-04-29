@@ -63,22 +63,23 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Initializes a new collector with an initial capacity of 50 errors (<see cref="MinimalFilter"/> is set to <see cref="LogLevelFilter.Error"/>).
+        /// Initializes a new collector with a maximal capacity of 200 errors and no warnings
+        /// (<see cref="MinimalFilter"/> is set to <see cref="LogLevelFilter.Error"/>).
         /// </summary>
         public ActivityMonitorSimpleCollector()
         {
-            _entries = new FIFOBuffer<Entry>( 50 );
+            _entries = new FIFOBuffer<Entry>( 0, 200 );
             _filter = LogLevelFilter.Error;
         }
 
         /// <summary>
-        /// Gets or sets the maximum numbers of <see cref="Entry"/> that must be kept in <see cref="Entries"/>.
-        /// Defaults to 50.
+        /// Gets or sets the maximal numbers of <see cref="Entry"/> that must be kept in <see cref="Entries"/>.
+        /// Defaults to 200.
         /// </summary>
         public int Capacity
         {
-            get { return _entries.Capacity; }
-            set { _entries.Capacity = value; }
+            get { return _entries.MaxDynamicCapacity; }
+            set { _entries.MaxDynamicCapacity = value; }
         }
 
         /// <summary>
