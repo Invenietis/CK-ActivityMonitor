@@ -94,14 +94,16 @@ namespace CK.Core
                 return new ActivityMonitorLogData( _monitor._uniqueId, logTime, depth, isParallel, true, level, finalTags, text, exception, fileName, lineNumber );
             }
 
-            public DependentToken CreateDependentToken( string? message,
-                                                        string? dependentTopic,
-                                                        string? fileName,
-                                                        int lineNumber )
+            public Token CreateToken( string? message,
+                                      string? dependentTopic,
+                                      CKTrait? createTags,
+                                      string? fileName,
+                                      int lineNumber )
             {
                 if( string.IsNullOrWhiteSpace( message ) ) message = null;
-                var data = CreateLogLineData( true, LogLevel.Info | LogLevel.IsFiltered, _monitor.AutoTags | Tags.CreateDependentToken, message, null, fileName, lineNumber );
-                DependentToken t = _monitor.CreateDependentToken( ref data, message, dependentTopic );
+                createTags |= _monitor._autoTags | Tags.CreateDependentToken;
+                var data = CreateLogLineData( true, LogLevel.Info | LogLevel.IsFiltered, createTags, message, null, fileName, lineNumber );
+                Token t = _monitor.CreateToken( ref data, message, dependentTopic );
                 OnStaticLog?.Invoke( ref data ); ;
                 return t;
             }

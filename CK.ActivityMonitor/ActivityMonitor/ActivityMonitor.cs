@@ -148,7 +148,7 @@ namespace CK.Core
         /// <param name="token">Dependent token that starts this activity.</param>
         /// <param name="options">Optional creation options.</param>
         /// <param name="initialTags">Optional initial tags.</param>
-        public ActivityMonitor( DependentToken token, ActivityMonitorOptions options = ActivityMonitorOptions.Default, CKTrait? initialTags = null )
+        public ActivityMonitor( Token token, ActivityMonitorOptions options = ActivityMonitorOptions.Default, CKTrait? initialTags = null )
             : this( _generatorId.GetNextString(), initialTags, options )
         {
             Throw.CheckNotNullArgument( token );

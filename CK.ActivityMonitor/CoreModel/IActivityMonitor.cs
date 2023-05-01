@@ -12,7 +12,7 @@ namespace CK.Core
     /// This is not the same as a classical logging framework: the "activity" captures by an activity monitor is structured. 
     /// It can be seen as a "Story Writer": its output can be displayed to an end user (even if some structured information 
     /// can easily be injected).
-    /// Furthermore, activities can be tracked (with the help of the developer of course and the <see cref="ActivityMonitor.DependentToken"/>)
+    /// Furthermore, activities can be tracked (with the help of the developer of course and the <see cref="ActivityMonitor.Token"/>)
     /// across threads, tasks or application domains.
     /// </remarks>
     public interface IActivityMonitor : IActivityLineEmitter, IActivityDependentTokenFactory

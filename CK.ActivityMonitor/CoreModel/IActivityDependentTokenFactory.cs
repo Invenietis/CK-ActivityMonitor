@@ -18,11 +18,13 @@ namespace CK.Core
         /// </summary>
         /// <param name="message">Optional message for the token creation log.</param>
         /// <param name="dependentTopic">Optional dependent topic.</param>
+        /// <param name="createTags">Optional tags to emit in the origin log (in addition to the <see cref="ActivityMonitor.Tags.CreateDependentToken"/> tag).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
-        ActivityMonitor.DependentToken CreateDependentToken( string? message = null,
-                                                             string? dependentTopic = null,
-                                                             [CallerFilePath] string? fileName = null,
-                                                             [CallerLineNumber] int lineNumber = 0 );
+        ActivityMonitor.Token CreateToken( string? message = null,
+                                           string? dependentTopic = null,
+                                           CKTrait? createTags = null,
+                                           [CallerFilePath] string? fileName = null,
+                                           [CallerLineNumber] int lineNumber = 0 );
     }
 }

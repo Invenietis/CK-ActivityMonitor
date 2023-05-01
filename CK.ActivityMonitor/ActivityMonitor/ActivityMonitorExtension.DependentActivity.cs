@@ -10,13 +10,13 @@ namespace CK.Core
     public static partial class ActivityMonitorExtension
     {
         /// <summary>
-        /// Starts a dependent activity. This temporarily sets the <see cref="ActivityMonitor.DependentToken.Topic"/> if it is not null and opens a group
+        /// Starts a dependent activity. This temporarily sets the <see cref="ActivityMonitor.Token.Topic"/> if it is not null and opens a group
         /// tagged with <see cref="ActivityMonitor.Tags.StartDependentActivity"/> and a message that can be parsed back thanks
-        /// to <see cref="ActivityMonitor.DependentToken.TryParseStartMessage"/>.
+        /// to <see cref="ActivityMonitor.Token.TryParseStartMessage"/>.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="token">Token that describes the origin of the activity.</param>
-        /// <param name="temporarilySetTopic">False to ignore the <see cref="ActivityMonitor.DependentToken.Topic"/> even if it is not null.</param>
+        /// <param name="temporarilySetTopic">False to ignore the <see cref="ActivityMonitor.Token.Topic"/> even if it is not null.</param>
         /// <param name="groupLevel">
         /// Group level. Use <see cref="LogLevel.None"/> to not open a group.
         /// <para>
@@ -28,7 +28,7 @@ namespace CK.Core
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
         /// <returns>A disposable object. It must be disposed at the end of the activity.</returns>
         static public IDisposable StartDependentActivity( this IActivityMonitor @this,
-                                                          ActivityMonitor.DependentToken token,
+                                                          ActivityMonitor.Token token,
                                                           bool temporarilySetTopic = true,
                                                           LogLevel groupLevel = LogLevel.Info,
                                                           bool alwaysOpenGroup = false,

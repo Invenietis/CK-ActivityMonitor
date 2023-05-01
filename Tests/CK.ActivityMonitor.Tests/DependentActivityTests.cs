@@ -26,11 +26,11 @@ namespace CK.Core.Tests.Monitoring
             var monitor = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             monitor.SetTopic( "This is the monitor's topic." );
 
-            ActivityMonitor.DependentToken token;
+            ActivityMonitor.Token token;
             using( monitor.CollectEntries( out var entries, LogLevelFilter.Info ) )
             {
-                token = monitor.CreateDependentToken( message, topic );
-                ActivityMonitor.DependentToken.TryParseCreateMessage( entries[0].Text, out var creatingMessage, out var creatingTopic ).Should().BeTrue();
+                token = monitor.CreateToken( message, topic );
+                ActivityMonitor.Token.TryParseCreateMessage( entries[0].Text, out var creatingMessage, out var creatingTopic ).Should().BeTrue();
                 creatingMessage.Should().Be( token.Message );
                 creatingTopic.Should().Be( token.Topic );
             }
@@ -38,7 +38,7 @@ namespace CK.Core.Tests.Monitoring
             (isNormalizedNullMessage == token.Message is null).Should().BeTrue();
             (isNormalizedNullTopic == token.Topic is null).Should().BeTrue();
 
-            var tokenString = ActivityMonitor.DependentToken.Parse( token.ToString() );
+            var tokenString = ActivityMonitor.Token.Parse( token.ToString() );
 
             tokenString.OriginatorId.Should().Be( token.OriginatorId );
             tokenString.CreationDate.Should().Be( token.CreationDate );
@@ -66,7 +66,7 @@ namespace CK.Core.Tests.Monitoring
                 }
             }
 
-            ActivityMonitor.DependentToken.TryParseStartMessage( startingString, out var startToken ).Should().BeTrue();
+            ActivityMonitor.Token.TryParseStartMessage( startingString, out var startToken ).Should().BeTrue();
             Debug.Assert( startToken != null );
             startToken.OriginatorId.Should().Be( token.OriginatorId );
             startToken.CreationDate.Should().Be( token.CreationDate );
@@ -85,8 +85,8 @@ namespace CK.Core.Tests.Monitoring
 
             // Generates a token with time collision.
             int loopNeeded = 0;
-            ActivityMonitor.DependentToken token;
-            while( (token = m.CreateDependentToken( "Test Message.", "Test Topic." )).CreationDate.Uniquifier == 0
+            ActivityMonitor.Token token;
+            while( (token = m.CreateToken( "Test Message.", "Test Topic." )).CreationDate.Uniquifier == 0
                     && loopNeeded < 100 )
             {
                 ++loopNeeded;
@@ -102,7 +102,7 @@ namespace CK.Core.Tests.Monitoring
             }
             string createMessage = cCreate.Entries[loopNeeded].Data.Text;
             {
-                ActivityMonitor.DependentToken.TryParseCreateMessage( createMessage, out var message, out var topic )
+                ActivityMonitor.Token.TryParseCreateMessage( createMessage, out var message, out var topic )
                    .Should().BeTrue();
                 message.Should().Be( "Test Message." );
                 topic.Should().Be( "Test Topic." );
@@ -110,7 +110,7 @@ namespace CK.Core.Tests.Monitoring
 
             string tokenToString = token.ToString();
             {
-                ActivityMonitor.DependentToken t2 = ActivityMonitor.DependentToken.Parse( tokenToString );
+                ActivityMonitor.Token t2 = ActivityMonitor.Token.Parse( tokenToString );
                 t2.OriginatorId.Should().Be( m.UniqueId );
                 t2.CreationDate.Should().Be( cCreate.Entries[loopNeeded].Data.LogTime, "CreationDate is the time of the log entry." );
                 t2.Topic.Should().Be( "Test Topic." );
@@ -118,7 +118,7 @@ namespace CK.Core.Tests.Monitoring
             StupidStringClient.Entry[] logs = RunDependentActivity( token );
             {
                 logs[0].Data.Text.Should().Be( ActivityMonitor.SetTopicPrefix + "Test Topic." );
-                ActivityMonitor.DependentToken.TryParseStartMessage( logs[1].Data.Text, out var t ).Should().BeTrue();
+                ActivityMonitor.Token.TryParseStartMessage( logs[1].Data.Text, out var t ).Should().BeTrue();
                 Debug.Assert( t != null );
                 t.OriginatorId.Should().Be( m.UniqueId );
                 t.CreationDate.Should().Be( cCreate.Entries[loopNeeded].Data.LogTime );
@@ -128,7 +128,7 @@ namespace CK.Core.Tests.Monitoring
         }
 
 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-        static StupidStringClient.Entry[] RunDependentActivity( ActivityMonitor.DependentToken token )
+        static StupidStringClient.Entry[] RunDependentActivity( ActivityMonitor.Token token )
         {
             string? depMonitorTopic = null;
             StupidStringClient.Entry[]? dependentLogs = null;
