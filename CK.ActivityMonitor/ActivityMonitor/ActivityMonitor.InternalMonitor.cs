@@ -164,7 +164,7 @@ namespace CK.Core
                     switch( o )
                     {
                         case ActivityMonitorLogData line:
-                            if( line.Tags.AtomicTraits.Contains( Tags.MonitorTopicChanged ) )
+                            if( line.Tags.AtomicTraits.Contains( Tags.TopicChanged ) )
                             {
                                 changedTopic = line.Text.Substring( SetTopicPrefix.Length );
                             }

@@ -11,7 +11,7 @@ namespace CK.Core
     {
         /// <summary>
         /// Starts a dependent activity. This temporarily sets the <see cref="ActivityMonitor.Token.Topic"/> if it is not null and opens a group
-        /// tagged with <see cref="ActivityMonitor.Tags.StartDependentActivity"/> and a message that can be parsed back thanks
+        /// tagged with <see cref="ActivityMonitor.Tags.StartActivity"/> and a message that can be parsed back thanks
         /// to <see cref="ActivityMonitor.Token.TryParseStartMessage"/>.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
@@ -47,8 +47,8 @@ namespace CK.Core
             {
                 CKTrait finalTags;
                 bool doOpen;
-                if( doOpen = alwaysOpenGroup ) finalTags = @this.AutoTags + ActivityMonitor.Tags.StartDependentActivity;
-                else doOpen = @this.ShouldLogGroup( groupLevel, ActivityMonitor.Tags.StartDependentActivity, out finalTags );
+                if( doOpen = alwaysOpenGroup ) finalTags = @this.AutoTags + ActivityMonitor.Tags.StartActivity;
+                else doOpen = @this.ShouldLogGroup( groupLevel, ActivityMonitor.Tags.StartActivity, out finalTags );
                 if( doOpen )
                 {
                     var g = @this.UnfilteredOpenGroup( groupLevel | LogLevel.IsFiltered, finalTags, msg, null, fileName, lineNumber );

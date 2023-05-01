@@ -101,7 +101,7 @@ namespace CK.Core
                                       int lineNumber )
             {
                 if( string.IsNullOrWhiteSpace( message ) ) message = null;
-                createTags |= _monitor._autoTags | Tags.CreateDependentToken;
+                createTags |= _monitor._autoTags | Tags.CreateToken;
                 var data = CreateLogLineData( true, LogLevel.Info | LogLevel.IsFiltered, createTags, message, null, fileName, lineNumber );
                 Token t = _monitor.CreateToken( ref data, message, dependentTopic );
                 OnStaticLog?.Invoke( ref data ); ;

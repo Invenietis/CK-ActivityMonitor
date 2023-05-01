@@ -182,7 +182,7 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Attempts to parse the start message of a dependent activity (tagged with <see cref="ActivityMonitor.Tags.StartDependentActivity"/>).
+            /// Attempts to parse the start message of a dependent activity (tagged with <see cref="ActivityMonitor.Tags.StartActivity"/>).
             /// </summary>
             /// <param name="startMessage">The start message to parse.</param>
             /// <param name="token">The token parsed.</param>
@@ -220,7 +220,7 @@ namespace CK.Core
         public Token CreateToken( string? message = null, string? dependentTopic = null, CKTrait ? createTags = null, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
             if( string.IsNullOrWhiteSpace( message ) ) message = null;
-            createTags |= _autoTags | Tags.CreateDependentToken;
+            createTags |= _autoTags | Tags.CreateToken;
             var data = _logger.CreateLogLineData( false, LogLevel.Info | LogLevel.IsFiltered, createTags, message, null, fileName, lineNumber );
             Token t = CreateToken( ref data, message, dependentTopic );
             UnfilteredLog( ref data );

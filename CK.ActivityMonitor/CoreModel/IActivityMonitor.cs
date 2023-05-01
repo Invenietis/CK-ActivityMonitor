@@ -61,7 +61,7 @@ namespace CK.Core
         /// </summary>
         /// <remarks>
         /// Clients are warned of the change thanks to <see cref="IActivityMonitorClient.OnTopicChanged"/> and an unfiltered <see cref="LogLevel.Info"/> log 
-        /// with the new topic prefixed with "Topic:" and tagged with <see cref="ActivityMonitor.Tags.MonitorTopicChanged"/> is emitted.
+        /// with the new topic prefixed with "Topic:" and tagged with <see cref="ActivityMonitor.Tags.TopicChanged"/> is emitted.
         /// </remarks>
         string Topic { get; }
 

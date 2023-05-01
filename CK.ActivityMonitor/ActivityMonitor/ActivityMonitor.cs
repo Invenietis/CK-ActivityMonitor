@@ -230,7 +230,7 @@ namespace CK.Core
         {
             var d = _logger.CreateLogLineData( false,
                                                LogLevel.Info | LogLevel.IsFiltered,
-                                               _autoTags | Tags.MonitorTopicChanged,
+                                               _autoTags | Tags.TopicChanged,
                                                SetTopicPrefix + _topic,
                                                null,
                                                fileName,

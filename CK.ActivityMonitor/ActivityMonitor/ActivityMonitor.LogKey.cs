@@ -114,6 +114,12 @@ namespace CK.Core
                 return cmp;
             }
 
+            /// <summary>
+            /// Gets "<see cref="OriginatorId"/>.<see cref="CreationDate"/>" string.
+            /// </summary>
+            /// <returns>String with the OriginatorId and CreationDate.</returns>
+            public override string ToString() => $"{_originatorId}.{_creationDate}";
+
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
             public static bool operator ==( LogKey left, LogKey right )
             {
