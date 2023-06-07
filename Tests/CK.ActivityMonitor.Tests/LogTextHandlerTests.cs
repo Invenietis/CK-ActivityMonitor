@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CK.Core.Tests.Monitoring
@@ -59,6 +60,42 @@ namespace CK.Core.Tests.Monitoring
                 messages[4].Should().Be( "Type: CK.Core.Tests.Monitoring.LogTextHandlerTests.Nested<System.Collections.Generic.Dictionary<int,(string,int?)>>" );
             }
         }
+
+        [Test]
+        public void logging_null_type()
+        {
+            var monitor = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
+            Type? type = null;
+            using( monitor.CollectTexts( out var logs ) )
+            {
+                monitor.Log( LogLevel.Info, $"Type: {type}" );
+                logs[0].Should().Be( "Type: " );
+
+                monitor.OpenGroup( LogLevel.Info, $"Type: {type}" ).Dispose();
+                logs[1].Should().Be( "Type: " );
+
+                monitor.Info( $"Type: {type}" );
+                logs[2].Should().Be( "Type: " );
+
+                monitor.OpenInfo( $"Type: {type}" ).Dispose();
+                logs[3].Should().Be( "Type: " );
+            }
+            using( monitor.CollectTexts( out var logs ) )
+            {
+                monitor.Log( LogLevel.Info, $"Type: {type:C}" );
+                logs[0].Should().Be( "Type: null" );
+
+                monitor.OpenGroup( LogLevel.Info, $"Type: {type:C}" ).Dispose();
+                logs[1].Should().Be( "Type: null" );
+
+                monitor.Info( $"Type: {type:C}" );
+                logs[2].Should().Be( "Type: null" );
+
+                monitor.OpenInfo( $"Type: {type:C}" ).Dispose();
+                logs[3].Should().Be( "Type: null" );
+            }
+        }
+
 
         class Gen<T>
         {

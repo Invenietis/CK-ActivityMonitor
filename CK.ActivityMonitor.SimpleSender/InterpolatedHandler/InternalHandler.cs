@@ -51,17 +51,18 @@ namespace CK.Core.LogHandler
             return b != null ? StringBuilderCache.GetStringAndRelease( b ) : null;
         }
 
-        public void AppendFormatted( Type t, string? format )
+        public void AppendFormatted( Type? t, string? format )
         {
             switch( format )
             {
                 case "C": _stringBuilderHandler.AppendLiteral( t.ToCSharpName( withNamespace: false, true, true ) ); break;
                 case "N": _stringBuilderHandler.AppendLiteral( t.ToCSharpName( withNamespace: true, true, true ) ); break;
-                case "A": _stringBuilderHandler.AppendLiteral( t.AssemblyQualifiedName ?? "null" ); break;
-                case "F": _stringBuilderHandler.AppendLiteral( t.FullName ?? "null" ); break;
+                case "A": _stringBuilderHandler.AppendLiteral( t?.AssemblyQualifiedName ?? "null" ); break;
+                case "F": _stringBuilderHandler.AppendLiteral( t?.FullName ?? "null" ); break;
 
                 default:
-                    _stringBuilderHandler.AppendFormatted( t ); 
+                    if( t != null ) _stringBuilderHandler.AppendFormatted( t );
+                    else _stringBuilderHandler.AppendLiteral( "null" );
                     _stringBuilderHandler.AppendLiteral( "(Invalid Type Format. Must be \"F\" for FullName,`\"A\" for AssemblyQualifiedName, \"C\" for compact C# name and \"N\" for C# name with namespace)" );
                     break;
             }

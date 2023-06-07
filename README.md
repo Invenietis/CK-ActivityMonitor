@@ -247,6 +247,8 @@ provided by the [CK.Core](https://github.com/Invenietis/CK-Core) package and are
 by the `Type.ToCSharpName(bool withNamespace = true, bool typeDeclaration = true, bool useValueTupleParentheses = true)`
 extension method.
 
+Note that when using type formats (whatever it is), a `null` type will be logged as **null** instead of nothing (the empty string).
+
 ## Copyright and license
 
 This solution is distributed in the hope that it will be useful,

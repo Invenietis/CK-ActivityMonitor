@@ -25,7 +25,7 @@ namespace CK.Core.LogHandler
             _handler = new InternalHandler( literalLength, formattedCount, monitor, level, tags, out shouldAppend );
         }
 
-        public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
+        public void AppendFormatted( Type? t, string? format ) => _handler.AppendFormatted( t, format );
 
         public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
 

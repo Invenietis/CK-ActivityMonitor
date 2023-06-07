@@ -244,7 +244,7 @@ namespace CK.Core
             _handler = new InternalHandler( literalLength, formattedCount, monitor, LogLevel.<#= level #>, null, out shouldAppend );
         }
 
-        public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
+        public void AppendFormatted( Type? t, string? format ) => _handler.AppendFormatted( t, format );
 
         public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
 
@@ -284,7 +284,7 @@ namespace CK.Core
             _handler = new InternalHandler( literalLength, formattedCount, monitor, LogLevel.<#= level #>, tags, out shouldAppend );
         }
 
-        public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
+        public void AppendFormatted( Type? t, string? format ) => _handler.AppendFormatted( t, format );
 
         public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
 
