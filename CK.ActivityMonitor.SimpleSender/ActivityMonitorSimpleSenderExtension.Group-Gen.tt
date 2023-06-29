@@ -122,14 +122,14 @@ namespace CK.Core
         /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
         /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IDisposableGroup Open<#= level #>( this IActivityMonitor monitor,
-                                                    CKTrait tags,
+                                                    CKTrait? tags,
                                                     Exception ex,
                                                     [CallerLineNumber]int lineNumber = 0,
                                                     [CallerFilePath]string? fileName = null )
@@ -147,12 +147,12 @@ namespace CK.Core
         /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
         /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup Open<#= level #>( this IActivityMonitor monitor, CKTrait tags, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static IDisposableGroup Open<#= level #>( this IActivityMonitor monitor, CKTrait? tags, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.<#= level #>, tags, out var finalTags )
                                                ? monitor.CreateActivityMonitorLogData( LogLevel.<#= level #> | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber, true )
@@ -160,9 +160,9 @@ namespace CK.Core
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
-        /// <inheritdoc cref="Open<#= level #>(IActivityMonitor, CKTrait, string, int, string?)"/>
+        /// <inheritdoc cref="Open<#= level #>(IActivityMonitor, CKTrait?, string, int, string?)"/>
         public static IDisposableGroup Open<#= level #>( this IActivityMonitor monitor,
-                                                    CKTrait tags,
+                                                    CKTrait? tags,
                                                     [InterpolatedStringHandlerArgument( "monitor", "tags" )] LogHandler.Group<#= level #>WithTags text,
                                                     [CallerLineNumber] int lineNumber = 0,
                                                     [CallerFilePath] string? fileName = null )
@@ -181,14 +181,14 @@ namespace CK.Core
         /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
         /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
         public static IDisposableGroup Open<#= level #>( this IActivityMonitor monitor,
-                                                CKTrait tags,
+                                                CKTrait? tags,
                                                 string? text,
                                                 Exception? ex,
                                                 [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
@@ -199,11 +199,11 @@ namespace CK.Core
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
-        /// <inheritdoc cref="Open<#= level #>(IActivityMonitor, CKTrait, string, Exception, int, string?)"/>
+        /// <inheritdoc cref="Open<#= level #>(IActivityMonitor, CKTrait?, string, Exception, int, string?)"/>
         public static IDisposableGroup Open<#= level #>( this IActivityMonitor monitor,
                                                     LogLevel level,
-                                                    CKTrait tags,
-                                                    Exception ex,
+                                                    CKTrait? tags,
+                                                    Exception? ex,
                                                     [InterpolatedStringHandlerArgument( "monitor", "tags" )] LogHandler.Group<#= level #>WithTags text,
                                                     [CallerLineNumber] int lineNumber = 0,
                                                     [CallerFilePath] string? fileName = null )
@@ -279,7 +279,7 @@ namespace CK.Core
         internal InternalHandler _handler;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-        public Group<#= level #>WithTags( int literalLength, int formattedCount, IActivityMonitor monitor, CKTrait tags, out bool shouldAppend )
+        public Group<#= level #>WithTags( int literalLength, int formattedCount, IActivityMonitor monitor, CKTrait? tags, out bool shouldAppend )
         {
             _handler = new InternalHandler( literalLength, formattedCount, monitor, LogLevel.<#= level #>, tags, out shouldAppend );
         }

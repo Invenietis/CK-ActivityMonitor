@@ -100,7 +100,7 @@ namespace CK.Core
             return false;
         }
 
-        /// <inheritdoc cref="Log(IActivityLineEmitter,LogLevel,string,Exception,int,string?)"/>
+        /// <inheritdoc cref="Log(IActivityLineEmitter,LogLevel,string,Exception?,int,string?)"/>
         public static bool Log( this IActivityLineEmitter logger,
                                 LogLevel level,
                                 [InterpolatedStringHandlerArgument( nameof( logger ), nameof( level ) )] LogHandler.LineLog text,
@@ -126,7 +126,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="level">The log level.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
@@ -134,8 +134,8 @@ namespace CK.Core
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static bool Log( this IActivityLineEmitter logger,
                                 LogLevel level,
-                                CKTrait tags,
-                                Exception ex,
+                                CKTrait? tags,
+                                Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
         {
@@ -154,13 +154,13 @@ namespace CK.Core
         /// </summary>
         /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="level">The log level.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Log( this IActivityLineEmitter logger, LogLevel level, CKTrait tags, string text, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string? fileName = null )
+        public static bool Log( this IActivityLineEmitter logger, LogLevel level, CKTrait? tags, string text, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string? fileName = null )
         {
             if( logger.ShouldLogLine( level, tags, out var finalTags ) )
             {
@@ -171,10 +171,10 @@ namespace CK.Core
             return false;
         }
 
-        /// <inheritdoc cref="Log(IActivityLineEmitter,LogLevel,CKTrait,string,int,string?)"/>
+        /// <inheritdoc cref="Log(IActivityLineEmitter,LogLevel,CKTrait?,string,int,string?)"/>
         public static bool Log( this IActivityLineEmitter logger,
                                 LogLevel level,
-                                CKTrait tags,
+                                CKTrait? tags,
                                 [InterpolatedStringHandlerArgument( nameof( logger ), nameof( level ), nameof( tags ) )] LogHandler.LineLogWithTags text,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
@@ -196,7 +196,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="level">The log level.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="error">The <see cref="Exception"/> or <see cref="CKExceptionData"/> to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
@@ -205,7 +205,7 @@ namespace CK.Core
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static bool Log( this IActivityLineEmitter logger,
                                 LogLevel level,
-                                CKTrait tags,
+                                CKTrait? tags,
                                 string? text,
                                 object? error,
                                 [CallerLineNumber] int lineNumber = 0,
@@ -220,10 +220,10 @@ namespace CK.Core
             return false;
         }
 
-        /// <inheritdoc cref="Log(IActivityLineEmitter, LogLevel, CKTrait, Exception, int, string?)"/>
+        /// <inheritdoc cref="Log(IActivityLineEmitter, LogLevel, CKTrait?, Exception, int, string?)"/>
         public static bool Log( this IActivityLineEmitter logger,
                                 LogLevel level,
-                                CKTrait tags,
+                                CKTrait? tags,
                                 [InterpolatedStringHandlerArgument( nameof( logger ), nameof( level ), nameof( tags ) )] LogHandler.LineLogWithTags text,
                                 Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,

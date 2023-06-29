@@ -106,7 +106,7 @@ namespace CK.Core
             return false;
         }
 
-        /// <inheritdoc cref="<#= level #>(IActivityLineEmitter,string,Exception,int,string?)"/>
+        /// <inheritdoc cref="<#= level #>(IActivityLineEmitter,string,Exception?,int,string?)"/>
         public static bool <#= level #>( this IActivityLineEmitter logger,
                                 [InterpolatedStringHandlerArgument( "logger" )] LogHandler.Line<#= level #> text,
                                 Exception? ex,
@@ -130,14 +130,14 @@ namespace CK.Core
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
         /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
        [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static bool <#= level #>( this IActivityLineEmitter logger,
-                                         CKTrait tags,
+                                         CKTrait? tags,
                                          Exception ex,
                                          [CallerLineNumber]int lineNumber = 0,
                                          [CallerFilePath]string? fileName = null )
@@ -156,14 +156,14 @@ namespace CK.Core
         /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
         /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static bool <#= level #>( this IActivityLineEmitter logger,
-                                         CKTrait tags,
+                                         CKTrait? tags,
                                          string text,
                                          [CallerLineNumber]int lineNumber = 0,
                                          [CallerFilePath]string? fileName = null )
@@ -177,9 +177,9 @@ namespace CK.Core
             return false;
         }
 
-        /// <inheritdoc cref="<#= level #>(IActivityLineEmitter,CKTrait,string,int,string?)"/>
+        /// <inheritdoc cref="<#= level #>(IActivityLineEmitter,CKTrait?,string,int,string?)"/>
         public static bool <#= level #>( this IActivityLineEmitter logger,
-                                CKTrait tags,
+                                CKTrait? tags,
                                 [InterpolatedStringHandlerArgument( "logger", "tags" )] LogHandler.Line<#= level #>WithTags text,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
@@ -200,14 +200,14 @@ namespace CK.Core
         /// also depend on <paramref name="tags"/> and <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
         /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         public static bool <#= level #>( this IActivityLineEmitter logger,
-                                         CKTrait tags,
+                                         CKTrait? tags,
                                          string? text,
                                          Exception? ex,
                                          [CallerLineNumber]int lineNumber = 0,
@@ -222,9 +222,9 @@ namespace CK.Core
             return false;
         }
 
-        /// <inheritdoc cref="<#= level #>(IActivityLineEmitter,CKTrait,string,Exception,int,string?)"/>
+        /// <inheritdoc cref="<#= level #>(IActivityLineEmitter,CKTrait?,string,Exception,int,string?)"/>
         public static bool <#= level #>( this IActivityLineEmitter logger,
-                                CKTrait tags,
+                                CKTrait? tags,
                                 [InterpolatedStringHandlerArgument( "logger", "tags" )] LogHandler.Line<#= level #>WithTags text,
                                 Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
@@ -304,7 +304,7 @@ namespace CK.Core
         internal InternalHandler _handler;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-        public Line<#= level #>WithTags( int literalLength, int formattedCount, IActivityLineEmitter logger, CKTrait tags, out bool shouldAppend )
+        public Line<#= level #>WithTags( int literalLength, int formattedCount, IActivityLineEmitter logger, CKTrait? tags, out bool shouldAppend )
         {
             _handler = new InternalHandler( literalLength, formattedCount, logger, LogLevel.<#= level #>, tags, out shouldAppend );
         }
