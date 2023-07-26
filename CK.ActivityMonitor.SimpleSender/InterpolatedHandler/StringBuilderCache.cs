@@ -33,10 +33,6 @@ namespace CK.Core.LogHandler
                                .CreateDelegate<Func<int, StringBuilder>>();
             _releaseBuilder = t.GetMethod( "GetStringAndRelease", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static )!
                                .CreateDelegate<Func<StringBuilder, string>>();
-
-            IActivityMonitor m = new ActivityMonitor();
-            m.Debug( ActivityMonitor.Tags.InternalMonitor, $"{t}" );
-
         }
 
         public static StringBuilder Acquire( int literalLength, int formattedCount ) => _acquireBuilder( GetDefaultLength( literalLength, formattedCount ) );
