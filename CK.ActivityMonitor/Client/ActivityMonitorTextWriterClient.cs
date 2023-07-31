@@ -162,7 +162,7 @@ namespace CK.Core
         /// <param name="conclusions">Conclusions for the group.</param>
         protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
-            Debug.Assert( _depthPadding.Length == 2 );
+            Throw.DebugAssert( _depthPadding.Length == 2 );
             _prefix = _prefix.Remove( _prefix.Length - 2 );
             if( conclusions is null || conclusions.Count == 0 ) return;
             var w = _buffer.Clear();
@@ -267,7 +267,7 @@ namespace CK.Core
                             // https://docs.microsoft.com/en-us/dotnet/api/system.reflection.reflectiontypeloadexception.loaderexceptions?view=netstandard-2.0#property-value
                             if( typeLoadEx.Types[i] != null )
                             {
-                                Debug.Assert( typeLoadEx.LoaderExceptions[i] == null );
+                                Throw.DebugAssert( typeLoadEx.LoaderExceptions[i] == null );
                                 continue;
                             }
                             DumpException( w, p, true, typeLoadEx.LoaderExceptions[i]! );

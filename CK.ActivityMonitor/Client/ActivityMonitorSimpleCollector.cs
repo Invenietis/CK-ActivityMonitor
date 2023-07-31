@@ -47,7 +47,7 @@ namespace CK.Core
 
             internal Entry( CKTrait tags, LogLevel level, string text, DateTimeStamp logTime, Exception? ex )
             {
-                Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
+                Throw.DebugAssert( (level & LogLevel.IsFiltered) == 0 );
                 Tags = tags;
                 MaskedLevel = level;
                 LogTime = logTime;

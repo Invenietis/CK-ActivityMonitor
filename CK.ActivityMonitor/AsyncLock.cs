@@ -227,7 +227,7 @@ namespace CK.Core
             }
             if( await _semaphore.WaitAsync( millisecondsTimeout, cancellationToken ).ConfigureAwait( false ) )
             {
-                Debug.Assert( _recCount == 0 );
+                Throw.DebugAssert( _recCount == 0 );
                 Gate.O( monitor )?.UnfilteredLog( LogLevel.Trace | LogLevel.IsFiltered,
                                                   ActivityMonitor.Tags.Empty,
                                                   $"Asynchronously entered AsyncLock '{_name}'.",
@@ -294,7 +294,7 @@ namespace CK.Core
             }
             if( _semaphore.Wait( millisecondsTimeout, cancellationToken ) )
             {
-                Debug.Assert( _recCount == 0 );
+                Throw.DebugAssert( _recCount == 0 );
                 Gate.O( monitor )?.UnfilteredLog( LogLevel.Trace | LogLevel.IsFiltered,
                                                   ActivityMonitor.Tags.Empty,
                                                   $"Synchronously entered AsyncLock '{_name}'.",
@@ -327,7 +327,7 @@ namespace CK.Core
                 ThrowSynchronizationLockException( msg );
                 return;
             }
-            Debug.Assert( _recCount >= 0 );
+            Throw.DebugAssert( _recCount >= 0 );
             if( _recCount == 0 )
             {
                 Gate.O( monitor )?.UnfilteredLog( LogLevel.Trace | LogLevel.IsFiltered,

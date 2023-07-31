@@ -22,13 +22,13 @@ namespace CK.Core.Tests.Monitoring
 
             public void SetMonitor( IActivityMonitorImpl? source, bool forceBuggyRemove )
             {
-                Debug.Assert( source != null );
+                Throw.DebugAssert( source != null );
                 _source = source;
             }
 
             protected override void OnOpenGroup( IActivityLogGroup group )
             {
-                Debug.Assert( _source != null );
+                Throw.DebugAssert( _source != null );
                 Thread.Sleep( SleepTime );
                 if( group.Data.Text == "TalkingClient MUST leave an opened Group on the InternalMonitor." )
                     _source.InternalMonitor.OpenInfo( "Talk: OnOpenGroup (Unclosed)" );
@@ -38,7 +38,7 @@ namespace CK.Core.Tests.Monitoring
 
             protected override void OnUnfilteredLog( ref ActivityMonitorLogData data )
             {
-                Debug.Assert( _source != null );
+                Throw.DebugAssert( _source != null );
                 Thread.Sleep( SleepTime );
                 if( data.Text.StartsWith( "OPEN AND NOT CLOSE GROUP InternalMonitor" ) )
                 {
@@ -53,7 +53,7 @@ namespace CK.Core.Tests.Monitoring
 
             public void CannotTalkWithoutLock()
             {
-                Debug.Assert( _source != null );
+                Throw.DebugAssert( _source != null );
                 _source.Invoking( sut => sut.InternalMonitor.Info( "Fail." ) )
                        .Should().Throw<InvalidOperationException>();
             }

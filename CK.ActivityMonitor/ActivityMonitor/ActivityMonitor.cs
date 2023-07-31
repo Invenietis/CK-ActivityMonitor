@@ -160,7 +160,7 @@ namespace CK.Core
                          ActivityMonitorOptions options,
                          Logger? logger = null )
         {
-            Debug.Assert( uniqueId != null && uniqueId.Length >= MinMonitorUniqueIdLength && !uniqueId.Any( c => Char.IsWhiteSpace( c ) ) );
+            Throw.DebugAssert( uniqueId != null && uniqueId.Length >= MinMonitorUniqueIdLength && !uniqueId.Any( c => Char.IsWhiteSpace( c ) ) );
             _uniqueId = uniqueId;
             _autoTags = tags ?? Tags.Empty;
             _trackStackTrace = _autoTags.AtomicTraits.Contains( Tags.StackTrace );
@@ -217,8 +217,8 @@ namespace CK.Core
 
         void DoSetTopic( string newTopic, [CallerFilePath] string? fileName = null, [CallerLineNumber] int lineNumber = 0 )
         {
-            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
-            Debug.Assert( newTopic != null && _topic != newTopic );
+            Throw.DebugAssert( _enteredThreadId == Environment.CurrentManagedThreadId );
+            Throw.DebugAssert( newTopic != null && _topic != newTopic );
             _topic = newTopic!;
             MonoParameterSafeCall( ( client, topic ) => client.OnTopicChanged( topic!, fileName, lineNumber ), newTopic );
             if( Interlocked.Exchange( ref _signalFlag, 0 ) == 1 ) DoResyncActualFilter();
@@ -264,8 +264,8 @@ namespace CK.Core
 
         void DoSetAutoTags( CKTrait newTags )
         {
-            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
-            Debug.Assert( newTags != null && _autoTags != newTags && newTags.Context == Tags.Context );
+            Throw.DebugAssert( _enteredThreadId == Environment.CurrentManagedThreadId );
+            Throw.DebugAssert( newTags != null && _autoTags != newTags && newTags.Context == Tags.Context );
             _autoTags = newTags;
             _trackStackTrace = _autoTags.AtomicTraits.Contains( Tags.StackTrace );
             MonoParameterSafeCall( static ( client, tags ) => client.OnAutoTagsChanged( tags ), newTags );
@@ -333,15 +333,15 @@ namespace CK.Core
 
         internal void DoSetConfiguredFilter( LogFilter value )
         {
-            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
-            Debug.Assert( _configuredFilter != value );
+            Throw.DebugAssert( _enteredThreadId == Environment.CurrentManagedThreadId );
+            Throw.DebugAssert( _configuredFilter != value );
             _configuredFilter = value;
             UpdateActualFilter();
         }
 
         void UpdateActualFilter()
         {
-            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
+            Throw.DebugAssert( _enteredThreadId == Environment.CurrentManagedThreadId );
             LogFilter newLevel = _configuredFilter.Combine( _clientFilter );
             if( newLevel != _actualFilter )
             {
@@ -351,7 +351,7 @@ namespace CK.Core
 
         LogFilter HandleBoundClientsSignal()
         {
-            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
+            Throw.DebugAssert( _enteredThreadId == Environment.CurrentManagedThreadId );
 
             LogFilter minimal = LogFilter.Undefined;
             List<IActivityMonitorClient>? buggyClients = null;
@@ -446,17 +446,17 @@ namespace CK.Core
 
         void DoUnfilteredLog( ref ActivityMonitorLogData data )
         {
-            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
-            Debug.Assert( data.Level != LogLevel.None );
-            Debug.Assert( !String.IsNullOrEmpty( data.Text ) );
-            Debug.Assert( !data.IsParallel );
+            Throw.DebugAssert( _enteredThreadId == Environment.CurrentManagedThreadId );
+            Throw.DebugAssert( data.Level != LogLevel.None );
+            Throw.DebugAssert( !String.IsNullOrEmpty( data.Text ) );
+            Throw.DebugAssert( !data.IsParallel );
             Throw.CheckArgument( !data.IsOpenGroup );
             SendUnfilteredLog( ref data );
         }
 
         internal void ReplayUnfilteredLog( ref ActivityMonitorLogData data, IActivityMonitorClient? single = null )
         {
-            Debug.Assert( !data.IsOpenGroup );
+            Throw.DebugAssert( !data.IsOpenGroup );
             if( single == null )
             {
                 SendUnfilteredLog( ref data );
@@ -517,8 +517,8 @@ namespace CK.Core
 
         IDisposableGroup DoOpenGroup( ref ActivityMonitorLogData data )
         {
-            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
-            Debug.Assert( !data.IsParallel );
+            Throw.DebugAssert( _enteredThreadId == Environment.CurrentManagedThreadId );
+            Throw.DebugAssert( !data.IsParallel );
             _current = _current?.EnsureNext() ?? new Group( this, null );
             if( data.MaskedLevel == LogLevel.None )
             {
@@ -534,7 +534,7 @@ namespace CK.Core
 
         internal void ReplayOpenGroup( ref ActivityMonitorLogData data, IActivityMonitorClient? single = null )
         {
-            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
+            Throw.DebugAssert( _enteredThreadId == Environment.CurrentManagedThreadId );
 
             _current = _current?.EnsureNext() ?? new Group( this, null );
             _current.Initialize( ref data );
@@ -578,7 +578,7 @@ namespace CK.Core
 
         bool DoCloseGroup( object? userConclusion )
         {
-            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
+            Throw.DebugAssert( _enteredThreadId == Environment.CurrentManagedThreadId );
             Group? g = _current;
             if( g == null ) return false;
             // Handles the rejected case first (easiest).
@@ -647,9 +647,9 @@ namespace CK.Core
 
         internal void ReplayClosedGroup( DateTimeStamp closeLogTime, IReadOnlyList<ActivityLogGroupConclusion> conclusions, IActivityMonitorClient? single = null )
         {
-            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
+            Throw.DebugAssert( _enteredThreadId == Environment.CurrentManagedThreadId );
             Group? g = _current;
-            Debug.Assert( g != null && !g.IsRejectedGroup );
+            Throw.DebugAssert( g != null && !g.IsRejectedGroup );
             g.CloseLogTime = closeLogTime;
             g.CloseGroup();
             if( single == null )
@@ -676,7 +676,7 @@ namespace CK.Core
 
         void SendClosedGroup( Group g, IReadOnlyList<ActivityLogGroupConclusion> sentConclusions )
         {
-            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
+            Throw.DebugAssert( _enteredThreadId == Environment.CurrentManagedThreadId );
             _initialReplay?.OnGroupClosed( g.CloseLogTime, sentConclusions );
             List<IActivityMonitorClient>? buggyClients = null;
             foreach( var l in _output.Clients )
@@ -701,7 +701,7 @@ namespace CK.Core
         /// </summary>
         void MonoParameterSafeCall<T>( Action<IActivityMonitorClient, T> call, T arg )
         {
-            Debug.Assert( _enteredThreadId == Environment.CurrentManagedThreadId );
+            Throw.DebugAssert( _enteredThreadId == Environment.CurrentManagedThreadId );
             List<IActivityMonitorClient>? buggyClients = null;
             foreach( var l in _output.Clients )
             {
@@ -798,7 +798,7 @@ namespace CK.Core
 #if DEBUG
             int currentThreadId = Environment.CurrentManagedThreadId;
             int alreadyEnteredId = Interlocked.CompareExchange( ref _enteredThreadId, 0, currentThreadId );
-            Debug.Assert( alreadyEnteredId == currentThreadId, $"Internal error on Monitor '{_uniqueId}': Error during release reentrancy operation. Current Thread n°{alreadyEnteredId} is trying to exit it but Thread {currentThreadId} entered it." );
+            Throw.DebugAssert( alreadyEnteredId == currentThreadId, $"Internal error on Monitor '{_uniqueId}': Error during release reentrancy operation. Current Thread n°{alreadyEnteredId} is trying to exit it but Thread {currentThreadId} entered it." );
 #else
             Interlocked.Exchange( ref _enteredThreadId, 0 );
 #endif

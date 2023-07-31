@@ -187,7 +187,7 @@ namespace CK.Core
 
         void HandleCurrentGroupIsClosed()
         {
-            Debug.Assert( _currentIsGroupClosed && _path.Count > 0 );
+            Throw.DebugAssert( _currentIsGroupClosed && _path.Count > 0 );
             _current = null;
             _path.RemoveAt( _path.Count - 1 );
             if( _path.Count > 0 ) _current = _path[_path.Count - 1];
@@ -197,7 +197,7 @@ namespace CK.Core
 
         void CheckSnapshot()
         {
-            Debug.Assert( _current != null );
+            Throw.DebugAssert( _current != null );
             if( _current.MaskedLevel >= LogLevel.Warn )
             {
                 // Clone the last element if it is not a group: since it is updated

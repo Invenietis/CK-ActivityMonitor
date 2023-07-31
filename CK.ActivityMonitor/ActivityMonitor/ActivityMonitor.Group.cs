@@ -140,7 +140,7 @@ namespace CK.Core
 
             internal void AddGetConclusionText( ref List<ActivityLogGroupConclusion>? conclusions )
             {
-                Debug.Assert( _isOpen );
+                Throw.DebugAssert( _isOpen );
                 if( _getConclusion != null )
                 {
                     string? auto = null;

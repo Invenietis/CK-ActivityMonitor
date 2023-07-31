@@ -292,7 +292,7 @@ namespace CK.Core
                             else
                             {
                                 // Above Line is not defined.
-                                Debug.Assert( above.Item2.Filter.Group != LogLevelFilter.None, "Otherwise it would be 'default' already filtered out." );
+                                Throw.DebugAssert( above.Item2.Filter.Group != LogLevelFilter.None, "Otherwise it would be 'default' already filtered out." );
                                 skipGroup = true;
                                 // If f Line is also undefined, then f is useless.
                                 skipLine |= f.Item2.Filter.Line == LogLevelFilter.None;
@@ -315,7 +315,7 @@ namespace CK.Core
             /// <returns>Whether the log must be emitted or not.</returns>
             public static bool ApplyForLine( LogLevel logLevel, CKTrait finalTags, LogLevelFilter filter )
             {
-                Debug.Assert( finalTags != null );
+                Throw.DebugAssert( finalTags != null );
                 var filters = _finalFilters;
                 if( !finalTags.IsEmpty )
                 {

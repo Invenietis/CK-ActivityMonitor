@@ -122,7 +122,7 @@ namespace CK.Core
 
             internal void CatchLevel( LogLevel level )
             {
-                Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
+                Throw.DebugAssert( (level & LogLevel.IsFiltered) == 0 );
                 switch( level )
                 {
                     case LogLevel.Fatal:

@@ -158,7 +158,7 @@ namespace CK.Core
             if( key >= _count ) return null;
             while( --key >= 0 )
             {
-                Debug.Assert( g != null );
+                Throw.DebugAssert( g != null );
                 g = g._prev;
             }
             return g;

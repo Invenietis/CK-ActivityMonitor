@@ -58,9 +58,9 @@ namespace CK.Core
                                          [CallerFilePath] string? fileName = null,
                                          [CallerLineNumber] int lineNumber = 0 )
         {
-            Debug.Assert( monitorId.Length >= ActivityMonitor.MinMonitorUniqueIdLength && !monitorId.Any( c => char.IsWhiteSpace( c ) ) );
-            Debug.Assert( finalTags != null && finalTags.Context == ActivityMonitor.Tags.Context );
-            Debug.Assert( exception is null || exception is Exception || exception is CKExceptionData );
+            Throw.DebugAssert( monitorId.Length >= ActivityMonitor.MinMonitorUniqueIdLength && !monitorId.Any( c => char.IsWhiteSpace( c ) ) );
+            Throw.DebugAssert( finalTags != null && finalTags.Context == ActivityMonitor.Tags.Context );
+            Throw.DebugAssert( exception is null || exception is Exception || exception is CKExceptionData );
 
             _exception = exception as Exception;
             _exceptionData = exception as CKExceptionData;
@@ -83,7 +83,7 @@ namespace CK.Core
             _flags = (byte)(isParallel ? 1 : 0);
             _flags |= (byte)(isOpenGroup ? 2 : 0);
             _lineNumber = lineNumber;
-            Debug.Assert( (int)LogLevel.NumberOfBits == 7 );
+            Throw.DebugAssert( (int)LogLevel.NumberOfBits == 7 );
             _level = level & (LogLevel)0b1111111;
             _monitorId = monitorId;
             _level = level;
@@ -156,7 +156,7 @@ namespace CK.Core
             {
                 if( _exceptionData == null && Exception != null )
                 {
-                    Debug.Assert( _externalData == null, "Called before cached data initialization." );
+                    Throw.DebugAssert( _externalData == null, "Called before cached data initialization." );
                     _exceptionData = CKExceptionData.CreateFrom( Exception );
                 }
                 return _exceptionData;

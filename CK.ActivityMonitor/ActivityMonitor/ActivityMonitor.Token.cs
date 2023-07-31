@@ -162,7 +162,7 @@ namespace CK.Core
                 {
                     int idx = s.IndexOf( "(With topic '", StringComparison.Ordinal );
                     if( idx < 0 ) return false;
-                    Debug.Assert( "(With topic '".Length == 13 );
+                    Throw.DebugAssert( "(With topic '".Length == 13 );
                     if( idx > 0 )
                     {
                         // Trim any white space that may appear: normalized to null.
@@ -191,7 +191,7 @@ namespace CK.Core
             {
                 token = null;
                 if( !startMessage.StartsWith( "Starting: ", StringComparison.Ordinal ) ) return false;
-                Debug.Assert( "Starting: ".Length == 10 );
+                Throw.DebugAssert( "Starting: ".Length == 10 );
                 return TryParse( startMessage.Slice( 10 ), out token );
             }
 

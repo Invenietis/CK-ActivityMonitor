@@ -52,7 +52,7 @@ namespace CK.Core.Tests.Monitoring
             {
                 monitor.StartDependentActivity( token ).Dispose();
 
-                Debug.Assert( entries != null );
+                Throw.DebugAssert( entries != null );
                 entries.Should().HaveCount( changeTopic ? 3 : 1 );
                 if( changeTopic )
                 {
@@ -67,7 +67,7 @@ namespace CK.Core.Tests.Monitoring
             }
 
             ActivityMonitor.Token.TryParseStartMessage( startingString, out var startToken ).Should().BeTrue();
-            Debug.Assert( startToken != null );
+            Throw.DebugAssert( startToken != null );
             startToken.OriginatorId.Should().Be( token.OriginatorId );
             startToken.CreationDate.Should().Be( token.CreationDate );
             startToken.Message.Should().Be( token.Message );
@@ -119,7 +119,7 @@ namespace CK.Core.Tests.Monitoring
             {
                 logs[0].Data.Text.Should().Be( ActivityMonitor.SetTopicPrefix + "Test Topic." );
                 ActivityMonitor.Token.TryParseStartMessage( logs[1].Data.Text, out var t ).Should().BeTrue();
-                Debug.Assert( t != null );
+                Throw.DebugAssert( t != null );
                 t.OriginatorId.Should().Be( m.UniqueId );
                 t.CreationDate.Should().Be( cCreate.Entries[loopNeeded].Data.LogTime );
                 t.Message.Should().Be( "Test Message." );

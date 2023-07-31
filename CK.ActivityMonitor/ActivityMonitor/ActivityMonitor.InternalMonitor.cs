@@ -145,8 +145,8 @@ namespace CK.Core
 
         void DoReplayInternalLogs()
         {
-            Debug.Assert( _recorder != null && _recorder.History.Count > 0 );
-            Debug.Assert( Environment.CurrentManagedThreadId == _enteredThreadId );
+            Throw.DebugAssert( _recorder != null && _recorder.History.Count > 0 );
+            Throw.DebugAssert( Environment.CurrentManagedThreadId == _enteredThreadId );
             CKTrait savedTags = _autoTags;
             string changedTopic = _topic;
             bool savedTrackStackTrace = _trackStackTrace;

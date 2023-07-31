@@ -133,7 +133,7 @@ namespace CK.Core
 
             void DoConfigure( StaticGate g )
             {
-                Debug.Assert( Monitor.IsEntered( _names ) );
+                Throw.DebugAssert( Monitor.IsEntered( _names ) );
                 if( g.HasDisplayName )
                 {
                     int idx = Array.IndexOf( _names, g.DisplayName );

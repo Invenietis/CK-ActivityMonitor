@@ -167,7 +167,7 @@ namespace CK.Core
 
             internal Exception? ForceRemoveCondemnedClient( IActivityMonitorClient client )
             {
-                Debug.Assert( client != null && _clients.Contains( client ) );
+                Throw.DebugAssert( client != null && _clients.Contains( client ) );
                 if( client is IActivityMonitorBoundClient bound )
                 {
                     try
