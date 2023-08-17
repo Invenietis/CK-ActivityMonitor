@@ -77,6 +77,9 @@ namespace CK.Core
             /// </summary>
             public bool IsRejectedGroup => _isRejected;
 
+            /// <inheritdoc />
+            public string? GetLogKeyString() => _isRejected ? null : _data.GetLogKeyString();
+
             /// <summary>
             /// Gets the log time of the group closing.
             /// <see cref="DateTimeStamp.IsKnown"/> is false until the group is closed.

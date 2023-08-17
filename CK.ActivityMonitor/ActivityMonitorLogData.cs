@@ -236,6 +236,14 @@ namespace CK.Core
         public readonly bool IsFrozen => (_flags & 4) != 0;
 
         /// <summary>
+        /// Gets the <see cref="ActivityMonitor.LogKey.ToString()"/> for this data: "{MonitorId}.{LogTime}".
+        /// <para>
+        /// This avoids a useless instantiation of a <see cref="ActivityMonitor.LogKey"/>.
+        /// </para>
+        /// </summary>
+        public readonly string GetLogKeyString() => $"{_monitorId}.{_logTime}";
+
+        /// <summary>
         /// Freezes this data.
         /// </summary>
         public void Freeze() => _flags |= 4;

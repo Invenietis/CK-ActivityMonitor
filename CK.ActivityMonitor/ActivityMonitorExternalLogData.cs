@@ -64,6 +64,9 @@ namespace CK.Core
         /// <inheritdoc cref="ActivityMonitorLogData.IsParallel"/>
         public bool IsOpenGroup => (_flags & 2) != 0;
 
+        /// <inheritdoc cref="ActivityMonitorLogData.GetLogKeyString"/>
+        public string GetLogKeyString() => $"{_monitorId}.{_logTime}";
+
         // Private constructor.
         ActivityMonitorExternalLogData()
         {
