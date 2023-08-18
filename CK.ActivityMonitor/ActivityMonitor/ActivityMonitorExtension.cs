@@ -78,7 +78,8 @@ namespace CK.Core
         /// paragraph separator (or any appropriate separator) should be appended between each text if 
         /// the <paramref name="level"/> is the same as the previous one.
         /// </para>
-        /// <para>If needed, the special text <see cref="ActivityMonitor.ParkLevel"/> ("PARK-LEVEL") can be used as a convention 
+        /// <para>
+        /// If needed, the special text <see cref="ActivityMonitor.ParkLevel"/> ("PARK-LEVEL") can be used as a convention 
         /// to break the current <see cref="LogLevel"/> and resets it: the next log, even with the same LogLevel, should be 
         /// treated as if a different LogLevel is used.
         /// </para>
@@ -125,13 +126,13 @@ namespace CK.Core
         /// </para>
         /// </remarks>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        static public IDisposable UnfilteredOpenGroup( this IActivityMonitor @this,
-                                                       LogLevel level,
-                                                       CKTrait? tags,
-                                                       string? text,
-                                                       object? error,
-                                                       [CallerFilePath] string? fileName = null,
-                                                       [CallerLineNumber] int lineNumber = 0 )
+        static public IDisposableGroup UnfilteredOpenGroup( this IActivityMonitor @this,
+                                                            LogLevel level,
+                                                            CKTrait? tags,
+                                                            string? text,
+                                                            object? error,
+                                                            [CallerFilePath] string? fileName = null,
+                                                            [CallerLineNumber] int lineNumber = 0 )
         {
             var d = @this.CreateActivityMonitorLogData( level, @this.AutoTags | tags, text, error, fileName, lineNumber, true );
             return @this.UnfilteredOpenGroup( ref d );
