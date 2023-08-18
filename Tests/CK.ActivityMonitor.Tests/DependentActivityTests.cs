@@ -75,8 +75,9 @@ namespace CK.Core.Tests.Monitoring
             startToken.ToString().Should().Be( token.ToString() );
         }
 
-        [Test]
-        public void parsing_dependent_token_and_start_and_create_messages_with_time_collision()
+        [TestCase( true )]
+        [TestCase( false )]
+        public void parsing_dependent_token_and_start_and_create_messages_with_time_collision( bool useStartDependentGroup )
         {
             TestHelper.LogsToConsole = true;
 
@@ -115,7 +116,7 @@ namespace CK.Core.Tests.Monitoring
                 t2.CreationDate.Should().Be( cCreate.Entries[loopNeeded].Data.LogTime, "CreationDate is the time of the log entry." );
                 t2.Topic.Should().Be( "Test Topic." );
             }
-            StupidStringClient.Entry[] logs = RunDependentActivity( token );
+            StupidStringClient.Entry[] logs = RunDependentActivity( token, useStartDependentGroup );
             {
                 logs[0].Data.Text.Should().Be( ActivityMonitor.SetTopicPrefix + "Test Topic." );
                 ActivityMonitor.Token.TryParseStartMessage( logs[1].Data.Text, out var t ).Should().BeTrue();
@@ -128,7 +129,7 @@ namespace CK.Core.Tests.Monitoring
         }
 
 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-        static StupidStringClient.Entry[] RunDependentActivity( ActivityMonitor.Token token )
+        static StupidStringClient.Entry[] RunDependentActivity( ActivityMonitor.Token token, bool useStartDependentGroup )
         {
             string? depMonitorTopic = null;
             StupidStringClient.Entry[]? dependentLogs = null;
@@ -138,7 +139,9 @@ namespace CK.Core.Tests.Monitoring
                 var depMonitor = new ActivityMonitor( "I'm the topic of the runner." );
                 depMonitor.Output.RegisterClient( cStarted );
                 depMonitor.Topic.Should().Be( "I'm the topic of the runner." );
-                using( depMonitor.StartDependentActivity( token ) )
+                using( useStartDependentGroup
+                        ? depMonitor.StartDependentActivity( token )
+                        : depMonitor.StartDependentActivityGroup( token ) )
                 {
                     depMonitorTopic = depMonitor.Topic;
                     depMonitor.Trace( "Hello!" );
