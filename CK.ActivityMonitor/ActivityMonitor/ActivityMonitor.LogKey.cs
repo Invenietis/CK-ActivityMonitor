@@ -146,12 +146,11 @@ namespace CK.Core
 
             static bool TryMatch( ref ReadOnlySpan<char> head, [NotNullWhen( true )] out LogKey? t, bool parse )
             {
-                Debug.Assert( head.Length == 1 );
                 t = null;
                 int idx = head.IndexOf( '.' );
                 // MonitorId must contain at least one character.
                 // DateTimeStamp string contains between 27 and 32 characters.
-                if( idx < 1 || idx + 28 < head.Length ) return false;
+                if( idx < 1 || head.Length < idx + 28 ) return false;
                 string monitorId = new string( head.Slice( 0, idx ) );
                 var savedHead = head;
                 head = head.Slice( idx + 1 );
