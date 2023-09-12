@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -119,6 +121,62 @@ namespace CK.Core
             /// </summary>
             /// <returns>String with the OriginatorId and CreationDate.</returns>
             public override string ToString() => $"{_originatorId}.{_creationDate}";
+
+            /// <summary>
+            /// Implict cast into string.
+            /// </summary>
+            /// <param name="key">The key. A null logkey is the empty string.</param>
+            public static implicit operator string( LogKey? key ) => key?.ToString() ?? string.Empty;
+
+            /// <summary>
+            /// Tries to match a <see cref="LogKey.ToString()"/> string and forwards the <paramref name="head"/> on success.
+            /// </summary>
+            /// <param name="head">The parsing head.</param>
+            /// <param name="t">The resulting log key.</param>
+            /// <returns>True on success, false otherwise.</returns>
+            static public bool TryMatch( ref ReadOnlySpan<char> head, [NotNullWhen( true )] out LogKey? t ) => TryMatch( ref head, out t, false );
+
+            /// <summary>
+            /// Tries to parse a <see cref="LogKey.ToString()"/>.
+            /// </summary>
+            /// <param name="head">The string to parse.</param>
+            /// <param name="t">The resulting log key on success, null otherwise.</param>
+            /// <returns>True on success, false otherwise.</returns>
+            static public bool TryParse( ReadOnlySpan<char> head, [NotNullWhen( true )] out LogKey? t ) => TryMatch( ref head, out t, true );
+
+            static bool TryMatch( ref ReadOnlySpan<char> head, [NotNullWhen( true )] out LogKey? t, bool parse )
+            {
+                Debug.Assert( head.Length == 1 );
+                t = null;
+                int idx = head.IndexOf( '.' );
+                // MonitorId must contain at least one character.
+                // DateTimeStamp string contains between 27 and 32 characters.
+                if( idx < 1 || idx + 28 < head.Length ) return false;
+                string monitorId = new string( head.Slice( 0, idx ) );
+                var savedHead = head;
+                head = head.Slice( idx + 1 );
+                if( DateTimeStamp.TryMatch( ref head, out var stamp )
+                    && (!parse || head.IsEmpty) )
+                {
+                    t = new LogKey( monitorId, stamp );
+                    return true;
+                }
+                head = savedHead;
+                return false;
+            }
+
+
+            /// <summary>
+            /// Parses a <see cref="LogKey.ToString()"/> string or throws a <see cref="FormatException"/>
+            /// on error.
+            /// </summary>
+            /// <param name="s">The string to parse.</param>
+            /// <returns>The resulting LogKey.</returns>
+            static public LogKey Parse( ReadOnlySpan<char> s )
+            {
+                if( !TryParse( s, out var t ) ) Throw.FormatException( $"Invalid LogKey string: '{s}'." );
+                return t;
+            }
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
             public static bool operator ==( LogKey left, LogKey right )

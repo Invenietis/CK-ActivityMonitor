@@ -1,13 +1,12 @@
 using System;
 using System.IO;
-using System.Linq;
 using NUnit.Framework;
 using FluentAssertions;
 using System.Diagnostics;
 
 namespace CK.Core.Tests.Monitoring
 {
-    public class LogFileTests 
+    public class LogFileTests
     {
         public LogFileTests()
         {
