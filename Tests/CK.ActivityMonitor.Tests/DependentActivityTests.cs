@@ -30,7 +30,7 @@ namespace CK.Core.Tests.Monitoring
             using( monitor.CollectEntries( out var entries, LogLevelFilter.Info ) )
             {
                 token = monitor.CreateToken( message, topic );
-                ActivityMonitor.Token.TryParseCreateMessage( entries[0].Text, out var creatingMessage, out var creatingTopic ).Should().BeTrue();
+                ActivityMonitor.Token.TryParseMessageAndTopic( entries[0].Text, out var creatingMessage, out var creatingTopic ).Should().BeTrue();
                 creatingMessage.Should().Be( token.Message );
                 creatingTopic.Should().Be( token.Topic );
             }
@@ -103,7 +103,7 @@ namespace CK.Core.Tests.Monitoring
             }
             string createMessage = cCreate.Entries[loopNeeded].Data.Text;
             {
-                ActivityMonitor.Token.TryParseCreateMessage( createMessage, out var message, out var topic )
+                ActivityMonitor.Token.TryParseMessageAndTopic( createMessage, out var message, out var topic )
                    .Should().BeTrue();
                 message.Should().Be( "Test Message." );
                 topic.Should().Be( "Test Topic." );

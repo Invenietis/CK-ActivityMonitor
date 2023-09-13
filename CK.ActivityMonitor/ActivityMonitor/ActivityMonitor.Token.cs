@@ -17,9 +17,9 @@ namespace CK.Core
             readonly string? _message;
             readonly string? _topic;
 
-            internal Token( string monitorId, DateTimeStamp logTime, string? message, string? topic )
+            internal Token( LogKey key, string? message, string? topic )
             {
-                _key = new LogKey( monitorId, logTime );
+                _key = key;
                 _message = message;
                 _topic = topic;
             }
@@ -85,16 +85,16 @@ namespace CK.Core
             {
                 if( _topic == null )
                     return _message == null
-                            ? $"{prefix}{_key.OriginatorId} at {_key.CreationDate}"
-                            : $"{prefix}{_key.OriginatorId} at {_key.CreationDate} - {_message}";
+                            ? $"{prefix}{_key}"
+                            : $"{prefix}{_key} - {_message}";
                 return _message == null
-                        ? $"{prefix}{_key.OriginatorId} at {_key.CreationDate} (With topic '{_topic}'.)"
-                        : $"{prefix}{_key.OriginatorId} at {_key.CreationDate} - {_message} (With topic '{_topic}'.)";
+                        ? $"{prefix}{_key} (With topic '{_topic}'.)"
+                        : $"{prefix}{_key} - {_message} (With topic '{_topic}'.)";
             }
 
             /// <summary>
             /// Overridden to give a readable description of this token that can be <see cref="Parse"/>d (or <see cref="TryParse"/>) back:
-            /// The format is "<see cref="OriginatorId"/> at <see cref="CreationDate"/> with topic '...'|without topic|with monitor's topic '...'.".
+            /// The format is "<see cref="OriginatorId"/>.<see cref="CreationDate"/> [- <see cref="Message"/>][ (with topic '...')].".
             /// </summary>
             /// <returns>A readable string.</returns>
             public override string ToString() => ToString( null );
@@ -108,11 +108,10 @@ namespace CK.Core
             static public bool TryParse( ReadOnlySpan<char> s, [NotNullWhen( true )] out Token? t )
             {
                 t = null;
-                var m = new ROSpanCharMatcher( s ) { SingleExpectationMode = true };
-                if( MatchOriginatorAndTime( ref m, out var id, out DateTimeStamp time ) )
+                if( LogKey.TryMatch( ref s, out var key ) )
                 {
                     string? message, topic;
-                    if( m.Head.Length == 0 )
+                    if( s.IsEmpty )
                     {
                         message = topic = null;
                     }
@@ -121,13 +120,13 @@ namespace CK.Core
                         // Remove message separator if any.
                         // If there is no message separator then there must be a space
                         // before the (With topic...).
-                        if( !(m.TryMatch( " - " ) || m.TryMatch( ' ' ))
-                            || !TryParseCreateMessage( m.Head, out message, out topic ) )
+                        if( !(s.TryMatch( " - " ) || s.TryMatch( ' ' ))
+                            || !TryParseMessageAndTopic( s, out message, out topic ) )
                         {
                             return false;
                         }
                     }
-                    t = new Token( id, time, message, topic );
+                    t = new Token( key, message, topic );
                     return true;
                 }
                 return false;
@@ -152,7 +151,7 @@ namespace CK.Core
             /// <param name="message">The optional token creation message.</param>
             /// <param name="topic">The topic to set on the target monitor.</param>
             /// <returns>True on success, false otherwise.</returns>
-            public static bool TryParseCreateMessage( ReadOnlySpan<char> s,
+            public static bool TryParseMessageAndTopic( ReadOnlySpan<char> s,
                                                       out string? message,
                                                       out string? topic )
             {
@@ -160,7 +159,7 @@ namespace CK.Core
                 topic = null;
                 if( s.EndsWith( "\'.)", StringComparison.Ordinal ) )
                 {
-                    int idx = s.IndexOf( "(With topic '", StringComparison.Ordinal );
+                    int idx = s.LastIndexOf( "(With topic '", StringComparison.Ordinal );
                     if( idx < 0 ) return false;
                     Throw.DebugAssert( "(With topic '".Length == 13 );
                     if( idx > 0 )
@@ -235,7 +234,7 @@ namespace CK.Core
                 var m = $"{(message != null ? message + ' ' : "")}(With topic '{dependentTopic}'.)";
                 data.SetText( m );
             }
-            return new Token( _uniqueId, data.LogTime, message, dependentTopic );
+            return new Token( new LogKey( _uniqueId, data.LogTime ), message, dependentTopic );
         }
 
     }
