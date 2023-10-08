@@ -9,11 +9,11 @@ using System.Collections.Generic;
 using FluentAssertions;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using CK.Core.Impl;
 
 namespace CK.Core.Tests.Monitoring
 {
-
-
+    [TestFixture]
     public class ActivityMonitorTests
     {
         [SetUp]
@@ -79,7 +79,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void RegisterUniqueClient_skips_null_client_from_factory_and_returns_null()
         {
-            var monitor = new ActivityMonitor( applyAutoConfigurations: false );
+            var monitor = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             monitor.Output.RegisterUniqueClient<ActivityMonitorConsoleClient>( c => false, () => null ).Should().BeNull();
         }
 
@@ -106,30 +106,9 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Test]
-        public void Off_FilterLevel_prevents_all_logs_even_UnfilteredLogs()
-        {
-            var m = new ActivityMonitor( false );
-            var c = m.Output.RegisterClient( new StupidStringClient() );
-            m.Trace( "Trace1" );
-            m.MinimalFilter = LogFilter.Off;
-            m.UnfilteredLog( LogLevel.Fatal, ActivityMonitor.Tags.Empty, "NOSHOW-1", null );
-            m.UnfilteredOpenGroup( LogLevel.Fatal, ActivityMonitor.Tags.Empty, "NOSHOW-2", null );
-            m.UnfilteredLog( LogLevel.Error, ActivityMonitor.Tags.Empty, "NOSHOW-3", null );
-            // Off will be restored by the group closing.
-            m.MinimalFilter = LogFilter.Trace;
-            m.CloseGroup( "NOSHOW-4" );
-            m.MinimalFilter = LogFilter.Trace;
-            m.Trace( "Trace2" );
-
-            var s = c.ToString();
-            s.Should().Contain( "Trace1" ).And.Contain( "Trace2" );
-            s.Should().NotContain( "NOSHOW" );
-        }
-
-        [Test]
         public void sending_a_null_or_empty_text_is_transformed_into_no_log_text()
         {
-            var m = new ActivityMonitor( false );
+            var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var c = m.Output.RegisterClient( new StupidStringClient() );
             m.Trace( "" );
             m.UnfilteredLog( LogLevel.Error, null, null, null );
@@ -143,8 +122,9 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void display_conclusions()
         {
-            IActivityMonitor monitor = new ActivityMonitor( false );
-            monitor.Output.RegisterClients( new StupidStringClient(), new StupidXmlClient( new StringWriter() ) );
+            IActivityMonitor monitor = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
+            monitor.Output.RegisterClient( new StupidStringClient() );
+            monitor.Output.RegisterClient( new StupidXmlClient( new StringWriter() ) );
             monitor.Output.Clients.Should().HaveCount( 2 );
 
             var tag1 = ActivityMonitor.Tags.Register( "Product" );
@@ -198,7 +178,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void exceptions_are_deeply_dumped()
         {
-            IActivityMonitor l = new ActivityMonitor( applyAutoConfigurations: false );
+            IActivityMonitor l = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var wLogLovely = new StringBuilder();
             var rawLog = new StupidStringClient();
             l.Output.RegisterClient( rawLog );
@@ -231,7 +211,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void ending_a_monitor_send_an_unfilitered_MonitorEnd_tagged_info()
         {
-            IActivityMonitor m = new ActivityMonitor( applyAutoConfigurations: false );
+            IActivityMonitor m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var rawLog = new StupidStringClient();
             m.Output.RegisterClient( rawLog );
             m.OpenFatal( "a group" );
@@ -250,7 +230,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void AggregatedException_are_handled_specifically()
         {
-            IActivityMonitor l = new ActivityMonitor( applyAutoConfigurations: false );
+            IActivityMonitor l = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var wLogLovely = new StringBuilder();
             var logLovely = new ActivityMonitorTextWriterClient( ( s ) => wLogLovely.Append( s ) );
             l.Output.RegisterClient( logLovely );
@@ -287,7 +267,7 @@ namespace CK.Core.Tests.Monitoring
             LogFilter FatalFatal = new LogFilter( LogLevelFilter.Fatal, LogLevelFilter.Fatal );
             LogFilter WarnWarn = new LogFilter( LogLevelFilter.Warn, LogLevelFilter.Warn );
 
-            IActivityMonitor l = new ActivityMonitor( false );
+            IActivityMonitor l = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var log = l.Output.RegisterClient( new StupidStringClient() );
             using( l.TemporarilySetMinimalFilter( LogLevelFilter.Error, LogLevelFilter.Error ) )
             {
@@ -446,7 +426,7 @@ namespace CK.Core.Tests.Monitoring
         public void ActivityMonitorPathCatcher_tests()
         {
 
-            var monitor = new ActivityMonitor( applyAutoConfigurations: false );
+            var monitor = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             ActivityMonitorPathCatcher p = new ActivityMonitorPathCatcher();
             monitor.Output.RegisterClient( p );
 
@@ -589,7 +569,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void ActivityMonitorErrorCounter_and_ActivityMonitorPathCatcher_Clients_work_together()
         {
-            var monitor = new ActivityMonitor( applyAutoConfigurations: false );
+            var monitor = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             // Registers the ErrorCounter first: it will be the last one to be called, but
             // this does not prevent the PathCatcher to work: the path elements reference the group
             // so that any conclusion arriving after PathCatcher.OnClosing are available.
@@ -689,7 +669,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void ActivityMonitorSimpleCollector_is_a_Client_that_filters_and_stores_its_Capacity_count_of_last_log_entries()
         {
-            IActivityMonitor d = new ActivityMonitor( applyAutoConfigurations: false );
+            IActivityMonitor d = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var c = new ActivityMonitorSimpleCollector();
             d.Output.RegisterClient( c );
             d.Warn( "1" );
@@ -703,24 +683,21 @@ namespace CK.Core.Tests.Monitoring
             c.MinimalFilter = LogLevelFilter.Fatal;
             String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "3" );
 
-            c.MinimalFilter = LogLevelFilter.Off;
-            String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "" );
-
             c.MinimalFilter = LogLevelFilter.Warn;
-            using( d.OpenWarn( "1" ) )
+            using( d.OpenWarn( "A1" ) )
             {
-                d.Error( "2" );
-                using( d.OpenFatal( "3" ) )
+                d.Error( "A2" );
+                using( d.OpenFatal( "A3" ) )
                 {
-                    d.Trace( "4" );
-                    d.Info( "5" );
+                    d.Trace( "A4" );
+                    d.Info( "A5" );
                 }
             }
-            d.Warn( "6" );
-            String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "1,2,3,6" );
+            d.Warn( "A6" );
+            String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "3,A1,A2,A3,A6" );
 
             c.MinimalFilter = LogLevelFilter.Fatal;
-            String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "3" );
+            String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "3,A3" );
 
             c.MinimalFilter = LogLevelFilter.Debug;
             d.MinimalFilter = LogFilter.Debug;
@@ -733,7 +710,7 @@ namespace CK.Core.Tests.Monitoring
                     d.Info( "i1" );
                 }
             }
-            String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "3,d1,d2,f1,d3,i1" );
+            String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "3,A3,d1,d2,f1,d3,i1" );
         }
 
         [Test]
@@ -776,7 +753,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void OnError_fires_synchronously()
         {
-            var m = new ActivityMonitor( false );
+            var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             bool hasError = false;
             using( m.OnError( () => hasError = true ) )
             using( m.OpenInfo( "Handling StObj objects." ) )
@@ -817,7 +794,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void setting_the_MininimalFilter_of_a_bound_Client_is_thread_safe()
         {
-            ActivityMonitor m = new ActivityMonitor( false );
+            ActivityMonitor m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var tester = m.Output.RegisterClient( new ActivityMonitorClientTester() );
 
             m.ActualFilter.Should().Be( LogFilter.Undefined );
@@ -828,7 +805,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void BoundClient_IsDead_flag_is_handled()
         {
-            ActivityMonitor m = new ActivityMonitor( false );
+            ActivityMonitor m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var tester = m.Output.RegisterClient( new ActivityMonitorClientTester() );
 
             m.Error( "Hello World!" );
@@ -848,7 +825,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void BoundClient_IsDead_flag_must_use_SignalChange_to_signal_its_change()
         {
-            ActivityMonitor m = new ActivityMonitor( false );
+            ActivityMonitor m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var tester = m.Output.RegisterClient( new ActivityMonitorClientTester() );
 
             m.Error( "Hello World!" );
@@ -878,7 +855,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void in_a_OpenError_or_OpenFatal_group_level_is_automatically_sets_to_Debug()
         {
-            ActivityMonitor m = new ActivityMonitor( false );
+            ActivityMonitor m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var tester = m.Output.RegisterClient( new ActivityMonitorClientTester() );
             m.MinimalFilter = LogFilter.Release;
             m.Debug( "Here I am in NOT in Debug." );
@@ -892,18 +869,91 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Test]
-        [SetCulture("en-US")]
+        [SetCulture( "en-US" )]
         public void an_empty_exception_message_is_handled_with_no_log_string()
         {
             var ex = new Exception( null );
             ex.Message.Should().Be( "Exception of type 'System.Exception' was thrown." );
 
-            ActivityMonitor m = new ActivityMonitor( false );
+            ActivityMonitor m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var tester = m.Output.RegisterClient( new ActivityMonitorClientTester() );
             m.Fatal( new Exception( "" ) );
             tester.ReceivedTexts
                 .Should().Match( e => e.Any( t => t.Contains( "[no-log]" ) ) );
 
         }
+
+        [Test]
+        public void rejected_groups_test()
+        {
+            ActivityMonitor m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
+            m.MinimalFilter = LogFilter.Minimal;
+            using( m.CollectTexts( out var logs ) )
+            {
+                using( m.OpenTrace( "NOSHOW" ) )
+                {
+                    using( m.OpenInfo( "G1" ) )
+                    {
+                        using( m.OpenTrace( "NOSHOW" ) )
+                        {
+                            m.Warn( "Warn" );
+                        }
+                    }
+                }
+                logs.Concatenate().Should().Be( "G1, Warn" );
+            }
+        }
+
+
+        class TestClient : IActivityMonitorBoundClient
+        {
+            public LogFilter MinimalFilter => LogFilter.Debug;
+
+            public bool IsDead => false;
+
+            public void OnAutoTagsChanged( CKTrait newTrait )
+            {
+            }
+
+            public void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+            {
+                LastData = group.Data;
+            }
+
+            public void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions )
+            {
+                LastData = group.Data;
+            }
+
+            public void OnOpenGroup( IActivityLogGroup group )
+            {
+                LastData = group.Data;
+            }
+
+            public void OnTopicChanged( string newTopic, string? fileName, int lineNumber )
+            {
+            }
+            public ActivityMonitorLogData LastData { get; private set; }
+            public void OnUnfilteredLog( ref ActivityMonitorLogData data )
+            {
+                LastData = data;
+            }
+
+            public void SetMonitor( IActivityMonitorImpl? source, bool forceBuggyRemove )
+            {
+            }
+        }
+
+        [Test]
+        public void open_group_is_tagged()
+        {
+            ActivityMonitor m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
+            var tester = m.Output.RegisterClient( new TestClient() );
+            using( m.OpenTrace( "Hello" ) )
+            {
+                tester.LastData.IsOpenGroup.Should().BeTrue();
+            }
+        }
+
     }
 }

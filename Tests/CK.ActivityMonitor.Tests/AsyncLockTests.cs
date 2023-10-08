@@ -50,11 +50,13 @@ namespace CK.Core.Tests.Monitoring
             var l = new AsyncLock( LockRecursionPolicy.SupportsRecursion );
 
             l.IsEnteredBy( m ).Should().BeFalse();
+            l.IsEntered.Should().BeFalse();
 
             if( firstAsync ) await l.EnterAsync( m );
             else l.Enter( m );
 
             l.IsEnteredBy( m ).Should().BeTrue();
+            l.IsEntered.Should().BeTrue();
 
             if( secondAsync ) await l.EnterAsync( m );
             else l.Enter( m );
@@ -79,6 +81,7 @@ namespace CK.Core.Tests.Monitoring
 
             l.Leave( m );
             l.IsEnteredBy( m ).Should().BeFalse();
+            l.IsEntered.Should().BeFalse();
 
             using( await l.LockAsync( m ) )
             {
@@ -124,10 +127,10 @@ namespace CK.Core.Tests.Monitoring
                  }
              };
 
-            IActivityMonitor m1 = new ActivityMonitor( applyAutoConfigurations: false );
-            IActivityMonitor m2 = new ActivityMonitor( applyAutoConfigurations: false );
-            IActivityMonitor m3 = new ActivityMonitor( applyAutoConfigurations: false );
-            IActivityMonitor m4 = new ActivityMonitor( applyAutoConfigurations: false );
+            IActivityMonitor m1 = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
+            IActivityMonitor m2 = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
+            IActivityMonitor m3 = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
+            IActivityMonitor m4 = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
 
             await Task.WhenAll( Task.Run( () => job( m1 ) ),
                                 Task.Run( () => job( m2 ) ),

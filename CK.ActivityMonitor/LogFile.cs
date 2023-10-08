@@ -76,7 +76,7 @@ namespace CK.Core
         public static void AssertRootLogPathIsSet()
         {
             if( RootLogPath == null ) Throw.Exception( ActivityMonitorResources.RootLogPathMustBeSet );
-            Debug.Assert( _logPath != null );
+            Throw.DebugAssert( _logPath != null );
         }
 
     }

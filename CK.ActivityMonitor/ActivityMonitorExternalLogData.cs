@@ -9,23 +9,28 @@ namespace CK.Core
     /// Cached <see cref="ActivityMonitorLogData"/>: these objects are pooled.
     /// See <see cref="CurrentPoolCapacity"/> and <see cref="MaximalCapacity"/>.
     /// <para>
-    /// The only way to acquire such cached data is to call <see cref="ActivityMonitorLogData.AcquireExternalData()"/>
-    /// or <see cref="ActivityMonitorLogData.AcquireExternalData(DateTimeStampProvider, bool)"/>.
+    /// The only way to acquire such cached data is to call <see cref="ActivityMonitorLogData.AcquireExternalData()"/>.
     /// </para>
     /// </summary>
     public sealed partial class ActivityMonitorExternalLogData
     {
         [AllowNull] string _text;
         [AllowNull] CKTrait _tags;
+        [AllowNull] string _monitorId;
         CKExceptionData? _exceptionData;
         string? _fileName;
         int _lineNumber;
-        LogLevel _level;
+        int _depth;
         int _refCount;
         DateTimeStamp _logTime;
+        LogLevel _level;
+        byte _flags;
 
         /// <inheritdoc cref="ActivityMonitorLogData.Text"/>
         public string Text => _text;
+
+        /// <inheritdoc cref="ActivityMonitorLogData.MonitorId"/>
+        public string MonitorId => _monitorId;
 
         /// <inheritdoc cref="ActivityMonitorLogData.Tags"/>
         public CKTrait Tags => _tags;
@@ -44,11 +49,23 @@ namespace CK.Core
         /// <inheritdoc cref="ActivityMonitorLogData.Level"/>
         public LogLevel Level => _level;
 
+        /// <inheritdoc cref="ActivityMonitorLogData.Depth"/>
+        public int Depth => _depth;
+
         /// <inheritdoc cref="ActivityMonitorLogData.MaskedLevel"/>
         public LogLevel MaskedLevel => _level & LogLevel.Mask;
 
         /// <inheritdoc cref="ActivityMonitorLogData.LogTime"/>
         public DateTimeStamp LogTime => _logTime;
+
+        /// <inheritdoc cref="ActivityMonitorLogData.IsParallel"/>
+        public bool IsParallel => (_flags & 1) != 0;
+
+        /// <inheritdoc cref="ActivityMonitorLogData.IsParallel"/>
+        public bool IsOpenGroup => (_flags & 2) != 0;
+
+        /// <inheritdoc cref="ActivityMonitorLogData.GetLogKeyString"/>
+        public string GetLogKeyString() => $"{_monitorId}.{_logTime}";
 
         // Private constructor.
         ActivityMonitorExternalLogData()
@@ -62,9 +79,13 @@ namespace CK.Core
             _exceptionData = data.ExceptionData;
             _fileName = data.FileName;
             _lineNumber = data.LineNumber;
-            _level = data.Level;
+            _depth = data.Depth;
             _refCount = 1;
             _logTime = data.LogTime;
+            _monitorId = data.MonitorId;
+            _level = data.Level;
+            _flags = (byte)(data.IsParallel ? 1 : 0);
+            _flags |= (byte)(data.IsOpenGroup ? 2 : 0);
         }
 
         /// <summary>

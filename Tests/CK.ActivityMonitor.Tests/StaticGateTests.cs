@@ -51,7 +51,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void log_method_is_not_called_at_all_when_IsOpen_is_false()
         {
-            var monitor = new ActivityMonitor( false );
+            var monitor = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var g = new StaticGate( false );
 
             g.O( monitor )?.UnfilteredLog( ThrowingLogLevel(), null, null, null );
@@ -129,7 +129,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void StaticLogger_methods_are_not_called_at_all_when_IsOpen_is_false()
         {
-            var monitor = new ActivityMonitor( false );
+            var monitor = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var g = new StaticGate( false );
 
             g.StaticLogger?.Fatal( ThrowingMessage() );

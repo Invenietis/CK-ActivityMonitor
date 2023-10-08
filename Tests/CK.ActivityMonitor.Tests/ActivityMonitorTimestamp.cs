@@ -52,7 +52,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void DateTimeStamp_collision_can_not_happen()
         {
-            ActivityMonitor m = new ActivityMonitor( applyAutoConfigurations: false );
+            ActivityMonitor m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var detect = new DateTimeStampCollision();
             m.Output.RegisterClient( detect );
             for( int i = 0; i < 10; ++i )

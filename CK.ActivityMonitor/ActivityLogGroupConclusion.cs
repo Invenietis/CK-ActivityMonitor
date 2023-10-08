@@ -36,8 +36,8 @@ namespace CK.Core
 
         internal ActivityLogGroupConclusion( CKTrait t, string conclusion )
         {
-            Debug.Assert( t != null && t.Context == ActivityMonitor.Tags.Context );
-            Debug.Assert( conclusion != null );
+            Throw.DebugAssert( t != null && t.Context == ActivityMonitor.Tags.Context );
+            Throw.DebugAssert( conclusion != null );
             Tag = t!;
             Text = conclusion!;
         }

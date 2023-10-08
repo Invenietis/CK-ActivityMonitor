@@ -8,19 +8,36 @@ using System.Threading;
 
 namespace CK.Core
 {
-    public partial class ActivityMonitor
+    public sealed partial class ActivityMonitor
     {
-        sealed class LoggerStatic : IActivityLogger
+        sealed class LoggerStatic : IStaticLogger
         {
-            static readonly DateTimeStampProvider _stamp = new DateTimeStampProvider();
+            static DateTimeStamp _lastLogTime = DateTimeStamp.MinValue;
+            static readonly object _lock = new object();
 
             public CKTrait AutoTags => Tags.Empty;
 
             public LogLevelFilter ActualFilter => DefaultFilter.Line;
 
+            public ActivityMonitorLogData CreateActivityMonitorLogData( LogLevel level,
+                                                                        CKTrait finalTags,
+                                                                        string? text,
+                                                                        object? exception,
+                                                                        string? fileName,
+                                                                        int lineNumber,
+                                                                        bool isOpenGroup )
+            {
+                DateTimeStamp logTime;
+                var now = DateTime.UtcNow;
+                lock( _lock )
+                {
+                    _lastLogTime = logTime = new DateTimeStamp( _lastLogTime, now );
+                }
+                return new ActivityMonitorLogData( StaticLogMonitorUniqueId, logTime, 0, isParallel: true, isOpenGroup: false, level, finalTags, text, exception, fileName, lineNumber );
+            }
+
             public void UnfilteredLog( ref ActivityMonitorLogData data )
             {
-                if( !data.LogTime.IsKnown ) data.SetLogTime( _stamp.GetNextNow() );
                 OnStaticLog?.Invoke( ref data );
             }
         }
@@ -30,9 +47,7 @@ namespace CK.Core
         /// <summary>
         /// The handler signature of static logs.
         /// <para>
-        /// The "by ref" argument here is to avoid any copy of the data. The data should not be altered by calling one of
-        /// the 2 mutating methods <see cref="ActivityMonitorLogData.SetExplicitLogTime(DateTimeStamp)"/> or <see cref="ActivityMonitorLogData.SetExplicitTags(CKTrait)"/>
-        /// unless you absolutely know what you are doing.
+        /// The "by ref" argument here is to avoid any copy of the data.
         /// </para>
         /// </summary>
         /// <param name="data">The log data payload.</param>
@@ -53,16 +68,16 @@ namespace CK.Core
         static public event StaticLogHandler? OnStaticLog;
 
         /// <summary>
-        /// A static <see cref="IActivityLogger"/> that immediately relay log data to <see cref="OnStaticLog"/> event.
+        /// Gets a static logger that immediately relay log data to <see cref="OnStaticLog"/> event.
         /// <para>
         /// Nothing is done with these logs at this level: this is to be used by client code of this library, typically CK.Monitoring.
         /// </para>
         /// <para>
-        /// This is to be used rarely: only if there's really no way to bind the calling context to a real <see cref="IActivityMonitor"/>.
-        /// Handlers of the OnStaticLog event should use the <see cref="ExternalLogMonitorUniqueId"/> as the monitor identifier.
+        /// This is to be used rarely: only if there's really no way to bind the calling context to a <see cref="IActivityMonitor"/>
+        /// or a <see cref="IParallelLogger"/>.
         /// </para>
         /// </summary>
-        public static IActivityLogger StaticLogger => _staticLogger;
+        public static IStaticLogger StaticLogger => _staticLogger;
 
     }
 }

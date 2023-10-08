@@ -34,7 +34,7 @@ namespace CK.Core.Tests.Monitoring
         {
             LogFilter.Undefined.ToString().Should().Be("Undefined");
             LogFilter.Terse.ToString().Should().Be("Terse");
-            LogFilter.Off.ToString().Should().Be("Off");
+            LogFilter.Fatal.ToString().Should().Be("Fatal");
             LogFilter.Trace.ToString().Should().Be("Trace");
             LogFilter.Debug.ToString().Should().Be("Debug");
             LogFilter.Invalid.ToString().Should().Be("Invalid");
@@ -51,7 +51,7 @@ namespace CK.Core.Tests.Monitoring
             LogFilter.Parse( "Monitor" ).Should().Be( LogFilter.Monitor );
             LogFilter.Parse( "Terse" ).Should().Be( LogFilter.Terse );
             LogFilter.Parse( "Release" ).Should().Be( LogFilter.Release );
-            LogFilter.Parse( "Off" ).Should().Be( LogFilter.Off );
+            LogFilter.Parse( "Fatal" ).Should().Be( LogFilter.Fatal );
 
             LogFilter.Parse( "Quiet" ).Should().Be( LogFilter.Quiet );
             LogFilter.Parse( "Minimal" ).Should().Be( LogFilter.Minimal );
@@ -63,7 +63,7 @@ namespace CK.Core.Tests.Monitoring
             LogFilter.Parse( "{None,None}" ).Should().Be( LogFilter.Undefined );
             LogFilter.Parse( "{Warn,None}" ).Should().Be( new LogFilter( LogLevelFilter.Warn, LogLevelFilter.None ) );
             LogFilter.Parse( "{Error,Warn}" ).Should().Be( new LogFilter( LogLevelFilter.Error, LogLevelFilter.Warn ) );
-            LogFilter.Parse( "{Off,None}" ).Should().Be( new LogFilter( LogLevelFilter.Off, LogLevelFilter.None ) );
+            LogFilter.Parse( "{Fatal,None}" ).Should().Be( new LogFilter( LogLevelFilter.Fatal, LogLevelFilter.None ) );
             LogFilter.Parse( "{Error,Error}" ).Should().Be( LogFilter.Release );
             LogFilter.Parse( "{Info,Warn}" ).Should().Be( LogFilter.Terse );
             LogFilter.Parse( "{Fatal,Invalid}" ).Should().Be( new LogFilter( LogLevelFilter.Fatal, LogLevelFilter.Invalid ) );

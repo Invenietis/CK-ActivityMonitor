@@ -20,12 +20,12 @@ namespace CK.Core.LogHandler
         internal InternalHandler _handler;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-        public GroupLogWithTags( int literalLength, int formattedCount, IActivityMonitor monitor, LogLevel level, CKTrait tags, out bool shouldAppend )
+        public GroupLogWithTags( int literalLength, int formattedCount, IActivityMonitor monitor, LogLevel level, CKTrait? tags, out bool shouldAppend )
         {
             _handler = new InternalHandler( literalLength, formattedCount, monitor, level, tags, out shouldAppend );
         }
 
-        public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
+        public void AppendFormatted( Type? t, string? format ) => _handler.AppendFormatted( t, format );
 
         public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
 

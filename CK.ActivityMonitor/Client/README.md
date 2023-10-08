@@ -55,7 +55,7 @@ static void Main( string[] args )
         m.Info( "Verbose filter let's the Info lines be logged." );
         m.Info( "Note that closing a group restores the minimal filter level that was set on the opening." );
     }
-    Debug.Assert( m.ActualFilter == LogFilter.Terse );
+    Throw.DebugAssert( m.ActualFilter == LogFilter.Terse );
     m.MinimalFilter = LogFilter.Monitor;
     m.Warn( "Using Monitor filter, only Warn, Error and Fatal lines are logged." );
 

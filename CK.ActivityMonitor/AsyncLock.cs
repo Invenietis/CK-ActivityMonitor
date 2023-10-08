@@ -53,7 +53,7 @@ namespace CK.Core
         {
             _semaphore = new SemaphoreSlim( initialCount: 1, maxCount: 1 );
             _policy = recursionPolicy;
-            _name = filePath + '@' + lineNmber.ToString( CultureInfo.InvariantCulture );
+            _name = $"{filePath}@{lineNmber}";
         }
 
         /// <summary>
@@ -160,6 +160,12 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Gets whether this lock is currently held.
+        /// Of course, no sensible decision should be made on this value.
+        /// </summary>
+        public bool IsEntered => _current != null;
+
+        /// <summary>
         /// Asynchronously waits to enter this <see cref="AsyncLock"/>.
         /// This MUST NOT be used in a using statement (unfortunately, a Task is IDisposable),
         /// use <see cref="LockAsync(IActivityMonitor)"/> for this.
@@ -221,7 +227,7 @@ namespace CK.Core
             }
             if( await _semaphore.WaitAsync( millisecondsTimeout, cancellationToken ).ConfigureAwait( false ) )
             {
-                Debug.Assert( _recCount == 0 );
+                Throw.DebugAssert( _recCount == 0 );
                 Gate.O( monitor )?.UnfilteredLog( LogLevel.Trace | LogLevel.IsFiltered,
                                                   ActivityMonitor.Tags.Empty,
                                                   $"Asynchronously entered AsyncLock '{_name}'.",
@@ -288,7 +294,7 @@ namespace CK.Core
             }
             if( _semaphore.Wait( millisecondsTimeout, cancellationToken ) )
             {
-                Debug.Assert( _recCount == 0 );
+                Throw.DebugAssert( _recCount == 0 );
                 Gate.O( monitor )?.UnfilteredLog( LogLevel.Trace | LogLevel.IsFiltered,
                                                   ActivityMonitor.Tags.Empty,
                                                   $"Synchronously entered AsyncLock '{_name}'.",
@@ -321,7 +327,7 @@ namespace CK.Core
                 ThrowSynchronizationLockException( msg );
                 return;
             }
-            Debug.Assert( _recCount >= 0 );
+            Throw.DebugAssert( _recCount >= 0 );
             if( _recCount == 0 )
             {
                 Gate.O( monitor )?.UnfilteredLog( LogLevel.Trace | LogLevel.IsFiltered,

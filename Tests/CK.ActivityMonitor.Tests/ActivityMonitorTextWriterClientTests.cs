@@ -10,7 +10,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void logging_groups()
         {
-            var m = new ActivityMonitor( false );
+            var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             m.MinimalFilter = LogFilter.Debug;
             StringBuilder b = new StringBuilder();
             var client = new ActivityMonitorTextWriterClient( s => b.Append( s ), LogClamper.Undefined, '|' );
@@ -81,7 +81,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void logging_lines()
         {
-            var m = new ActivityMonitor( false );
+            var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             m.MinimalFilter = LogFilter.Debug;
             StringBuilder b = new StringBuilder();
             var client = new ActivityMonitorTextWriterClient( s => b.Append( s ), LogClamper.Undefined, '|' );
@@ -125,7 +125,7 @@ E [] Four1.
         [Test]
         public void logging_with_tags()
         {
-            var m = new ActivityMonitor( false );
+            var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             m.MinimalFilter = LogFilter.Debug;
             StringBuilder b = new StringBuilder();
             var client = new ActivityMonitorTextWriterClient( s => b.Append( s ), LogClamper.Undefined, '|' );

@@ -17,14 +17,14 @@ namespace CK.Core
         static public readonly LogClamper Undefined = default;
 
         /// <summary>
-        /// Off is {Off,Off}. This is not recommended.
+        /// Fatal is {Fatal,Fatal}. This is not recommended.
         /// See https://learn.microsoft.com/en-us/dotnet/standard/commandline/syntax#the---verbosity-option.
         /// </summary>
-        static public LogClamper Off => new LogClamper( LogFilter.Off, true );
+        static public LogClamper Fatal => new LogClamper( LogFilter.Fatal, true );
 
         /// <summary>
         /// Quiet is {Error,Error}.
-        /// Use <see cref="Off"/> to cut logs (but this is not recommended).
+        /// Use <see cref="Fatal"/> to reduce logs to the maximum (but this is not recommended).
         /// See https://learn.microsoft.com/en-us/dotnet/standard/commandline/syntax#the---verbosity-option.
         /// </summary>
         static public LogClamper Quiet => new LogClamper( LogFilter.Quiet, true );

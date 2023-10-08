@@ -9,7 +9,9 @@ namespace CK.Core
     public interface IActivityLogGroup
     {
         /// <summary>
-        /// Gets the log data.
+        /// Gets the log data with its <see cref="ActivityMonitorLogData.Depth"/> (that is based
+        /// on non rejected group).
+        /// (<see cref="ActivityMonitorLogData.IsFrozen"/> is true).
         /// </summary>
         ref ActivityMonitorLogData Data { get; }
 
@@ -20,26 +22,10 @@ namespace CK.Core
         DateTimeStamp CloseLogTime { get; }
 
         /// <summary>
-        /// Get the previous group in its origin monitor. Null if this group is a top level group.
+        /// Get the previous group in its origin monitor that may be <see cref="IsRejectedGroup"/>.
+        /// Null if this group is a top level group.
         /// </summary>
         IActivityLogGroup? Parent { get; }
-
-        /// <summary>
-        /// Gets the depth of this group in its origin monitor. (1 for top level groups).
-        /// </summary>
-        int Depth { get; }
-
-        /// <summary>
-        /// Gets the <see cref="IActivityMonitor.MinimalFilter"/> that will be restored when group will be closed.
-        /// Initialized with the current value of IActivityMonitor.Filter when the group has been opened.
-        /// </summary>
-        LogFilter SavedMonitorFilter { get; }
-
-        /// <summary>
-        /// Gets the <see cref="IActivityMonitor.AutoTags"/> that will be restored when group will be closed.
-        /// Initialized with the current value of IActivityMonitor.Tags when the group has been opened.
-        /// </summary>
-        CKTrait SavedMonitorTags { get; }
 
         /// <summary>
         /// Gets whether this group is rejected.

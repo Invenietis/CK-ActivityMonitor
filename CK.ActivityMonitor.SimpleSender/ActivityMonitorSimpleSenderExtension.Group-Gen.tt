@@ -36,9 +36,9 @@ namespace CK.Core
         public static IDisposableGroup Open<#= level #>( this IActivityMonitor monitor, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.<#= level #>, null, out var finalTags )
-                                                ? new ActivityMonitorLogData( LogLevel.<#= level #> | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                                ? monitor.CreateActivityMonitorLogData( LogLevel.<#= level #> | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber, true )
                                                 : default;
-            return monitor.UnfilteredOpenGroup( ref d );
+            return monitor.UnfilteredOpenGroup( ref d ); 
         }
 
 		/// <summary>
@@ -56,7 +56,7 @@ namespace CK.Core
         public static IDisposableGroup Open<#= level #>( this IActivityMonitor monitor, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.<#= level #>, null, out var finalTags )
-                                                ? new ActivityMonitorLogData( LogLevel.<#= level #> | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                                ? monitor.CreateActivityMonitorLogData( LogLevel.<#= level #> | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber, true )
                                                 : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -69,7 +69,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.<#= level #> | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    ? monitor.CreateActivityMonitorLogData( LogLevel.<#= level #> | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber, true )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -94,7 +94,7 @@ namespace CK.Core
                                                          [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.<#= level #>, null, out var finalTags )
-                                                ? new ActivityMonitorLogData( LogLevel.<#= level #> | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                                ? monitor.CreateActivityMonitorLogData( LogLevel.<#= level #> | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber, true )
                                                 : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -108,7 +108,7 @@ namespace CK.Core
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.<#= level #> | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber )
+                    ? monitor.CreateActivityMonitorLogData( LogLevel.<#= level #> | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber, true )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -122,20 +122,20 @@ namespace CK.Core
         /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
         /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IDisposableGroup Open<#= level #>( this IActivityMonitor monitor,
-                                                    CKTrait tags,
+                                                    CKTrait? tags,
                                                     Exception ex,
                                                     [CallerLineNumber]int lineNumber = 0,
                                                     [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.<#= level #>, tags, out var finalTags )
-                                               ? new ActivityMonitorLogData( LogLevel.<#= level #> | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber )
+                                               ? monitor.CreateActivityMonitorLogData( LogLevel.<#= level #> | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber, true )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -147,29 +147,29 @@ namespace CK.Core
         /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
         /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
-        public static IDisposableGroup Open<#= level #>( this IActivityMonitor monitor, CKTrait tags, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static IDisposableGroup Open<#= level #>( this IActivityMonitor monitor, CKTrait? tags, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.<#= level #>, tags, out var finalTags )
-                                               ? new ActivityMonitorLogData( LogLevel.<#= level #> | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber )
+                                               ? monitor.CreateActivityMonitorLogData( LogLevel.<#= level #> | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber, true )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
-        /// <inheritdoc cref="Open<#= level #>(IActivityMonitor, CKTrait, string, int, string?)"/>
+        /// <inheritdoc cref="Open<#= level #>(IActivityMonitor, CKTrait?, string, int, string?)"/>
         public static IDisposableGroup Open<#= level #>( this IActivityMonitor monitor,
-                                                    CKTrait tags,
+                                                    CKTrait? tags,
                                                     [InterpolatedStringHandlerArgument( "monitor", "tags" )] LogHandler.Group<#= level #>WithTags text,
                                                     [CallerLineNumber] int lineNumber = 0,
                                                     [CallerFilePath] string? fileName = null )
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.<#= level #> | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    ? monitor.CreateActivityMonitorLogData( LogLevel.<#= level #> | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber, true )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -181,36 +181,36 @@ namespace CK.Core
         /// <see cref="IActivityMonitor.AutoTags"/>), it must always be closed.
         /// </summary>
         /// <param name="monitor">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
         public static IDisposableGroup Open<#= level #>( this IActivityMonitor monitor,
-                                                CKTrait tags,
+                                                CKTrait? tags,
                                                 string? text,
                                                 Exception? ex,
                                                 [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             var d = monitor.ShouldLogGroup( LogLevel.<#= level #>, tags, out var finalTags )
-                                               ? new ActivityMonitorLogData( LogLevel.<#= level #> | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber )
+                                               ? monitor.CreateActivityMonitorLogData( LogLevel.<#= level #> | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber, true )
                                                : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
 
-        /// <inheritdoc cref="Open<#= level #>(IActivityMonitor, CKTrait, string, Exception, int, string?)"/>
+        /// <inheritdoc cref="Open<#= level #>(IActivityMonitor, CKTrait?, string, Exception, int, string?)"/>
         public static IDisposableGroup Open<#= level #>( this IActivityMonitor monitor,
                                                     LogLevel level,
-                                                    CKTrait tags,
-                                                    Exception ex,
+                                                    CKTrait? tags,
+                                                    Exception? ex,
                                                     [InterpolatedStringHandlerArgument( "monitor", "tags" )] LogHandler.Group<#= level #>WithTags text,
                                                     [CallerLineNumber] int lineNumber = 0,
                                                     [CallerFilePath] string? fileName = null )
         {
             var t = text._handler.ToStringAndClear();
             var d = t != null
-                    ? new ActivityMonitorLogData( LogLevel.<#= level #> | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber )
+                    ? monitor.CreateActivityMonitorLogData( LogLevel.<#= level #> | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber, true )
                     : default;
             return monitor.UnfilteredOpenGroup( ref d );
         }
@@ -222,13 +222,13 @@ namespace CK.Core
 		#>
 	}
 
-    namespace LogHandler
-    {
+  namespace LogHandler
+  {
        	<#
 		foreach( var level in new[]{ "Debug", "Trace", "Info", "Warn", "Error", "Fatal" } )
 		{
 		#> 
-    /// <summary>
+/// <summary>
     /// Provides an interpolated string handler <#= level #> lines that only performs formatting if the log must be emitted.
     /// This supports the logging framework and must not be used directly.
     /// </summary>
@@ -241,10 +241,10 @@ namespace CK.Core
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public Group<#= level #>( int literalLength, int formattedCount, IActivityMonitor monitor, out bool shouldAppend )
         {
-            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.<#= level #>, null, out shouldAppend );
+            _handler = new InternalHandler( literalLength, formattedCount, monitor, LogLevel.<#= level #>, null, out shouldAppend );
         }
 
-        public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
+        public void AppendFormatted( Type? t, string? format ) => _handler.AppendFormatted( t, format );
 
         public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
 
@@ -279,12 +279,12 @@ namespace CK.Core
         internal InternalHandler _handler;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-        public Group<#= level #>WithTags( int literalLength, int formattedCount, IActivityMonitor monitor, CKTrait tags, out bool shouldAppend )
+        public Group<#= level #>WithTags( int literalLength, int formattedCount, IActivityMonitor monitor, CKTrait? tags, out bool shouldAppend )
         {
-            _handler = new InternalHandler( true, literalLength, formattedCount, monitor, LogLevel.<#= level #>, tags, out shouldAppend );
+            _handler = new InternalHandler( literalLength, formattedCount, monitor, LogLevel.<#= level #>, tags, out shouldAppend );
         }
 
-        public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
+        public void AppendFormatted( Type? t, string? format ) => _handler.AppendFormatted( t, format );
 
         public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
 

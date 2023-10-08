@@ -30,13 +30,13 @@ namespace CK.Core
         /// Challenges <see cref="ActivityMonitor.Tags"/> and <see cref="IActivityMonitor.ActualFilter">this logger's actual filter</see> and application 
         /// domain's <see cref="ActivityMonitor.DefaultFilter"/> filters to test whether a log line should actually be emitted.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityLogger"/>.</param>
+        /// <param name="this">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="level">Log level.</param>
         /// <param name="tags">Optional tags on the line.</param>
         /// <param name="finalTags">Combined monitor's and line's tag.</param>
         /// <returns>True if the log should be emitted.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]  
-        public static bool ShouldLogLine( this IActivityLogger @this, LogLevel level, CKTrait? tags, out CKTrait finalTags )
+        public static bool ShouldLogLine( this IActivityLineEmitter @this, LogLevel level, CKTrait? tags, out CKTrait finalTags )
         {
             finalTags = @this.AutoTags + tags;
             return ActivityMonitor.Tags.ApplyForLine( level, finalTags, @this.ActualFilter );
@@ -59,16 +59,16 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Logs a text regardless of <see cref="IActivityLogger.ActualFilter"/> level. 
+        /// Logs a text regardless of <see cref="IActivityLineEmitter.ActualFilter"/> level. 
         /// </summary>
-        /// <param name="this">This <see cref="IActivityLogger"/>.</param>
+        /// <param name="this">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="tags">
         /// Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. 
-        /// These tags will be union-ed with the current <see cref="IActivityLogger.AutoTags"/>.
+        /// These tags will be union-ed with the current <see cref="IActivityLineEmitter.AutoTags"/>.
         /// </param>
         /// <param name="level">Log level. Must not be <see cref="LogLevel.None"/>.</param>
         /// <param name="text">Text to log. Must not be null or empty.</param>
-        /// <param name="ex">Optional exception associated to the log. When not null, a Group is automatically created.</param>
+        /// <param name="error">Optional <see cref="Exception"/> or <see cref="CKExceptionData"/> associated to the log.</param>
         /// <param name="fileName">The source code file name from which the log is emitted.</param>
         /// <param name="lineNumber">The line number in the source from which the log is emitted.</param>
         /// <remarks>
@@ -78,21 +78,22 @@ namespace CK.Core
         /// paragraph separator (or any appropriate separator) should be appended between each text if 
         /// the <paramref name="level"/> is the same as the previous one.
         /// </para>
-        /// <para>If needed, the special text <see cref="ActivityMonitor.ParkLevel"/> ("PARK-LEVEL") can be used as a convention 
+        /// <para>
+        /// If needed, the special text <see cref="ActivityMonitor.ParkLevel"/> ("PARK-LEVEL") can be used as a convention 
         /// to break the current <see cref="LogLevel"/> and resets it: the next log, even with the same LogLevel, should be 
         /// treated as if a different LogLevel is used.
         /// </para>
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static public void UnfilteredLog( this IActivityLogger @this,
+        static public void UnfilteredLog( this IActivityLineEmitter @this,
                                           LogLevel level,
                                           CKTrait? tags,
                                           string? text,
-                                          Exception? ex,
+                                          object? error,
                                           [CallerFilePath] string? fileName = null,
                                           [CallerLineNumber] int lineNumber = 0 )
         {
-            var d = new ActivityMonitorLogData( level, @this.AutoTags | tags, text, ex, fileName, lineNumber );
+            var d = @this.CreateActivityMonitorLogData( level, @this.AutoTags | tags, text, error, fileName, lineNumber, false );
             @this.UnfilteredLog( ref d );
         }
 
@@ -105,7 +106,7 @@ namespace CK.Core
         /// <param name="level">Log level. The <see cref="LogLevel.None"/> level is used to open a filtered group. See remarks.</param>
         /// <param name="tags">Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. It will be union-ed with current <see cref="IActivityMonitor.AutoTags">AutoTags</see>.</param>
         /// <param name="text">Text to log (the title of the group). Null text is valid and considered as <see cref="String.Empty"/> or assigned to the <see cref="Exception.Message"/> if it exists.</param>
-        /// <param name="ex">Optional exception associated to the group.</param>
+        /// <param name="error">Optional <see cref="Exception"/> or <see cref="CKExceptionData"/> associated to the group.</param>
         /// <param name="fileName">The source code file name from which the group is opened.</param>
         /// <param name="lineNumber">The line number in the source from which the group is opened.</param>
         /// <returns>A disposable object that can be used to close the group.</returns>
@@ -125,15 +126,15 @@ namespace CK.Core
         /// </para>
         /// </remarks>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        static public IDisposable UnfilteredOpenGroup( this IActivityMonitor @this,
-                                                       LogLevel level,
-                                                       CKTrait? tags,
-                                                       string text,
-                                                       Exception? ex,
-                                                       [CallerFilePath] string? fileName = null,
-                                                       [CallerLineNumber] int lineNumber = 0 )
+        static public IDisposableGroup UnfilteredOpenGroup( this IActivityMonitor @this,
+                                                            LogLevel level,
+                                                            CKTrait? tags,
+                                                            string? text,
+                                                            object? error,
+                                                            [CallerFilePath] string? fileName = null,
+                                                            [CallerLineNumber] int lineNumber = 0 )
         {
-            var d = new ActivityMonitorLogData( level, @this.AutoTags | tags, text, ex, fileName, lineNumber );
+            var d = @this.CreateActivityMonitorLogData( level, @this.AutoTags | tags, text, error, fileName, lineNumber, true );
             return @this.UnfilteredOpenGroup( ref d );
         }
 
@@ -146,14 +147,14 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="entries">Collector for <see cref="ActivityMonitorSimpleCollector.Entry">entries</see>.</param>
         /// <param name="level">Defines the level of the collected entries (by default fatal or error entries).</param>
-        /// <param name="capacity">Capacity of the collector defaults to 50.</param>
+        /// <param name="capacity">Maximal number of entries kept. Defaults to 200.</param>
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
-        public static IDisposable CollectEntries( this IActivityMonitor @this, out IReadOnlyList<ActivityMonitorSimpleCollector.Entry> entries, LogLevelFilter level = LogLevelFilter.Error, int capacity = 50 )
+        public static IDisposable CollectEntries( this IActivityMonitor @this, out IReadOnlyList<ActivityMonitorSimpleCollector.Entry> entries, LogLevelFilter level = LogLevelFilter.Error, int capacity = 200 )
         {
-            ActivityMonitorSimpleCollector errorTracker = new ActivityMonitorSimpleCollector() { MinimalFilter = level, Capacity = capacity };
-            @this.Output.RegisterClient( errorTracker );
-            entries = errorTracker.Entries;
-            return Util.CreateDisposableAction( () => @this.Output.UnregisterClient( errorTracker ) );
+            ActivityMonitorSimpleCollector collector = new ActivityMonitorSimpleCollector() { MinimalFilter = level, Capacity = capacity };
+            @this.Output.RegisterClient( collector );
+            entries = collector.Entries;
+            return Util.CreateDisposableAction( () => @this.Output.UnregisterClient( collector ) );
         }
 
         sealed class TextCollector : IActivityMonitorClient
@@ -391,7 +392,7 @@ namespace CK.Core
 
         #region IActivityMonitor.TemporarilySetMinimalFilter( ... )
 
-        class LogFilterSentinel : IDisposable
+        sealed class LogFilterSentinel : IDisposable
         {
             readonly IActivityMonitor _monitor;
             readonly LogFilter _prevLevel;
@@ -484,11 +485,26 @@ namespace CK.Core
         {
             return new TagsSentinel( @this, @this.AutoTags.Apply( tags, operation ) );
         }
-        
+
         #endregion
 
 
         #region RegisterClients
+
+        /// <summary>
+        /// Registers a typed <see cref="IActivityMonitorClient"/>.
+        /// Duplicate IActivityMonitorClient instances are ignored.
+        /// </summary>
+        /// <typeparam name="T">Any type that specializes <see cref="IActivityMonitorClient"/>.</typeparam>
+        /// <param name="this">This output.</param>
+        /// <param name="client">Client to register.</param>
+        /// <param name="added">True if the client has been added, false if it was already registered.</param>
+        /// <param name="replayInitialLogs">True to immediately replay initial logs if any (see <see cref="ActivityMonitorOptions.WithInitialReplay"/>)</param>
+        /// <returns>The registered client.</returns>
+        public static T RegisterClient<T>( this IActivityMonitorOutput @this, T client, out bool added, bool replayInitialLogs = false ) where T : IActivityMonitorClient
+        {
+            return (T)@this.RegisterClient( (IActivityMonitorClient)client, out added, replayInitialLogs );
+        }
 
         /// <summary>
         /// Registers an <see cref="IActivityMonitorClient"/> to the <see cref="IActivityMonitorOutput.Clients">Clients</see> list.
@@ -496,10 +512,11 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitorOutput"/> object.</param>
         /// <param name="client">An <see cref="IActivityMonitorClient"/> implementation.</param>
+        /// <param name="replayInitialLogs">True to immediately replay initial logs if any (see <see cref="ActivityMonitorOptions.WithInitialReplay"/>)</param>
         /// <returns>The registered client.</returns>
-        public static IActivityMonitorClient RegisterClient( this IActivityMonitorOutput @this, IActivityMonitorClient client )
+        public static IActivityMonitorClient RegisterClient( this IActivityMonitorOutput @this, IActivityMonitorClient client, bool replayInitialLogs = false )
         {
-            return @this.RegisterClient( client, out _ );
+            return @this.RegisterClient( client, out _, replayInitialLogs );
         }
 
         /// <summary>
@@ -509,60 +526,23 @@ namespace CK.Core
         /// <typeparam name="T">Any type that specializes <see cref="IActivityMonitorClient"/>.</typeparam>
         /// <param name="this">This <see cref="IActivityMonitorOutput"/> object.</param>
         /// <param name="client">Client to register.</param>
+        /// <param name="replayInitialLogs">True to immediately replay initial logs if any (see <see cref="ActivityMonitorOptions.WithInitialReplay"/>)</param>
         /// <returns>The registered client.</returns>
-        public static T RegisterClient<T>( this IActivityMonitorOutput @this, T client ) where T : IActivityMonitorClient
+        public static T RegisterClient<T>( this IActivityMonitorOutput @this, T client, bool replayInitialLogs = false ) where T : IActivityMonitorClient
         {
-            return @this.RegisterClient<T>( client, out _ );
-        }
-
-        /// <summary>
-        /// Registers multiple <see cref="IActivityMonitorClient"/>.
-        /// Duplicate IActivityMonitorClient instances are ignored.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitorOutput"/> object.</param>
-        /// <param name="clients">Multiple clients to register.</param>
-        /// <returns>This registrar to enable fluent syntax.</returns>
-        public static IActivityMonitorOutput RegisterClients( this IActivityMonitorOutput @this, IEnumerable<IActivityMonitorClient> clients )
-        {
-            foreach( var c in clients ) @this.RegisterClient( c );
-            return @this;
-        }
-
-        /// <summary>
-        /// Registers multiple <see cref="IActivityMonitorClient"/>.
-        /// Duplicate IActivityMonitorClient instances are ignored.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitorOutput"/> object.</param>
-        /// <param name="clients">Multiple clients to register.</param>
-        /// <returns>This registrar to enable fluent syntax.</returns>
-        public static IActivityMonitorOutput RegisterClients( this IActivityMonitorOutput @this, params IActivityMonitorClient[] clients )
-        {
-            return RegisterClients( @this, (IEnumerable<IActivityMonitorClient>)clients );
+            return @this.RegisterClient<T>( client, out _, replayInitialLogs );
         }
 
         /// <summary>
         /// Registers a unique client for a type that must have a public default constructor. 
         /// <see cref="Activator.CreateInstance{T}()"/> is called if necessary.
         /// </summary>
-        /// <returns>The found or newly created client.</returns>
-        public static T RegisterUniqueClient<T>( this IActivityMonitorOutput @this ) where T : IActivityMonitorClient, new()
-        {
-            return @this.RegisterUniqueClient( c => true, () => Activator.CreateInstance<T>() )!;
-        }
-
-        /// <summary>
-        /// Unregisters the first <see cref="IActivityMonitorClient"/> from the <see cref="IActivityMonitorOutput.Clients"/> list
-        /// that satisfies the predicate.
-        /// </summary>
         /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>
-        /// <param name="predicate">A predicate that will be used to determine the first client to unregister.</param>
-        /// <returns>The unregistered client, or null if no client has been found.</returns>
-        public static T? UnregisterClient<T>( this IActivityMonitorOutput @this, Func<T, bool> predicate ) where T : IActivityMonitorClient
+        /// <param name="replayInitialLogs">True to immediately replay initial logs if any (see <see cref="ActivityMonitorOptions.WithInitialReplay"/>)</param>
+        /// <returns>The found or newly created client.</returns>
+        public static T RegisterUniqueClient<T>( this IActivityMonitorOutput @this, bool replayInitialLogs = false ) where T : IActivityMonitorClient, new()
         {
-            Throw.CheckNotNullArgument( predicate );
-            T? c = @this.Clients.OfType<T>().Where( predicate ).FirstOrDefault();
-            if( c != null ) @this.UnregisterClient( c );
-            return c;
+            return @this.RegisterUniqueClient( c => true, () => Activator.CreateInstance<T>(), replayInitialLogs )!;
         }
 
         #endregion

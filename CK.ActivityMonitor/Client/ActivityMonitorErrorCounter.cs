@@ -122,7 +122,7 @@ namespace CK.Core
 
             internal void CatchLevel( LogLevel level )
             {
-                Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
+                Throw.DebugAssert( (level & LogLevel.IsFiltered) == 0 );
                 switch( level )
                 {
                     case LogLevel.Fatal:
@@ -174,7 +174,7 @@ namespace CK.Core
 
         State _root;
         State _current;
-        IActivityMonitor? _source;
+        IActivityMonitorImpl? _source;
 
         /// <summary>
         /// Initializes a new error counter with <see cref="GenerateConclusion"/> sets to false.

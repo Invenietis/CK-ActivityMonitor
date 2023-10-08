@@ -4,11 +4,15 @@ namespace CK.Core
 {
     /// <summary>
     /// Listener for <see cref="IActivityMonitor"/> registered in a <see cref="IActivityMonitorOutput"/>.
+    /// <para>
+    /// Note that log lines sent through <see cref="IActivityMonitor.ParallelLogger"/> will not be routed
+    /// to <see cref="OnUnfilteredLog"/>.
+    /// </para>
     /// </summary>
     public interface IActivityMonitorClient
     {
         /// <summary>
-        /// Called for each <see cref="IActivityLogger.UnfilteredLog"/>.
+        /// Called for each <see cref="IActivityLineEmitter.UnfilteredLog"/>.
         /// The <see cref="ActivityMonitorLogData.Exception"/> is always null since exceptions
         /// are carried by groups.
         /// </summary>

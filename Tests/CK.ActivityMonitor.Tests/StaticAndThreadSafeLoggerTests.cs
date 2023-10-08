@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace CK.Core.Tests.Monitoring
 {
     [TestFixture]
-    public class StaticLoggerTests
+    public class StaticAndThreadSafeLoggerTests
     {
         [Test]
         public void Log_and_receive()
@@ -110,6 +110,33 @@ namespace CK.Core.Tests.Monitoring
             received.Clear();
 
             ActivityMonitor.DefaultFilter = LogFilter.Trace;
+            ActivityMonitor.OnStaticLog -= h;
+        }
+
+        [Test]
+        public void ThreadSafeLogger_on_monitor()
+        {
+            var received = new List<string>();
+            ActivityMonitor.StaticLogHandler h = delegate ( ref ActivityMonitorLogData d )
+            {
+                d.LogTime.TimeUtc.Should().NotBe( Util.UtcMinValue ).And.BeOnOrBefore( DateTime.UtcNow );
+                received.Add( d.Text );
+            };
+            ActivityMonitor.OnStaticLog += h;
+
+            var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
+            m.ParallelLogger.Should().NotBeNull();
+            using( m.CollectTexts( out var logs ) )
+            {
+                m.Debug( "NOSHOW - Regular log." );
+                m.ParallelLogger.Debug( "NOSHOW - Thread safe log." );
+
+                m.Trace( "Regular log." );
+                m.ParallelLogger.Trace( "Thread safe log." );
+
+                logs.Should().BeEquivalentTo( new[] { "Regular log." } );
+                received.Should().BeEquivalentTo( new[] { "Thread safe log." } );
+            }
             ActivityMonitor.OnStaticLog -= h;
         }
     }

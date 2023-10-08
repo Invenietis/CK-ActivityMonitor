@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace CK.Core
 {
-    public partial class ActivityMonitor
+    public sealed partial class ActivityMonitor
     {
         /// <summary>
         /// Thread-safe context for tags used to categorize log entries (and group conclusions).
@@ -32,14 +32,19 @@ namespace CK.Core
             static public readonly CKTrait Empty;
 
             /// <summary>
-            /// Creation of dependent activities are marked with "dep:CreateActivity".
+            /// Creation of <see cref="Token"/> are marked with "CreateToken".
             /// </summary>
-            static public readonly CKTrait CreateDependentToken;
+            static public readonly CKTrait CreateToken;
 
             /// <summary>
-            /// Start of dependent activities are marked with "dep:StartActivity".
+            /// Start of dependent activities are marked with "StartActivity".
             /// </summary>
-            static public readonly CKTrait StartDependentActivity;
+            static public readonly CKTrait StartActivity;
+
+            /// <summary>
+            /// Used to signal a weird behavior that should be investigated.
+            /// </summary>
+            static public readonly CKTrait ToBeInvestigated;
 
             /// <summary>
             /// Conclusions provided to IActivityMonitor.Close(string) are marked with "c:User".
@@ -52,9 +57,9 @@ namespace CK.Core
             static public readonly CKTrait GetTextConclusion;
 
             /// <summary>
-            /// Whenever <see cref="Topic"/> changed, a <see cref="LogLevel.Info"/> is emitted marked with "MonitorTopicChanged".
+            /// Whenever <see cref="Topic"/> changed, a <see cref="LogLevel.Info"/> is emitted marked with "TopicChanged".
             /// </summary>
-            static public readonly CKTrait MonitorTopicChanged;
+            static public readonly CKTrait TopicChanged;
 
             /// <summary>
             /// A "MonitorEnd" tag is emitted by <see cref="ActivityMonitorExtension.MonitorEnd"/>.
@@ -64,7 +69,7 @@ namespace CK.Core
             static public readonly CKTrait MonitorEnd;
 
             /// <summary>
-            /// A "m:Internal" tag is used while replaying <see cref="IActivityMonitorImpl.InternalMonitor"/>
+            /// A "InternalMonitor" tag is used while replaying <see cref="IActivityMonitorImpl.InternalMonitor"/>
             /// logs.
             /// </summary>
             static public readonly CKTrait InternalMonitor;
@@ -92,15 +97,17 @@ namespace CK.Core
             {
                 Context = CKTraitContext.Create( "ActivityMonitor" );
                 Empty = Context.EmptyTrait;
+                TopicChanged = Context.FindOrCreate( "TopicChanged" );
+                CreateToken = Context.FindOrCreate( "CreateToken" );
+                StartActivity = Context.FindOrCreate( "StartActivity" );
+                MonitorEnd = Context.FindOrCreate( "MonitorEnd" );
+                ToBeInvestigated = Context.FindOrCreate( "ToBeInvestigated" );
+                SecurityCritical = Context.FindOrCreate( "SecurityCritical" );
+                InternalMonitor = Context.FindOrCreate( "InternalMonitor" );
+
+                StackTrace = Context.FindOrCreate( "StackTrace" );
                 UserConclusion = Context.FindOrCreate( "c:User" );
                 GetTextConclusion = Context.FindOrCreate( "c:GetText" );
-                MonitorTopicChanged = Context.FindOrCreate( "MonitorTopicChanged" );
-                CreateDependentToken = Context.FindOrCreate( "dep:CreateActivity" );
-                StartDependentActivity = Context.FindOrCreate( "dep:StartActivity" );
-                MonitorEnd = Context.FindOrCreate( "MonitorEnd" );
-                SecurityCritical = Context.FindOrCreate( "SecurityCritical" );
-                InternalMonitor = Context.FindOrCreate( "m:Internal" );
-                StackTrace = Context.FindOrCreate( "StackTrace" );
                 _finalFiltersLockAndEmptyArray = _defaultFilters = _filters = _finalFilters = Array.Empty<(CKTrait, LogClamper)>();
             }
 
@@ -285,7 +292,7 @@ namespace CK.Core
                             else
                             {
                                 // Above Line is not defined.
-                                Debug.Assert( above.Item2.Filter.Group != LogLevelFilter.None, "Otherwise it would be 'default' already filtered out." );
+                                Throw.DebugAssert( above.Item2.Filter.Group != LogLevelFilter.None, "Otherwise it would be 'default' already filtered out." );
                                 skipGroup = true;
                                 // If f Line is also undefined, then f is useless.
                                 skipLine |= f.Item2.Filter.Line == LogLevelFilter.None;
@@ -308,7 +315,7 @@ namespace CK.Core
             /// <returns>Whether the log must be emitted or not.</returns>
             public static bool ApplyForLine( LogLevel logLevel, CKTrait finalTags, LogLevelFilter filter )
             {
-                Debug.Assert( finalTags != null );
+                Throw.DebugAssert( finalTags != null );
                 var filters = _finalFilters;
                 if( !finalTags.IsEmpty )
                 {

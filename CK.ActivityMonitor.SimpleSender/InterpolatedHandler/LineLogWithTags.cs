@@ -1,10 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CK.Core.LogHandler
 {
@@ -20,12 +16,12 @@ namespace CK.Core.LogHandler
         internal InternalHandler _handler;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-        public LineLogWithTags( int literalLength, int formattedCount, IActivityLogger monitor, LogLevel level, CKTrait tags, out bool shouldAppend )
+        public LineLogWithTags( int literalLength, int formattedCount, IActivityLineEmitter monitor, LogLevel level, CKTrait? tags, out bool shouldAppend )
         {
             _handler = new InternalHandler( literalLength, formattedCount, monitor, level, tags, out shouldAppend );
         }
 
-        public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
+        public void AppendFormatted( Type? t, string? format ) => _handler.AppendFormatted( t, format );
 
         public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
 

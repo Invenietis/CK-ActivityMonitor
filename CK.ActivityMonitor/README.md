@@ -83,7 +83,7 @@ The standard LogFilter have been defined based on the [recommended verbosity opt
 |`Minimal`    |`{Info,Warn}` OpenInfo and Fatal, Error or Warn lines appear. Minimal should have enough context to understand issues. |
 |`Quiet`      |`{Error,Error}` Only errors are considered. This is our "minimal": errors should never be hidden. |
 
-To this list, the `Off` that ignores any log (`{Off,Off}`) is added. It should be avoided.
+To this list, the `Fatal` that is the strongest filter (`{Fatal,Fatal}`) is added. It should be avoided.
 
 ### Other names
 Before this recommendation appears we used:
@@ -99,57 +99,25 @@ Before this recommendation appears we used:
 
 Those names are supported but the .Net standard ones should be preferred.
 
-## IActivityLogger vs. IActivityMonitor
-A `IActivityLogger` is close to classical logging solutions: only lines can be emitted. Since it exposes an `AutoTags`
-and an `ActualFilter`, any filtering/sender extension methods are possible. 
+## IStaticLogger, IParallelLogger and IActivityMonitor
+The `IStaticLogger` is exposed by the static `ActivityMonitor.StaticLogger` property. It is close to
+more classical logging solutions: only lines can be emitted by any thread at any time and its emitted lines
+are not structured (their Depth is always 0).
+Since it exposes an `AutoTags` and an `ActualFilter`, any filtering/sender extension methods are possible.
 
-```csharp
-/// <summary>
-/// Ultimate possible abstraction of a <see cref="IActivityMonitor"/>: it is context-less and can
-/// only log lines (not groups).
-/// <para>
-/// This unifies context-less loggers like <see cref="ActivityMonitor.StaticLogger"/> and regular
-/// contextual <see cref="ActivityMonitor"/>: filtered extension methods and any other extension
-/// methods that deals only with log lines uniformly apply to regular monitors and context-less loggers.
-/// </para>
-/// </summary>
-public interface IActivityLogger
-{
-    /// <summary>
-    /// Gets the tags that will be combined to the logged ones before filtering
-    /// by <see cref="ActivityMonitorExtension.ShouldLogLine(IActivityLogger, LogLevel, CKTrait?, out CKTrait)"/>
-    /// or by sender with interpolated string handlers.
-    /// </summary>
-    CKTrait AutoTags { get; }
+The `IParallelLogger` is like the static logger but is bound to a monitor: lines emitted by a parallel logger
+are bound to the originating `IActivityMonitor`: even if this is a thread safe logger, the log time
+and the depth (in opened groups) are synchronized with the monitor states.
+- The LogTime uniquely identify the log line for the monitor identifier.
+- The line Depth is accurate regarding the opened groups at the time the log is emitted.
+It sends its log lines through the <see cref="ActivityMonitor.OnStaticLog"/> event,
+not through the `IActivityMonitor.Output`: the logs ordering relative to the monitor is preserved BUT these thread safe
+logs cannot be observed by the monitor's output `IActivityMonitorClient`.
 
-    /// <summary>
-    /// Gets the line filter level to apply.
-    /// </summary>
-    LogLevelFilter ActualFilter { get; }
+A `IParallelLogger` can create DependentToken since it is bound to its monitor.
 
-    /// <summary>
-    /// Logs an already filtered line. 
-    /// </summary>
-    /// <param name="data">Data that describes the log. </param>
-    void UnfilteredLog( ref ActivityMonitorLogData data );
-}
-```
-
-The [`IActivityMonitor`](IActivityMonitor.cs) interface extends this logger interface to support groups and, more importantly, the `Output`
+The [`IActivityMonitor`](IActivityMonitor.cs) interface is a logger that groups and, more importantly, the `Output`
 where `IActivityMonitorClient` listeners/sinks can be registered and unregistered.
-> Note that the `IActivityMonitor.ActualFilter` is a `LogFilter` (with a line and group `LogLevelFilter`).
 
-The `IActivityLogger.AutoTags` and `ActualFilter` cannot be changed at this level. They take their values from:
-- The actual monitor when implemented by a `IActivityMonitor`.
-- For StaticLogger, the tags are empty and the ActualFilter is the static default `ActivityMonitor.DefaultFilter.Line` value.
-- For `IMonitoredWorker`, these are the current values of the internal worker monitor.
-
-------------
-
-Please take the time to have a look at the [`ThreadSafeLogger` sample](../Tests/CK.ActivityMonitor.Tests/DataPool/ThreadSafeLogger.cs)
-and understand [how memory is managed](ActivityMonitorLogData.md) before implementing such beasts.
-
-------------
-
-
+![Core logger model](../Doc/ActivityModel.png)
 

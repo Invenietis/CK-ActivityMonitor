@@ -47,7 +47,7 @@ namespace CK.Core.Tests.Monitoring
         protected override void OnGroupOpen( IActivityLogGroup g )
         {
             XmlWriter.WriteStartElement( g.Data.MaskedLevel.ToString() + "s" );
-            XmlWriter.WriteAttributeString( "Depth", g.Depth.ToString() );
+            XmlWriter.WriteAttributeString( "Depth", g.Data.Depth.ToString() );
             XmlWriter.WriteAttributeString( "Level", g.Data.Level.ToString() );
             XmlWriter.WriteAttributeString( "Text", g.Data.Text );
         }

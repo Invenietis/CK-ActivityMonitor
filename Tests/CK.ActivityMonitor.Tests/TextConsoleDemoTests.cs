@@ -55,7 +55,7 @@ namespace CK.Core.Tests.Monitoring
         [Explicit]
         public void Console_sample()
         {
-            var m = new ActivityMonitor( false );
+            var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             m.Output.RegisterClient( new ActivityMonitorConsoleClient() );
             DumpSampleLogs1( m );
             DumpSampleLogs2( m );

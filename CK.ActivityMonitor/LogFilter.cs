@@ -7,7 +7,7 @@ namespace CK.Core
     /// <summary>
     /// Immutable capture of a double <see cref="LogLevelFilter"/>. One for <see cref="Line"/> and one for <see cref="Group"/>.
     /// This value type exposes predefined configured couples: <see cref="Debug"/>, <see cref="Trace"/> (full trace), <see cref="Verbose"/>, <see cref="Monitor"/>, 
-    /// <see cref="Terse"/>, <see cref="Release"/> and <see cref="Off"/> (no log at all).
+    /// <see cref="Terse"/>, <see cref="Release"/> and <see cref="Fatal"/> (absolute minimal logging).
     /// <para>
     /// Combining two filters <see cref="Combine(LogFilter)"/> lowers it so that both can be satisfied. 
     /// </para>
@@ -54,9 +54,9 @@ namespace CK.Core
         static public readonly LogFilter Release = new LogFilter( LogLevelFilter.Error, LogLevelFilter.Error );
 
         /// <summary>
-        /// Off filter does not requires anything {Off,Off}.
+        /// Fatal filter is the strongest: {Fatal,Fatal}.
         /// </summary>
-        static public readonly LogFilter Off = new LogFilter( LogLevelFilter.Off, LogLevelFilter.Off );
+        static public readonly LogFilter Fatal = new LogFilter( LogLevelFilter.Fatal, LogLevelFilter.Fatal );
 
         /// <summary>
         /// Diagnostic is {Debug,Debug}.
@@ -223,7 +223,7 @@ namespace CK.Core
             if( this == LogFilter.Monitor ) return "Monitor";
             if( this == LogFilter.Terse ) return "Terse";
             if( this == LogFilter.Release ) return "Release";
-            if( this == LogFilter.Off ) return "Off";
+            if( this == LogFilter.Fatal ) return "Fatal";
             if( this == LogFilter.Invalid ) return "Invalid";
             return $"{{{Group},{Line}}}";
         }

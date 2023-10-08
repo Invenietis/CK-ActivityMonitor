@@ -175,21 +175,20 @@ namespace CK.Core
             get { return _filter; }
             set
             {
-                LogFilter oldFilter = _filter.Filter;
                 _filter = value;
-                _source?.OnClientMinimalFilterChanged( oldFilter, _filter.Filter );
+                _source?.SignalChange();
             }
         }
 
         bool CanOutputLine( LogLevel logLevel )
         {
-            Debug.Assert( (logLevel & LogLevel.IsFiltered) == 0, "The level must already be masked." );
+            Throw.DebugAssert( (logLevel & LogLevel.IsFiltered) == 0, "The level must already be masked." );
             return !_filter.Clamp || (int)logLevel >= (int)_filter.Filter.Line;
         }
 
         bool CanOutputGroup( LogLevel logLevel )
         {
-            Debug.Assert( (logLevel & LogLevel.IsFiltered) == 0, "The level must already be masked." );
+            Throw.DebugAssert( (logLevel & LogLevel.IsFiltered) == 0, "The level must already be masked." );
             return !_filter.Clamp || (int)logLevel >= (int)_filter.Filter.Group;
         }
 

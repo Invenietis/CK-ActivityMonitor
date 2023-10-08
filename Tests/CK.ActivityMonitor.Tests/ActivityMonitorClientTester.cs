@@ -28,7 +28,7 @@ namespace CK.Core.Tests.Monitoring
                 if( prev != value )
                 {
                     _minimalFilter = value;
-                    if( _source != null ) _source.SignalChange();
+                    _source?.SignalChange();
                 }
             }
         }

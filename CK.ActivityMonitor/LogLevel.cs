@@ -53,7 +53,7 @@ namespace CK.Core
 
         /// <summary>
         /// Flag that denotes a log level that has been filtered.
-        /// When this flag is not set, the <see cref="IActivityMonitor.UnfilteredOpenGroup"/> or <see cref="IActivityLogger.UnfilteredLog"/> has been 
+        /// When this flag is not set, the <see cref="IActivityMonitor.UnfilteredOpenGroup"/> or <see cref="IActivityLineEmitter.UnfilteredLog"/> has been 
         /// called directly. When set, the log has typically been emitted through the extension methods that challenge the 
         /// monitor's <see cref="IActivityMonitor.ActualFilter">actual filter</see> and <see cref="ActivityMonitor.DefaultFilter"/> static configuration
         /// and/or the <see cref="ActivityMonitor.Tags"/>.

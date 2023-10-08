@@ -11,51 +11,50 @@ namespace CK.Core
 {
     public static partial class ActivityMonitorSimpleSenderExtension
     {
-		 
 		/// <summary>
-        /// Emits a <see cref="LogLevel.Debug"/> with an exception if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
+        /// Emits a <see cref="LogLevel.Debug"/> with an exception if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Debug( this IActivityLogger logger, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Debug( this IActivityLineEmitter logger, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Debug, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
-        /// Emits a <see cref="LogLevel.Debug"/> string if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
+		    /// <summary>
+        /// Emits a <see cref="LogLevel.Debug"/> string if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Debug( this IActivityLogger logger, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Debug( this IActivityLineEmitter logger, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Debug, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Debug(IActivityLogger,string,int,string?)"/>
-        public static bool Debug( this IActivityLogger logger,
+        /// <inheritdoc cref="Debug(IActivityLineEmitter,string,int,string?)"/>
+        public static bool Debug( this IActivityLineEmitter logger,
                                 [InterpolatedStringHandlerArgument( "logger" )] LogHandler.LineDebug text,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
@@ -63,26 +62,26 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Debug"/> string associated to an exception if it must be emitted 
-        /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
-        /// and may also depend on <see cref="IActivityLogger.AutoTags"/>).
+        /// (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
+        /// and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Debug( this IActivityLogger logger,
+        public static bool Debug( this IActivityLineEmitter logger,
                                          string? text,
                                          Exception? ex,
                                          [CallerLineNumber]int lineNumber = 0,
@@ -90,15 +89,15 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Debug, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Debug(IActivityLogger,string,Exception,int,string?)"/>
-        public static bool Debug( this IActivityLogger logger,
+        /// <inheritdoc cref="Debug(IActivityLineEmitter,string,Exception?,int,string?)"/>
+        public static bool Debug( this IActivityLineEmitter logger,
                                 [InterpolatedStringHandlerArgument( "logger" )] LogHandler.LineDebug text,
                                 Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
@@ -107,7 +106,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -116,61 +115,61 @@ namespace CK.Core
 
         #region Debug with tags.
 
-		/// <summary>
-        /// Emits a <see cref="LogLevel.Debug"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
+		    /// <summary>
+        /// Emits a <see cref="LogLevel.Debug"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
        [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Debug( this IActivityLogger logger,
-                                         CKTrait tags,
+        public static bool Debug( this IActivityLineEmitter logger,
+                                         CKTrait? tags,
                                          Exception ex,
                                          [CallerLineNumber]int lineNumber = 0,
                                          [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Debug, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
-        /// Emits a <see cref="LogLevel.Debug"/> string and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
+		    /// <summary>
+        /// Emits a <see cref="LogLevel.Debug"/> string and tags if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Debug( this IActivityLogger logger,
-                                         CKTrait tags,
+        public static bool Debug( this IActivityLineEmitter logger,
+                                         CKTrait? tags,
                                          string text,
                                          [CallerLineNumber]int lineNumber = 0,
                                          [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Debug, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Debug(IActivityLogger,CKTrait,string,int,string?)"/>
-        public static bool Debug( this IActivityLogger logger,
-                                CKTrait tags,
+        /// <inheritdoc cref="Debug(IActivityLineEmitter,CKTrait?,string,int,string?)"/>
+        public static bool Debug( this IActivityLineEmitter logger,
+                                CKTrait? tags,
                                 [InterpolatedStringHandlerArgument( "logger", "tags" )] LogHandler.LineDebugWithTags text,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
@@ -178,27 +177,27 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Debug"/> string associated to an exception and tags if it must be emitted 
-        /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
-        /// also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
+        /// (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
+        /// also depend on <paramref name="tags"/> and <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
-        public static bool Debug( this IActivityLogger logger,
-                                         CKTrait tags,
+        public static bool Debug( this IActivityLineEmitter logger,
+                                         CKTrait? tags,
                                          string? text,
                                          Exception? ex,
                                          [CallerLineNumber]int lineNumber = 0,
@@ -206,16 +205,16 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Debug, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Debug(IActivityLogger,CKTrait,string,Exception,int,string?)"/>
-        public static bool Debug( this IActivityLogger logger,
-                                CKTrait tags,
+        /// <inheritdoc cref="Debug(IActivityLineEmitter,CKTrait?,string,Exception,int,string?)"/>
+        public static bool Debug( this IActivityLineEmitter logger,
+                                CKTrait? tags,
                                 [InterpolatedStringHandlerArgument( "logger", "tags" )] LogHandler.LineDebugWithTags text,
                                 Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
@@ -224,7 +223,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Debug | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -233,51 +232,50 @@ namespace CK.Core
 
        #endregion
 
-		 
 		/// <summary>
-        /// Emits a <see cref="LogLevel.Trace"/> with an exception if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
+        /// Emits a <see cref="LogLevel.Trace"/> with an exception if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Trace( this IActivityLogger logger, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Trace( this IActivityLineEmitter logger, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Trace, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
-        /// Emits a <see cref="LogLevel.Trace"/> string if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
+		    /// <summary>
+        /// Emits a <see cref="LogLevel.Trace"/> string if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Trace( this IActivityLogger logger, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Trace( this IActivityLineEmitter logger, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Trace, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Trace(IActivityLogger,string,int,string?)"/>
-        public static bool Trace( this IActivityLogger logger,
+        /// <inheritdoc cref="Trace(IActivityLineEmitter,string,int,string?)"/>
+        public static bool Trace( this IActivityLineEmitter logger,
                                 [InterpolatedStringHandlerArgument( "logger" )] LogHandler.LineTrace text,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
@@ -285,26 +283,26 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Trace"/> string associated to an exception if it must be emitted 
-        /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
-        /// and may also depend on <see cref="IActivityLogger.AutoTags"/>).
+        /// (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
+        /// and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Trace( this IActivityLogger logger,
+        public static bool Trace( this IActivityLineEmitter logger,
                                          string? text,
                                          Exception? ex,
                                          [CallerLineNumber]int lineNumber = 0,
@@ -312,15 +310,15 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Trace, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Trace(IActivityLogger,string,Exception,int,string?)"/>
-        public static bool Trace( this IActivityLogger logger,
+        /// <inheritdoc cref="Trace(IActivityLineEmitter,string,Exception?,int,string?)"/>
+        public static bool Trace( this IActivityLineEmitter logger,
                                 [InterpolatedStringHandlerArgument( "logger" )] LogHandler.LineTrace text,
                                 Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
@@ -329,7 +327,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -338,61 +336,61 @@ namespace CK.Core
 
         #region Trace with tags.
 
-		/// <summary>
-        /// Emits a <see cref="LogLevel.Trace"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
+		    /// <summary>
+        /// Emits a <see cref="LogLevel.Trace"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
        [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Trace( this IActivityLogger logger,
-                                         CKTrait tags,
+        public static bool Trace( this IActivityLineEmitter logger,
+                                         CKTrait? tags,
                                          Exception ex,
                                          [CallerLineNumber]int lineNumber = 0,
                                          [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Trace, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
-        /// Emits a <see cref="LogLevel.Trace"/> string and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
+		    /// <summary>
+        /// Emits a <see cref="LogLevel.Trace"/> string and tags if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Trace( this IActivityLogger logger,
-                                         CKTrait tags,
+        public static bool Trace( this IActivityLineEmitter logger,
+                                         CKTrait? tags,
                                          string text,
                                          [CallerLineNumber]int lineNumber = 0,
                                          [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Trace, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Trace(IActivityLogger,CKTrait,string,int,string?)"/>
-        public static bool Trace( this IActivityLogger logger,
-                                CKTrait tags,
+        /// <inheritdoc cref="Trace(IActivityLineEmitter,CKTrait?,string,int,string?)"/>
+        public static bool Trace( this IActivityLineEmitter logger,
+                                CKTrait? tags,
                                 [InterpolatedStringHandlerArgument( "logger", "tags" )] LogHandler.LineTraceWithTags text,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
@@ -400,27 +398,27 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Trace"/> string associated to an exception and tags if it must be emitted 
-        /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
-        /// also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
+        /// (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
+        /// also depend on <paramref name="tags"/> and <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
-        public static bool Trace( this IActivityLogger logger,
-                                         CKTrait tags,
+        public static bool Trace( this IActivityLineEmitter logger,
+                                         CKTrait? tags,
                                          string? text,
                                          Exception? ex,
                                          [CallerLineNumber]int lineNumber = 0,
@@ -428,16 +426,16 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Trace, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Trace(IActivityLogger,CKTrait,string,Exception,int,string?)"/>
-        public static bool Trace( this IActivityLogger logger,
-                                CKTrait tags,
+        /// <inheritdoc cref="Trace(IActivityLineEmitter,CKTrait?,string,Exception,int,string?)"/>
+        public static bool Trace( this IActivityLineEmitter logger,
+                                CKTrait? tags,
                                 [InterpolatedStringHandlerArgument( "logger", "tags" )] LogHandler.LineTraceWithTags text,
                                 Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
@@ -446,7 +444,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Trace | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -455,51 +453,50 @@ namespace CK.Core
 
        #endregion
 
-		 
 		/// <summary>
-        /// Emits a <see cref="LogLevel.Info"/> with an exception if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
+        /// Emits a <see cref="LogLevel.Info"/> with an exception if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Info( this IActivityLogger logger, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Info( this IActivityLineEmitter logger, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Info, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
-        /// Emits a <see cref="LogLevel.Info"/> string if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
+		    /// <summary>
+        /// Emits a <see cref="LogLevel.Info"/> string if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Info( this IActivityLogger logger, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Info( this IActivityLineEmitter logger, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Info, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Info(IActivityLogger,string,int,string?)"/>
-        public static bool Info( this IActivityLogger logger,
+        /// <inheritdoc cref="Info(IActivityLineEmitter,string,int,string?)"/>
+        public static bool Info( this IActivityLineEmitter logger,
                                 [InterpolatedStringHandlerArgument( "logger" )] LogHandler.LineInfo text,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
@@ -507,26 +504,26 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Info"/> string associated to an exception if it must be emitted 
-        /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
-        /// and may also depend on <see cref="IActivityLogger.AutoTags"/>).
+        /// (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
+        /// and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Info( this IActivityLogger logger,
+        public static bool Info( this IActivityLineEmitter logger,
                                          string? text,
                                          Exception? ex,
                                          [CallerLineNumber]int lineNumber = 0,
@@ -534,15 +531,15 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Info, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Info(IActivityLogger,string,Exception,int,string?)"/>
-        public static bool Info( this IActivityLogger logger,
+        /// <inheritdoc cref="Info(IActivityLineEmitter,string,Exception?,int,string?)"/>
+        public static bool Info( this IActivityLineEmitter logger,
                                 [InterpolatedStringHandlerArgument( "logger" )] LogHandler.LineInfo text,
                                 Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
@@ -551,7 +548,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -560,61 +557,61 @@ namespace CK.Core
 
         #region Info with tags.
 
-		/// <summary>
-        /// Emits a <see cref="LogLevel.Info"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
+		    /// <summary>
+        /// Emits a <see cref="LogLevel.Info"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
        [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Info( this IActivityLogger logger,
-                                         CKTrait tags,
+        public static bool Info( this IActivityLineEmitter logger,
+                                         CKTrait? tags,
                                          Exception ex,
                                          [CallerLineNumber]int lineNumber = 0,
                                          [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Info, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
-        /// Emits a <see cref="LogLevel.Info"/> string and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
+		    /// <summary>
+        /// Emits a <see cref="LogLevel.Info"/> string and tags if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Info( this IActivityLogger logger,
-                                         CKTrait tags,
+        public static bool Info( this IActivityLineEmitter logger,
+                                         CKTrait? tags,
                                          string text,
                                          [CallerLineNumber]int lineNumber = 0,
                                          [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Info, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Info(IActivityLogger,CKTrait,string,int,string?)"/>
-        public static bool Info( this IActivityLogger logger,
-                                CKTrait tags,
+        /// <inheritdoc cref="Info(IActivityLineEmitter,CKTrait?,string,int,string?)"/>
+        public static bool Info( this IActivityLineEmitter logger,
+                                CKTrait? tags,
                                 [InterpolatedStringHandlerArgument( "logger", "tags" )] LogHandler.LineInfoWithTags text,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
@@ -622,27 +619,27 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Info"/> string associated to an exception and tags if it must be emitted 
-        /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
-        /// also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
+        /// (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
+        /// also depend on <paramref name="tags"/> and <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
-        public static bool Info( this IActivityLogger logger,
-                                         CKTrait tags,
+        public static bool Info( this IActivityLineEmitter logger,
+                                         CKTrait? tags,
                                          string? text,
                                          Exception? ex,
                                          [CallerLineNumber]int lineNumber = 0,
@@ -650,16 +647,16 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Info, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Info(IActivityLogger,CKTrait,string,Exception,int,string?)"/>
-        public static bool Info( this IActivityLogger logger,
-                                CKTrait tags,
+        /// <inheritdoc cref="Info(IActivityLineEmitter,CKTrait?,string,Exception,int,string?)"/>
+        public static bool Info( this IActivityLineEmitter logger,
+                                CKTrait? tags,
                                 [InterpolatedStringHandlerArgument( "logger", "tags" )] LogHandler.LineInfoWithTags text,
                                 Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
@@ -668,7 +665,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Info | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -677,51 +674,50 @@ namespace CK.Core
 
        #endregion
 
-		 
 		/// <summary>
-        /// Emits a <see cref="LogLevel.Warn"/> with an exception if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
+        /// Emits a <see cref="LogLevel.Warn"/> with an exception if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Warn( this IActivityLogger logger, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Warn( this IActivityLineEmitter logger, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Warn, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
-        /// Emits a <see cref="LogLevel.Warn"/> string if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
+		    /// <summary>
+        /// Emits a <see cref="LogLevel.Warn"/> string if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Warn( this IActivityLogger logger, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Warn( this IActivityLineEmitter logger, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Warn, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Warn(IActivityLogger,string,int,string?)"/>
-        public static bool Warn( this IActivityLogger logger,
+        /// <inheritdoc cref="Warn(IActivityLineEmitter,string,int,string?)"/>
+        public static bool Warn( this IActivityLineEmitter logger,
                                 [InterpolatedStringHandlerArgument( "logger" )] LogHandler.LineWarn text,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
@@ -729,26 +725,26 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Warn"/> string associated to an exception if it must be emitted 
-        /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
-        /// and may also depend on <see cref="IActivityLogger.AutoTags"/>).
+        /// (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
+        /// and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Warn( this IActivityLogger logger,
+        public static bool Warn( this IActivityLineEmitter logger,
                                          string? text,
                                          Exception? ex,
                                          [CallerLineNumber]int lineNumber = 0,
@@ -756,15 +752,15 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Warn, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Warn(IActivityLogger,string,Exception,int,string?)"/>
-        public static bool Warn( this IActivityLogger logger,
+        /// <inheritdoc cref="Warn(IActivityLineEmitter,string,Exception?,int,string?)"/>
+        public static bool Warn( this IActivityLineEmitter logger,
                                 [InterpolatedStringHandlerArgument( "logger" )] LogHandler.LineWarn text,
                                 Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
@@ -773,7 +769,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -782,61 +778,61 @@ namespace CK.Core
 
         #region Warn with tags.
 
-		/// <summary>
-        /// Emits a <see cref="LogLevel.Warn"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
+		    /// <summary>
+        /// Emits a <see cref="LogLevel.Warn"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
        [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Warn( this IActivityLogger logger,
-                                         CKTrait tags,
+        public static bool Warn( this IActivityLineEmitter logger,
+                                         CKTrait? tags,
                                          Exception ex,
                                          [CallerLineNumber]int lineNumber = 0,
                                          [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Warn, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
-        /// Emits a <see cref="LogLevel.Warn"/> string and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
+		    /// <summary>
+        /// Emits a <see cref="LogLevel.Warn"/> string and tags if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Warn( this IActivityLogger logger,
-                                         CKTrait tags,
+        public static bool Warn( this IActivityLineEmitter logger,
+                                         CKTrait? tags,
                                          string text,
                                          [CallerLineNumber]int lineNumber = 0,
                                          [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Warn, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Warn(IActivityLogger,CKTrait,string,int,string?)"/>
-        public static bool Warn( this IActivityLogger logger,
-                                CKTrait tags,
+        /// <inheritdoc cref="Warn(IActivityLineEmitter,CKTrait?,string,int,string?)"/>
+        public static bool Warn( this IActivityLineEmitter logger,
+                                CKTrait? tags,
                                 [InterpolatedStringHandlerArgument( "logger", "tags" )] LogHandler.LineWarnWithTags text,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
@@ -844,27 +840,27 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Warn"/> string associated to an exception and tags if it must be emitted 
-        /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
-        /// also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
+        /// (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
+        /// also depend on <paramref name="tags"/> and <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
-        public static bool Warn( this IActivityLogger logger,
-                                         CKTrait tags,
+        public static bool Warn( this IActivityLineEmitter logger,
+                                         CKTrait? tags,
                                          string? text,
                                          Exception? ex,
                                          [CallerLineNumber]int lineNumber = 0,
@@ -872,16 +868,16 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Warn, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Warn(IActivityLogger,CKTrait,string,Exception,int,string?)"/>
-        public static bool Warn( this IActivityLogger logger,
-                                CKTrait tags,
+        /// <inheritdoc cref="Warn(IActivityLineEmitter,CKTrait?,string,Exception,int,string?)"/>
+        public static bool Warn( this IActivityLineEmitter logger,
+                                CKTrait? tags,
                                 [InterpolatedStringHandlerArgument( "logger", "tags" )] LogHandler.LineWarnWithTags text,
                                 Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
@@ -890,7 +886,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Warn | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -899,51 +895,50 @@ namespace CK.Core
 
        #endregion
 
-		 
 		/// <summary>
-        /// Emits a <see cref="LogLevel.Error"/> with an exception if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
+        /// Emits a <see cref="LogLevel.Error"/> with an exception if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Error( this IActivityLogger logger, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Error( this IActivityLineEmitter logger, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Error, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
-        /// Emits a <see cref="LogLevel.Error"/> string if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
+		    /// <summary>
+        /// Emits a <see cref="LogLevel.Error"/> string if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Error( this IActivityLogger logger, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Error( this IActivityLineEmitter logger, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Error, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Error(IActivityLogger,string,int,string?)"/>
-        public static bool Error( this IActivityLogger logger,
+        /// <inheritdoc cref="Error(IActivityLineEmitter,string,int,string?)"/>
+        public static bool Error( this IActivityLineEmitter logger,
                                 [InterpolatedStringHandlerArgument( "logger" )] LogHandler.LineError text,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
@@ -951,26 +946,26 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Error"/> string associated to an exception if it must be emitted 
-        /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
-        /// and may also depend on <see cref="IActivityLogger.AutoTags"/>).
+        /// (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
+        /// and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Error( this IActivityLogger logger,
+        public static bool Error( this IActivityLineEmitter logger,
                                          string? text,
                                          Exception? ex,
                                          [CallerLineNumber]int lineNumber = 0,
@@ -978,15 +973,15 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Error, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Error(IActivityLogger,string,Exception,int,string?)"/>
-        public static bool Error( this IActivityLogger logger,
+        /// <inheritdoc cref="Error(IActivityLineEmitter,string,Exception?,int,string?)"/>
+        public static bool Error( this IActivityLineEmitter logger,
                                 [InterpolatedStringHandlerArgument( "logger" )] LogHandler.LineError text,
                                 Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
@@ -995,7 +990,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -1004,61 +999,61 @@ namespace CK.Core
 
         #region Error with tags.
 
-		/// <summary>
-        /// Emits a <see cref="LogLevel.Error"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
+		    /// <summary>
+        /// Emits a <see cref="LogLevel.Error"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
        [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Error( this IActivityLogger logger,
-                                         CKTrait tags,
+        public static bool Error( this IActivityLineEmitter logger,
+                                         CKTrait? tags,
                                          Exception ex,
                                          [CallerLineNumber]int lineNumber = 0,
                                          [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Error, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
-        /// Emits a <see cref="LogLevel.Error"/> string and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
+		    /// <summary>
+        /// Emits a <see cref="LogLevel.Error"/> string and tags if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Error( this IActivityLogger logger,
-                                         CKTrait tags,
+        public static bool Error( this IActivityLineEmitter logger,
+                                         CKTrait? tags,
                                          string text,
                                          [CallerLineNumber]int lineNumber = 0,
                                          [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Error, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Error(IActivityLogger,CKTrait,string,int,string?)"/>
-        public static bool Error( this IActivityLogger logger,
-                                CKTrait tags,
+        /// <inheritdoc cref="Error(IActivityLineEmitter,CKTrait?,string,int,string?)"/>
+        public static bool Error( this IActivityLineEmitter logger,
+                                CKTrait? tags,
                                 [InterpolatedStringHandlerArgument( "logger", "tags" )] LogHandler.LineErrorWithTags text,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
@@ -1066,27 +1061,27 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Error"/> string associated to an exception and tags if it must be emitted 
-        /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
-        /// also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
+        /// (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
+        /// also depend on <paramref name="tags"/> and <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
-        public static bool Error( this IActivityLogger logger,
-                                         CKTrait tags,
+        public static bool Error( this IActivityLineEmitter logger,
+                                         CKTrait? tags,
                                          string? text,
                                          Exception? ex,
                                          [CallerLineNumber]int lineNumber = 0,
@@ -1094,16 +1089,16 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Error, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Error(IActivityLogger,CKTrait,string,Exception,int,string?)"/>
-        public static bool Error( this IActivityLogger logger,
-                                CKTrait tags,
+        /// <inheritdoc cref="Error(IActivityLineEmitter,CKTrait?,string,Exception,int,string?)"/>
+        public static bool Error( this IActivityLineEmitter logger,
+                                CKTrait? tags,
                                 [InterpolatedStringHandlerArgument( "logger", "tags" )] LogHandler.LineErrorWithTags text,
                                 Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
@@ -1112,7 +1107,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Error | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -1121,51 +1116,50 @@ namespace CK.Core
 
        #endregion
 
-		 
 		/// <summary>
-        /// Emits a <see cref="LogLevel.Fatal"/> with an exception if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
+        /// Emits a <see cref="LogLevel.Fatal"/> with an exception if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Fatal( this IActivityLogger logger, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Fatal( this IActivityLineEmitter logger, Exception ex, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Fatal, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
-        /// Emits a <see cref="LogLevel.Fatal"/> string if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLogger.AutoTags"/>).
+		    /// <summary>
+        /// Emits a <see cref="LogLevel.Fatal"/> string if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Fatal( this IActivityLogger logger, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
+        public static bool Fatal( this IActivityLineEmitter logger, string text, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Fatal, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Fatal(IActivityLogger,string,int,string?)"/>
-        public static bool Fatal( this IActivityLogger logger,
+        /// <inheritdoc cref="Fatal(IActivityLineEmitter,string,int,string?)"/>
+        public static bool Fatal( this IActivityLineEmitter logger,
                                 [InterpolatedStringHandlerArgument( "logger" )] LogHandler.LineFatal text,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
@@ -1173,26 +1167,26 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Fatal"/> string associated to an exception if it must be emitted 
-        /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
-        /// and may also depend on <see cref="IActivityLogger.AutoTags"/>).
+        /// (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/>
+        /// and may also depend on <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Fatal( this IActivityLogger logger,
+        public static bool Fatal( this IActivityLineEmitter logger,
                                          string? text,
                                          Exception? ex,
                                          [CallerLineNumber]int lineNumber = 0,
@@ -1200,15 +1194,15 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Fatal, null, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Fatal(IActivityLogger,string,Exception,int,string?)"/>
-        public static bool Fatal( this IActivityLogger logger,
+        /// <inheritdoc cref="Fatal(IActivityLineEmitter,string,Exception?,int,string?)"/>
+        public static bool Fatal( this IActivityLineEmitter logger,
                                 [InterpolatedStringHandlerArgument( "logger" )] LogHandler.LineFatal text,
                                 Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
@@ -1217,7 +1211,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -1226,61 +1220,61 @@ namespace CK.Core
 
         #region Fatal with tags.
 
-		/// <summary>
-        /// Emits a <see cref="LogLevel.Fatal"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
+		    /// <summary>
+        /// Emits a <see cref="LogLevel.Fatal"/> with an exception and tags if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
        [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Fatal( this IActivityLogger logger,
-                                         CKTrait tags,
+        public static bool Fatal( this IActivityLineEmitter logger,
+                                         CKTrait? tags,
                                          Exception ex,
                                          [CallerLineNumber]int lineNumber = 0,
                                          [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Fatal, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, null, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
-        /// Emits a <see cref="LogLevel.Fatal"/> string and tags if it must be emitted (this depends on <see cref="IActivityLogger.ActualFilter"/>, 
-        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
+		    /// <summary>
+        /// Emits a <see cref="LogLevel.Fatal"/> string and tags if it must be emitted (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, 
+        /// the global default <see cref="ActivityMonitor.DefaultFilter"/> and may also depend on <paramref name="tags"/> and <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static bool Fatal( this IActivityLogger logger,
-                                         CKTrait tags,
+        public static bool Fatal( this IActivityLineEmitter logger,
+                                         CKTrait? tags,
                                          string text,
                                          [CallerLineNumber]int lineNumber = 0,
                                          [CallerFilePath]string? fileName = null )
         {
             if( logger.ShouldLogLine( LogLevel.Fatal, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Fatal(IActivityLogger,CKTrait,string,int,string?)"/>
-        public static bool Fatal( this IActivityLogger logger,
-                                CKTrait tags,
+        /// <inheritdoc cref="Fatal(IActivityLineEmitter,CKTrait?,string,int,string?)"/>
+        public static bool Fatal( this IActivityLineEmitter logger,
+                                CKTrait? tags,
                                 [InterpolatedStringHandlerArgument( "logger", "tags" )] LogHandler.LineFatalWithTags text,
                                 [CallerLineNumber] int lineNumber = 0,
                                 [CallerFilePath] string? fileName = null )
@@ -1288,27 +1282,27 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, null, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
             return false;
         }
 
-		/// <summary>
+		    /// <summary>
         /// Emits a <see cref="LogLevel.Fatal"/> string associated to an exception and tags if it must be emitted 
-        /// (this depends on <see cref="IActivityLogger.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
-        /// also depend on <paramref name="tags"/> and <see cref="IActivityLogger.AutoTags"/>).
+        /// (this depends on <see cref="IActivityLineEmitter.ActualFilter"/>, the global default <see cref="ActivityMonitor.DefaultFilter"/> and may
+        /// also depend on <paramref name="tags"/> and <see cref="IActivityLineEmitter.AutoTags"/>).
         /// </summary>
-        /// <param name="logger">This <see cref="IActivityLogger"/>.</param>
-        /// <param name="tags">The tags for this log.</param>
+        /// <param name="logger">This <see cref="IActivityLineEmitter"/>.</param>
+        /// <param name="tags">Optional tags for this log.</param>
         /// <param name="text">The text to log.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
         /// <returns>True if the log has been emitted, false otherwise.</returns>
-        public static bool Fatal( this IActivityLogger logger,
-                                         CKTrait tags,
+        public static bool Fatal( this IActivityLineEmitter logger,
+                                         CKTrait? tags,
                                          string? text,
                                          Exception? ex,
                                          [CallerLineNumber]int lineNumber = 0,
@@ -1316,16 +1310,16 @@ namespace CK.Core
         {
             if( logger.ShouldLogLine( LogLevel.Fatal, tags, out var finalTags ) )
             {
-                var d = new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber );
+                var d = logger.CreateActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, finalTags, text, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref d );
                 return true;
             }
             return false;
         }
 
-        /// <inheritdoc cref="Fatal(IActivityLogger,CKTrait,string,Exception,int,string?)"/>
-        public static bool Fatal( this IActivityLogger logger,
-                                CKTrait tags,
+        /// <inheritdoc cref="Fatal(IActivityLineEmitter,CKTrait?,string,Exception,int,string?)"/>
+        public static bool Fatal( this IActivityLineEmitter logger,
+                                CKTrait? tags,
                                 [InterpolatedStringHandlerArgument( "logger", "tags" )] LogHandler.LineFatalWithTags text,
                                 Exception? ex,
                                 [CallerLineNumber] int lineNumber = 0,
@@ -1334,7 +1328,7 @@ namespace CK.Core
             var t = text._handler.ToStringAndClear();
             if( t != null )
             {
-                var line = new ActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber );
+                var line = logger.CreateActivityMonitorLogData( LogLevel.Fatal | LogLevel.IsFiltered, text._handler.FinalTags, t, ex, fileName, lineNumber, false );
                 logger.UnfilteredLog( ref line );
                 return true;
             }
@@ -1360,12 +1354,12 @@ namespace CK.Core
         internal InternalHandler _handler;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-        public LineDebug( int literalLength, int formattedCount, IActivityLogger logger, out bool shouldAppend )
+        public LineDebug( int literalLength, int formattedCount, IActivityLineEmitter logger, out bool shouldAppend )
         {
             _handler = new InternalHandler( literalLength, formattedCount, logger, LogLevel.Debug, null, out shouldAppend );
         }
 
-        public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
+        public void AppendFormatted( Type? t, string? format ) => _handler.AppendFormatted( t, format );
 
         public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
 
@@ -1400,12 +1394,12 @@ namespace CK.Core
         internal InternalHandler _handler;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-        public LineDebugWithTags( int literalLength, int formattedCount, IActivityLogger logger, CKTrait tags, out bool shouldAppend )
+        public LineDebugWithTags( int literalLength, int formattedCount, IActivityLineEmitter logger, CKTrait? tags, out bool shouldAppend )
         {
             _handler = new InternalHandler( literalLength, formattedCount, logger, LogLevel.Debug, tags, out shouldAppend );
         }
 
-        public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
+        public void AppendFormatted( Type? t, string? format ) => _handler.AppendFormatted( t, format );
 
         public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
 
@@ -1442,12 +1436,12 @@ namespace CK.Core
         internal InternalHandler _handler;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-        public LineTrace( int literalLength, int formattedCount, IActivityLogger logger, out bool shouldAppend )
+        public LineTrace( int literalLength, int formattedCount, IActivityLineEmitter logger, out bool shouldAppend )
         {
             _handler = new InternalHandler( literalLength, formattedCount, logger, LogLevel.Trace, null, out shouldAppend );
         }
 
-        public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
+        public void AppendFormatted( Type? t, string? format ) => _handler.AppendFormatted( t, format );
 
         public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
 
@@ -1482,12 +1476,12 @@ namespace CK.Core
         internal InternalHandler _handler;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-        public LineTraceWithTags( int literalLength, int formattedCount, IActivityLogger logger, CKTrait tags, out bool shouldAppend )
+        public LineTraceWithTags( int literalLength, int formattedCount, IActivityLineEmitter logger, CKTrait? tags, out bool shouldAppend )
         {
             _handler = new InternalHandler( literalLength, formattedCount, logger, LogLevel.Trace, tags, out shouldAppend );
         }
 
-        public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
+        public void AppendFormatted( Type? t, string? format ) => _handler.AppendFormatted( t, format );
 
         public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
 
@@ -1524,12 +1518,12 @@ namespace CK.Core
         internal InternalHandler _handler;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-        public LineInfo( int literalLength, int formattedCount, IActivityLogger logger, out bool shouldAppend )
+        public LineInfo( int literalLength, int formattedCount, IActivityLineEmitter logger, out bool shouldAppend )
         {
             _handler = new InternalHandler( literalLength, formattedCount, logger, LogLevel.Info, null, out shouldAppend );
         }
 
-        public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
+        public void AppendFormatted( Type? t, string? format ) => _handler.AppendFormatted( t, format );
 
         public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
 
@@ -1564,12 +1558,12 @@ namespace CK.Core
         internal InternalHandler _handler;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-        public LineInfoWithTags( int literalLength, int formattedCount, IActivityLogger logger, CKTrait tags, out bool shouldAppend )
+        public LineInfoWithTags( int literalLength, int formattedCount, IActivityLineEmitter logger, CKTrait? tags, out bool shouldAppend )
         {
             _handler = new InternalHandler( literalLength, formattedCount, logger, LogLevel.Info, tags, out shouldAppend );
         }
 
-        public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
+        public void AppendFormatted( Type? t, string? format ) => _handler.AppendFormatted( t, format );
 
         public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
 
@@ -1606,12 +1600,12 @@ namespace CK.Core
         internal InternalHandler _handler;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-        public LineWarn( int literalLength, int formattedCount, IActivityLogger logger, out bool shouldAppend )
+        public LineWarn( int literalLength, int formattedCount, IActivityLineEmitter logger, out bool shouldAppend )
         {
             _handler = new InternalHandler( literalLength, formattedCount, logger, LogLevel.Warn, null, out shouldAppend );
         }
 
-        public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
+        public void AppendFormatted( Type? t, string? format ) => _handler.AppendFormatted( t, format );
 
         public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
 
@@ -1646,12 +1640,12 @@ namespace CK.Core
         internal InternalHandler _handler;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-        public LineWarnWithTags( int literalLength, int formattedCount, IActivityLogger logger, CKTrait tags, out bool shouldAppend )
+        public LineWarnWithTags( int literalLength, int formattedCount, IActivityLineEmitter logger, CKTrait? tags, out bool shouldAppend )
         {
             _handler = new InternalHandler( literalLength, formattedCount, logger, LogLevel.Warn, tags, out shouldAppend );
         }
 
-        public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
+        public void AppendFormatted( Type? t, string? format ) => _handler.AppendFormatted( t, format );
 
         public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
 
@@ -1688,12 +1682,12 @@ namespace CK.Core
         internal InternalHandler _handler;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-        public LineError( int literalLength, int formattedCount, IActivityLogger logger, out bool shouldAppend )
+        public LineError( int literalLength, int formattedCount, IActivityLineEmitter logger, out bool shouldAppend )
         {
             _handler = new InternalHandler( literalLength, formattedCount, logger, LogLevel.Error, null, out shouldAppend );
         }
 
-        public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
+        public void AppendFormatted( Type? t, string? format ) => _handler.AppendFormatted( t, format );
 
         public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
 
@@ -1728,12 +1722,12 @@ namespace CK.Core
         internal InternalHandler _handler;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-        public LineErrorWithTags( int literalLength, int formattedCount, IActivityLogger logger, CKTrait tags, out bool shouldAppend )
+        public LineErrorWithTags( int literalLength, int formattedCount, IActivityLineEmitter logger, CKTrait? tags, out bool shouldAppend )
         {
             _handler = new InternalHandler( literalLength, formattedCount, logger, LogLevel.Error, tags, out shouldAppend );
         }
 
-        public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
+        public void AppendFormatted( Type? t, string? format ) => _handler.AppendFormatted( t, format );
 
         public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
 
@@ -1770,12 +1764,12 @@ namespace CK.Core
         internal InternalHandler _handler;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-        public LineFatal( int literalLength, int formattedCount, IActivityLogger logger, out bool shouldAppend )
+        public LineFatal( int literalLength, int formattedCount, IActivityLineEmitter logger, out bool shouldAppend )
         {
             _handler = new InternalHandler( literalLength, formattedCount, logger, LogLevel.Fatal, null, out shouldAppend );
         }
 
-        public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
+        public void AppendFormatted( Type? t, string? format ) => _handler.AppendFormatted( t, format );
 
         public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
 
@@ -1810,12 +1804,12 @@ namespace CK.Core
         internal InternalHandler _handler;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-        public LineFatalWithTags( int literalLength, int formattedCount, IActivityLogger logger, CKTrait tags, out bool shouldAppend )
+        public LineFatalWithTags( int literalLength, int formattedCount, IActivityLineEmitter logger, CKTrait? tags, out bool shouldAppend )
         {
             _handler = new InternalHandler( literalLength, formattedCount, logger, LogLevel.Fatal, tags, out shouldAppend );
         }
 
-        public void AppendFormatted( Type t, string? format ) => _handler.AppendFormatted( t, format );
+        public void AppendFormatted( Type? t, string? format ) => _handler.AppendFormatted( t, format );
 
         public void AppendLiteral( string value ) => _handler.AppendLiteral( value );
 

@@ -62,7 +62,7 @@ namespace CK.Core.Tests.Monitoring
             void StaticLogger_OnStaticLog( ref ActivityMonitorLogData data )
             {
                 // No concurrency issue here. Keep it simple.
-                TestHelper.Monitor.UnfilteredLog( ref data );
+                TestHelper.Monitor.UnfilteredLog( data.Level, data.Tags, data.Text, data.Exception, data.FileName, data.LineNumber );
                 logs.Add( (data.Level, data.Text, data.Tags) );
             }
         }

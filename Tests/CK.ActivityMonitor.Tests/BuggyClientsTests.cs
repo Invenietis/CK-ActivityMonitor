@@ -60,7 +60,7 @@ namespace CK.Core.Tests.Monitoring
                 {
                     var old = _minimalFilter;
                     _minimalFilter = value;
-                    if( _source != null ) _source.OnClientMinimalFilterChanged( old, value );
+                    if( _source != null ) _source.SignalChange();
                 }
             }
 
@@ -110,8 +110,8 @@ namespace CK.Core.Tests.Monitoring
             }
         }
 
-        [TestCase( BugCall.IsDead )]
-        [TestCase( BugCall.MinimalFilter, 2 )]
+        [TestCase( BugCall.IsDead, 2 )]
+        [TestCase( BugCall.MinimalFilter, 3 )]
         [TestCase( BugCall.OnUnfilteredLog )]
         [TestCase( BugCall.OnOpenGroup )]
         [TestCase( BugCall.OnGroupClosing )]

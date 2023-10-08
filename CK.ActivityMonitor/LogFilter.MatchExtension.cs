@@ -41,12 +41,12 @@ namespace CK.Core
                 {
                     if( m.TryMatch( "Diagnostic", StringComparison.OrdinalIgnoreCase ) || m.TryMatch( "Debug", StringComparison.OrdinalIgnoreCase ) )
                     {
-                        Debug.Assert( LogFilter.Diagnostic == LogFilter.Debug );
+                        Throw.DebugAssert( LogFilter.Diagnostic == LogFilter.Debug );
                         f = LogFilter.Diagnostic;
                     }
                     else if( m.TryMatch( "Detailed", StringComparison.OrdinalIgnoreCase ) || m.TryMatch( "Trace", StringComparison.OrdinalIgnoreCase ) )
                     {
-                        Debug.Assert( LogFilter.Detailed == LogFilter.Trace );
+                        Throw.DebugAssert( LogFilter.Detailed == LogFilter.Trace );
                         f = LogFilter.Detailed;
                     }
                     else if( m.TryMatch( "Verbose", StringComparison.OrdinalIgnoreCase ) )
@@ -55,22 +55,22 @@ namespace CK.Core
                     }
                     else if( m.TryMatch( "Normal", StringComparison.OrdinalIgnoreCase ) || m.TryMatch( "Monitor", StringComparison.OrdinalIgnoreCase ) )
                     {
-                        Debug.Assert( LogFilter.Normal == LogFilter.Monitor );
+                        Throw.DebugAssert( LogFilter.Normal == LogFilter.Monitor );
                         f = LogFilter.Normal;
                     }
                     else if( m.TryMatch( "Minimal", StringComparison.OrdinalIgnoreCase ) || m.TryMatch( "Terse", StringComparison.OrdinalIgnoreCase ) )
                     {
-                        Debug.Assert( LogFilter.Minimal == LogFilter.Terse );
+                        Throw.DebugAssert( LogFilter.Minimal == LogFilter.Terse );
                         f = LogFilter.Terse;
                     }
                     else if( m.TryMatch( "Quiet", StringComparison.OrdinalIgnoreCase ) || m.TryMatch( "Release", StringComparison.OrdinalIgnoreCase ) )
                     {
-                        Debug.Assert( LogFilter.Quiet == LogFilter.Release );
+                        Throw.DebugAssert( LogFilter.Quiet == LogFilter.Release );
                         f = LogFilter.Quiet;
                     }
-                    else if( m.TryMatch( "Off", StringComparison.OrdinalIgnoreCase ) )
+                    else if( m.TryMatch( "Fatal", StringComparison.OrdinalIgnoreCase ) )
                     {
-                        f = LogFilter.Off;
+                        f = LogFilter.Fatal;
                     }
                     else if( m.TryMatch( "Invalid", StringComparison.OrdinalIgnoreCase ) )
                     {
@@ -147,10 +147,6 @@ namespace CK.Core
                 else if( head.TryMatch( "Fatal", StringComparison.OrdinalIgnoreCase ) )
                 {
                     level = LogLevelFilter.Fatal;
-                }
-                else if( head.TryMatch( "Off", StringComparison.OrdinalIgnoreCase ) )
-                {
-                    level = LogLevelFilter.Off;
                 }
                 else if( head.TryMatch( "Invalid", StringComparison.OrdinalIgnoreCase ) )
                 {

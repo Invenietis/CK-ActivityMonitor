@@ -11,7 +11,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void simple_sender_Log_tests()
         {
-            var m = new ActivityMonitor( false );
+            var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var client = m.Output.RegisterClient( new StupidStringClient() );
 
             m.Log( LogLevel.Fatal, "Text1" );
@@ -46,7 +46,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void simple_sender_Info_tests_works_like_the_other_ones_since_they_are_T4_generated()
         {
-            var m = new ActivityMonitor( false );
+            var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var client = m.Output.RegisterClient( new StupidStringClient() );
 
             var hole = Environment.TickCount;
@@ -70,7 +70,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void simple_sender_OpenInfo_tests_works_like_the_other_ones_since_they_are_T4_generated()
         {
-            var m = new ActivityMonitor( false );
+            var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var client = m.Output.RegisterClient( new StupidStringClient() );
 
             var hole = Environment.TickCount;
@@ -103,7 +103,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void simple_sender_OpenGroup_tests()
         {
-            var m = new ActivityMonitor( false );
+            var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
             var client = m.Output.RegisterClient( new StupidStringClient() );
 
             var hole = Environment.TickCount;
