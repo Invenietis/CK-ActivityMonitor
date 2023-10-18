@@ -7,13 +7,8 @@ namespace CK.Core
     public sealed partial class ActivityMonitorExternalLogData
     {
         /// <summary>
-        /// Tags for warning and errors related to <see cref="CurrentPoolCapacity"/>.
-        /// </summary>
-        public static readonly CKTrait LogDataPoolAlertTag = ActivityMonitor.Tags.Register( "ActivityMonitorLogDataPoolAlert" );
-
-        /// <summary>
         /// Gets the current pool capacity. It starts at 200 and increases (with a warning) until <see cref="MaximalCapacity"/>
-        /// is reached (where errors are emitted). Warnings and errors are tagged with <see cref="LogDataPoolAlertTag"/>.
+        /// is reached (where errors are emitted).
         /// </summary>
         public static int CurrentPoolCapacity => _currentCapacity;
 
@@ -34,12 +29,18 @@ namespace CK.Core
         /// </summary>
         public static int AliveCount => _aliveItems;
 
+        /// <summary>
+        /// Gets the current number of cached entries.
+        /// This is an approximate value because of concurency.
+        /// </summary>
+        public static int PooledEntryCount => _numItems + (_fastItem != null ? 1 : 0);
+
         static readonly ConcurrentQueue<ActivityMonitorExternalLogData> _items = new();
         static ActivityMonitorExternalLogData? _fastItem;
         static int _numItems;
         static int _currentCapacity = 200;
         static int _aliveItems;
-        static DateTime _nextPoolError;
+        static long _nextPoolError;
 
         internal static ActivityMonitorExternalLogData Acquire( ref ActivityMonitorLogData data )
         {
@@ -79,13 +80,13 @@ namespace CK.Core
                 {
                     // Adjust the pool count.
                     Interlocked.Decrement( ref _numItems );
-                    // Signals the error continuously once per second.
-                    var now = DateTime.UtcNow;
-                    if( _nextPoolError < now )
+                    // Signals the error but no more than once per second.
+                    var next = _nextPoolError;
+                    var nextNext = Environment.TickCount64;
+                    if( next < nextNext && Interlocked.CompareExchange( ref _nextPoolError, nextNext + 1000, next ) == next )
                     {
-                        _nextPoolError = now.AddSeconds( 1 );
-                        ActivityMonitor.StaticLogger.UnfilteredLog( LogLevel.Error,
-                                                                    LogDataPoolAlertTag,
+                        ActivityMonitor.StaticLogger.UnfilteredLog( LogLevel.Error | LogLevel.IsFiltered,
+                                                                    ActivityMonitor.Tags.ToBeInvestigated,
                                                                     $"The log data pool reached its maximal capacity of {MaximalCapacity}. This may indicate a peak of activity " +
                                                                     $"or a leak (missing ActivityMonitorExternalLogData.Release() calls) if this error persists.", null );
                     }
@@ -93,7 +94,8 @@ namespace CK.Core
                 else
                 {
                     int newCapacity = Interlocked.Add( ref _currentCapacity, PoolCapacityIncrement );
-                    ActivityMonitor.StaticLogger.UnfilteredLog( LogLevel.Warn, LogDataPoolAlertTag, $"The log data pool has been increased to {newCapacity}.", null );
+                    ActivityMonitor.StaticLogger.UnfilteredLog( LogLevel.Warn, null, $"The log data pool has been increased to {newCapacity}.", null );
+                    _items.Enqueue( c );
                 }
             }
         }
