@@ -143,7 +143,7 @@ namespace CK.Core.Tests.Monitoring
                 // the next Release() will not emit it.
                 externalLogData[0].Release();
                 staticLogs.Should().BeEmpty( "Too early." );
-                Thread.Sleep( 1000 );
+                Thread.Sleep( 1100 );
                 // Releasing the last one more than one second after will raise the alert.
                 externalLogData[1].Release();
                 staticLogs.Should().HaveCount( 1, "Reached more than MaximalCapacity again." );
