@@ -11,6 +11,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CK.Core" Version="18.0.1--0000-develop" />
+    <PackageReference Include="CK.Core" Version="18.0.0" />
   </ItemGroup>
 </Project>
