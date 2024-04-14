@@ -184,6 +184,15 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Creates a non pooled cached data: calling <see cref="ActivityMonitorExternalLogData.Release()"/> is useless.
+        /// </summary>
+        /// <returns>An independent cached log data for this.</returns>
+        public ActivityMonitorExternalLogData CreateNonPooledData()
+        {
+            return ActivityMonitorExternalLogData.CreateNonPooled( ref this );
+        }
+
+        /// <summary>
         /// Gets whether the <see cref="Text"/> is actually the <see cref="P:Exception"/> message (or <see cref="ExceptionData"/> message).
         /// </summary>
         public readonly bool IsTextTheExceptionMessage => ReferenceEquals( _exception?.Message ?? _exceptionData?.Message, _text );

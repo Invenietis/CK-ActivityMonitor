@@ -72,7 +72,7 @@ namespace CK.Core
         {
         }
 
-        internal void Initialize( ref ActivityMonitorLogData data )
+        internal void Initialize( ref ActivityMonitorLogData data, bool usePool )
         {
             _text = data.Text;
             _tags = data.Tags;
@@ -80,33 +80,45 @@ namespace CK.Core
             _fileName = data.FileName;
             _lineNumber = data.LineNumber;
             _depth = data.Depth;
-            _refCount = 1;
             _logTime = data.LogTime;
             _monitorId = data.MonitorId;
             _level = data.Level;
             _flags = (byte)(data.IsParallel ? 1 : 0);
             _flags |= (byte)(data.IsOpenGroup ? 2 : 0);
+            _refCount = 1;
+            if( usePool ) _flags |= 4;
         }
 
         /// <summary>
         /// Adds a reference to this cached data. <see cref="Release()"/> must be called once for each call to AddRef.
+        /// This has no effect if <see cref="UsePool"/> is false.
         /// </summary>
         public void AddRef() => Interlocked.Increment( ref _refCount );
 
         /// <summary>
         /// Releases this cached data.
+        /// This has no effect if <see cref="UsePool"/> is false.
         /// </summary>
         public void Release()
         {
-            int refCount = Interlocked.Decrement( ref _refCount );
-            if( refCount == 0 )
+            if( (_flags & 4) != 0 )
             {
-                _text = null;
-                _exceptionData = null;
-                Release( this );
-                return;
+                int refCount = Interlocked.Decrement( ref _refCount );
+                if( refCount == 0 )
+                {
+                    _text = null;
+                    _exceptionData = null;
+                    Release( this );
+                    return;
+                }
+                Throw.CheckState( refCount > 0 );
             }
-            Throw.CheckState( refCount > 0 );
         }
+
+        /// <summary>
+        /// Gets whether this data uses the pool: it MUST be <see cref="Release()"/>.
+        /// </summary>
+        public bool UsePool => (_flags & 4) != 0;
+
     }
 }
