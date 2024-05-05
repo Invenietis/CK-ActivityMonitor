@@ -1,19 +1,12 @@
 using CK.Core.Impl;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection.Emit;
-using System.Threading;
-using static CK.Core.ActivityMonitor;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace CK.Core
 {
     public sealed partial class ActivityMonitor
     {
-
-
         IActivityMonitor IActivityMonitorImpl.InternalMonitor
         {
             get

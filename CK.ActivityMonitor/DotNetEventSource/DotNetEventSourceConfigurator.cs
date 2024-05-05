@@ -153,7 +153,7 @@ namespace CK.Core
         sealed class Current : IDisposable
         {
             // Even if the EventSource has a global lock, we replicate here the
-            // protection implemented in the STaticGatesConfigurator. We need it at least
+            // protection implemented in the StaticGatesConfigurator. We need it at least
             // in the constructor: if a new DotNetEventSourceConfigurator is built while a
             // new source appear then we may have a race condition.
             // It is safer and we have NO performance issue here.
