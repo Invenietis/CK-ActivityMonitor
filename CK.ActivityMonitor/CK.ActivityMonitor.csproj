@@ -8,9 +8,8 @@
       - IActivityMonitorClient and standard clients like ActivityMonitorTextWriterClient are local log sinks.
       - AsycLock with reentrancy management thanks to the IActivityMonitor.
     </Description>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CK.Core" Version="19.0.0" />
+    <PackageReference Include="CK.Core" Version="20.0.0" />
   </ItemGroup>
 </Project>

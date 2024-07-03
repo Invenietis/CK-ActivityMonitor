@@ -42,6 +42,13 @@ namespace CK.Core
         static int _aliveItems;
         static long _nextPoolError;
 
+        internal static ActivityMonitorExternalLogData CreateNonPooled( ref ActivityMonitorLogData data )
+        {
+            var e = new ActivityMonitorExternalLogData();
+            e.Initialize( ref data, false );
+            return e;
+        }
+
         internal static ActivityMonitorExternalLogData Acquire( ref ActivityMonitorLogData data )
         {
             Interlocked.Increment( ref _aliveItems );
@@ -57,7 +64,7 @@ namespace CK.Core
                     item = new ActivityMonitorExternalLogData();
                 }
             }
-            item.Initialize( ref data );
+            item.Initialize( ref data, true );
             return item;
         }
 

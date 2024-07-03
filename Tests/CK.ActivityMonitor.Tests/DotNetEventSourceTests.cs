@@ -9,6 +9,7 @@ using System.Text;
 namespace CK.Core.Tests.Monitoring
 {
     [TestFixture]
+    [Ignore("Behavior of the EventSource is unstable.")]
     public class DotNetEventSourceTests
     {
         [Test]
