@@ -1,8 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <RepositoryInfo>
-  <SimpleGitVersion StartingVersion="15.0.0-alpha">
+  <SimpleGitVersion StartingVersion="15.0.0-alpha" SingleMajor="21">
     <Branches>
-      <Branch Name="develop" CIVersionMode="LastReleaseBased" VersionName="develop" />
-      <Branch Name="new-thread-safe-logger" CIVersionMode="ZeroTimed" VersionName="explo" />
+      <Branch Name="develop-Net6" CIVersionMode="LastReleaseBased" VersionName="develop" />
     </Branches>
   </SimpleGitVersion>
 </RepositoryInfo>
