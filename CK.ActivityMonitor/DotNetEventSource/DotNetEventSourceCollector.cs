@@ -166,8 +166,8 @@ namespace CK.Core
                 var idx = EventSourceIndex( eventSource );
                 if( _listener != null )
                 {
-                    OnNewEventSource?.Invoke( eventSource.Name );
                     lock( this ) AddEventSource( eventSource, idx );
+                    OnNewEventSource?.Invoke( eventSource.Name );
                 }
                 else
                 {
