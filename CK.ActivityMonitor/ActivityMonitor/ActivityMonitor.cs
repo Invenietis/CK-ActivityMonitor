@@ -75,13 +75,10 @@ namespace CK.Core
         /// </summary>
         public const string StaticLogMonitorUniqueId = "§§§§";
 
-        static readonly FastUniqueIdGenerator _generatorId;
-
         static ActivityMonitor()
         {
             AutoConfiguration = null;
             _defaultFilterLevel = LogFilter.Trace;
-            _generatorId = new FastUniqueIdGenerator();
             _staticLogger = new LoggerStatic();
         }
 
@@ -112,7 +109,7 @@ namespace CK.Core
         /// has an empty <see cref="Topic"/> initially set.
         /// </summary>
         public ActivityMonitor()
-            : this( _generatorId.GetNextString(), Tags.Empty, ActivityMonitorOptions.Default )
+            : this( FastUniqueIdGenerator.GetRandomString(), Tags.Empty, ActivityMonitorOptions.Default )
         {
         }
 
@@ -123,7 +120,7 @@ namespace CK.Core
         /// <param name="topic">Optional initial topic.</param>
         /// <param name="initialTags">Optional initial tags.</param>
         public ActivityMonitor( ActivityMonitorOptions options, string? topic = null, CKTrait? initialTags = null )
-            : this( _generatorId.GetNextString(), initialTags, options )
+            : this( FastUniqueIdGenerator.GetRandomString(), initialTags, options )
         {
             if( topic != null ) SetTopic( topic );
         }
@@ -135,7 +132,7 @@ namespace CK.Core
         /// <param name="options">Optional creation options.</param>
         /// <param name="initialTags">Optional initial tags.</param>
         public ActivityMonitor( string topic, ActivityMonitorOptions options = ActivityMonitorOptions.Default, CKTrait? initialTags = null )
-            : this( _generatorId.GetNextString(), initialTags, options )
+            : this( FastUniqueIdGenerator.GetRandomString(), initialTags, options )
         {
             Throw.CheckNotNullOrEmptyArgument( topic );
             SetTopic( topic );
@@ -149,7 +146,7 @@ namespace CK.Core
         /// <param name="options">Optional creation options.</param>
         /// <param name="initialTags">Optional initial tags.</param>
         public ActivityMonitor( Token token, ActivityMonitorOptions options = ActivityMonitorOptions.Default, CKTrait? initialTags = null )
-            : this( _generatorId.GetNextString(), initialTags, options )
+            : this( FastUniqueIdGenerator.GetRandomString(), initialTags, options )
         {
             Throw.CheckNotNullArgument( token );
             _ = this.StartDependentActivity( token );
