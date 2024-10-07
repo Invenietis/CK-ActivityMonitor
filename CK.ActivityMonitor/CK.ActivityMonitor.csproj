@@ -10,6 +10,6 @@
     </Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CK.Core" Version="0.0.0--053czp1-develop" />
+    <PackageReference Include="CK.Core" Version="0.0.0--053i1rr-develop" />
   </ItemGroup>
 </Project>
