@@ -208,13 +208,17 @@ public static partial class ActivityMonitorExtension
         return Util.CreateDisposableAction( () => @this.Output.UnregisterClient( c ) );
     }
 
-    sealed class ErrorTracker : IActivityMonitorClient, IDisposable
+    /// <summary>
+    /// Error tracker returned by <see cref="OnError(IActivityMonitor, Action)"/> and <see cref="OnError(IActivityMonitor, Action, Action)"/>.
+    /// </summary>
+    public sealed class ErrorTracker : IActivityMonitorClient, IDisposable
     {
         readonly IActivityMonitorOutput _output;
         readonly Action _onFatal;
         readonly Action _onError;
+        bool _disabled;
 
-        public ErrorTracker( IActivityMonitorOutput output, Action onFatal, Action onError )
+        internal ErrorTracker( IActivityMonitorOutput output, Action onFatal, Action onError )
         {
             _output = output;
             output.RegisterClient( this );
@@ -222,44 +226,55 @@ public static partial class ActivityMonitorExtension
             _onError = onError;
         }
 
+        /// <summary>
+        /// Gets or sets whether this tracker is actually tracking.
+        /// Defaults to true.
+        /// </summary>
+        public bool Enabled
+        {
+            get => !_disabled;
+            set => _disabled = !value;
+        }
+
+        /// <summary>
+        /// Unregister this tracker from the monitor.
+        /// </summary>
         public void Dispose() => _output.UnregisterClient( this );
 
-        public void OnUnfilteredLog( ref ActivityMonitorLogData data )
+        void IActivityMonitorClient.OnUnfilteredLog( ref ActivityMonitorLogData data )
         {
+            if( _disabled ) return;
             if( data.MaskedLevel == LogLevel.Error ) _onError();
             else if( data.MaskedLevel == LogLevel.Fatal ) _onFatal();
         }
 
-        public void OnOpenGroup( IActivityLogGroup group )
+        void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group )
         {
+            if( _disabled ) return;
             if( group.Data.MaskedLevel == LogLevel.Error ) _onError();
             else if( group.Data.MaskedLevel == LogLevel.Fatal ) _onFatal();
         }
 
-        public void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions )
-        {
-        }
+        void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions ) { }
 
-        public void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
-        {
-        }
+        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions ) { }
 
-        public void OnTopicChanged( string newTopic, string? fileName, int lineNumber )
-        {
-        }
+        void IActivityMonitorClient.OnTopicChanged( string newTopic, string? fileName, int lineNumber ) { }
 
-        public void OnAutoTagsChanged( CKTrait newTrait )
-        {
-        }
-
+        void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait ) { }
     }
-    sealed class ErrorTrackerMessage : IActivityMonitorClient, IDisposable
+
+    /// <summary>
+    /// Error tracker returned by <see cref="OnError(IActivityMonitor, Action{string})"/> and <see cref="OnError(IActivityMonitor, Action{string}, Action{string})"/>.
+    /// </summary>
+    public sealed class ErrorTrackerMessage : IActivityMonitorClient, IDisposable
     {
         readonly IActivityMonitorOutput _output;
         readonly Action<string> _onFatal;
         readonly Action<string> _onError;
+        bool _disabled;
 
-        public ErrorTrackerMessage( IActivityMonitorOutput output, Action<string> onFatal, Action<string> onError )
+        internal ErrorTrackerMessage( IActivityMonitorOutput output, Action<string> onFatal, Action<string> onError )
         {
             _output = output;
             output.RegisterClient( this );
@@ -267,45 +282,52 @@ public static partial class ActivityMonitorExtension
             _onError = onError;
         }
 
+        /// <summary>
+        /// Gets or sets whether this tracker is actually tracking.
+        /// Defaults to true.
+        /// </summary>
+        public bool Enabled
+        {
+            get => !_disabled;
+            set => _disabled = !value;
+        }
+
+        /// <summary>
+        /// Unregister this tracker from the monitor.
+        /// </summary>
         public void Dispose() => _output.UnregisterClient( this );
 
-        public void OnUnfilteredLog( ref ActivityMonitorLogData data )
+        void IActivityMonitorClient.OnUnfilteredLog( ref ActivityMonitorLogData data )
         {
+            if( _disabled ) return;
             if( data.MaskedLevel == LogLevel.Error ) _onError( data.Text );
             else if( data.MaskedLevel == LogLevel.Fatal ) _onFatal( data.Text );
         }
 
-        public void OnOpenGroup( IActivityLogGroup group )
+        void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group )
         {
+            if( _disabled ) return;
             if( group.Data.MaskedLevel == LogLevel.Error ) _onError( group.Data.Text );
             else if( group.Data.MaskedLevel == LogLevel.Fatal ) _onFatal( group.Data.Text );
         }
 
-        public void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions )
-        {
-        }
+        void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion>? conclusions ) { }
 
-        public void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
-        {
-        }
+        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions ) { }
 
-        public void OnTopicChanged( string newTopic, string? fileName, int lineNumber )
-        {
-        }
+        void IActivityMonitorClient.OnTopicChanged( string newTopic, string? fileName, int lineNumber ) { }
 
-        public void OnAutoTagsChanged( CKTrait newTrait )
-        {
-        }
-
+        void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait ) { }
     }
 
     /// <summary>
     /// Enables simple "using" syntax to easily detect <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/>.
+    /// <see cref="ErrorTracker.Enabled"/> can be used to temporarily suspend error tracking.
     /// </summary>
     /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
     /// <param name="onFatalOrError">An action that is called whenever an Error or Fatal error occurs.</param>
-    /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
-    public static IDisposable OnError( this IActivityMonitor @this, Action onFatalOrError )
+    /// <returns>A <see cref="ErrorTracker"/> disposable object.</returns>
+    public static ErrorTracker OnError( this IActivityMonitor @this, Action onFatalOrError )
     {
         Throw.CheckNotNullArgument( onFatalOrError );
         return new ErrorTracker( @this.Output, onFatalOrError, onFatalOrError );
@@ -313,11 +335,12 @@ public static partial class ActivityMonitorExtension
 
     /// <summary>
     /// Enables simple "using" syntax to easily detect <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/>.
+    /// <see cref="ErrorTrackerMessage.Enabled"/> can be used to temporarily suspend error tracking.
     /// </summary>
     /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
     /// <param name="onFatalOrError">An action that is called with the message whenever an Error or Fatal error occurs.</param>
-    /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
-    public static IDisposable OnError( this IActivityMonitor @this, Action<string> onFatalOrError )
+    /// <returns>A <see cref="ErrorTrackerMessage"/> disposable object.</returns>
+    public static ErrorTrackerMessage OnError( this IActivityMonitor @this, Action<string> onFatalOrError )
     {
         Throw.CheckNotNullArgument( onFatalOrError );
         return new ErrorTrackerMessage( @this.Output, onFatalOrError, onFatalOrError );
@@ -325,12 +348,13 @@ public static partial class ActivityMonitorExtension
 
     /// <summary>
     /// Enables simple "using" syntax to easily detect <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/>.
+    /// <see cref="ErrorTracker.Enabled"/> can be used to temporarily suspend error tracking.
     /// </summary>
     /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
     /// <param name="onFatal">An action that is called whenever a Fatal error occurs.</param>
     /// <param name="onError">An action that is called whenever an Error occurs.</param>
-    /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
-    public static IDisposable OnError( this IActivityMonitor @this, Action onFatal, Action onError )
+    /// <returns>A <see cref="ErrorTracker"/> disposable object.</returns>
+    public static ErrorTracker OnError( this IActivityMonitor @this, Action onFatal, Action onError )
     {
         Throw.CheckArgument( onFatal != null && onError != null );
         return new ErrorTracker( @this.Output, onFatal, onError );
@@ -338,12 +362,13 @@ public static partial class ActivityMonitorExtension
 
     /// <summary>
     /// Enables simple "using" syntax to easily detect <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/>.
+    /// <see cref="ErrorTrackerMessage.Enabled"/> can be used to temporarily suspend error tracking.
     /// </summary>
     /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
     /// <param name="onFatal">An action that is called with the message whenever a Fatal error occurs.</param>
     /// <param name="onError">An action that is called with the message whenever an Error occurs.</param>
-    /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
-    public static IDisposable OnError( this IActivityMonitor @this, Action<string> onFatal, Action<string> onError )
+    /// <returns>A <see cref="ErrorTrackerMessage"/> disposable object.</returns>
+    public static ErrorTrackerMessage OnError( this IActivityMonitor @this, Action<string> onFatal, Action<string> onError )
     {
         Throw.CheckArgument( onFatal != null && onError != null );
         return new ErrorTrackerMessage( @this.Output, onFatal, onError );
