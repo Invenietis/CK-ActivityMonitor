@@ -2,10 +2,7 @@
 using FluentAssertions;
 using NUnit.Framework;
 using System;
-using System.Linq;
 using CK.Core.Impl;
-using System.Threading;
-using System.Diagnostics;
 using System.Collections.Generic;
 
 namespace CK.Core.Tests.Monitoring;

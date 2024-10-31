@@ -2,13 +2,10 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using NUnit.Framework;
 using System.Xml.Linq;
 using System.Collections.Generic;
 using FluentAssertions;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using CK.Core.Impl;
 
 namespace CK.Core.Tests.Monitoring;
@@ -789,6 +786,48 @@ public class ActivityMonitorTests
         m.Fatal( "Oops!" );
         hasFatal.Should().BeFalse();
         hasError.Should().BeFalse();
+    }
+
+    [Test]
+    public void OnError_Tracker_Enabled_and_ToggleEnabled()
+    {
+        var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
+        bool hasError = false;
+        var tracker = m.OnError( () => hasError = true );
+        hasError.Should().BeFalse();
+        tracker.Enabled.Should().BeTrue();
+        using( tracker.ToggleEnable() )
+        {
+            tracker.Enabled.Should().BeFalse();
+            m.Error( "e" );
+            hasError.Should().BeFalse();
+        }
+        tracker.Enabled.Should().BeTrue();
+        m.Error( "e" );
+        hasError.Should().BeTrue();
+    }
+
+    [Test]
+    public void OnError_TrackerMessage_Enabled_and_ToggleEnabled()
+    {
+        var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
+        string? e = null;
+
+        var tracker = m.OnError( error => e = error, disabled: true );
+        tracker.Enabled.Should().BeFalse();
+        m.Error( "e" );
+        e.Should().BeNull();
+
+        using( tracker.ToggleEnable() )
+        {
+            tracker.Enabled.Should().BeTrue();
+            m.Error( "e" );
+            e.Should().Be( "e" );
+        }
+        tracker.Enabled.Should().BeFalse();
+        e = null;
+        m.Error( "e" );
+        e.Should().BeNull();
     }
 
     [Test]

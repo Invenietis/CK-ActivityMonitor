@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using NUnit.Framework;
 using FluentAssertions;
-using System.Collections.Generic;
 
 namespace CK.Core.Tests.Monitoring;
 

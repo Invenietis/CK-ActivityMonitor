@@ -1,8 +1,6 @@
 using System;
-using System.IO;
 using NUnit.Framework;
 using FluentAssertions;
-using System.Diagnostics;
 
 namespace CK.Core.Tests.Monitoring;
 

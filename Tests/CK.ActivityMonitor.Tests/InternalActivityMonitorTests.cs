@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using CK.Core.Impl;
 using System.Threading;
-using System.Diagnostics;
 
 namespace CK.Core.Tests.Monitoring;
 

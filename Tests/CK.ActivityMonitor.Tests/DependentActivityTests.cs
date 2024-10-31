@@ -1,9 +1,6 @@
 using FluentAssertions;
-using System;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using System.Diagnostics;
-using System.Collections.Generic;
 
 namespace CK.Core.Tests.Monitoring;
 

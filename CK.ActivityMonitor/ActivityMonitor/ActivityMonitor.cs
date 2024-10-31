@@ -8,7 +8,6 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
 
 namespace CK.Core;
 

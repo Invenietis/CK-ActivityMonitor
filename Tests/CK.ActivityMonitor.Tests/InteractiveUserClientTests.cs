@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Text;
-using System.Threading;
-using CK.Core.Impl;
 using FluentAssertions;
 using NUnit.Framework;
 

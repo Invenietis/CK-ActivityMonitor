@@ -1,6 +1,3 @@
-using System;
-using System.Runtime.CompilerServices;
-
 namespace CK.Core.Impl;
 
 /// <summary>

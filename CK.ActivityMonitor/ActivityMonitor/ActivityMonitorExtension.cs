@@ -3,8 +3,6 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using System.Runtime.CompilerServices;
-using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics;
 
 namespace CK.Core;
 
@@ -209,7 +207,7 @@ public static partial class ActivityMonitorExtension
     }
 
     /// <summary>
-    /// Error tracker returned by <see cref="OnError(IActivityMonitor, Action)"/> and <see cref="OnError(IActivityMonitor, Action, Action)"/>.
+    /// Error tracker returned by <see cref="OnError(IActivityMonitor, Action, bool)"/> and <see cref="OnError(IActivityMonitor, Action, Action, bool)"/>.
     /// </summary>
     public sealed class ErrorTracker : IActivityMonitorClient, IDisposable
     {
@@ -218,12 +216,32 @@ public static partial class ActivityMonitorExtension
         readonly Action _onError;
         bool _disabled;
 
-        internal ErrorTracker( IActivityMonitorOutput output, Action onFatal, Action onError )
+        internal ErrorTracker( IActivityMonitorOutput output, Action onFatal, Action onError, bool disabled )
         {
             _output = output;
             output.RegisterClient( this );
             _onFatal = onFatal;
             _onError = onError;
+            _disabled = disabled;
+        }
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        public readonly struct EnabledToggler : IDisposable 
+        {
+            readonly ErrorTracker _tracker;
+            internal EnabledToggler( ErrorTracker t ) => _tracker = t;
+            public void Dispose() => _tracker._disabled = !_tracker._disabled;
+        }
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+
+        /// <summary>
+        /// Toggles <see cref="Enabled"/> and returns a disposable that restores it when disposed.
+        /// </summary>
+        /// <returns>The disposable to toggle back the Enabled property.</returns>
+        public EnabledToggler ToggleEnable()
+        {
+            _disabled = !_disabled;
+            return new EnabledToggler( this );
         }
 
         /// <summary>
@@ -265,7 +283,7 @@ public static partial class ActivityMonitorExtension
     }
 
     /// <summary>
-    /// Error tracker returned by <see cref="OnError(IActivityMonitor, Action{string})"/> and <see cref="OnError(IActivityMonitor, Action{string}, Action{string})"/>.
+    /// Error tracker returned by <see cref="OnError(IActivityMonitor, Action{string}, bool)"/> and <see cref="OnError(IActivityMonitor, Action{string}, Action{string}, bool)"/>.
     /// </summary>
     public sealed class ErrorTrackerMessage : IActivityMonitorClient, IDisposable
     {
@@ -274,12 +292,13 @@ public static partial class ActivityMonitorExtension
         readonly Action<string> _onError;
         bool _disabled;
 
-        internal ErrorTrackerMessage( IActivityMonitorOutput output, Action<string> onFatal, Action<string> onError )
+        internal ErrorTrackerMessage( IActivityMonitorOutput output, Action<string> onFatal, Action<string> onError, bool disabled )
         {
             _output = output;
             output.RegisterClient( this );
             _onFatal = onFatal;
             _onError = onError;
+            _disabled = disabled;
         }
 
         /// <summary>
@@ -290,6 +309,25 @@ public static partial class ActivityMonitorExtension
         {
             get => !_disabled;
             set => _disabled = !value;
+        }
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        public readonly struct EnabledToggler : IDisposable
+        {
+            readonly ErrorTrackerMessage _tracker;
+            internal EnabledToggler( ErrorTrackerMessage t ) => _tracker = t;
+            public void Dispose() => _tracker._disabled = !_tracker._disabled;
+        }
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+
+        /// <summary>
+        /// Toggles <see cref="Enabled"/> and returns a disposable that restores it when disposed.
+        /// </summary>
+        /// <returns>The disposable to toggle back the Enabled property.</returns>
+        public EnabledToggler ToggleEnable()
+        {
+            _disabled = !_disabled;
+            return new EnabledToggler( this );
         }
 
         /// <summary>
@@ -326,11 +364,12 @@ public static partial class ActivityMonitorExtension
     /// </summary>
     /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
     /// <param name="onFatalOrError">An action that is called whenever an Error or Fatal error occurs.</param>
+    /// <param name="disabled">Optionally initially disables the tracker.</param>
     /// <returns>A <see cref="ErrorTracker"/> disposable object.</returns>
-    public static ErrorTracker OnError( this IActivityMonitor @this, Action onFatalOrError )
+    public static ErrorTracker OnError( this IActivityMonitor @this, Action onFatalOrError, bool disabled = false )
     {
         Throw.CheckNotNullArgument( onFatalOrError );
-        return new ErrorTracker( @this.Output, onFatalOrError, onFatalOrError );
+        return new ErrorTracker( @this.Output, onFatalOrError, onFatalOrError, disabled );
     }
 
     /// <summary>
@@ -339,11 +378,12 @@ public static partial class ActivityMonitorExtension
     /// </summary>
     /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
     /// <param name="onFatalOrError">An action that is called with the message whenever an Error or Fatal error occurs.</param>
+    /// <param name="disabled">Optionally initially disables the tracker.</param>
     /// <returns>A <see cref="ErrorTrackerMessage"/> disposable object.</returns>
-    public static ErrorTrackerMessage OnError( this IActivityMonitor @this, Action<string> onFatalOrError )
+    public static ErrorTrackerMessage OnError( this IActivityMonitor @this, Action<string> onFatalOrError, bool disabled = false )
     {
         Throw.CheckNotNullArgument( onFatalOrError );
-        return new ErrorTrackerMessage( @this.Output, onFatalOrError, onFatalOrError );
+        return new ErrorTrackerMessage( @this.Output, onFatalOrError, onFatalOrError, disabled );
     }
 
     /// <summary>
@@ -353,11 +393,12 @@ public static partial class ActivityMonitorExtension
     /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
     /// <param name="onFatal">An action that is called whenever a Fatal error occurs.</param>
     /// <param name="onError">An action that is called whenever an Error occurs.</param>
+    /// <param name="disabled">Optionally initially disables the tracker.</param>
     /// <returns>A <see cref="ErrorTracker"/> disposable object.</returns>
-    public static ErrorTracker OnError( this IActivityMonitor @this, Action onFatal, Action onError )
+    public static ErrorTracker OnError( this IActivityMonitor @this, Action onFatal, Action onError, bool disabled = false )
     {
         Throw.CheckArgument( onFatal != null && onError != null );
-        return new ErrorTracker( @this.Output, onFatal, onError );
+        return new ErrorTracker( @this.Output, onFatal, onError, disabled );
     }
 
     /// <summary>
@@ -367,11 +408,12 @@ public static partial class ActivityMonitorExtension
     /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
     /// <param name="onFatal">An action that is called with the message whenever a Fatal error occurs.</param>
     /// <param name="onError">An action that is called with the message whenever an Error occurs.</param>
+    /// <param name="disabled">Optionally initially disables the tracker.</param>
     /// <returns>A <see cref="ErrorTrackerMessage"/> disposable object.</returns>
-    public static ErrorTrackerMessage OnError( this IActivityMonitor @this, Action<string> onFatal, Action<string> onError )
+    public static ErrorTrackerMessage OnError( this IActivityMonitor @this, Action<string> onFatal, Action<string> onError, bool disabled = false )
     {
         Throw.CheckArgument( onFatal != null && onError != null );
-        return new ErrorTrackerMessage( @this.Output, onFatal, onError );
+        return new ErrorTrackerMessage( @this.Output, onFatal, onError, disabled );
     }
     #endregion
 

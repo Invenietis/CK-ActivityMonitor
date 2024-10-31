@@ -5,8 +5,6 @@ using FluentAssertions;
 using System.Collections.Generic;
 using System.Linq;
 using CK.Core.LogHandler;
-using System.Threading.Tasks;
-using System.Reflection.Metadata;
 
 namespace CK.Core.Tests.Monitoring;
 

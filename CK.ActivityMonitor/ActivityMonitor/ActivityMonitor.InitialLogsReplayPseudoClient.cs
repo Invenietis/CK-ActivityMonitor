@@ -1,8 +1,6 @@
 using CK.Core.Impl;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace CK.Core;

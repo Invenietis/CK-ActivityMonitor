@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
-using static CK.Core.CheckedWriteStream;
 
 namespace CK.Core;
 
