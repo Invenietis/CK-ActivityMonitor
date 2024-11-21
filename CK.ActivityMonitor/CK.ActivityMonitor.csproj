@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net6.0</TargetFrameworks>
+    <TargetFramework>net8.0</TargetFramework>
     <Description>
       Hierarchical logger API. Main types are:
       - LogFile with a central static RooLogPath property.
@@ -10,6 +10,6 @@
     </Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CK.Core" Version="20.0.0" />
+    <PackageReference Include="CK.Core" Version="21.0.0" />
   </ItemGroup>
 </Project>

@@ -1,5 +1,5 @@
 <RepositoryInfo>
-  <SimpleGitVersion StartingVersion="15.0.0-alpha">
+  <SimpleGitVersion StartingVersion="22.0.0-alpha">
     <Branches>
       <Branch Name="develop" CIVersionMode="LastReleaseBased" VersionName="develop" />
       <Branch Name="new-thread-safe-logger" CIVersionMode="ZeroTimed" VersionName="explo" />
