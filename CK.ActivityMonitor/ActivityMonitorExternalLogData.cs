@@ -106,6 +106,8 @@ public sealed partial class ActivityMonitorExternalLogData
             {
                 _text = null;
                 _exceptionData = null;
+                _fileName = null;
+                _lineNumber = 0;
                 Release( this );
                 return;
             }
