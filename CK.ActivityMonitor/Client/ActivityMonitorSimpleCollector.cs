@@ -17,7 +17,7 @@ public sealed class ActivityMonitorSimpleCollector : IActivityMonitorClient
     /// <summary>
     /// Element of the <see cref="ActivityMonitorSimpleCollector.Entries">Entries</see>.
     /// </summary>
-    public class Entry
+    public sealed class Entry
     {
         /// <summary>
         /// The tags of the log entry.
@@ -35,6 +35,11 @@ public sealed class ActivityMonitorSimpleCollector : IActivityMonitorClient
         public readonly DateTimeStamp LogTime;
 
         /// <summary>
+        /// Depth of the log entry.
+        /// </summary>
+        public readonly int Depth;
+
+        /// <summary>
         /// The text of the log entry.
         /// </summary>
         public readonly string Text;
@@ -44,10 +49,11 @@ public sealed class ActivityMonitorSimpleCollector : IActivityMonitorClient
         /// </summary>
         public readonly Exception? Exception;
 
-        internal Entry( CKTrait tags, LogLevel level, string text, DateTimeStamp logTime, Exception? ex )
+        internal Entry( CKTrait tags, int depth, LogLevel level, string text, DateTimeStamp logTime, Exception? ex )
         {
             Throw.DebugAssert( (level & LogLevel.IsFiltered) == 0 );
             Tags = tags;
+            Depth = depth;
             MaskedLevel = level;
             LogTime = logTime;
             Text = text;
@@ -125,7 +131,7 @@ public sealed class ActivityMonitorSimpleCollector : IActivityMonitorClient
     {
         if( (int)data.MaskedLevel >= (int)_filter )
         {
-            _entries.Push( new Entry( data.Tags, data.MaskedLevel, data.Text, data.LogTime, data.Exception ) );
+            _entries.Push( new Entry( data.Tags, data.Depth, data.MaskedLevel, data.Text, data.LogTime, data.Exception ) );
         }
     }
 
