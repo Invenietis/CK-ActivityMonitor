@@ -1,4 +1,3 @@
-using FluentAssertions;
 using System.Collections.Generic;
 using NUnit.Framework;
 
@@ -69,6 +68,6 @@ public class ActivityMonitorTimestamp
             {
             }
         }
-        detect.NbClash.Should().Be( 0 );
+        detect.NbClash.ShouldBe( 0 );
     }
 }

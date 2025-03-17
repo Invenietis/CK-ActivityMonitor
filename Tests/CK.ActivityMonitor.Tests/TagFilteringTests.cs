@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using System;
 using System.Linq;
 using NUnit.Framework;
@@ -14,9 +14,9 @@ public class TagFilteringTests
         var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
         var c = m.Output.RegisterClient( new StupidStringClient() );
 
-        ActivityMonitor.DefaultFilter.Should().Be( LogFilter.Trace );
+        ActivityMonitor.DefaultFilter.ShouldBe( LogFilter.Trace );
 
-        m.ActualFilter.Should().Be( LogFilter.Undefined );
+        m.ActualFilter.ShouldBe( LogFilter.Undefined );
         m.Trace( "Trace1" );
         m.OpenTrace( "OTrace1" );
 
@@ -34,7 +34,7 @@ public class TagFilteringTests
 
         ActivityMonitor.Tags.ClearFilters();
 
-        c.Entries.Select( e => e.Data.Text ).ToArray().Should().BeEquivalentTo( new[] { "Trace1", "OTrace1", "Trace2", "OTrace2" }, o => o.WithStrictOrdering() );
+        c.Entries.Select( e => e.Data.Text ).ToArray().ShouldBe( ["Trace1", "OTrace1", "Trace2", "OTrace2"] );
     }
 
     [Test]
@@ -45,11 +45,11 @@ public class TagFilteringTests
 
         int hole = Environment.TickCount % 10;
 
-        ActivityMonitor.DefaultFilter.Should().Be( LogFilter.Trace );
+        ActivityMonitor.DefaultFilter.ShouldBe( LogFilter.Trace );
 
         // ActualFilter is Terse, 
         m.MinimalFilter = LogFilter.Terse;
-        m.ActualFilter.Should().Be( LogFilter.Terse );
+        m.ActualFilter.ShouldBe( LogFilter.Terse );
 
         m.Trace( "NOSHOW" );
         m.OpenTrace( "NOSHOW" );
@@ -85,8 +85,8 @@ public class TagFilteringTests
             m.Trace( "TraceNoTag" );
             m.Trace( $"TraceNoTag{hole}" );
         }
-        m.MinimalFilter.Should().Be( LogFilter.Terse );
-        m.ActualFilter.Should().Be( LogFilter.Terse );
+        m.MinimalFilter.ShouldBe( LogFilter.Terse );
+        m.ActualFilter.ShouldBe( LogFilter.Terse );
 
         m.Error( TestHelper.Tag3, "NOSHOW" );
         m.Error( TestHelper.Tag3, $"NOSHOW{hole}" );
@@ -103,85 +103,85 @@ public class TagFilteringTests
         m.OpenTrace( "NOSHOW" );
 
         c.Entries.Select( e => e.Data.Text ).Concatenate()
-            .Should().Be( $"Trace1, Trace1{hole}, Trace2, Trace{hole}, Log, Log{hole}, OTrace1, TraceNoTag, TraceNoTag{hole}, Combined, Combined{hole}, WarnInTerse" );
+            .ShouldBe( $"Trace1, Trace1{hole}, Trace2, Trace{hole}, Log, Log{hole}, OTrace1, TraceNoTag, TraceNoTag{hole}, Combined, Combined{hole}, WarnInTerse" );
     }
 
     [Test]
     public void filter_optimizations_on_DefaultFilters()
     {
-        ActivityMonitor.Tags.DefaultFilters.Should().BeEmpty();
+        ActivityMonitor.Tags.DefaultFilters.ShouldBeEmpty();
 
         // None are always skipped.
         ActivityMonitor.Tags.AddDefaultFilter( TestHelper.Tag1, LogClamper.Parse( "{None,None}!" ) )
-            .Should().BeEmpty();
+            .ShouldBeEmpty();
         ActivityMonitor.Tags.AddDefaultFilter( TestHelper.Tag1, LogClamper.Parse( "{None,None}" ) )
-            .Should().BeEmpty();
+            .ShouldBeEmpty();
 
         var debugC = LogClamper.Parse( "Debug!" );
         var traceC = LogClamper.Parse( "Trace!" );
         var releaseC = LogClamper.Parse( "Release!" );
 
         ActivityMonitor.Tags.AddDefaultFilter( TestHelper.Tag1, debugC )
-            .Should().BeEquivalentTo( new[] { (TestHelper.Tag1, debugC) } );
-        ActivityMonitor.Tags.DefaultFilters.Should().BeEquivalentTo( new[] { (TestHelper.Tag1, debugC) } );
-        ActivityMonitor.Tags.Filters.Should().BeEquivalentTo( ActivityMonitor.Tags.DefaultFilters );
+            .ShouldBe( new[] { (TestHelper.Tag1, debugC) } );
+        ActivityMonitor.Tags.DefaultFilters.ShouldBe( new[] { (TestHelper.Tag1, debugC) } );
+        ActivityMonitor.Tags.Filters.ShouldBe( ActivityMonitor.Tags.DefaultFilters );
 
         // This replaces the [Tag1,Debug!]
         ActivityMonitor.Tags.AddDefaultFilter( TestHelper.Tag1, traceC )
-            .Should().BeEquivalentTo( new[] { (TestHelper.Tag1, traceC) } );
-        ActivityMonitor.Tags.DefaultFilters.Should().BeEquivalentTo( new[] { (TestHelper.Tag1, traceC) } );
-        ActivityMonitor.Tags.Filters.Should().BeEquivalentTo( ActivityMonitor.Tags.DefaultFilters );
+            .ShouldBe( new[] { (TestHelper.Tag1, traceC) } );
+        ActivityMonitor.Tags.DefaultFilters.ShouldBe( new[] { (TestHelper.Tag1, traceC) } );
+        ActivityMonitor.Tags.Filters.ShouldBe( ActivityMonitor.Tags.DefaultFilters );
 
         // New filters come above (highest priority).
         ActivityMonitor.Tags.AddDefaultFilter( TestHelper.Tag2, debugC )
-            .Should().BeEquivalentTo( new[] { (TestHelper.Tag2, debugC), (TestHelper.Tag1, traceC) } );
-        ActivityMonitor.Tags.DefaultFilters.Should().BeEquivalentTo( new[] { (TestHelper.Tag2, debugC), (TestHelper.Tag1, traceC) } );
-        ActivityMonitor.Tags.Filters.Should().BeEquivalentTo( ActivityMonitor.Tags.DefaultFilters );
+            .ShouldBe( new[] { (TestHelper.Tag2, debugC), (TestHelper.Tag1, traceC) } );
+        ActivityMonitor.Tags.DefaultFilters.ShouldBe( new[] { (TestHelper.Tag2, debugC), (TestHelper.Tag1, traceC) } );
+        ActivityMonitor.Tags.Filters.ShouldBe( ActivityMonitor.Tags.DefaultFilters );
 
         ActivityMonitor.Tags.AddDefaultFilter( TestHelper.Tag2 | TestHelper.Tag1, releaseC )
-            .Should().BeEquivalentTo( new[] { (TestHelper.Tag2 | TestHelper.Tag1, releaseC), (TestHelper.Tag2, debugC), (TestHelper.Tag1, traceC) } );
-        ActivityMonitor.Tags.DefaultFilters.Should().BeEquivalentTo( new[] { (TestHelper.Tag2 | TestHelper.Tag1, releaseC), (TestHelper.Tag2, debugC), (TestHelper.Tag1, traceC) } );
-        ActivityMonitor.Tags.Filters.Should().BeEquivalentTo( ActivityMonitor.Tags.DefaultFilters );
+            .ShouldBe( new[] { (TestHelper.Tag2 | TestHelper.Tag1, releaseC), (TestHelper.Tag2, debugC), (TestHelper.Tag1, traceC) } );
+        ActivityMonitor.Tags.DefaultFilters.ShouldBe( new[] { (TestHelper.Tag2 | TestHelper.Tag1, releaseC), (TestHelper.Tag2, debugC), (TestHelper.Tag1, traceC) } );
+        ActivityMonitor.Tags.Filters.ShouldBe( ActivityMonitor.Tags.DefaultFilters );
 
         // Adding Tag1 on top, removes Tag1|Tag2.
         ActivityMonitor.Tags.AddDefaultFilter( TestHelper.Tag1, debugC )
-            .Should().BeEquivalentTo( new[] { (TestHelper.Tag1, debugC), (TestHelper.Tag2, debugC) } );
-        ActivityMonitor.Tags.DefaultFilters.Should().BeEquivalentTo( new[] { (TestHelper.Tag1, debugC), (TestHelper.Tag2, debugC) } );
-        ActivityMonitor.Tags.Filters.Should().BeEquivalentTo( ActivityMonitor.Tags.DefaultFilters );
+            .ShouldBe( new[] { (TestHelper.Tag1, debugC), (TestHelper.Tag2, debugC) } );
+        ActivityMonitor.Tags.DefaultFilters.ShouldBe( new[] { (TestHelper.Tag1, debugC), (TestHelper.Tag2, debugC) } );
+        ActivityMonitor.Tags.Filters.ShouldBe( ActivityMonitor.Tags.DefaultFilters );
 
         // Removing Tag2.
-        ActivityMonitor.Tags.RemoveDefaultFilter( TestHelper.Tag2 ).Should().BeTrue();
-        ActivityMonitor.Tags.DefaultFilters.Should().BeEquivalentTo( new[] { (TestHelper.Tag1, debugC) } );
-        ActivityMonitor.Tags.Filters.Should().BeEquivalentTo( ActivityMonitor.Tags.DefaultFilters );
+        ActivityMonitor.Tags.RemoveDefaultFilter( TestHelper.Tag2 ).ShouldBeTrue();
+        ActivityMonitor.Tags.DefaultFilters.ShouldBe( new[] { (TestHelper.Tag1, debugC) } );
+        ActivityMonitor.Tags.Filters.ShouldBe( ActivityMonitor.Tags.DefaultFilters );
 
         var traceNone = LogClamper.Parse( "{Trace,None}" );
         var noneTrace = LogClamper.Parse( "{None,Trace}" );
 
         // Using None for line or group keeps the two tags.
         ActivityMonitor.Tags.AddDefaultFilter( TestHelper.Tag1, traceNone );
-        ActivityMonitor.Tags.DefaultFilters.Should().BeEquivalentTo( new[] { (TestHelper.Tag1, traceNone), (TestHelper.Tag1, debugC) } );
-        ActivityMonitor.Tags.Filters.Should().BeEquivalentTo( ActivityMonitor.Tags.DefaultFilters );
+        ActivityMonitor.Tags.DefaultFilters.ShouldBe( new[] { (TestHelper.Tag1, traceNone), (TestHelper.Tag1, debugC) } );
+        ActivityMonitor.Tags.Filters.ShouldBe( ActivityMonitor.Tags.DefaultFilters );
 
         // As soon as line and group are both covered, remaining filters are removed.
         ActivityMonitor.Tags.AddDefaultFilter( TestHelper.Tag1, noneTrace );
-        ActivityMonitor.Tags.DefaultFilters.Should().BeEquivalentTo( new[] { (TestHelper.Tag1, noneTrace), (TestHelper.Tag1, traceNone) } );
-        ActivityMonitor.Tags.Filters.Should().BeEquivalentTo( ActivityMonitor.Tags.DefaultFilters );
+        ActivityMonitor.Tags.DefaultFilters.ShouldBe( new[] { (TestHelper.Tag1, noneTrace), (TestHelper.Tag1, traceNone) } );
+        ActivityMonitor.Tags.Filters.ShouldBe( ActivityMonitor.Tags.DefaultFilters );
 
         // Removes the first Tag1...
-        ActivityMonitor.Tags.RemoveDefaultFilter( TestHelper.Tag1 ).Should().BeTrue();
-        ActivityMonitor.Tags.DefaultFilters.Should().BeEquivalentTo( new[] { (TestHelper.Tag1, traceNone) } );
+        ActivityMonitor.Tags.RemoveDefaultFilter( TestHelper.Tag1 ).ShouldBeTrue();
+        ActivityMonitor.Tags.DefaultFilters.ShouldBe( new[] { (TestHelper.Tag1, traceNone) } );
 
         // ... and the second and last one.
-        ActivityMonitor.Tags.RemoveDefaultFilter( TestHelper.Tag1 ).Should().BeTrue();
-        ActivityMonitor.Tags.DefaultFilters.Should().BeEmpty();
+        ActivityMonitor.Tags.RemoveDefaultFilter( TestHelper.Tag1 ).ShouldBeTrue();
+        ActivityMonitor.Tags.DefaultFilters.ShouldBeEmpty();
 
-        ActivityMonitor.Tags.RemoveDefaultFilter( TestHelper.Tag1 ).Should().BeFalse();
+        ActivityMonitor.Tags.RemoveDefaultFilter( TestHelper.Tag1 ).ShouldBeFalse();
     }
 
     [Test]
     public void final_filters_combines_filters_and_DefaultFilters()
     {
-        ActivityMonitor.Tags.Filters.Should().BeEmpty();
+        ActivityMonitor.Tags.Filters.ShouldBeEmpty();
 
         var debugC = LogClamper.Parse( "Debug!" );
         var traceC = LogClamper.Parse( "Trace!" );
@@ -189,30 +189,30 @@ public class TagFilteringTests
 
         ActivityMonitor.Tags.AddDefaultFilter( TestHelper.Tag1, debugC );
         ActivityMonitor.Tags.AddDefaultFilter( TestHelper.Tag2, traceC );
-        ActivityMonitor.Tags.DefaultFilters.Should().BeEquivalentTo( new[] { (TestHelper.Tag2, traceC), (TestHelper.Tag1, debugC) } );
-        ActivityMonitor.Tags.Filters.Should().BeEquivalentTo( ActivityMonitor.Tags.DefaultFilters );
+        ActivityMonitor.Tags.DefaultFilters.ShouldBe( new[] { (TestHelper.Tag2, traceC), (TestHelper.Tag1, debugC) } );
+        ActivityMonitor.Tags.Filters.ShouldBe( ActivityMonitor.Tags.DefaultFilters );
 
         // Adding a filter to Filters that cancels a Default one.
         ActivityMonitor.Tags.AddFilter( TestHelper.Tag1, releaseC );
         // No change to the DefaultFilters.
-        ActivityMonitor.Tags.DefaultFilters.Should().BeEquivalentTo( new[] { (TestHelper.Tag2, traceC), (TestHelper.Tag1, debugC) } );
+        ActivityMonitor.Tags.DefaultFilters.ShouldBe( new[] { (TestHelper.Tag2, traceC), (TestHelper.Tag1, debugC) } );
         // But Filters doesn't contain it anymore.
-        ActivityMonitor.Tags.Filters.Should().BeEquivalentTo( new[] { (TestHelper.Tag1, releaseC), (TestHelper.Tag2, traceC) } );
+        ActivityMonitor.Tags.Filters.ShouldBe( new[] { (TestHelper.Tag1, releaseC), (TestHelper.Tag2, traceC) } );
 
         // Canceling the last Default one.
         ActivityMonitor.Tags.AddFilter( TestHelper.Tag2, releaseC );
         // No change to the DefaultFilters.
-        ActivityMonitor.Tags.DefaultFilters.Should().BeEquivalentTo( new[] { (TestHelper.Tag2, traceC), (TestHelper.Tag1, debugC) } );
+        ActivityMonitor.Tags.DefaultFilters.ShouldBe( new[] { (TestHelper.Tag2, traceC), (TestHelper.Tag1, debugC) } );
         // No more default in Filters.
-        ActivityMonitor.Tags.Filters.Should().BeEquivalentTo( new[] { (TestHelper.Tag2, releaseC), (TestHelper.Tag1, releaseC) } );
+        ActivityMonitor.Tags.Filters.ShouldBe( new[] { (TestHelper.Tag2, releaseC), (TestHelper.Tag1, releaseC) } );
 
         // Back to defaults.
         ActivityMonitor.Tags.ClearFilters();
-        ActivityMonitor.Tags.Filters.Should().BeEquivalentTo( ActivityMonitor.Tags.DefaultFilters );
+        ActivityMonitor.Tags.Filters.ShouldBe( ActivityMonitor.Tags.DefaultFilters );
 
         ActivityMonitor.Tags.RemoveDefaultFilter( TestHelper.Tag2 );
         ActivityMonitor.Tags.RemoveDefaultFilter( TestHelper.Tag1 );
-        ActivityMonitor.Tags.DefaultFilters.Should().BeEmpty();
-        ActivityMonitor.Tags.Filters.Should().BeEmpty();
+        ActivityMonitor.Tags.DefaultFilters.ShouldBeEmpty();
+        ActivityMonitor.Tags.Filters.ShouldBeEmpty();
     }
 }

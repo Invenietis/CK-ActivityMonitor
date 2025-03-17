@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
@@ -27,21 +27,21 @@ public class DependentActivityTests
         using( monitor.CollectEntries( out var entries, LogLevelFilter.Info ) )
         {
             token = monitor.CreateToken( message, topic );
-            ActivityMonitor.Token.TryParseMessageAndTopic( entries[0].Text, out var creatingMessage, out var creatingTopic ).Should().BeTrue();
-            creatingMessage.Should().Be( token.Message );
-            creatingTopic.Should().Be( token.Topic );
+            ActivityMonitor.Token.TryParseMessageAndTopic( entries[0].Text, out var creatingMessage, out var creatingTopic ).ShouldBeTrue();
+            creatingMessage.ShouldBe( token.Message );
+            creatingTopic.ShouldBe( token.Topic );
         }
 
-        (isNormalizedNullMessage == token.Message is null).Should().BeTrue();
-        (isNormalizedNullTopic == token.Topic is null).Should().BeTrue();
+        (isNormalizedNullMessage == token.Message is null).ShouldBeTrue();
+        (isNormalizedNullTopic == token.Topic is null).ShouldBeTrue();
 
         var tokenString = ActivityMonitor.Token.Parse( token.ToString() );
 
-        tokenString.OriginatorId.Should().Be( token.OriginatorId );
-        tokenString.CreationDate.Should().Be( token.CreationDate );
-        tokenString.Message.Should().Be( token.Message );
-        tokenString.Topic.Should().Be( token.Topic );
-        tokenString.ToString().Should().Be( token.ToString() );
+        tokenString.OriginatorId.ShouldBe( token.OriginatorId );
+        tokenString.CreationDate.ShouldBe( token.CreationDate );
+        tokenString.Message.ShouldBe( token.Message );
+        tokenString.Topic.ShouldBe( token.Topic );
+        tokenString.ToString().ShouldBe( token.ToString() );
 
         string startingString;
         bool changeTopic = token.Topic != null;
@@ -50,12 +50,12 @@ public class DependentActivityTests
             monitor.StartDependentActivity( token ).Dispose();
 
             Throw.DebugAssert( entries != null );
-            entries.Should().HaveCount( changeTopic ? 3 : 1 );
+            entries.Count.ShouldBe( changeTopic ? 3 : 1 );
             if( changeTopic )
             {
-                entries[0].Text.Should().Be( "Topic: " + token.Topic );
+                entries[0].Text.ShouldBe( "Topic: " + token.Topic );
                 startingString = entries[1].Text;
-                entries[2].Text.Should().Be( "Topic: " + monitor.Topic );
+                entries[2].Text.ShouldBe( "Topic: " + monitor.Topic );
             }
             else
             {
@@ -63,13 +63,13 @@ public class DependentActivityTests
             }
         }
 
-        ActivityMonitor.Token.TryParseStartMessage( startingString, out var startToken ).Should().BeTrue();
+        ActivityMonitor.Token.TryParseStartMessage( startingString, out var startToken ).ShouldBeTrue();
         Throw.DebugAssert( startToken != null );
-        startToken.OriginatorId.Should().Be( token.OriginatorId );
-        startToken.CreationDate.Should().Be( token.CreationDate );
-        startToken.Message.Should().Be( token.Message );
-        startToken.Topic.Should().Be( token.Topic );
-        startToken.ToString().Should().Be( token.ToString() );
+        startToken.OriginatorId.ShouldBe( token.OriginatorId );
+        startToken.CreationDate.ShouldBe( token.CreationDate );
+        startToken.Message.ShouldBe( token.Message );
+        startToken.Topic.ShouldBe( token.Topic );
+        startToken.ToString().ShouldBe( token.ToString() );
     }
 
     [TestCase( true )]
@@ -89,7 +89,7 @@ public class DependentActivityTests
         {
             ++loopNeeded;
         }
-        token.Topic.Should().Be( "Test Topic." );
+        token.Topic.ShouldBe( "Test Topic." );
         if( loopNeeded == 100 )
         {
             m.Info( $"Unable to generate time collision in {loopNeeded} loops." );
@@ -101,27 +101,27 @@ public class DependentActivityTests
         string createMessage = cCreate.Entries[loopNeeded].Data.Text;
         {
             ActivityMonitor.Token.TryParseMessageAndTopic( createMessage, out var message, out var topic )
-               .Should().BeTrue();
-            message.Should().Be( "Test Message." );
-            topic.Should().Be( "Test Topic." );
+               .ShouldBeTrue();
+            message.ShouldBe( "Test Message." );
+            topic.ShouldBe( "Test Topic." );
         }
 
         string tokenToString = token.ToString();
         {
             ActivityMonitor.Token t2 = ActivityMonitor.Token.Parse( tokenToString );
-            t2.OriginatorId.Should().Be( m.UniqueId );
-            t2.CreationDate.Should().Be( cCreate.Entries[loopNeeded].Data.LogTime, "CreationDate is the time of the log entry." );
-            t2.Topic.Should().Be( "Test Topic." );
+            t2.OriginatorId.ShouldBe( m.UniqueId );
+            t2.CreationDate.ShouldBe( cCreate.Entries[loopNeeded].Data.LogTime, "CreationDate is the time of the log entry." );
+            t2.Topic.ShouldBe( "Test Topic." );
         }
         StupidStringClient.Entry[] logs = RunDependentActivity( token, useStartDependentGroup );
         {
-            logs[0].Data.Text.Should().Be( ActivityMonitor.SetTopicPrefix + "Test Topic." );
-            ActivityMonitor.Token.TryParseStartMessage( logs[1].Data.Text, out var t ).Should().BeTrue();
+            logs[0].Data.Text.ShouldBe( ActivityMonitor.SetTopicPrefix + "Test Topic." );
+            ActivityMonitor.Token.TryParseStartMessage( logs[1].Data.Text, out var t ).ShouldBeTrue();
             Throw.DebugAssert( t != null );
-            t.OriginatorId.Should().Be( m.UniqueId );
-            t.CreationDate.Should().Be( cCreate.Entries[loopNeeded].Data.LogTime );
-            t.Message.Should().Be( "Test Message." );
-            t.Topic.Should().Be( "Test Topic." );
+            t.OriginatorId.ShouldBe( m.UniqueId );
+            t.CreationDate.ShouldBe( cCreate.Entries[loopNeeded].Data.LogTime );
+            t.Message.ShouldBe( "Test Message." );
+            t.Topic.ShouldBe( "Test Topic." );
         }
     }
 
@@ -135,7 +135,7 @@ public class DependentActivityTests
             StupidStringClient cStarted = new StupidStringClient();
             var depMonitor = new ActivityMonitor( "I'm the topic of the runner." );
             depMonitor.Output.RegisterClient( cStarted );
-            depMonitor.Topic.Should().Be( "I'm the topic of the runner." );
+            depMonitor.Topic.ShouldBe( "I'm the topic of the runner." );
             using( useStartDependentGroup
                     ? depMonitor.StartDependentActivity( token )
                     : depMonitor.StartDependentActivityGroup( token ) )
@@ -143,11 +143,11 @@ public class DependentActivityTests
                 depMonitorTopic = depMonitor.Topic;
                 depMonitor.Trace( "Hello!" );
             }
-            depMonitor.Topic.Should().Be( "I'm the topic of the runner." );
+            depMonitor.Topic.ShouldBe( "I'm the topic of the runner." );
             dependentLogs = cStarted.Entries.ToArray();
         } );
         task.Wait();
-        depMonitorTopic.Should().Be( token.Topic );
+        depMonitorTopic.ShouldBe( token.Topic );
         return dependentLogs!;
     }
 }

@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -14,32 +14,32 @@ public class StaticAndThreadSafeLoggerTests
         var received = new List<string>();
         ActivityMonitor.StaticLogHandler h = delegate ( ref ActivityMonitorLogData d )
         {
-            d.LogTime.TimeUtc.Should().NotBe( Util.UtcMinValue ).And.BeOnOrBefore( DateTime.UtcNow );
+            d.LogTime.TimeUtc.ShouldNotBe( Util.UtcMinValue ).ShouldBeLessThanOrEqualTo( DateTime.UtcNow );
             received.Add( d.Text );
         };
         ActivityMonitor.OnStaticLog += h;
         ActivityMonitor.StaticLogger.UnfilteredLog( LogLevel.Debug, null, "text", null );
-        received.Should().ContainSingle( "text" );
+        received.ShouldHaveSingleItem().ShouldBe( "text" );
         received.Clear();
 
         ActivityMonitor.OnStaticLog -= h;
         ActivityMonitor.StaticLogger.UnfilteredLog( LogLevel.Debug, null, "NOSHOW", null );
-        received.Should().BeEmpty();
+        received.ShouldBeEmpty();
 
         ActivityMonitor.OnStaticLog += h;
         ActivityMonitor.OnStaticLog += h;
         ActivityMonitor.StaticLogger.UnfilteredLog( LogLevel.Debug, ActivityMonitor.Tags.UserConclusion, "twice", null );
-        received.Should().BeEquivalentTo( new[] { "twice", "twice" } );
+        received.ShouldBe( new[] { "twice", "twice" } );
         received.Clear();
 
         ActivityMonitor.OnStaticLog -= h;
         ActivityMonitor.StaticLogger.UnfilteredLog( LogLevel.Debug, null, "once", null );
-        received.Should().ContainSingle( "once" );
+        received.ShouldHaveSingleItem().ShouldBe( "once" );
         received.Clear();
 
         ActivityMonitor.OnStaticLog -= h;
         ActivityMonitor.StaticLogger.UnfilteredLog( LogLevel.Debug, null, "NOSHOW", null );
-        received.Should().BeEmpty();
+        received.ShouldBeEmpty();
     }
 
     static readonly CKTrait _myTag = ActivityMonitor.Tags.Register( nameof( level_and_tags_filtering ) );
@@ -50,24 +50,24 @@ public class StaticAndThreadSafeLoggerTests
         var received = new List<string>();
         ActivityMonitor.StaticLogHandler h = delegate ( ref ActivityMonitorLogData d )
         {
-            d.LogTime.TimeUtc.Should().NotBe( Util.UtcMinValue ).And.BeOnOrBefore( DateTime.UtcNow );
+            d.LogTime.TimeUtc.ShouldNotBe( Util.UtcMinValue ).ShouldBeLessThanOrEqualTo( DateTime.UtcNow );
             received.Add( d.Text );
         };
         ActivityMonitor.OnStaticLog += h;
 
-        ActivityMonitor.DefaultFilter.Should().Be( LogFilter.Trace );
+        ActivityMonitor.DefaultFilter.ShouldBe( LogFilter.Trace );
 
-        ActivityMonitor.StaticLogger.ShouldLogLine( LogLevel.Debug, null, out _ ).Should().BeFalse();
+        ActivityMonitor.StaticLogger.ShouldLogLine( LogLevel.Debug, null, out _ ).ShouldBeFalse();
         ActivityMonitor.StaticLogger.Debug( "NOSHOW" );
-        received.Should().BeEmpty();
+        received.ShouldBeEmpty();
 
         ActivityMonitor.StaticLogger.Trace( "Hop" );
-        received.Should().ContainSingle( "Hop" );
+        received.ShouldHaveSingleItem().ShouldBe( "Hop" );
         received.Clear();
 
         ActivityMonitor.DefaultFilter = LogFilter.Debug;
 
-        ActivityMonitor.StaticLogger.ShouldLogLine( LogLevel.Debug, null, out _ ).Should().BeTrue();
+        ActivityMonitor.StaticLogger.ShouldLogLine( LogLevel.Debug, null, out _ ).ShouldBeTrue();
 
         ActivityMonitor.StaticLogger.Debug( "Debug!" );
         ActivityMonitor.StaticLogger.Trace( "Trace!" );
@@ -75,13 +75,13 @@ public class StaticAndThreadSafeLoggerTests
         ActivityMonitor.StaticLogger.Warn( "Warn!" );
         ActivityMonitor.StaticLogger.Error( "Error!" );
         ActivityMonitor.StaticLogger.Fatal( "Fatal!" );
-        received.Should().BeEquivalentTo( new[] { "Debug!", "Trace!", "Info!", "Warn!", "Error!", "Fatal!" } );
+        received.ShouldBe( new[] { "Debug!", "Trace!", "Info!", "Warn!", "Error!", "Fatal!" } );
         received.Clear();
 
         ActivityMonitor.Tags.AddFilter( _myTag, new LogClamper( LogFilter.Release, true ) );
 
-        ActivityMonitor.StaticLogger.ShouldLogLine( LogLevel.Debug, _myTag, out _ ).Should().BeFalse();
-        ActivityMonitor.StaticLogger.ShouldLogLine( LogLevel.Warn, _myTag, out _ ).Should().BeFalse();
+        ActivityMonitor.StaticLogger.ShouldLogLine( LogLevel.Debug, _myTag, out _ ).ShouldBeFalse();
+        ActivityMonitor.StaticLogger.ShouldLogLine( LogLevel.Warn, _myTag, out _ ).ShouldBeFalse();
 
         ActivityMonitor.StaticLogger.Debug( _myTag, "Debug!" );
         ActivityMonitor.StaticLogger.Trace( _myTag, "Trace!" );
@@ -89,12 +89,12 @@ public class StaticAndThreadSafeLoggerTests
         ActivityMonitor.StaticLogger.Warn( _myTag, "Warn!" );
         ActivityMonitor.StaticLogger.Error( _myTag, "Error!" );
         ActivityMonitor.StaticLogger.Fatal( _myTag, "Fatal!" );
-        received.Should().BeEquivalentTo( new[] { "Error!", "Fatal!" } );
+        received.ShouldBe( new[] { "Error!", "Fatal!" } );
         received.Clear();
 
         ActivityMonitor.Tags.RemoveFilter( _myTag );
 
-        ActivityMonitor.StaticLogger.ShouldLogLine( LogLevel.Debug, _myTag, out _ ).Should().BeTrue();
+        ActivityMonitor.StaticLogger.ShouldLogLine( LogLevel.Debug, _myTag, out _ ).ShouldBeTrue();
 
         ActivityMonitor.StaticLogger.Debug( _myTag, "Debug!" );
         ActivityMonitor.StaticLogger.Trace( _myTag, "Trace!" );
@@ -102,7 +102,7 @@ public class StaticAndThreadSafeLoggerTests
         ActivityMonitor.StaticLogger.Warn( _myTag, "Warn!" );
         ActivityMonitor.StaticLogger.Error( _myTag, "Error!" );
         ActivityMonitor.StaticLogger.Fatal( _myTag, "Fatal!" );
-        received.Should().BeEquivalentTo( new[] { "Debug!", "Trace!", "Info!", "Warn!", "Error!", "Fatal!" } );
+        received.ShouldBe( new[] { "Debug!", "Trace!", "Info!", "Warn!", "Error!", "Fatal!" } );
         received.Clear();
 
         ActivityMonitor.DefaultFilter = LogFilter.Trace;
@@ -115,13 +115,13 @@ public class StaticAndThreadSafeLoggerTests
         var received = new List<string>();
         ActivityMonitor.StaticLogHandler h = delegate ( ref ActivityMonitorLogData d )
         {
-            d.LogTime.TimeUtc.Should().NotBe( Util.UtcMinValue ).And.BeOnOrBefore( DateTime.UtcNow );
+            d.LogTime.TimeUtc.ShouldNotBe( Util.UtcMinValue ).ShouldBeLessThanOrEqualTo( DateTime.UtcNow );
             received.Add( d.Text );
         };
         ActivityMonitor.OnStaticLog += h;
 
         var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
-        m.ParallelLogger.Should().NotBeNull();
+        m.ParallelLogger.ShouldNotBeNull();
         using( m.CollectTexts( out var logs ) )
         {
             m.Debug( "NOSHOW - Regular log." );
@@ -130,8 +130,8 @@ public class StaticAndThreadSafeLoggerTests
             m.Trace( "Regular log." );
             m.ParallelLogger.Trace( "Thread safe log." );
 
-            logs.Should().BeEquivalentTo( new[] { "Regular log." } );
-            received.Should().BeEquivalentTo( new[] { "Thread safe log." } );
+            logs.ShouldBe( new[] { "Regular log." } );
+            received.ShouldBe( new[] { "Thread safe log." } );
         }
         ActivityMonitor.OnStaticLog -= h;
     }

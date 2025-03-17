@@ -11,7 +11,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.ComponentModel;
-#nullable enable
+
 
 namespace CK.Core
 {

@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using NUnit.Framework;
-using FluentAssertions;
 using System.Collections.Generic;
 using System.Linq;
 using CK.Core.LogHandler;
@@ -153,7 +152,7 @@ public class DocumentationCodeSnippets
 
             m.Fatal( "An horrible error occurred." );
 
-            counter.Current.FatalCount.Should().Be( 1 );
+            counter.Current.FatalCount.ShouldBe( 1 );
             m.Output.UnregisterClient( counter );
         }
         {
@@ -164,7 +163,7 @@ public class DocumentationCodeSnippets
             {
                 m.Fatal( "An horrible error occurred." );
             }
-            errorCount.Should().Be( 1 );
+            errorCount.ShouldBe( 1 );
         }
         {
             IActivityMonitor m = new ActivityMonitor();
@@ -177,9 +176,9 @@ public class DocumentationCodeSnippets
             m.MinimalFilter = LogFilter.Terse;
             using( m.TemporarilySetMinimalFilter( LogFilter.Trace ) )
             {
-                m.ActualFilter.Should().Be( LogFilter.Trace );
+                m.ActualFilter.ShouldBe( LogFilter.Trace );
             }
-            m.ActualFilter.Should().Be( LogFilter.Terse, "Filter has been restored to previous value." );
+            m.ActualFilter.ShouldBe( LogFilter.Terse, "Filter has been restored to previous value." );
         }
         {
             IActivityMonitor m = new ActivityMonitor();
@@ -187,11 +186,11 @@ public class DocumentationCodeSnippets
             // ...
             using( m.OpenWarn( "Ouch..." ) )
             {
-                m.ActualFilter.Should().Be( LogFilter.Fatal );
+                m.ActualFilter.ShouldBe( LogFilter.Fatal );
                 m.MinimalFilter = LogFilter.Trace;
                 // ... in debug filter ...
             }
-            m.ActualFilter.Should().Be( LogFilter.Fatal, "Back to Fatal." );
+            m.ActualFilter.ShouldBe( LogFilter.Fatal, "Back to Fatal." );
 
             var strange = new LogFilter( LogLevelFilter.Fatal, LogLevelFilter.Trace );
         }
@@ -234,7 +233,7 @@ public class DocumentationCodeSnippets
             monitor.Info( "This is not an error." );
             monitor.Error( "Ouch!" );
         }
-        errorCount.Should().Be( 1 );
+        errorCount.ShouldBe( 1 );
 
     }
 
@@ -262,7 +261,7 @@ public class DocumentationCodeSnippets
         {
             sender.Invoke( null, new ActionEvent( monitor, ( monitor, i ) => monitor.Info( $"Action {i}" ) ) );
             sender.Invoke( monitor, new ActionEvent( monitor, null ) );
-            texts.Should().BeEquivalentTo( new[]
+            texts.ShouldBe( new[]
             {
         "Received Action and executing it.",
         "Action 3712",

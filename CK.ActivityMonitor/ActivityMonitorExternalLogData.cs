@@ -59,7 +59,7 @@ public sealed partial class ActivityMonitorExternalLogData
     /// <inheritdoc cref="ActivityMonitorLogData.IsParallel"/>
     public bool IsParallel => (_flags & 1) != 0;
 
-    /// <inheritdoc cref="ActivityMonitorLogData.IsParallel"/>
+    /// <inheritdoc cref="ActivityMonitorLogData.IsOpenGroup"/>
     public bool IsOpenGroup => (_flags & 2) != 0;
 
     /// <inheritdoc cref="ActivityMonitorLogData.GetLogKeyString"/>
@@ -106,6 +106,8 @@ public sealed partial class ActivityMonitorExternalLogData
             {
                 _text = null;
                 _exceptionData = null;
+                _fileName = null;
+                _lineNumber = 0;
                 Release( this );
                 return;
             }
