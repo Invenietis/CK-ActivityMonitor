@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Description>
@@ -11,5 +11,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CK.Core" Version="21.1.1--0007-develop" />
+    <PackageReference Include="Shouldly" Version="4.3.0" />
   </ItemGroup>
 </Project>

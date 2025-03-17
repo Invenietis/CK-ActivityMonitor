@@ -1,7 +1,6 @@
 using System;
 using System.Text;
 using NUnit.Framework;
-using FluentAssertions;
 
 namespace CK.Core.Tests.Monitoring;
 
@@ -46,7 +45,7 @@ public class ActivityMonitorTextWriterClientTests
             }
         }
         string result = b.ToString();
-        result.Trim().Should().Be( @"
+        result.Trim().ShouldBe( @"
 > i [] G1.
 | i [] I1.
 | > t [] G2.
@@ -96,7 +95,7 @@ public class ActivityMonitorTextWriterClientTests
         m.Fatal( $"Three1.{Environment.NewLine}Three2.{Environment.NewLine}Three3." );
         m.Error( $"Four1.{Environment.NewLine}Four2.{Environment.NewLine}Four3." );
         string result = b.ToString();
-        result.Trim().Should().Be( @"
+        result.Trim().ShouldBe( @"
 d [] One.
   [] Two.
 F [] Three.
@@ -140,7 +139,7 @@ E [] Four1.
             }
         }
         string result = b.ToString();
-        result.Trim().Should().Be( @"
+        result.Trim().ShouldBe( @"
 > i [Google|Sql] One.
 | > t [Perf] Two.
 | | d [Perf] Same tags appear.

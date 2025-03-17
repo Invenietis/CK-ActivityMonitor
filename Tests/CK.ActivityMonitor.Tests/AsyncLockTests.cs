@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
 using System;
 using System.Threading;
@@ -26,8 +26,8 @@ public partial class AsyncLockTests
         var timeout = Task.Delay( 100 );
         await Task.WhenAny( dead, timeout );
 
-        timeout.IsCompletedSuccessfully.Should().BeTrue();
-        dead.IsCompleted.Should().BeFalse();
+        timeout.IsCompletedSuccessfully.ShouldBeTrue();
+        dead.IsCompleted.ShouldBeFalse();
     }
 
     [TestCase( true, true, true )]
@@ -44,48 +44,48 @@ public partial class AsyncLockTests
 
         var l = new AsyncLock( LockRecursionPolicy.SupportsRecursion );
 
-        l.IsEnteredBy( m ).Should().BeFalse();
-        l.IsEntered.Should().BeFalse();
+        l.IsEnteredBy( m ).ShouldBeFalse();
+        l.IsEntered.ShouldBeFalse();
 
         if( firstAsync ) await l.EnterAsync( m );
         else l.Enter( m );
 
-        l.IsEnteredBy( m ).Should().BeTrue();
-        l.IsEntered.Should().BeTrue();
+        l.IsEnteredBy( m ).ShouldBeTrue();
+        l.IsEntered.ShouldBeTrue();
 
         if( secondAsync ) await l.EnterAsync( m );
         else l.Enter( m );
 
-        l.IsEnteredBy( m ).Should().BeTrue();
+        l.IsEnteredBy( m ).ShouldBeTrue();
 
         if( thirdAsync ) await l.EnterAsync( m );
         else l.Enter( m );
 
         using( await l.LockAsync( m ) )
         {
-            l.IsEnteredBy( m ).Should().BeTrue();
+            l.IsEnteredBy( m ).ShouldBeTrue();
         }
 
-        l.IsEnteredBy( m ).Should().BeTrue();
+        l.IsEnteredBy( m ).ShouldBeTrue();
 
         l.Leave( m );
-        l.IsEnteredBy( m ).Should().BeTrue();
+        l.IsEnteredBy( m ).ShouldBeTrue();
 
         l.Leave( m );
-        l.IsEnteredBy( m ).Should().BeTrue();
+        l.IsEnteredBy( m ).ShouldBeTrue();
 
         l.Leave( m );
-        l.IsEnteredBy( m ).Should().BeFalse();
-        l.IsEntered.Should().BeFalse();
+        l.IsEnteredBy( m ).ShouldBeFalse();
+        l.IsEntered.ShouldBeFalse();
 
         using( await l.LockAsync( m ) )
         {
-            l.IsEnteredBy( m ).Should().BeTrue();
+            l.IsEnteredBy( m ).ShouldBeTrue();
         }
 
         using( l.Lock( m ) )
         {
-            l.IsEnteredBy( m ).Should().BeTrue();
+            l.IsEnteredBy( m ).ShouldBeTrue();
         }
 
     }
@@ -132,8 +132,8 @@ public partial class AsyncLockTests
                             Task.Run( () => asyncJob( m3 ) ),
                             Task.Run( () => asyncJob( m4 ) ) );
 
-        nByJob.Should().Be( syncIncLoop * 2 - asyncDecLoop * 2 );
-        nByJobAsync.Should().Be( asyncDecLoop * 2 );
+        nByJob.ShouldBe( syncIncLoop * 2 - asyncDecLoop * 2 );
+        nByJobAsync.ShouldBe( asyncDecLoop * 2 );
     }
 
 
@@ -144,31 +144,31 @@ public partial class AsyncLockTests
 
         var l = new AsyncLock( LockRecursionPolicy.NoRecursion );
 
-        l.IsEnteredBy( m ).Should().BeFalse();
+        l.IsEnteredBy( m ).ShouldBeFalse();
 
         using( await l.LockAsync( m ) )
         {
-            l.IsEnteredBy( m ).Should().BeTrue();
-            l.Invoking( x => x.Lock( m ) ).Should().Throw<LockRecursionException>();
+            l.IsEnteredBy( m ).ShouldBeTrue();
+            Util.Invokable( () => l.Lock( m ) ).ShouldThrow<LockRecursionException>();
         }
 
-        l.IsEnteredBy( m ).Should().BeFalse();
+        l.IsEnteredBy( m ).ShouldBeFalse();
 
         using( l.Lock( m ) )
         {
-            l.IsEnteredBy( m ).Should().BeTrue();
-            await l.Awaiting( x => x.LockAsync( m ) ).Should().ThrowAsync<LockRecursionException>();
+            l.IsEnteredBy( m ).ShouldBeTrue();
+            await l.LockAsync( m ).AsTask().ShouldThrowAsync<LockRecursionException>();
         }
 
-        l.IsEnteredBy( m ).Should().BeFalse();
+        l.IsEnteredBy( m ).ShouldBeFalse();
 
         using( l.Lock( m ) )
         {
-            l.IsEnteredBy( m ).Should().BeTrue();
-            l.Invoking( x => x.Lock( m ) ).Should().Throw<LockRecursionException>();
+            l.IsEnteredBy( m ).ShouldBeTrue();
+            Util.Invokable( () => l.Lock( m ) ).ShouldThrow<LockRecursionException>();
         }
 
-        l.IsEnteredBy( m ).Should().BeFalse();
+        l.IsEnteredBy( m ).ShouldBeFalse();
     }
 
     [Test]
@@ -179,28 +179,28 @@ public partial class AsyncLockTests
 
         using( await l.LockAsync( m ) )
         {
-            l.IsEnteredBy( m ).Should().BeTrue();
+            l.IsEnteredBy( m ).ShouldBeTrue();
 
             // SupportsRecursion
-            l.TryEnter( m ).Should().BeTrue();
-            l.IsEnteredBy( m ).Should().BeTrue();
+            l.TryEnter( m ).ShouldBeTrue();
+            l.IsEnteredBy( m ).ShouldBeTrue();
             l.Leave( m );
-            l.IsEnteredBy( m ).Should().BeTrue();
+            l.IsEnteredBy( m ).ShouldBeTrue();
 
-            l.IsEnteredBy( m ).Should().BeTrue();
+            l.IsEnteredBy( m ).ShouldBeTrue();
         }
-        l.IsEnteredBy( m ).Should().BeFalse();
+        l.IsEnteredBy( m ).ShouldBeFalse();
 
         var m2 = new ActivityMonitor();
 
         using( await l.LockAsync( m ) )
         {
-            l.IsEnteredBy( m ).Should().BeTrue();
+            l.IsEnteredBy( m ).ShouldBeTrue();
 
-            l.TryEnter( m2 ).Should().BeFalse();
-            l.IsEnteredBy( m2 ).Should().BeFalse();
+            l.TryEnter( m2 ).ShouldBeFalse();
+            l.IsEnteredBy( m2 ).ShouldBeFalse();
 
-            l.IsEnteredBy( m ).Should().BeTrue();
+            l.IsEnteredBy( m ).ShouldBeTrue();
         }
 
     }

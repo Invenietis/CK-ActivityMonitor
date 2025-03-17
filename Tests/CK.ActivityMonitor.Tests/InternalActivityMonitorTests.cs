@@ -1,5 +1,5 @@
 
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
 using System;
 using System.Linq;
@@ -53,8 +53,8 @@ public class InternalActivityMonitorTests
         public void CannotTalkWithoutLock()
         {
             Throw.DebugAssert( _source != null );
-            _source.Invoking( sut => sut.InternalMonitor.Info( "Fail." ) )
-                   .Should().Throw<InvalidOperationException>();
+            Util.Invokable( () => _source.InternalMonitor.Info( "Fail." ) )
+                   .ShouldThrow<InvalidOperationException>();
         }
     }
 
@@ -86,9 +86,9 @@ public class InternalActivityMonitorTests
                 "Talk: OnOpenGroup",
                 "Line",
                 "Talk: OnUnfilteredLog",
-            } ).Should().BeTrue();
-        logs.Entries[1].Data.Tags.Should().BeSameAs( ActivityMonitor.Tags.InternalMonitor );
-        logs.Entries[3].Data.Tags.Should().BeSameAs( ActivityMonitor.Tags.InternalMonitor );
+            } ).ShouldBeTrue();
+        logs.Entries[1].Data.Tags.ShouldBeSameAs( ActivityMonitor.Tags.InternalMonitor );
+        logs.Entries[3].Data.Tags.ShouldBeSameAs( ActivityMonitor.Tags.InternalMonitor );
     }
 
     [Test]
@@ -119,8 +119,8 @@ public class InternalActivityMonitorTests
                 "Talk: OPEN AND NOT CLOSE GROUP InternalMonitor - 1",
                 "OPEN AND NOT CLOSE GROUP InternalMonitor - 2",
                 "Talk: OPEN AND NOT CLOSE GROUP InternalMonitor - 2"
-            } ).Should().BeTrue();
-        m.CloseGroup().Should().BeFalse( "Back to root (both groups left opened have been closed)." );
+            } ).ShouldBeTrue();
+        m.CloseGroup().ShouldBeFalse( "Back to root (both groups left opened have been closed)." );
     }
 
     [Test]
@@ -130,18 +130,20 @@ public class InternalActivityMonitorTests
         TimeSpan beforeLine2 = TimeSpan.FromMilliseconds( 100 );
         GetTextAndTimes( beforeLogs, beforeLine2, out string[] texts, out DateTime[] times );
         TimeSpan[] diffs = DiffTimes( times );
-        diffs.All( d => d >= TimeSpan.Zero ).Should().BeTrue();
+        diffs.All( d => d >= TimeSpan.Zero ).ShouldBeTrue();
 
         // Group -> Talk: OnOpenGroup
-        diffs[0].Should().BeGreaterOrEqualTo( beforeLine2 ).And.BeLessThan( beforeLogs );
+        diffs[0].ShouldBeGreaterThanOrEqualTo( beforeLine2 );
+        diffs[0].ShouldBeLessThan( beforeLogs );
         // Talk: OnOpenGroup -> SleepTime: 00:00:00.1000000.
-        diffs[1].Should().BeCloseTo( TimeSpan.Zero, TimeSpan.FromMilliseconds( 5 ) );
+        diffs[1].ShouldBe( TimeSpan.Zero, tolerance: TimeSpan.FromMilliseconds( 5 ) );
         // SleepTime: 00:00:00.1000000. -> Line
-        diffs[2].Should().BeGreaterThan( beforeLogs );
+        diffs[2].ShouldBeGreaterThan( beforeLogs );
         // Line1 -> Talk: OnUnfilteredLog
-        diffs[3].Should().BeGreaterOrEqualTo( beforeLine2 ).And.BeLessThan( beforeLogs );
+        diffs[3].ShouldBeGreaterThanOrEqualTo( beforeLine2 );
+        diffs[3].ShouldBeLessThan( beforeLogs );
         // Talk: OnUnfilteredLog -> SleepTime: 00:00:00.1000000.
-        diffs[4].Should().BeCloseTo( TimeSpan.Zero, TimeSpan.FromMilliseconds( 5 ) );
+        diffs[4].ShouldBe( TimeSpan.Zero, tolerance: TimeSpan.FromMilliseconds( 5 ) );
     }
 
     static void GetTextAndTimes( TimeSpan beforeLogs, TimeSpan beforeTalk, out string[] texts, out DateTime[] times )

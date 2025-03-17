@@ -1,4 +1,3 @@
-using FluentAssertions;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -18,9 +17,9 @@ public class LogTextHandlerTests
         m.MinimalFilter = LogFilter.Verbose;
         m.Log( LogLevel.Info, "constant" );
         m.Log( LogLevel.Info, $"I'm computed {i++}." );
-        i.Should().Be( 1 );
+        i.ShouldBe( 1 );
         m.Log( LogLevel.Trace, $"I'm NOT computed {i++}." );
-        i.Should().Be( 1 );
+        i.ShouldBe( 1 );
     }
 
     class Nested<T> { }
@@ -41,19 +40,19 @@ public class LogTextHandlerTests
             var qualifiedName = t.AssemblyQualifiedName;
 
             m.Info( $"Type: {t}" );
-            messages[0].Should().Be( $"Type: {toString}" );
+            messages[0].ShouldBe( $"Type: {toString}" );
 
             m.Info( $"Type: {t:F}" );
-            messages[1].Should().Be( $"Type: {fullName}" );
+            messages[1].ShouldBe( $"Type: {fullName}" );
 
             m.Info( $"Type: {t:A}" );
-            messages[2].Should().Be( $"Type: {qualifiedName}" );
+            messages[2].ShouldBe( $"Type: {qualifiedName}" );
 
             m.Info( $"Type: {t:C}" );
-            messages[3].Should().Be( "Type: LogTextHandlerTests.Nested<Dictionary<int,(string,int?)>>" );
+            messages[3].ShouldBe( "Type: LogTextHandlerTests.Nested<Dictionary<int,(string,int?)>>" );
 
             m.Info( $"Type: {t:N}" );
-            messages[4].Should().Be( "Type: CK.Core.Tests.Monitoring.LogTextHandlerTests.Nested<System.Collections.Generic.Dictionary<int,(string,int?)>>" );
+            messages[4].ShouldBe( "Type: CK.Core.Tests.Monitoring.LogTextHandlerTests.Nested<System.Collections.Generic.Dictionary<int,(string,int?)>>" );
         }
     }
 
@@ -65,30 +64,30 @@ public class LogTextHandlerTests
         using( monitor.CollectTexts( out var logs ) )
         {
             monitor.Log( LogLevel.Info, $"Type: {type}" );
-            logs[0].Should().Be( "Type: " );
+            logs[0].ShouldBe( "Type: " );
 
             monitor.OpenGroup( LogLevel.Info, $"Type: {type}" ).Dispose();
-            logs[1].Should().Be( "Type: " );
+            logs[1].ShouldBe( "Type: " );
 
             monitor.Info( $"Type: {type}" );
-            logs[2].Should().Be( "Type: " );
+            logs[2].ShouldBe( "Type: " );
 
             monitor.OpenInfo( $"Type: {type}" ).Dispose();
-            logs[3].Should().Be( "Type: " );
+            logs[3].ShouldBe( "Type: " );
         }
         using( monitor.CollectTexts( out var logs ) )
         {
             monitor.Log( LogLevel.Info, $"Type: {type:C}" );
-            logs[0].Should().Be( "Type: null" );
+            logs[0].ShouldBe( "Type: null" );
 
             monitor.OpenGroup( LogLevel.Info, $"Type: {type:C}" ).Dispose();
-            logs[1].Should().Be( "Type: null" );
+            logs[1].ShouldBe( "Type: null" );
 
             monitor.Info( $"Type: {type:C}" );
-            logs[2].Should().Be( "Type: null" );
+            logs[2].ShouldBe( "Type: null" );
 
             monitor.OpenInfo( $"Type: {type:C}" ).Dispose();
-            logs[3].Should().Be( "Type: null" );
+            logs[3].ShouldBe( "Type: null" );
         }
     }
 
@@ -144,8 +143,8 @@ public class LogTextHandlerTests
                 var typeNames = messages.Select( t => Regex.Matches( t, "~~\\|(?<1>.*?)\\|~~", RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture )
                                            .OfType<Match>().Single().Groups[1].Value );
 
-                typeNames.Should().HaveCount( 8 )
-                                  .And.OnlyContain( t => t == expectedText );
+                typeNames.Count().ShouldBe( 8 );
+                typeNames.ShouldAllBe( t => t == expectedText );
             }
 
             static void LogWithAllTextHandlers( IActivityMonitor monitor, string prefix, T value, string suffix )
@@ -172,8 +171,8 @@ public class LogTextHandlerTests
                 var typeNames = messages.Select( t => Regex.Matches( t, "~~\\|(?<1>.*?)\\|~~", RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture )
                                            .OfType<Match>().Single().Groups[1].Value );
 
-                typeNames.Should().HaveCount( 8 )
-                                  .And.OnlyContain( t => t == expectedText );
+                typeNames.Count().ShouldBe( 8 );
+                typeNames.ShouldAllBe( t => t == expectedText );
             }
 
             static void LogWithAllTextHandlers( IActivityMonitor monitor, string prefix, Type value, string suffix )

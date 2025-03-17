@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using NUnit.Framework;
-using FluentAssertions;
+using Shouldly;
 
 namespace CK.Core.Tests.Monitoring;
 
@@ -14,26 +14,26 @@ public class LogKeyTests
         var s = k.ToString();
 
         var k2 = ActivityMonitor.LogKey.Parse( s );
-        k2.Should().Be( k );
+        k2.ShouldBe( k );
 
-        ActivityMonitor.LogKey.TryParse( s, out var k3 ).Should().BeTrue();
-        k3.Should().Be( k );
+        ActivityMonitor.LogKey.TryParse( s, out var k3 ).ShouldBeTrue();
+        k3.ShouldBe( k );
 
         string sWithRemainder = s + "remainder";
         var head = sWithRemainder.AsSpan();
-        ActivityMonitor.LogKey.TryMatch( ref head, out var k4 ).Should().BeTrue();
-        k4.Should().Be( k );
-        head.SequenceEqual( "remainder" ).Should().BeTrue();
+        ActivityMonitor.LogKey.TryMatch( ref head, out var k4 ).ShouldBeTrue();
+        k4.ShouldBe( k );
+        head.SequenceEqual( "remainder" ).ShouldBeTrue();
 
-        ActivityMonitor.LogKey.TryParse( sWithRemainder, out var failed1 ).Should().BeFalse();
-        failed1.Should().BeNull();
+        ActivityMonitor.LogKey.TryParse( sWithRemainder, out var failed1 ).ShouldBeFalse();
+        failed1.ShouldBeNull();
 
-        FluentActions.Invoking( () => ActivityMonitor.LogKey.Parse( "" ) ).Should().Throw<FormatException>();
-        FluentActions.Invoking( () => ActivityMonitor.LogKey.Parse( "no." ) ).Should().Throw<FormatException>();
-        FluentActions.Invoking( () => ActivityMonitor.LogKey.Parse( "no.1254646cdececececededededsdsdde" ) ).Should().Throw<FormatException>();
+        Util.Invokable( () => ActivityMonitor.LogKey.Parse( "" ) ).ShouldThrow<FormatException>();
+        Util.Invokable( () => ActivityMonitor.LogKey.Parse( "no." ) ).ShouldThrow<FormatException>();
+        Util.Invokable( () => ActivityMonitor.LogKey.Parse( "no.1254646cdececececededededsdsdde" ) ).ShouldThrow<FormatException>();
 
-        ActivityMonitor.LogKey.TryParse( s.Remove( s.Length - 1 ), out var failed2 ).Should().BeFalse();
-        failed2.Should().BeNull();
+        ActivityMonitor.LogKey.TryParse( s.Remove( s.Length - 1 ), out var failed2 ).ShouldBeFalse();
+        failed2.ShouldBeNull();
     }
 
 }

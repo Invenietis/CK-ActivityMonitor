@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
 using System;
 using System.Linq;
@@ -20,32 +20,32 @@ public partial class StaticGateTests
     public void gates_ToString_gives_all_the_details()
     {
         var g = new StaticGate( false );
-        g.ToString().Should().MatchEquivalentOf( "StaticGateTests.cs [Closed] @*/Tests/CK.ActivityMonitor.Tests/StaticGateTests.cs;* - Key: 0" );
+        g.ToString().ShouldMatch( @"StaticGateTests\.cs \[Closed] @.*/Tests/CK\.ActivityMonitor\.Tests/StaticGateTests\.cs;.* - Key: 0" );
 
         var gN = new StaticGate( "Hop", true );
-        gN.ToString().Should().MatchEquivalentOf( "Hop [Opened] @*/Tests/CK.ActivityMonitor.Tests/StaticGateTests.cs;* - Key: 1" );
+        gN.ToString().ShouldMatch( @"Hop \[Opened] @.*/Tests/CK\.ActivityMonitor\.Tests/StaticGateTests\.cs;.* - Key: 1" );
     }
 
     [Test]
     public void finding_gate_by_index()
     {
-        StaticGate.Find( 0 ).Should().BeNull();
-        StaticGate.Find( 1 ).Should().BeNull();
+        StaticGate.Find( 0 ).ShouldBeNull();
+        StaticGate.Find( 1 ).ShouldBeNull();
 
         var g0 = new StaticGate( true );
-        StaticGate.Find( 0 ).Should().BeSameAs( g0 );
-        StaticGate.Find( 1 ).Should().BeNull();
+        StaticGate.Find( 0 ).ShouldBeSameAs( g0 );
+        StaticGate.Find( 1 ).ShouldBeNull();
 
         var g1 = new StaticGate( false );
-        StaticGate.Find( 0 ).Should().BeSameAs( g0 );
-        StaticGate.Find( 1 ).Should().BeSameAs( g1 );
-        StaticGate.Find( 2 ).Should().BeNull();
+        StaticGate.Find( 0 ).ShouldBeSameAs( g0 );
+        StaticGate.Find( 1 ).ShouldBeSameAs( g1 );
+        StaticGate.Find( 2 ).ShouldBeNull();
 
         var g2 = new StaticGate( false );
-        StaticGate.Find( 0 ).Should().BeSameAs( g0 );
-        StaticGate.Find( 1 ).Should().BeSameAs( g1 );
-        StaticGate.Find( 2 ).Should().BeSameAs( g2 );
-        StaticGate.Find( 3 ).Should().BeNull();
+        StaticGate.Find( 0 ).ShouldBeSameAs( g0 );
+        StaticGate.Find( 1 ).ShouldBeSameAs( g1 );
+        StaticGate.Find( 2 ).ShouldBeSameAs( g2 );
+        StaticGate.Find( 3 ).ShouldBeNull();
     }
 
     [Test]
@@ -58,10 +58,10 @@ public partial class StaticGateTests
         g.O( monitor )?.Error( ThrowingMessage() );
 
         g.IsOpen = true;
-        FluentActions.Invoking( () => g.O( monitor )?.UnfilteredLog( ThrowingLogLevel(), null, null, null ) )
-                     .Should().Throw<CKException>().WithMessage( "Called!" );
-        FluentActions.Invoking( () => g.O( monitor )?.Error( ThrowingMessage() ) )
-                     .Should().Throw<CKException>().WithMessage( "Called!" );
+        Util.Invokable( () => g.O( monitor )?.UnfilteredLog( ThrowingLogLevel(), null, null, null ) )
+                     .ShouldThrow<CKException>().Message.ShouldBe( "Called!" );
+        Util.Invokable( () => g.O( monitor )?.Error( ThrowingMessage() ) )
+                     .ShouldThrow<CKException>().Message.ShouldBe( "Called!" );
 
         static LogLevel ThrowingLogLevel() => throw new CKException( "Called!" );
     }
@@ -69,61 +69,61 @@ public partial class StaticGateTests
     [Test]
     public void enemurating_gates()
     {
-        StaticGate.GetStaticGates().Should().BeEmpty();
+        StaticGate.GetStaticGates().ShouldBeEmpty();
         var g0 = new StaticGate( false );
-        StaticGate.GetStaticGates().SequenceEqual( new[] { g0 } ).Should().BeTrue();
+        StaticGate.GetStaticGates().SequenceEqual( new[] { g0 } ).ShouldBeTrue();
         var g1 = new StaticGate( false );
-        StaticGate.GetStaticGates().SequenceEqual( new[] { g0, g1 } ).Should().BeTrue();
+        StaticGate.GetStaticGates().SequenceEqual( new[] { g0, g1 } ).ShouldBeTrue();
         var g2 = new StaticGate( false );
-        StaticGate.GetStaticGates().SequenceEqual( new[] { g0, g1, g2 } ).Should().BeTrue();
+        StaticGate.GetStaticGates().SequenceEqual( new[] { g0, g1, g2 } ).ShouldBeTrue();
         var g3 = new StaticGate( false );
-        StaticGate.GetStaticGates().SequenceEqual( new[] { g0, g1, g2, g3 } ).Should().BeTrue();
+        StaticGate.GetStaticGates().SequenceEqual( new[] { g0, g1, g2, g3 } ).ShouldBeTrue();
     }
 
     [Test]
     public void OpenedCount_and_TotalCount_are_available()
     {
-        StaticGate.TotalCount.Should().Be( 0 );
-        StaticGate.OpenedCount.Should().Be( 0 );
+        StaticGate.TotalCount.ShouldBe( 0 );
+        StaticGate.OpenedCount.ShouldBe( 0 );
         var g0 = new StaticGate( false );
-        StaticGate.TotalCount.Should().Be( 1 );
-        StaticGate.OpenedCount.Should().Be( 0 );
+        StaticGate.TotalCount.ShouldBe( 1 );
+        StaticGate.OpenedCount.ShouldBe( 0 );
         var g1 = new StaticGate( true );
-        StaticGate.TotalCount.Should().Be( 2 );
-        StaticGate.OpenedCount.Should().Be( 1 );
+        StaticGate.TotalCount.ShouldBe( 2 );
+        StaticGate.OpenedCount.ShouldBe( 1 );
         var g2 = new StaticGate( false );
         var g3 = new StaticGate( false );
-        StaticGate.TotalCount.Should().Be( 4 );
-        StaticGate.OpenedCount.Should().Be( 1 );
+        StaticGate.TotalCount.ShouldBe( 4 );
+        StaticGate.OpenedCount.ShouldBe( 1 );
         g1.IsOpen = false;
-        StaticGate.OpenedCount.Should().Be( 0 );
+        StaticGate.OpenedCount.ShouldBe( 0 );
         g2.IsOpen = true;
-        StaticGate.OpenedCount.Should().Be( 1 );
+        StaticGate.OpenedCount.ShouldBe( 1 );
         g1.IsOpen = g2.IsOpen = g3.IsOpen = true;
-        StaticGate.OpenedCount.Should().Be( 3 );
+        StaticGate.OpenedCount.ShouldBe( 3 );
         g0.IsOpen = true;
-        StaticGate.OpenedCount.Should().Be( 4 );
+        StaticGate.OpenedCount.ShouldBe( 4 );
         g0.IsOpen = g1.IsOpen = g2.IsOpen = g3.IsOpen = g3.IsOpen = false;
-        StaticGate.OpenedCount.Should().Be( 0 );
+        StaticGate.OpenedCount.ShouldBe( 0 );
     }
 
     [Test]
     public void Open_requires_a_valid_index_and_CoreApplicationIdentity_InstanceId()
     {
         var g = new StaticGate( false );
-        StaticGate.Open( 0, "not the instanceId", true ).Should().BeFalse();
-        g.IsOpen.Should().BeFalse();
+        StaticGate.Open( 0, "not the instanceId", true ).ShouldBeFalse();
+        g.IsOpen.ShouldBeFalse();
 
-        StaticGate.Open( 3712, CoreApplicationIdentity.InstanceId, true ).Should().BeFalse();
-        g.IsOpen.Should().BeFalse();
+        StaticGate.Open( 3712, CoreApplicationIdentity.InstanceId, true ).ShouldBeFalse();
+        g.IsOpen.ShouldBeFalse();
 
-        StaticGate.Open( 0, CoreApplicationIdentity.InstanceId, true ).Should().BeTrue();
-        g.IsOpen.Should().BeTrue();
-        StaticGate.Open( 0, CoreApplicationIdentity.InstanceId, true ).Should().BeTrue();
-        g.IsOpen.Should().BeTrue();
+        StaticGate.Open( 0, CoreApplicationIdentity.InstanceId, true ).ShouldBeTrue();
+        g.IsOpen.ShouldBeTrue();
+        StaticGate.Open( 0, CoreApplicationIdentity.InstanceId, true ).ShouldBeTrue();
+        g.IsOpen.ShouldBeTrue();
 
-        StaticGate.Open( 0, CoreApplicationIdentity.InstanceId, false ).Should().BeTrue();
-        g.IsOpen.Should().BeFalse();
+        StaticGate.Open( 0, CoreApplicationIdentity.InstanceId, false ).ShouldBeTrue();
+        g.IsOpen.ShouldBeFalse();
     }
 
     [Test]
@@ -135,8 +135,8 @@ public partial class StaticGateTests
         g.StaticLogger?.Fatal( ThrowingMessage() );
 
         g.IsOpen = true;
-        FluentActions.Invoking( () => g.O( monitor )?.Fatal( ThrowingMessage() ) )
-                     .Should().Throw<CKException>().WithMessage( "Called!" );
+        Util.Invokable( () => g.O( monitor )?.Fatal( ThrowingMessage() ) )
+                     .ShouldThrow<CKException>().Message.ShouldBe( "Called!" );
 
     }
 
@@ -145,30 +145,30 @@ public partial class StaticGateTests
     [Test]
     public void StaticGatesConfigurator_tests()
     {
-        StaticGate.TotalCount.Should().Be( 0 );
-        StaticGateConfigurator.GetConfiguration().Should().BeEmpty();
+        StaticGate.TotalCount.ShouldBe( 0 );
+        StaticGateConfigurator.GetConfiguration().ShouldBeEmpty();
 
         var gates = Enumerable.Range( 0, 5 ).Select( i => new StaticGate( $"n°{i}", false ) ).ToArray();
         var c = StaticGateConfigurator.GetConfiguration();
-        c.Split( ';' ).All( x => x.EndsWith( ":!" ) ).Should().BeTrue();
+        c.Split( ';' ).All( x => x.EndsWith( ":!" ) ).ShouldBeTrue();
 
         gates[0].IsOpen = true;
         gates[2].IsOpen = true;
         c = StaticGateConfigurator.GetConfiguration();
-        c.Should().Be( "n°0;n°1:!;n°2;n°3:!;n°4:!" );
+        c.ShouldBe( "n°0;n°1:!;n°2;n°3:!;n°4:!" );
 
         using( TestHelper.Monitor.CollectTexts( out var logs ) )
         {
             StaticGateConfigurator.ApplyConfiguration( TestHelper.Monitor, " FutureGateMustBeClosed  :   ! ;  n°0 : !  ;AnotherFutureMustBeOpened" );
-            logs.Should().HaveCount( 1 );
-            logs[0].Should().Match( "Applying StaticGate configuration: '*" );
+            logs.Count.ShouldBe( 1 );
+            logs[0].ShouldMatch( "Applying StaticGate configuration: '.*" );
         }
-        gates[0].IsOpen.Should().BeFalse();
+        gates[0].IsOpen.ShouldBeFalse();
         var f = new StaticGate( "FutureGateMustBeClosed", open: true );
-        f.IsOpen.Should().BeFalse( "Even if f wanted to be opened, current configuration closed it." );
+        f.IsOpen.ShouldBeFalse( "Even if f wanted to be opened, current configuration closed it." );
 
         var a = new StaticGate( "AnotherFutureMustBeOpened", false );
-        a.IsOpen.Should().BeTrue( "Even if a is initially closed, current configuration opened it." );
+        a.IsOpen.ShouldBeTrue( "Even if a is initially closed, current configuration opened it." );
 
         StaticGateConfigurator.ApplyConfiguration( TestHelper.Monitor, "" );
     }

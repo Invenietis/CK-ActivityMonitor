@@ -5,7 +5,7 @@ using System.Text;
 using NUnit.Framework;
 using System.Xml.Linq;
 using System.Collections.Generic;
-using FluentAssertions;
+using Shouldly;
 using CK.Core.Impl;
 
 namespace CK.Core.Tests.Monitoring;
@@ -32,9 +32,9 @@ public class ActivityMonitorTests
         ActivityMonitor monitor1 = new ActivityMonitor();
         ActivityMonitor monitor2 = new ActivityMonitor();
 
-        c.ToString().Should().Contain( "This monitors has been created at" );
-        c.ToString().Should().Contain( "n°1" );
-        c.ToString().Should().Contain( "n°2" );
+        c.ToString().ShouldContain( "This monitors has been created at" );
+        c.ToString().ShouldContain( "n°1" );
+        c.ToString().ShouldContain( "n°2" );
 
         ActivityMonitor.AutoConfiguration = null;
     }
@@ -44,23 +44,23 @@ public class ActivityMonitorTests
     {
         ActivityMonitor.AutoConfiguration = null;
         IActivityMonitor monitor = new ActivityMonitor();
-        monitor.Output.Clients.Should().HaveCount( 0 );
+        monitor.Output.Clients.Length.ShouldBe( 0 );
 
         var counter = new ActivityMonitorErrorCounter();
         monitor.Output.RegisterClient( counter );
-        monitor.Output.Clients.Should().HaveCount( 1 );
+        monitor.Output.Clients.Length.ShouldBe( 1 );
         Action fail = () => TestHelper.Monitor.Output.RegisterClient( counter );
-        fail.Should().Throw<InvalidOperationException>( "Counter can be registered in one source at a time." );
+        fail.ShouldThrow<InvalidOperationException>( "Counter can be registered in one source at a time." );
 
         var pathCatcher = new ActivityMonitorPathCatcher();
         monitor.Output.RegisterClient( pathCatcher );
-        monitor.Output.Clients.Should().HaveCount( 2 );
+        monitor.Output.Clients.Length.ShouldBe( 2 );
         fail = () => TestHelper.Monitor.Output.RegisterClient( pathCatcher );
-        fail.Should().Throw<InvalidOperationException>( "PathCatcher can be registered in one source at a time." );
+        fail.ShouldThrow<InvalidOperationException>( "PathCatcher can be registered in one source at a time." );
 
         monitor.Output.UnregisterClient( counter );
         monitor.Output.UnregisterClient( pathCatcher );
-        monitor.Output.Clients.Should().HaveCount( 0 );
+        monitor.Output.Clients.Length.ShouldBe( 0 );
     }
 
     [Test]
@@ -68,16 +68,16 @@ public class ActivityMonitorTests
     {
         IActivityMonitor monitor = new ActivityMonitor();
         Action fail = () => monitor.Output.RegisterClient( null! );
-        fail.Should().Throw<ArgumentNullException>();
+        fail.ShouldThrow<ArgumentNullException>();
         fail = () => monitor.Output.UnregisterClient( null! );
-        fail.Should().Throw<ArgumentNullException>();
+        fail.ShouldThrow<ArgumentNullException>();
     }
 
     [Test]
     public void RegisterUniqueClient_skips_null_client_from_factory_and_returns_null()
     {
         var monitor = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
-        monitor.Output.RegisterUniqueClient<ActivityMonitorConsoleClient>( c => false, () => null ).Should().BeNull();
+        monitor.Output.RegisterUniqueClient<ActivityMonitorConsoleClient>( c => false, () => null ).ShouldBeNull();
     }
 
     [Test]
@@ -92,14 +92,14 @@ public class ActivityMonitorTests
             {
                 monitor.AutoTags = ActivityMonitor.Tags.Register( "A|B|C" );
                 monitor.MinimalFilter = LogFilter.Release;
-                monitor.AutoTags.ToString().Should().Be( "A|B|C" );
-                monitor.MinimalFilter.Should().Be( LogFilter.Release );
+                monitor.AutoTags.ToString().ShouldBe( "A|B|C" );
+                monitor.MinimalFilter.ShouldBe( LogFilter.Release );
             }
-            monitor.AutoTags.ToString().Should().Be( "Tag" );
-            monitor.MinimalFilter.Should().Be( LogFilter.Monitor );
+            monitor.AutoTags.ToString().ShouldBe( "Tag" );
+            monitor.MinimalFilter.ShouldBe( LogFilter.Monitor );
         }
-        monitor.AutoTags.Should().BeSameAs( ActivityMonitor.Tags.Empty );
-        monitor.MinimalFilter.Should().Be( LogFilter.Undefined );
+        monitor.AutoTags.ShouldBeSameAs( ActivityMonitor.Tags.Empty );
+        monitor.MinimalFilter.ShouldBe( LogFilter.Undefined );
     }
 
     [Test]
@@ -112,7 +112,7 @@ public class ActivityMonitorTests
         m.OpenTrace( (Exception?)null! );
         m.OpenInfo( "" );
 
-        c.Entries.Should().HaveCount( 4 );
+        c.Entries.Count.ShouldBe( 4 );
         c.Entries.All( e => e.Data.Text == ActivityMonitor.NoLogText );
     }
 
@@ -122,7 +122,7 @@ public class ActivityMonitorTests
         IActivityMonitor monitor = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
         monitor.Output.RegisterClient( new StupidStringClient() );
         monitor.Output.RegisterClient( new StupidXmlClient( new StringWriter() ) );
-        monitor.Output.Clients.Should().HaveCount( 2 );
+        monitor.Output.Clients.Length.ShouldBe( 2 );
 
         var tag1 = ActivityMonitor.Tags.Register( "Product" );
         var tag2 = ActivityMonitor.Tags.Register( "Sql" );
@@ -168,8 +168,8 @@ public class ActivityMonitorTests
 
         IReadOnlyList<XElement> elements = monitor.Output.Clients.OfType<StupidXmlClient>().Single().XElements;
 
-        elements.Descendants( "Info" ).Should().HaveCount( 3 );
-        elements.Descendants( "Trace" ).Should().HaveCount( 2 );
+        elements.Descendants( "Info" ).Count().ShouldBe( 3 );
+        elements.Descendants( "Trace" ).Count().ShouldBe( 2 );
     }
 
     [Test]
@@ -194,15 +194,15 @@ public class ActivityMonitorTests
                 l.Trace( "EXERROR-TEXT3", ex );
             }
         }
-        rawLog.ToString().Should().Contain( "EXERROR-1" );
-        rawLog.ToString().Should().Contain( "EXERROR-2" ).And.Contain( "EXERROR-TEXT2" );
-        rawLog.ToString().Should().Contain( "EXERROR-3" ).And.Contain( "EXERROR-TEXT3" );
+        rawLog.ToString().ShouldContain( "EXERROR-1" );
+        rawLog.ToString().ShouldContain( "EXERROR-2" ).ShouldContain( "EXERROR-TEXT2" );
+        rawLog.ToString().ShouldContain( "EXERROR-3" ).ShouldContain( "EXERROR-TEXT3" );
 
         string text = wLogLovely.ToString();
-        text.Should().Contain( "EXERROR-1" );
-        text.Should().Contain( "EXERROR-2" ).And.Contain( "EXERROR-TEXT2" );
-        text.Should().Contain( "EXERROR-3" ).And.Contain( "EXERROR-TEXT3" );
-        text.Should().Contain( "Stack:" );
+        text.ShouldContain( "EXERROR-1" );
+        text.ShouldContain( "EXERROR-2" ).ShouldContain( "EXERROR-TEXT2" );
+        text.ShouldContain( "EXERROR-3" ).ShouldContain( "EXERROR-TEXT3" );
+        text.ShouldContain( "Stack:" );
     }
 
     [Test]
@@ -218,10 +218,10 @@ public class ActivityMonitorTests
         m.Fatal( "a line" );
         m.Info( "a (filtered) line" );
         m.MonitorEnd();
-        m.CloseGroup().Should().BeFalse();
+        m.CloseGroup().ShouldBeFalse();
         string logs = rawLog.ToString();
-        logs.Should().NotContain( "(filtered)" );
-        logs.Should().Match( "*a group*a line*Done.*", "We used the default 'Done.' end text." );
+        logs.ShouldNotContain( "(filtered)" )
+            .ShouldMatch( "a group.*a line.*Done", "We used the default 'Done.' end text." );
     }
 
     [Test]
@@ -252,10 +252,10 @@ public class ActivityMonitorTests
             }
         }
         string text = wLogLovely.ToString();
-        text.Should().Contain( "EXERROR-Aggreg-1" );
-        text.Should().Contain( "EXERROR-Aggreg-2-1" );
-        text.Should().Contain( "EXERROR-Aggreg-2-2" );
-        text.Should().Contain( "EXERROR-Aggreg-3" );
+        text.ShouldContain( "EXERROR-Aggreg-1" );
+        text.ShouldContain( "EXERROR-Aggreg-2-1" );
+        text.ShouldContain( "EXERROR-Aggreg-2-2" );
+        text.ShouldContain( "EXERROR-Aggreg-3" );
     }
 
     [Test]
@@ -282,7 +282,7 @@ public class ActivityMonitorTests
                 l.Error( "Error n°2." );
                 using( l.OpenWarn( "GroupWarn: this appears." ) )
                 {
-                    l.MinimalFilter.Should().Be( WarnWarn, "Groups does not change the current filter level." );
+                    l.MinimalFilter.ShouldBe( WarnWarn, "Groups does not change the current filter level." );
                     l.Debug( "NO SHOW" );
                     l.Trace( "NO SHOW" );
                     l.Info( "NO SHOW" );
@@ -295,7 +295,7 @@ public class ActivityMonitorTests
                 }
                 using( l.OpenInfo( "GroupInfo: NO SHOW." ) )
                 {
-                    l.MinimalFilter.Should().Be( WarnWarn, "Groups does not change the current filter level." );
+                    l.MinimalFilter.ShouldBe( WarnWarn, "Groups does not change the current filter level." );
                     l.Debug( "NO SHOW" );
                     l.Trace( "NO SHOW" );
                     l.Info( "NO SHOW" );
@@ -309,7 +309,7 @@ public class ActivityMonitorTests
                     {
                     }
                 }
-                l.MinimalFilter.Should().Be( WarnWarn, "But Groups restores the original filter level when closed." );
+                l.MinimalFilter.ShouldBe( WarnWarn, "But Groups restores the original filter level when closed." );
                 l.Debug( "NO SHOW" );
                 l.Trace( "NO SHOW" );
                 l.Info( "NO SHOW" );
@@ -324,19 +324,19 @@ public class ActivityMonitorTests
             l.Error( "Error n°5." );
         }
         string result = log.Writer.ToString();
-        result.Should().NotContain( "NO SHOW" );
-        result.Should().Contain( "Error n°1." )
-                    .And.Contain( "Error n°2." )
-                    .And.Contain( "Error n°3." )
-                    .And.Contain( "Error n°3-bis." )
-                    .And.Contain( "Error n°4." )
-                    .And.Contain( "Error n°5." );
-        result.Should().Contain( "Warn n°1." )
-                    .And.Contain( "Warn n°2." )
-                    .And.Contain( "Warn n°2-bis." )
-                    .And.Contain( "Warn n°3." );
-        result.Should().Contain( "Fatal n°1." )
-                    .And.Contain( "Fatal n°2." );
+        result.ShouldNotContain( "NO SHOW" );
+        result.ShouldContain( "Error n°1." )
+                    .ShouldContain( "Error n°2." )
+                    .ShouldContain( "Error n°3." )
+                    .ShouldContain( "Error n°3-bis." )
+                    .ShouldContain( "Error n°4." )
+                    .ShouldContain( "Error n°5." );
+        result.ShouldContain( "Warn n°1." )
+                    .ShouldContain( "Warn n°2." )
+                    .ShouldContain( "Warn n°2-bis." )
+                    .ShouldContain( "Warn n°3." );
+        result.ShouldContain( "Fatal n°1." )
+                    .ShouldContain( "Fatal n°2." );
     }
 
     [Test]
@@ -355,7 +355,7 @@ public class ActivityMonitorTests
             l.Trace( "At root" );
 
             var end = "Trace: Inside First" + Environment.NewLine + "-" + Environment.NewLine + "Trace: At root";
-            log.Writer.ToString().Should().EndWith( end );
+            log.Writer.ToString().ShouldEndWith( end );
         }
         {
             // g2 is closed after g1.
@@ -372,7 +372,7 @@ public class ActivityMonitorTests
             l.Trace( "At root" );
 
             var end = "Trace: Inside First" + Environment.NewLine + "-" + Environment.NewLine + "Trace: At root";
-            log.Writer.ToString().Should().EndWith( end );
+            log.Writer.ToString().ShouldEndWith( end );
         }
     }
 
@@ -397,7 +397,7 @@ public class ActivityMonitorTests
             l.Error( "Pouf" );
             l.CloseGroup( new ObjectAsConclusion() );
         }
-        log.Writer.ToString().Should().Contain( "Explicit User Conclusion, From Opener, 1 Error" );
+        log.Writer.ToString().ShouldContain( "Explicit User Conclusion, From Opener, 1 Error" );
     }
 
     [Test]
@@ -415,7 +415,7 @@ public class ActivityMonitorTests
         using( monitor.OpenFatal( "!F" ) )
         {
             p.DynamicPath.ToStringPath()
-               .Should().Contain( "!D" ).And.Contain( "!T" ).And.Contain( "!I" ).And.Contain( "!W" ).And.Contain( "!E" ).And.Contain( "!F" );
+               .ShouldContain( "!D" ).ShouldContain( "!T" ).ShouldContain( "!I" ).ShouldContain( "!W" ).ShouldContain( "!E" ).ShouldContain( "!F" );
         }
     }
 
@@ -428,46 +428,46 @@ public class ActivityMonitorTests
         monitor.Output.RegisterClient( p );
 
         monitor.Trace( "Trace n°1" );
-        p.DynamicPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ).Single().Should().Be( "Trace|Trace n°1" );
-        p.LastErrorPath.Should().BeEmpty();
-        p.LastWarnOrErrorPath.Should().BeEmpty();
+        p.DynamicPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ).Single().ShouldBe( "Trace|Trace n°1" );
+        p.LastErrorPath.ShouldBeEmpty();
+        p.LastWarnOrErrorPath.ShouldBeEmpty();
 
         monitor.Trace( "Trace n°2" );
-        p.DynamicPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ).Single().Should().Be( "Trace|Trace n°2" );
-        p.LastErrorPath.Should().BeEmpty();
-        p.LastWarnOrErrorPath.Should().BeEmpty();
+        p.DynamicPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ).Single().ShouldBe( "Trace|Trace n°2" );
+        p.LastErrorPath.ShouldBeEmpty();
+        p.LastWarnOrErrorPath.ShouldBeEmpty();
 
         monitor.Warn( "W1" );
-        p.DynamicPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ).Single().Should().Be( "Warn|W1" );
-        p.LastErrorPath.Should().BeEmpty();
-        p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ).Single().Should().Be( "Warn|W1" );
+        p.DynamicPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ).Single().ShouldBe( "Warn|W1" );
+        p.LastErrorPath.ShouldBeEmpty();
+        p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ).Single().ShouldBe( "Warn|W1" );
 
         monitor.Error( "E2" );
         monitor.Warn( "W1bis" );
-        p.DynamicPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ).Single().Should().Be( "Warn|W1bis" );
-        p.LastErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ).Single().Should().Be( "Error|E2" );
-        p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ).Single().Should().Be( "Warn|W1bis" );
+        p.DynamicPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ).Single().ShouldBe( "Warn|W1bis" );
+        p.LastErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ).Single().ShouldBe( "Error|E2" );
+        p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ).Single().ShouldBe( "Warn|W1bis" );
 
         p.ClearLastWarnPath();
-        p.LastErrorPath.Should().NotBeNull();
-        p.LastWarnOrErrorPath.Should().BeEmpty();
+        p.LastErrorPath.ShouldNotBeNull();
+        p.LastWarnOrErrorPath.ShouldBeEmpty();
 
         p.ClearLastErrorPath();
-        p.LastErrorPath.Should().BeEmpty();
+        p.LastErrorPath.ShouldBeEmpty();
 
         using( monitor.OpenTrace( "G1" ) )
         {
             using( monitor.OpenInfo( "G2" ) )
             {
-                String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).Should().Be( "G1>G2" );
-                p.LastErrorPath.Should().BeEmpty();
+                String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).ShouldBe( "G1>G2" );
+                p.LastErrorPath.ShouldBeEmpty();
                 using( monitor.OpenTrace( "G3" ) )
                 {
                     using( monitor.OpenInfo( "G4" ) )
                     {
                         monitor.Warn( "W1" );
 
-                        String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).Should().Be( "G1>G2>G3>G4>W1" );
+                        String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).ShouldBe( "G1>G2>G3>G4>W1" );
 
                         monitor.Info(
                             "Test With an exception: a Group is created. Since the text of the log is given, the Exception.Message must be displayed explicitly.",
@@ -475,7 +475,7 @@ public class ActivityMonitorTests
                                 new Exception( "With an inner exception. Since these exceptions have not been thrown, there is no stack trace." ) )
                                 );
 
-                        string.Join( ">", p.DynamicPath.Select( e => e.Text ) ).Should().Be( "G1>G2>G3>G4>Test With an exception: a Group is created. Since the text of the log is given, the Exception.Message must be displayed explicitly." );
+                        string.Join( ">", p.DynamicPath.Select( e => e.Text ) ).ShouldBe( "G1>G2>G3>G4>Test With an exception: a Group is created. Since the text of the log is given, the Exception.Message must be displayed explicitly." );
 
                         try
                         {
@@ -505,61 +505,61 @@ public class ActivityMonitorTests
                         catch( Exception ex )
                         {
                             monitor.Trace( ex );
-                            p.DynamicPath.ToStringPath().Length.Should().BeGreaterThan( 0 );
+                            p.DynamicPath.ToStringPath().Length.ShouldBeGreaterThan( 0 );
                         }
 
-                        p.LastErrorPath.Should().BeEmpty();
-                        string.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Info|G2>Trace|G3>Info|G4>Warn|W1" );
+                        p.LastErrorPath.ShouldBeEmpty();
+                        string.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).ShouldBe( "Trace|G1>Info|G2>Trace|G3>Info|G4>Warn|W1" );
                     }
-                    String.Join( ">", p.DynamicPath.Select( e => e.ToString() ) ).Should().Be( "G1>G2>G3>G4" );
-                    p.LastErrorPath.Should().BeEmpty();
-                    String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Info|G2>Trace|G3>Info|G4>Warn|W1" );
+                    String.Join( ">", p.DynamicPath.Select( e => e.ToString() ) ).ShouldBe( "G1>G2>G3>G4" );
+                    p.LastErrorPath.ShouldBeEmpty();
+                    String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).ShouldBe( "Trace|G1>Info|G2>Trace|G3>Info|G4>Warn|W1" );
 
                     monitor.Error( "E1" );
-                    String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).Should().Be( "G1>G2>G3>E1" );
-                    String.Join( ">", p.LastErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Info|G2>Trace|G3>Error|E1" );
-                    String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Info|G2>Trace|G3>Error|E1" );
+                    String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).ShouldBe( "G1>G2>G3>E1" );
+                    String.Join( ">", p.LastErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).ShouldBe( "Trace|G1>Info|G2>Trace|G3>Error|E1" );
+                    String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).ShouldBe( "Trace|G1>Info|G2>Trace|G3>Error|E1" );
                 }
-                String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).Should().Be( "G1>G2>G3" );
-                String.Join( ">", p.LastErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Info|G2>Trace|G3>Error|E1" );
-                String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Info|G2>Trace|G3>Error|E1" );
+                String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).ShouldBe( "G1>G2>G3" );
+                String.Join( ">", p.LastErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).ShouldBe( "Trace|G1>Info|G2>Trace|G3>Error|E1" );
+                String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).ShouldBe( "Trace|G1>Info|G2>Trace|G3>Error|E1" );
             }
-            String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).Should().Be( "G1>G2" );
+            String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).ShouldBe( "G1>G2" );
             using( monitor.OpenTrace( "G2Bis" ) )
             {
-                String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).Should().Be( "G1>G2Bis" );
-                String.Join( ">", p.LastErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Info|G2>Trace|G3>Error|E1" );
-                String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Info|G2>Trace|G3>Error|E1" );
+                String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).ShouldBe( "G1>G2Bis" );
+                String.Join( ">", p.LastErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).ShouldBe( "Trace|G1>Info|G2>Trace|G3>Error|E1" );
+                String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).ShouldBe( "Trace|G1>Info|G2>Trace|G3>Error|E1" );
 
                 monitor.Warn( "W2" );
-                String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).Should().Be( "G1>G2Bis>W2" );
-                String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Trace|G2Bis>Warn|W2" );
-                String.Join( ">", p.LastErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Info|G2>Trace|G3>Error|E1" );
+                String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).ShouldBe( "G1>G2Bis>W2" );
+                String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).ShouldBe( "Trace|G1>Trace|G2Bis>Warn|W2" );
+                String.Join( ">", p.LastErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).ShouldBe( "Trace|G1>Info|G2>Trace|G3>Error|E1" );
             }
             monitor.Fatal( "F1" );
-            String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).Should().Be( "G1>F1" );
-            String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Fatal|F1" );
-            String.Join( ">", p.LastErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Fatal|F1" );
+            String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).ShouldBe( "G1>F1" );
+            String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).ShouldBe( "Trace|G1>Fatal|F1" );
+            String.Join( ">", p.LastErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).ShouldBe( "Trace|G1>Fatal|F1" );
 
             // Extraneous closing are ignored.
             monitor.CloseGroup( null );
 
             monitor.Warn( "W3" );
-            String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).Should().Be( "W3" );
-            String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Warn|W3" );
-            String.Join( ">", p.LastErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Fatal|F1" );
+            String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).ShouldBe( "W3" );
+            String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).ShouldBe( "Warn|W3" );
+            String.Join( ">", p.LastErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).ShouldBe( "Trace|G1>Fatal|F1" );
 
             // Extraneous closing are ignored.
             monitor.CloseGroup( null );
 
             monitor.Warn( "W4" );
-            String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).Should().Be( "W4" );
-            String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Warn|W4" );
-            String.Join( ">", p.LastErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).Should().Be( "Trace|G1>Fatal|F1" );
+            String.Join( ">", p.DynamicPath.Select( e => e.Text ) ).ShouldBe( "W4" );
+            String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).ShouldBe( "Warn|W4" );
+            String.Join( ">", p.LastErrorPath.Select( e => e.MaskedLevel.ToString() + '|' + e.Text ) ).ShouldBe( "Trace|G1>Fatal|F1" );
 
             p.ClearLastWarnPath( true );
-            p.LastErrorPath.Should().BeEmpty();
-            p.LastWarnOrErrorPath.Should().BeEmpty();
+            p.LastErrorPath.ShouldBeEmpty();
+            p.LastWarnOrErrorPath.ShouldBeEmpty();
         }
     }
 
@@ -577,41 +577,41 @@ public class ActivityMonitorTests
         ActivityMonitorPathCatcher p = new ActivityMonitorPathCatcher();
         monitor.Output.RegisterClient( p );
 
-        c.GenerateConclusion.Should().BeFalse( "False by default." );
+        c.GenerateConclusion.ShouldBeFalse( "False by default." );
         c.GenerateConclusion = true;
-        c.Root.MaxLogLevel.Should().Be( LogLevel.None );
+        c.Root.MaxLogLevel.ShouldBe( LogLevel.None );
 
         monitor.Trace( "T1" );
-        c.Root.HasWarnOrError.Should().BeFalse();
-        c.Root.HasError.Should().BeFalse();
-        c.Root.MaxLogLevel.Should().Be( LogLevel.Trace );
-        c.Root.ToString().Should().BeNull();
+        c.Root.HasWarnOrError.ShouldBeFalse();
+        c.Root.HasError.ShouldBeFalse();
+        c.Root.MaxLogLevel.ShouldBe( LogLevel.Trace );
+        c.Root.ToString().ShouldBeNull();
 
         monitor.Warn( "W1" );
-        c.Root.HasWarnOrError.Should().BeTrue();
-        c.Root.HasError.Should().BeFalse();
-        c.Root.MaxLogLevel.Should().Be( LogLevel.Warn );
-        c.Root.ToString().Should().NotBeNullOrEmpty();
+        c.Root.HasWarnOrError.ShouldBeTrue();
+        c.Root.HasError.ShouldBeFalse();
+        c.Root.MaxLogLevel.ShouldBe( LogLevel.Warn );
+        c.Root.ToString().ShouldNotBeNullOrEmpty();
 
         monitor.Error( "E2" );
-        c.Root.HasWarnOrError.Should().BeTrue();
-        c.Root.HasError.Should().BeTrue();
-        c.Root.ErrorCount.Should().Be( 1 );
-        c.Root.MaxLogLevel.Should().Be( LogLevel.Error );
-        c.Root.ToString().Should().NotBeNullOrEmpty();
+        c.Root.HasWarnOrError.ShouldBeTrue();
+        c.Root.HasError.ShouldBeTrue();
+        c.Root.ErrorCount.ShouldBe( 1 );
+        c.Root.MaxLogLevel.ShouldBe( LogLevel.Error );
+        c.Root.ToString().ShouldNotBeNullOrEmpty();
 
         c.Root.ClearError();
-        c.Root.HasWarnOrError.Should().BeTrue();
-        c.Root.HasError.Should().BeFalse();
-        c.Root.ErrorCount.Should().Be( 0 );
-        c.Root.MaxLogLevel.Should().Be( LogLevel.Warn );
-        c.Root.ToString().Should().NotBeNull();
+        c.Root.HasWarnOrError.ShouldBeTrue();
+        c.Root.HasError.ShouldBeFalse();
+        c.Root.ErrorCount.ShouldBe( 0 );
+        c.Root.MaxLogLevel.ShouldBe( LogLevel.Warn );
+        c.Root.ToString().ShouldNotBeNull();
 
         c.Root.ClearWarn();
-        c.Root.HasWarnOrError.Should().BeFalse();
-        c.Root.HasError.Should().BeFalse();
-        c.Root.MaxLogLevel.Should().Be( LogLevel.Info );
-        c.Root.ToString().Should().BeNull();
+        c.Root.HasWarnOrError.ShouldBeFalse();
+        c.Root.HasError.ShouldBeFalse();
+        c.Root.MaxLogLevel.ShouldBe( LogLevel.Info );
+        c.Root.ToString().ShouldBeNull();
 
         using( monitor.OpenTrace( "G1" ) )
         {
@@ -620,47 +620,47 @@ public class ActivityMonitorTests
             {
                 monitor.Error( "E1" );
                 monitor.Fatal( "F1" );
-                c.Root.HasWarnOrError.Should().BeTrue();
-                c.Root.HasError.Should().BeTrue();
-                c.Root.ErrorCount.Should().Be( 1 );
-                c.Root.FatalCount.Should().Be( 1 );
-                c.Root.WarnCount.Should().Be( 0 );
+                c.Root.HasWarnOrError.ShouldBeTrue();
+                c.Root.HasError.ShouldBeTrue();
+                c.Root.ErrorCount.ShouldBe( 1 );
+                c.Root.FatalCount.ShouldBe( 1 );
+                c.Root.WarnCount.ShouldBe( 0 );
 
                 using( monitor.OpenInfo( "G3" ) )
                 {
-                    c.Current.HasWarnOrError.Should().BeFalse();
-                    c.Current.HasError.Should().BeFalse();
-                    c.Current.ErrorCount.Should().Be( 0 );
-                    c.Current.FatalCount.Should().Be( 0 );
-                    c.Current.WarnCount.Should().Be( 0 );
+                    c.Current.HasWarnOrError.ShouldBeFalse();
+                    c.Current.HasError.ShouldBeFalse();
+                    c.Current.ErrorCount.ShouldBe( 0 );
+                    c.Current.FatalCount.ShouldBe( 0 );
+                    c.Current.WarnCount.ShouldBe( 0 );
 
                     monitor.Error( "An error..." );
 
-                    c.Current.HasWarnOrError.Should().BeTrue();
-                    c.Current.HasError.Should().BeTrue();
-                    c.Current.ErrorCount.Should().Be( 1 );
-                    c.Current.FatalCount.Should().Be( 0 );
-                    c.Current.WarnCount.Should().Be( 0 );
+                    c.Current.HasWarnOrError.ShouldBeTrue();
+                    c.Current.HasError.ShouldBeTrue();
+                    c.Current.ErrorCount.ShouldBe( 1 );
+                    c.Current.FatalCount.ShouldBe( 0 );
+                    c.Current.WarnCount.ShouldBe( 0 );
 
                     errorMessage = String.Join( "|", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion?.ToStringGroupConclusion() ) );
-                    errorMessage.Should().Be( "G1-|G2-|G3-|An error...-", "Groups are not closed: no conclusion exist yet." );
+                    errorMessage.ShouldBe( "G1-|G2-|G3-|An error...-", "Groups are not closed: no conclusion exist yet." );
                 }
                 errorMessage = String.Join( "|", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion?.ToStringGroupConclusion() ) );
-                errorMessage.Should().Be( "G1-|G2-|G3-1 Error|An error...-", "G3 is closed: its conclusion is available." );
+                errorMessage.ShouldBe( "G1-|G2-|G3-1 Error|An error...-", "G3 is closed: its conclusion is available." );
             }
             errorMessage = String.Join( "|", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion?.ToStringGroupConclusion() ) );
-            errorMessage.Should().Be( "G1-|G2-1 Fatal error, 2 Errors|G3-1 Error|An error...-" );
+            errorMessage.ShouldBe( "G1-|G2-1 Fatal error, 2 Errors|G3-1 Error|An error...-" );
             monitor.Error( "E3" );
             monitor.Fatal( "F2" );
             monitor.Warn( "W2" );
-            c.Root.HasWarnOrError.Should().BeTrue();
-            c.Root.HasError.Should().BeTrue();
-            c.Root.FatalCount.Should().Be( 2 );
-            c.Root.ErrorCount.Should().Be( 3 );
-            c.Root.MaxLogLevel.Should().Be( LogLevel.Fatal );
+            c.Root.HasWarnOrError.ShouldBeTrue();
+            c.Root.HasError.ShouldBeTrue();
+            c.Root.FatalCount.ShouldBe( 2 );
+            c.Root.ErrorCount.ShouldBe( 3 );
+            c.Root.MaxLogLevel.ShouldBe( LogLevel.Fatal );
         }
-        String.Join( ">", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion?.ToStringGroupConclusion() ) ).Should().Be( "G1-2 Fatal errors, 3 Errors, 1 Warning>F2-" );
-        String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.Text + '-' + e.GroupConclusion?.ToStringGroupConclusion() ) ).Should().Be( "G1-2 Fatal errors, 3 Errors, 1 Warning>W2-" );
+        String.Join( ">", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion?.ToStringGroupConclusion() ) ).ShouldBe( "G1-2 Fatal errors, 3 Errors, 1 Warning>F2-" );
+        String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.Text + '-' + e.GroupConclusion?.ToStringGroupConclusion() ) ).ShouldBe( "G1-2 Fatal errors, 3 Errors, 1 Warning>W2-" );
     }
 
     [Test]
@@ -675,10 +675,10 @@ public class ActivityMonitorTests
         d.Trace( "4" );
         d.Info( "5" );
         d.Warn( "6" );
-        String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "2,3" );
+        String.Join( ",", c.Entries.Select( e => e.Text ) ).ShouldBe( "2,3" );
 
         c.MinimalFilter = LogLevelFilter.Fatal;
-        String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "3" );
+        String.Join( ",", c.Entries.Select( e => e.Text ) ).ShouldBe( "3" );
 
         c.MinimalFilter = LogLevelFilter.Warn;
         using( d.OpenWarn( "A1" ) )
@@ -691,10 +691,10 @@ public class ActivityMonitorTests
             }
         }
         d.Warn( "A6" );
-        String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "3,A1,A2,A3,A6" );
+        String.Join( ",", c.Entries.Select( e => e.Text ) ).ShouldBe( "3,A1,A2,A3,A6" );
 
         c.MinimalFilter = LogLevelFilter.Fatal;
-        String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "3,A3" );
+        String.Join( ",", c.Entries.Select( e => e.Text ) ).ShouldBe( "3,A3" );
 
         c.MinimalFilter = LogLevelFilter.Debug;
         d.MinimalFilter = LogFilter.Debug;
@@ -707,7 +707,7 @@ public class ActivityMonitorTests
                 d.Info( "i1" );
             }
         }
-        String.Join( ",", c.Entries.Select( e => e.Text ) ).Should().Be( "3,A3,d1,d2,f1,d3,i1" );
+        String.Join( ",", c.Entries.Select( e => e.Text ) ).ShouldBe( "3,A3,d1,d2,f1,d3,i1" );
     }
 
     [Test]
@@ -740,11 +740,11 @@ public class ActivityMonitorTests
             }
         }
 
-        sb.ToString().Should().NotContain( "NO SHOW" );
-        sb.ToString().Should().Contain( "Error line at root" );
-        sb.ToString().Should().Contain( "Send error line inside group" );
-        sb.ToString().Should().Contain( "Open error group" );
-        sb.ToString().Should().Contain( "Send error line inside sub group" );
+        sb.ToString().ShouldNotContain( "NO SHOW" );
+        sb.ToString().ShouldContain( "Error line at root" );
+        sb.ToString().ShouldContain( "Send error line inside group" );
+        sb.ToString().ShouldContain( "Open error group" );
+        sb.ToString().ShouldContain( "Send error line inside sub group" );
     }
 
     [Test]
@@ -756,36 +756,36 @@ public class ActivityMonitorTests
         using( m.OpenInfo( "Handling StObj objects." ) )
         {
             m.Fatal( "Oops!" );
-            hasError.Should().BeTrue();
+            hasError.ShouldBeTrue();
             hasError = false;
             m.OpenFatal( "Oops! (Group)" ).Dispose();
-            hasError.Should().BeTrue();
+            hasError.ShouldBeTrue();
             hasError = false;
         }
         hasError = false;
         m.Fatal( "Oops!" );
-        hasError.Should().BeFalse();
+        hasError.ShouldBeFalse();
 
         bool hasFatal = false;
         using( m.OnError( () => hasFatal = true, () => hasError = true ) )
         {
             m.Fatal( "Big Oops!" );
-            hasFatal.Should().BeTrue();
-            hasError.Should().BeFalse();
+            hasFatal.ShouldBeTrue();
+            hasError.ShouldBeFalse();
             m.Error( "Oops!" );
-            hasFatal.Should().BeTrue();
-            hasError.Should().BeTrue();
+            hasFatal.ShouldBeTrue();
+            hasError.ShouldBeTrue();
             hasFatal = hasError = false;
             m.OpenError( "Oops! (Group)" ).Dispose();
-            hasFatal.Should().BeFalse();
-            hasError.Should().BeTrue();
+            hasFatal.ShouldBeFalse();
+            hasError.ShouldBeTrue();
             m.OpenFatal( "Oops! (Group)" ).Dispose();
-            hasFatal.Should().BeTrue(); hasError.Should().BeTrue();
+            hasFatal.ShouldBeTrue(); hasError.ShouldBeTrue();
             hasFatal = hasError = false;
         }
         m.Fatal( "Oops!" );
-        hasFatal.Should().BeFalse();
-        hasError.Should().BeFalse();
+        hasFatal.ShouldBeFalse();
+        hasError.ShouldBeFalse();
     }
 
     [Test]
@@ -794,17 +794,17 @@ public class ActivityMonitorTests
         var m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
         bool hasError = false;
         var tracker = m.OnError( () => hasError = true );
-        hasError.Should().BeFalse();
-        tracker.Enabled.Should().BeTrue();
+        hasError.ShouldBeFalse();
+        tracker.Enabled.ShouldBeTrue();
         using( tracker.ToggleEnable() )
         {
-            tracker.Enabled.Should().BeFalse();
+            tracker.Enabled.ShouldBeFalse();
             m.Error( "e" );
-            hasError.Should().BeFalse();
+            hasError.ShouldBeFalse();
         }
-        tracker.Enabled.Should().BeTrue();
+        tracker.Enabled.ShouldBeTrue();
         m.Error( "e" );
-        hasError.Should().BeTrue();
+        hasError.ShouldBeTrue();
     }
 
     [Test]
@@ -814,20 +814,20 @@ public class ActivityMonitorTests
         string? e = null;
 
         var tracker = m.OnError( error => e = error, disabled: true );
-        tracker.Enabled.Should().BeFalse();
+        tracker.Enabled.ShouldBeFalse();
         m.Error( "e" );
-        e.Should().BeNull();
+        e.ShouldBeNull();
 
         using( tracker.ToggleEnable() )
         {
-            tracker.Enabled.Should().BeTrue();
+            tracker.Enabled.ShouldBeTrue();
             m.Error( "e" );
-            e.Should().Be( "e" );
+            e.ShouldBe( "e" );
         }
-        tracker.Enabled.Should().BeFalse();
+        tracker.Enabled.ShouldBeFalse();
         e = null;
         m.Error( "e" );
-        e.Should().BeNull();
+        e.ShouldBeNull();
     }
 
     [Test]
@@ -836,9 +836,9 @@ public class ActivityMonitorTests
         ActivityMonitor m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
         var tester = m.Output.RegisterClient( new ActivityMonitorClientTester() );
 
-        m.ActualFilter.Should().Be( LogFilter.Undefined );
+        m.ActualFilter.ShouldBe( LogFilter.Undefined );
         tester.AsyncSetMinimalFilterAndWait( LogFilter.Monitor );
-        m.ActualFilter.Should().Be( LogFilter.Monitor );
+        m.ActualFilter.ShouldBe( LogFilter.Monitor );
     }
 
     [Test]
@@ -848,7 +848,7 @@ public class ActivityMonitorTests
         var tester = m.Output.RegisterClient( new ActivityMonitorClientTester() );
 
         m.Error( "Hello World!" );
-        tester.ReceivedTexts.Should().Contain( s => s.Contains( "Hello World!" ) );
+        tester.ReceivedTexts.ShouldContain( s => s.Contains( "Hello World!" ) );
         // This is totally artificial since IsDead is normally hidden 
         // by IActivityMonitorBoundClients.
         tester.IsDead = true;
@@ -856,8 +856,8 @@ public class ActivityMonitorTests
         // This triggers the processing of the clients (since the level is lowered).
         m.Error( "NEVER RECEIVED" );
 
-        m.Output.Clients.Should().BeEmpty();
-        tester.ReceivedTexts.Should().NotContain( s => s.Contains( "NEVER RECEIVED" ) );
+        m.Output.Clients.ShouldBeEmpty();
+        tester.ReceivedTexts.ShouldNotContain( s => s.Contains( "NEVER RECEIVED" ) );
 
     }
 
@@ -868,12 +868,12 @@ public class ActivityMonitorTests
         var tester = m.Output.RegisterClient( new ActivityMonitorClientTester() );
 
         m.Error( "Hello World!" );
-        tester.ReceivedTexts.Should().Contain( s => s.Contains( "Hello World!" ) );
+        tester.ReceivedTexts.ShouldContain( s => s.Contains( "Hello World!" ) );
         tester.AsyncDieAndWait( 20 );
         m.Error( "NEVER RECEIVED" );
 
-        m.Output.Clients.Should().BeEmpty();
-        tester.ReceivedTexts.Should().NotContain( s => s.Contains( "NEVER RECEIVED" ) );
+        m.Output.Clients.ShouldBeEmpty();
+        tester.ReceivedTexts.ShouldNotContain( s => s.Contains( "NEVER RECEIVED" ) );
 
     }
 
@@ -881,12 +881,12 @@ public class ActivityMonitorTests
     {
         protected override void OnOpenGroup( IActivityLogGroup group )
         {
-            (group.Data.Level & LogLevel.IsFiltered).Should().NotBe( 0 );
+            (group.Data.Level & LogLevel.IsFiltered).ShouldNotBe( LogLevel.None );
         }
 
         protected override void OnUnfilteredLog( ref ActivityMonitorLogData data )
         {
-            data.IsFilteredLog.Should().BeTrue();
+            data.IsFilteredLog.ShouldBeTrue();
         }
     }
 
@@ -902,9 +902,9 @@ public class ActivityMonitorTests
         {
             m.Debug( "Here I am in Debug." );
         }
-        tester.ReceivedTexts
-            .Should().Match( e => e.Any( t => t.Contains( "Here I am in Debug." ) ) )
-                     .And.Match( e => !e.All( t => t.Contains( "Here I am NOT in Debug." ) ) );
+        tester.ReceivedTexts.ShouldNotBeNull()
+            .ShouldMatch( e => e.Any( t => t.Contains( "Here I am in Debug." ) ) )
+            .ShouldMatch( e => !e.All( t => t.Contains( "Here I am NOT in Debug." ) ) );
     }
 
     [Test]
@@ -912,13 +912,13 @@ public class ActivityMonitorTests
     public void an_empty_exception_message_is_handled_with_no_log_string()
     {
         var ex = new Exception( null );
-        ex.Message.Should().Be( "Exception of type 'System.Exception' was thrown." );
+        ex.Message.ShouldBe( "Exception of type 'System.Exception' was thrown." );
 
         ActivityMonitor m = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
         var tester = m.Output.RegisterClient( new ActivityMonitorClientTester() );
         m.Fatal( new Exception( "" ) );
         tester.ReceivedTexts
-            .Should().Match( e => e.Any( t => t.Contains( "[no-log]" ) ) );
+            .ShouldMatch( e => e.Any( t => t.Contains( "[no-log]" ) ) );
 
     }
 
@@ -939,7 +939,7 @@ public class ActivityMonitorTests
                     }
                 }
             }
-            logs.Concatenate().Should().Be( "G1, Warn" );
+            logs.Concatenate().ShouldBe( "G1, Warn" );
         }
     }
 
@@ -990,7 +990,7 @@ public class ActivityMonitorTests
         var tester = m.Output.RegisterClient( new TestClient() );
         using( m.OpenTrace( "Hello" ) )
         {
-            tester.LastData.IsOpenGroup.Should().BeTrue();
+            tester.LastData.IsOpenGroup.ShouldBeTrue();
         }
     }
 

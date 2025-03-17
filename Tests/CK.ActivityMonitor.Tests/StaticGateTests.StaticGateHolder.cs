@@ -1,4 +1,3 @@
-using FluentAssertions;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +28,7 @@ public partial class StaticGateTests
     public void static_fields_are_initialized_only_when_they_are_accessed()
     {
         var h = new ThisOneDoesntWork();
-        h.Gates.Should().HaveCount( 0, "No gates registered." );
+        h.Gates.Count.ShouldBe( 0, "No gates registered." );
     }
 
     // This works.
@@ -72,8 +71,8 @@ public partial class StaticGateTests
     public void gate_fields_SHOULD_use_type_initializer_or_declare_an_empty_initializer( string mode )
     {
         IGateHolder h = mode == "Initializer" ? new WithInitializer() : new WithEmptyInitializer();
-        h.Gates.Should().HaveCount( 1 );
-        h.Gates[0].DisplayName.Should().Be( "G" );
+        h.Gates.Count.ShouldBe( 1 );
+        h.Gates[0].DisplayName.ShouldBe( "G" );
     }
 
 }

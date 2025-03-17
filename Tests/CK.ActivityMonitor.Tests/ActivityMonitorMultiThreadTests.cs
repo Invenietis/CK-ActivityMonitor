@@ -1,11 +1,11 @@
-using FluentAssertions;
+using Shouldly;
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
-#nullable enable
+
 
 namespace CK.Core.Tests.Monitoring;
 
@@ -108,7 +108,7 @@ public class ActivityMonitorMultiThreadTests
         ++clientCount;
         WaitActivityMonitorClient client = monitor.Output.RegisterClient( new WaitActivityMonitorClient() );
 
-        monitor.Output.Clients.Should().HaveCount( clientCount );
+        monitor.Output.Clients.Length.ShouldBe( clientCount );
 
         try
         {
@@ -116,12 +116,13 @@ public class ActivityMonitorMultiThreadTests
 
             client.WaitForOnUnfilteredLog();
 
-            var expectedMessage = Impl.ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess.Replace( "{0}", "*" ).Replace( "{1}", "*" ).Replace( "{2}", "*" );
-            monitor.Invoking( sut => sut.Info( "Test must fail" ) )
-                   .Should().Throw<CKException>()
-                   .WithMessage( expectedMessage );
+            var expectedMessage = Impl.ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess
+                                        .Replace( "{0}", ".*" ).Replace( "{1}", ".*" ).Replace( "{2}", ".*" );
+            Util.Invokable( () => monitor.Info( "Test must fail" ) )
+                   .ShouldThrow<CKException>()
+                   .Message.ShouldMatch( expectedMessage );
 
-            monitor.Output.Clients.Should().HaveCount( clientCount, $"Still {clientCount}: Concurrent call: not the fault of the Client." );
+            monitor.Output.Clients.Length.ShouldBe( clientCount, $"Still {clientCount}: Concurrent call: not the fault of the Client." );
         }
         finally
         {
@@ -134,13 +135,13 @@ public class ActivityMonitorMultiThreadTests
         ++clientCount;
         monitor.Output.RegisterClient( new ActionActivityMonitorClient( () =>
           {
-              monitor.Invoking( sut => sut.Info( "Test must fail reentrant client" ) )
-                     .Should().Throw<CKException>()
-                     .WithMessage( Impl.ActivityMonitorResources.ActivityMonitorReentrancyError.Replace( "{0}", "*" ) );
+              Util.Invokable( () => monitor.Info( "Test must fail reentrant client" ) )
+                     .ShouldThrow<CKException>()
+                     .Message.ShouldMatch( Impl.ActivityMonitorResources.ActivityMonitorReentrancyError.Replace( "{0}", ".*" ) );
           } ) );
 
         monitor.Info( "Test must work after reentrant client" );
-        monitor.Output.Clients.Should().HaveCount( clientCount, "The RegisterClient action above is ok: it checks that it triggered a reentrant call." );
+        monitor.Output.Clients.Length.ShouldBe( clientCount, "The RegisterClient action above is ok: it checks that it triggered a reentrant call." );
 
         ++clientCount;
         monitor.Output.RegisterClient( new ActionActivityMonitorClient( () =>
@@ -149,7 +150,7 @@ public class ActivityMonitorMultiThreadTests
           } ) );
 
         monitor.Info( "Test must work after reentrant client" );
-        monitor.Output.Clients.Should().HaveCount( clientCount - 1, "The BUGGY RegisterClient action above is NOT ok: it triggers a reentrant call exception => We have removed it." );
+        monitor.Output.Clients.Length.ShouldBe( clientCount - 1, "The BUGGY RegisterClient action above is NOT ok: it triggers a reentrant call exception => We have removed it." );
     }
 
     [Test]
@@ -157,13 +158,13 @@ public class ActivityMonitorMultiThreadTests
     {
         IActivityMonitor monitor = new ActivityMonitor( ActivityMonitorOptions.SkipAutoConfiguration );
         int clientCount = monitor.Output.Clients.Length;
-        monitor.Output.Clients.Should().HaveCount( clientCount );
+        monitor.Output.Clients.Length.ShouldBe( clientCount );
 
         BuggyActivityMonitorClient client = new BuggyActivityMonitorClient( monitor );
         monitor.Output.RegisterClient( client );
-        monitor.Output.Clients.Should().HaveCount( clientCount + 1 );
+        monitor.Output.Clients.Length.ShouldBe( clientCount + 1 );
         monitor.Info( "Test" );
-        monitor.Output.Clients.Should().HaveCount( clientCount );
+        monitor.Output.Clients.Length.ShouldBe( clientCount );
 
         monitor.Info( "Test" );
     }
@@ -177,7 +178,7 @@ public class ActivityMonitorMultiThreadTests
         // Artificially slows down logging to ensure that concurrent access occurs.
         monitor.Output.RegisterClient( new ActionActivityMonitorClient( () => Thread.Sleep( 50 ) ) );
         AggregateException? ex = ConcurrentThrow( monitor );
-        ex.Should().NotBeNull();
+        ex.ShouldNotBeNull();
 
         monitor.Info( "Test" );
     }
@@ -225,7 +226,7 @@ public class ActivityMonitorMultiThreadTests
         {
             tasks.Where( x => x.IsFaulted )
                  .SelectMany( x => x.Exception!.Flatten().InnerExceptions )
-                 .Should().AllBeOfType<CKException>();
+                 .ShouldAll( x => x.ShouldBeOfType<CKException>() );
             return ex;
         }
         return null;
@@ -251,9 +252,9 @@ public class ActivityMonitorMultiThreadTests
 
         // To test if the StackTrace is enabled:
         // 1 - The Contains method can be used on the Atomic traits...
-        monitor.AutoTags.AtomicTraits.Contains( ActivityMonitor.Tags.StackTrace ).Should().BeTrue();
+        monitor.AutoTags.AtomicTraits.Contains( ActivityMonitor.Tags.StackTrace ).ShouldBeTrue();
         // 2 - ...or the & (Intersect) operator can do the job.
-        ((monitor.AutoTags & ActivityMonitor.Tags.StackTrace) == ActivityMonitor.Tags.StackTrace).Should().BeTrue();
+        ((monitor.AutoTags & ActivityMonitor.Tags.StackTrace) == ActivityMonitor.Tags.StackTrace).ShouldBeTrue();
 
         CheckConccurrentException( monitor, true );
         monitor.AutoTags = monitor.AutoTags.Except( ActivityMonitor.Tags.StackTrace );
@@ -262,15 +263,15 @@ public class ActivityMonitorMultiThreadTests
         static void CheckConccurrentException( IActivityMonitor m, bool mustHaveCallStack )
         {
             AggregateException? ex = ConcurrentThrow( m );
-            ex.Should().NotBeNull();
+            ex.ShouldNotBeNull();
             CKException one = ex!.Flatten().InnerExceptions.OfType<CKException>().First();
             if( mustHaveCallStack )
             {
-                one.Message.Should().Contain( "-- Other Monitor's StackTrace" );
+                one.Message.ShouldContain( "-- Other Monitor's StackTrace" );
             }
             else
             {
-                one.Message.Should().NotContain( "-- Other Monitor's StackTrace" );
+                one.Message.ShouldNotContain( "-- Other Monitor's StackTrace" );
             }
         }
     }

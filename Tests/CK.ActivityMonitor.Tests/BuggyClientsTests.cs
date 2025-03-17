@@ -1,5 +1,3 @@
-
-using FluentAssertions;
 using NUnit.Framework;
 using System;
 using CK.Core.Impl;
@@ -137,9 +135,8 @@ public class BuggyClientsTests
 
         m.Info( "Still working." );
 
-        output.Writer.ToString().Should()
-            .Contain( $"Bug {c}." )
-            .And.Contain( "Still working" );
+        output.Writer.ToString().ShouldContain( $"Bug {c}." )
+                                .ShouldContain( "Still working" );
 
     }
 }

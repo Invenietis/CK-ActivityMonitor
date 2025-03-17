@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -13,7 +13,7 @@ public class ExternalLogDataPoolTests
     [TearDown]
     public void CheckNoMoreAliveExternalLogData()
     {
-        ActivityMonitorExternalLogData.AliveCount.Should().Be( 0 );
+        ActivityMonitorExternalLogData.AliveCount.ShouldBe( 0 );
     }
 
     [Test]
@@ -26,17 +26,17 @@ public class ExternalLogDataPoolTests
         d.SetText( "Another..." );
 
         ActivityMonitorExternalLogData e = d.AcquireExternalData();
-        ActivityMonitorExternalLogData.AliveCount.Should().Be( 1 );
+        ActivityMonitorExternalLogData.AliveCount.ShouldBe( 1 );
 
-        FluentActions.Invoking( () => d.SetLogTime( DateTimeStamp.UtcNow ) ).Should().Throw<InvalidOperationException>();
-        FluentActions.Invoking( () => d.SetTags( ActivityMonitor.Tags.SecurityCritical ) ).Should().Throw<InvalidOperationException>();
-        FluentActions.Invoking( () => d.SetText( "Another..." ) ).Should().Throw<InvalidOperationException>();
+        Util.Invokable( () => d.SetLogTime( DateTimeStamp.UtcNow ) ).ShouldThrow<InvalidOperationException>();
+        Util.Invokable( () => d.SetTags( ActivityMonitor.Tags.SecurityCritical ) ).ShouldThrow<InvalidOperationException>();
+        Util.Invokable( () => d.SetText( "Another..." ) ).ShouldThrow<InvalidOperationException>();
 
         ActivityMonitorExternalLogData e2 = d.AcquireExternalData();
-        e2.Should().BeSameAs( e );
-        ActivityMonitorExternalLogData.AliveCount.Should().Be( 1 );
+        e2.ShouldBeSameAs( e );
+        ActivityMonitorExternalLogData.AliveCount.ShouldBe( 1 );
         e.Release();
-        ActivityMonitorExternalLogData.AliveCount.Should().Be( 1 );
+        ActivityMonitorExternalLogData.AliveCount.ShouldBe( 1 );
         e.Release();
     }
 
@@ -56,7 +56,7 @@ public class ExternalLogDataPoolTests
                 var d = ActivityMonitor.StaticLogger.CreateActivityMonitorLogData( LogLevel.Info, ActivityMonitor.Tags.Empty, "text", null, "fileName", 0, false );
                 externalLogData.Add( d.AcquireExternalData() );
             }
-            staticLogs.Should().BeEmpty();
+            staticLogs.ShouldBeEmpty();
 
             // First warning.
             var dInExcess1 = ActivityMonitor.StaticLogger.CreateActivityMonitorLogData( LogLevel.Info, ActivityMonitor.Tags.Empty, "in excess", null, "fileName", 0, false );
@@ -66,9 +66,9 @@ public class ExternalLogDataPoolTests
             foreach( var e in externalLogData ) e.Release();
             externalLogData.Clear();
 
-            staticLogs.Should().HaveCount( 1 );
+            staticLogs.Count.ShouldBe( 1 );
             capacity += ActivityMonitorExternalLogData.PoolCapacityIncrement;
-            staticLogs[0].Should().Be( $"The log data pool has been increased to {capacity}." );
+            staticLogs[0].ShouldBe( $"The log data pool has been increased to {capacity}." );
             staticLogs.Clear();
 
             // One more warning.
@@ -77,7 +77,7 @@ public class ExternalLogDataPoolTests
                 var d = ActivityMonitor.StaticLogger.CreateActivityMonitorLogData( LogLevel.Info, ActivityMonitor.Tags.Empty, "text", null, "fileName", 0, false );
                 externalLogData.Add( d.AcquireExternalData() );
             }
-            staticLogs.Should().BeEmpty();
+            staticLogs.ShouldBeEmpty();
 
             var dInExcess2 = ActivityMonitor.StaticLogger.CreateActivityMonitorLogData( LogLevel.Info, ActivityMonitor.Tags.Empty, "in excess", null, "fileName", 0, false );
             externalLogData.Add( dInExcess2.AcquireExternalData() );
@@ -86,8 +86,8 @@ public class ExternalLogDataPoolTests
             externalLogData.Clear();
 
             capacity += ActivityMonitorExternalLogData.PoolCapacityIncrement;
-            staticLogs.Should().HaveCount( 1 );
-            staticLogs[0].Should().Be( $"The log data pool has been increased to {capacity}." );
+            staticLogs.Count.ShouldBe( 1 );
+            staticLogs[0].ShouldBe( $"The log data pool has been increased to {capacity}." );
 
             // Sleeps for one second to reset the pool alert time if another test has previously
             // emitted it.
@@ -102,13 +102,13 @@ public class ExternalLogDataPoolTests
 
             // Release them: the pool is now full.
             foreach( var e in externalLogData ) e.Release();
-            ActivityMonitorExternalLogData.PooledEntryCount.Should().Be( ActivityMonitorExternalLogData.MaximalCapacity );
+            ActivityMonitorExternalLogData.PooledEntryCount.ShouldBe( ActivityMonitorExternalLogData.MaximalCapacity );
             externalLogData.Clear();
 
-            ActivityMonitorExternalLogData.CurrentPoolCapacity.Should().Be( ActivityMonitorExternalLogData.MaximalCapacity );
+            ActivityMonitorExternalLogData.CurrentPoolCapacity.ShouldBe( ActivityMonitorExternalLogData.MaximalCapacity );
             // We have received n new warnings per increment until the MaximalCapacity.
-            staticLogs.Should().HaveCount( (ActivityMonitorExternalLogData.MaximalCapacity - capacity) / ActivityMonitorExternalLogData.PoolCapacityIncrement + 2 );
-            staticLogs[^1].Should().StartWith( $"The log data pool reached its maximal capacity of {ActivityMonitorExternalLogData.MaximalCapacity}." );
+            staticLogs.Count.ShouldBe( (ActivityMonitorExternalLogData.MaximalCapacity - capacity) / ActivityMonitorExternalLogData.PoolCapacityIncrement + 2 );
+            staticLogs[^1].ShouldStartWith( $"The log data pool reached its maximal capacity of {ActivityMonitorExternalLogData.MaximalCapacity}." );
             staticLogs.Clear();
 
             // Error logs are emitted only once per second.
@@ -118,12 +118,12 @@ public class ExternalLogDataPoolTests
                 var d = ActivityMonitor.StaticLogger.CreateActivityMonitorLogData( LogLevel.Info, ActivityMonitor.Tags.Empty, "text", null, "fileName", 0, false );
                 externalLogData.Add( d.AcquireExternalData() );
             }
-            ActivityMonitorExternalLogData.PooledEntryCount.Should().Be( 0, "The pool has no more available entry." );
+            ActivityMonitorExternalLogData.PooledEntryCount.ShouldBe( 0, "The pool has no more available entry." );
             // Release them: the pool is now full.
             foreach( var e in externalLogData ) e.Release();
-            ActivityMonitorExternalLogData.PooledEntryCount.Should().Be( ActivityMonitorExternalLogData.MaximalCapacity );
+            ActivityMonitorExternalLogData.PooledEntryCount.ShouldBe( ActivityMonitorExternalLogData.MaximalCapacity );
             externalLogData.Clear();
-            staticLogs.Should().BeEmpty( "They all have been retrived from the pool: no error." );
+            staticLogs.ShouldBeEmpty( "They all have been retrived from the pool: no error." );
 
             // Fill the pool up to the max plus 2 in excess.
             for( int i = 0; i < ActivityMonitorExternalLogData.MaximalCapacity + 2; ++i )
@@ -131,7 +131,7 @@ public class ExternalLogDataPoolTests
                 var d = ActivityMonitor.StaticLogger.CreateActivityMonitorLogData( LogLevel.Info, ActivityMonitor.Tags.Empty, "text", null, "fileName", 0, false );
                 externalLogData.Add( d.AcquireExternalData() );
             }
-            ActivityMonitorExternalLogData.PooledEntryCount.Should().Be( 0, "The pool has no more available entry." );
+            ActivityMonitorExternalLogData.PooledEntryCount.ShouldBe( 0, "The pool has no more available entry." );
             // Release only the MaximalCapacity entries: they will totally fill the pool.
             foreach( var e in externalLogData.Skip( 2 ) )
             {
@@ -141,12 +141,12 @@ public class ExternalLogDataPoolTests
             // We have reached the max but the last pool alert has been emitted recently (less than one 1 second),
             // the next Release() will not emit it.
             externalLogData[0].Release();
-            staticLogs.Should().BeEmpty( "Too early." );
+            staticLogs.ShouldBeEmpty( "Too early." );
             Thread.Sleep( 1100 );
             // Releasing the last one more than one second after will raise the alert.
             externalLogData[1].Release();
-            staticLogs.Should().HaveCount( 1, "Reached more than MaximalCapacity again." );
-            staticLogs[0].Should().StartWith( $"The log data pool reached its maximal capacity of {ActivityMonitorExternalLogData.MaximalCapacity}." );
+            staticLogs.Count.ShouldBe( 1, "Reached more than MaximalCapacity again." );
+            staticLogs[0].ShouldStartWith( $"The log data pool reached its maximal capacity of {ActivityMonitorExternalLogData.MaximalCapacity}." );
         }
         finally
         {

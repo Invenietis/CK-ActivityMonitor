@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using CK.Core.Impl;
-using FluentAssertions;
-#nullable enable
+using Shouldly;
+
 
 namespace CK.Core.Tests.Monitoring;
 
@@ -89,13 +89,13 @@ class ActivityMonitorClientTester : IActivityMonitorBoundClient
 
     void IActivityMonitorClient.OnUnfilteredLog( ref ActivityMonitorLogData data )
     {
-        data.FileName.Should().NotBeNullOrEmpty();
+        data.FileName.ShouldNotBeNullOrEmpty();
         Util.InterlockedAdd( ref _text, String.Format( "{0} {1} - {2} -[{3}]", new String( '>', _depth ), data.Level, data.Text, data.Tags ) );
     }
 
     void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group )
     {
-        group.Data.FileName.Should().NotBeNullOrEmpty();
+        group.Data.FileName.ShouldNotBeNullOrEmpty();
         int d = Interlocked.Increment( ref _depth );
         Util.InterlockedAdd( ref _text, String.Format( "{0} {1} - {2} -[{3}]", new String( '>', d ), group.Data.Level, group.Data.Text, group.Data.Tags ) );
     }
@@ -110,7 +110,7 @@ class ActivityMonitorClientTester : IActivityMonitorBoundClient
 
     void IActivityMonitorClient.OnTopicChanged( string newTopic, string? fileName, int lineNumber )
     {
-        fileName.Should().NotBeNullOrEmpty();
+        fileName.ShouldNotBeNullOrEmpty();
     }
 
     void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )

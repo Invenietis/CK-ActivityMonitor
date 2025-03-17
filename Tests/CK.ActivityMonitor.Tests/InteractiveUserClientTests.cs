@@ -1,5 +1,4 @@
 using System.Text;
-using FluentAssertions;
 using NUnit.Framework;
 
 namespace CK.Core.Tests.Monitoring;
@@ -30,7 +29,7 @@ public class InteractiveUserClientTests
         m.Trace( "NOSHOW" );
         m.SetInteractiveUserFilter( LogClamper.Undefined );
         m.Trace( "B" );
-        c.ToString().Should().Contain( "A" ).And.Contain( "B" ).And.NotContain( "NOSHOW" );
+        c.ToString().ShouldContain( "A" ).ShouldContain( "B" ).ShouldNotContain( "NOSHOW" );
     }
 
     [Test]
@@ -53,8 +52,14 @@ public class InteractiveUserClientTests
             m.Trace( "NOSHOW" );
         }
         m.Error( "D in 1" );
-        c1.ToString().Should().Contain( "A in 1" ).And.Contain( "B in both" ).And.Contain( "C in both" ).And.Contain( "D in 1" ).And.NotContain( "NOSHOW" );
-        c2.ToString().Should().Contain( "B in both" ).And.Contain( "C in both" ).And.NotContain( "NOSHOW" );
+        c1.ToString().ShouldContain( "A in 1" )
+                     .ShouldContain( "B in both" )
+                     .ShouldContain( "C in both" )
+                     .ShouldContain( "D in 1" )
+                     .ShouldNotContain( "NOSHOW" );
+        c2.ToString().ShouldContain( "B in both" )
+                     .ShouldContain( "C in both" )
+                     .ShouldNotContain( "NOSHOW" );
     }
 
 }

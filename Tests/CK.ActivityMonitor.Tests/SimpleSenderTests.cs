@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using NUnit.Framework;
-using FluentAssertions;
+using Shouldly;
 
 namespace CK.Core.Tests.Monitoring;
 
@@ -22,11 +22,11 @@ public class SimpleSenderTests
         client.Entries.Where( e => e.Data.Level == (LogLevel.Fatal | LogLevel.IsFiltered) )
                         .Select( e => e.Data.Text + e.Data.Exception?.Message + e.Data.Tags )
                         .Concatenate()
-            .Should().Be( "Text1, EX1EX1, Text2EX2, Text3Tag1, Text4EX3Tag2, EX4EX4Tag3" );
+            .ShouldBe( "Text1, EX1EX1, Text2EX2, Text3Tag1, Text4EX3Tag2, EX4EX4Tag3" );
 
 
         (m.ActualFilter.Line == LogLevelFilter.None && ActivityMonitor.DefaultFilter.Line > LogLevelFilter.Debug)
-            .Should().BeTrue( "The Default filter is set to Trace and should not be changed by this unit tests." );
+            .ShouldBeTrue( "The Default filter is set to Trace and should not be changed by this unit tests." );
 
         client.Entries.Clear();
         var hole = Environment.TickCount;
@@ -39,7 +39,7 @@ public class SimpleSenderTests
         m.Log( LogLevel.Debug, TestHelper.Tag3, new Exception( "EX4" ) );
         client.Entries.Select( e => e.Data.Text + e.Data.Exception?.Message + e.Data.Tags )
                       .Concatenate()
-            .Should().Be( $"Text1{hole}, EX1EX1, Text2{hole}EX2, Text3{hole}Tag1, Text4{hole}EX3Tag2" );
+            .ShouldBe( $"Text1{hole}, EX1EX1, Text2{hole}EX2, Text3{hole}Tag1, Text4{hole}EX3Tag2" );
     }
 
     [Test]
@@ -62,7 +62,7 @@ public class SimpleSenderTests
         client.Entries.Where( e => e.Data.Level == (LogLevel.Info | LogLevel.IsFiltered) )
                         .Select( e => e.Data.Text + e.Data.Exception?.Message + e.Data.Tags )
                         .Concatenate()
-            .Should().Be( $"Text1, EX1EX1, Text2EX2, Text3Tag1, Text4EX3Tag2, EX4EX4Tag3, F1{hole}, F2{hole}X2, F3{hole}Tag4, F4{hole}X3Tag5" );
+            .ShouldBe( $"Text1, EX1EX1, Text2EX2, Text3Tag1, Text4EX3Tag2, EX4EX4Tag3, F1{hole}, F2{hole}X2, F3{hole}Tag4, F4{hole}X3Tag5" );
 
     }
 
@@ -88,12 +88,12 @@ public class SimpleSenderTests
         client.Entries.Where( e => e.Data.Level == (LogLevel.Info | LogLevel.IsFiltered) )
                         .Select( e => e.Data.Text + e.Data.Exception?.Message + e.Data.Tags + e.Conclusions!.ToStringGroupConclusion() )
                         .Concatenate()
-            .Should().Be( $"Text1/Text1, EX1EX1, Text2EX2, Text3Tag1, Text4EX3Tag2, EX4EX4Tag3, F1{hole}, F2{hole}X2, F3{hole}Tag4, F4{hole}X3Tag5" );
+            .ShouldBe( $"Text1/Text1, EX1EX1, Text2EX2, Text3Tag1, Text4EX3Tag2, EX4EX4Tag3, F1{hole}, F2{hole}X2, F3{hole}Tag4, F4{hole}X3Tag5" );
 
         m.MinimalFilter = LogFilter.Release;
         // The text is never called.
         IDisposableGroup g = m.OpenInfo( $"{(0 == 0 ? throw new Exception( "Never called" ) : "")}" );
-        g.IsRejectedGroup.Should().BeTrue();
+        g.IsRejectedGroup.ShouldBeTrue();
         // The conclude function is never called.
         IDisposable d = g.ConcludeWith( () => throw new Exception( "Never called" ) );
         d.Dispose();
@@ -123,17 +123,17 @@ public class SimpleSenderTests
         client.Entries.Where( e => e.Data.Level == (LogLevel.Fatal | LogLevel.IsFiltered) )
                         .Select( e => e.Data.Text + e.Data.Exception?.Message + e.Data.Tags + e.Conclusions!.ToStringGroupConclusion() )
                         .Concatenate()
-            .Should().Be( $"Text1, EX1EX1, Text2EX2, Text3Tag1/Text3, Text4EX3Tag2, EX4EX4Tag3" );
+            .ShouldBe( $"Text1, EX1EX1, Text2EX2, Text3Tag1/Text3, Text4EX3Tag2, EX4EX4Tag3" );
 
         client.Entries.Where( e => e.Data.Level == (LogLevel.Info | LogLevel.IsFiltered) )
                         .Select( e => e.Data.Text + e.Data.Exception?.Message + e.Data.Tags + e.Conclusions!.ToStringGroupConclusion() )
                         .Concatenate()
-            .Should().Be( $"Text1{hole}/Text1, EX1EX1, Text2{hole}EX2, Text3{hole}Tag1, Text4{hole}EX3Tag2, EX4EX4Tag3" );
+            .ShouldBe( $"Text1{hole}/Text1, EX1EX1, Text2{hole}EX2, Text3{hole}Tag1, Text4{hole}EX3Tag2, EX4EX4Tag3" );
 
         m.MinimalFilter = LogFilter.Release;
         // The text is never called.
         IDisposableGroup g = m.OpenGroup( LogLevel.Info, $"Bug {(1 == 1 ? throw new Exception( "Never called" ) : 0)}" );
-        g.IsRejectedGroup.Should().BeTrue();
+        g.IsRejectedGroup.ShouldBeTrue();
         // The conclude function is never called.
         IDisposable d = g.ConcludeWith( () => throw new Exception( "Never called" ) );
         d.Dispose();
